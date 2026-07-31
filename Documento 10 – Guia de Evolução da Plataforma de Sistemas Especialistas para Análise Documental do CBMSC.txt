@@ -1,0 +1,295 @@
+# Documento 10 – Guia de Evolução da Plataforma de Sistemas Especialistas para Análise Documental do CBMSC
+
+**Versão:** 1.0
+**Status:** Documento Arquitetural Permanente
+**Precedência:** Alta
+
+---
+
+# 1. Finalidade
+
+Este documento estabelece os princípios que deverão orientar toda evolução futura da Plataforma de Sistemas Especialistas para Análise Documental do Corpo de Bombeiros Militar de Santa Catarina (CBMSC).
+
+Seu objetivo é preservar a identidade arquitetural da plataforma ao longo do tempo, evitando mudanças que comprometam sua consistência, rastreabilidade, manutenibilidade ou independência entre domínios.
+
+Este documento complementa a Diretriz Arquitetural da Plataforma e deverá orientar qualquer atividade de desenvolvimento, expansão ou refatoração.
+
+---
+
+# 2. Princípio Fundamental
+
+A plataforma é um **Sistema Especialista Baseado em Conhecimento (Knowledge-Based Expert System)**.
+
+Sua finalidade não é produzir respostas criativas ou probabilísticas.
+
+Sua finalidade é executar processos administrativos mediante aplicação sistemática de conhecimento institucional previamente estruturado.
+
+Toda evolução deverá preservar essa característica.
+
+---
+
+# 3. Conhecimento Institucional
+
+Todo conhecimento utilizado pelo sistema deverá estar explicitamente representado.
+
+O conhecimento nunca deverá permanecer implícito dentro do modelo de linguagem.
+
+As regras institucionais deverão existir exclusivamente na Base de Conhecimento.
+
+São exemplos de conhecimento institucional:
+
+* requisitos;
+* critérios;
+* regras;
+* precedências;
+* documentos obrigatórios;
+* evidências;
+* não conformidades;
+* exceções previstas.
+
+---
+
+# 4. Separação entre Conhecimento e Inferência
+
+O projeto adota separação absoluta entre:
+
+## Conhecimento
+
+Representa:
+
+* normas;
+* regras;
+* critérios;
+* requisitos;
+* evidências.
+
+## Inferência
+
+Representa:
+
+* algoritmo de análise;
+* sequência lógica;
+* processamento;
+* consolidação;
+* geração do relatório.
+
+O mecanismo de inferência nunca deverá incorporar conhecimento específico de qualquer domínio.
+
+---
+
+# 5. O Papel do Modelo de Linguagem
+
+O Modelo de Linguagem (LLM) não constitui a fonte de conhecimento do sistema.
+
+Sua função limita-se a executar o processo de inferência utilizando exclusivamente o conhecimento previamente estruturado.
+
+O modelo deverá atuar como:
+
+* executor;
+* organizador;
+* correlacionador;
+* sintetizador.
+
+Jamais como autoridade normativa.
+
+---
+
+# 6. Prioridade das Fontes
+
+Durante qualquer análise deverá ser observada rigorosamente a seguinte hierarquia:
+
+1. Base de Conhecimento;
+2. POPs;
+3. Processo de Inferência;
+4. Diretrizes Arquiteturais;
+5. Documentação do processo analisado.
+
+Conhecimento externo somente poderá ser utilizado quando explicitamente autorizado.
+
+---
+
+# 7. Evolução por Bases de Conhecimento
+
+A expansão da plataforma deverá ocorrer preferencialmente mediante criação de novas Bases de Conhecimento.
+
+Sempre que possível, novos processos administrativos deverão ser implementados sem alterações no Núcleo Permanente.
+
+O surgimento de um novo domínio não deverá exigir mudanças no algoritmo geral de inferência.
+
+---
+
+# 8. Reutilização Máxima
+
+Antes de criar qualquer novo componente deverá ser verificado se ele pode ser reutilizado por outros domínios.
+
+Sempre que possível, funcionalidades deverão migrar para o Núcleo Permanente.
+
+Duplicação de lógica deverá ser evitada.
+
+---
+
+# 9. Independência entre Domínios
+
+Nenhum domínio poderá depender da estrutura interna de outro.
+
+Habite-se não deverá depender da Base IRA.
+
+IRA não deverá depender da Base Eventos.
+
+Cada Base de Conhecimento deverá ser autônoma.
+
+O único elemento compartilhado será o Núcleo Permanente.
+
+---
+
+# 10. Escalabilidade Arquitetural
+
+Toda decisão arquitetural deverá considerar a futura incorporação de novos sistemas especialistas.
+
+A plataforma deverá permanecer capaz de incorporar novos domínios sem necessidade de reestruturação significativa.
+
+---
+
+# 11. Modularidade
+
+Cada domínio deverá possuir seus próprios componentes especializados.
+
+Exemplo:
+
+* Base de Conhecimento;
+* Catálogo de Entidades;
+* Regras;
+* Critérios;
+* Não Conformidades.
+
+Todos os módulos deverão utilizar o mesmo mecanismo de inferência.
+
+---
+
+# 12. Rastreabilidade
+
+Toda conclusão produzida pela plataforma deverá ser rastreável.
+
+Cada conclusão deverá possuir, sempre que possível:
+
+* documento de origem;
+* entidade utilizada;
+* requisito aplicado;
+* critério aplicado;
+* regra utilizada;
+* evidência considerada;
+* justificativa.
+
+Conclusões sem rastreabilidade deverão ser consideradas inválidas.
+
+---
+
+# 13. Determinismo
+
+O comportamento da plataforma deverá ser o mais determinístico possível.
+
+Diante da mesma documentação e da mesma Base de Conhecimento, o sistema deverá produzir resultados equivalentes.
+
+A evolução futura deverá priorizar consistência antes de criatividade.
+
+---
+
+# 14. Conservadorismo Técnico
+
+Na ausência de evidência suficiente, o sistema nunca deverá completar lacunas por inferência probabilística.
+
+Quando a documentação não permitir verificar determinado requisito, a resposta deverá indicar insuficiência de evidências.
+
+O sistema não deverá presumir conformidade nem não conformidade.
+
+---
+
+# 15. Neutralidade
+
+A plataforma não possui interesse no deferimento ou indeferimento do processo administrativo.
+
+Seu único objetivo é verificar conformidade documental segundo as regras da Base de Conhecimento.
+
+---
+
+# 16. Explicabilidade
+
+Toda decisão deverá poder ser reconstruída.
+
+Um analista humano deverá conseguir compreender:
+
+* quais regras foram aplicadas;
+* quais documentos foram utilizados;
+* quais evidências fundamentaram a conclusão.
+
+A plataforma deverá privilegiar transparência em detrimento de respostas resumidas.
+
+---
+
+# 17. Evolução dos POPs
+
+Os POPs pertencem ao Núcleo Permanente.
+
+Novos domínios não deverão originar novos POPs, salvo quando houver alteração efetiva no algoritmo geral de inferência.
+
+Alterações específicas de domínio deverão ocorrer exclusivamente na respectiva Base de Conhecimento.
+
+---
+
+# 18. Critérios para Inclusão de Novas Funcionalidades
+
+Uma funcionalidade somente deverá integrar o Núcleo Permanente quando:
+
+* puder ser reutilizada por múltiplos domínios;
+* representar comportamento genérico de inferência;
+* não depender de regras específicas.
+
+Caso contrário, deverá integrar exclusivamente a Base de Conhecimento correspondente.
+
+---
+
+# 19. Evolução Tecnológica
+
+Ferramentas de Inteligência Artificial poderão ser substituídas ao longo do tempo.
+
+NotebookLM, Gems, Gemini, GPT ou qualquer outro modelo constituem apenas mecanismos de execução.
+
+A arquitetura da plataforma deverá permanecer independente da tecnologia empregada.
+
+Mudanças tecnológicas não deverão exigir reestruturação da Base de Conhecimento nem do Processo de Inferência.
+
+---
+
+# 20. Visão de Longo Prazo
+
+A Plataforma de Sistemas Especialistas para Análise Documental do CBMSC deverá evoluir para constituir um ambiente institucional único de apoio técnico às atividades administrativas do Corpo de Bombeiros Militar de Santa Catarina.
+
+Sua arquitetura deverá permitir a coexistência de múltiplos sistemas especialistas compartilhando:
+
+* um único Núcleo Permanente;
+* um único Processo Geral de Inferência;
+* um conjunto comum de POPs;
+* múltiplas Bases de Conhecimento independentes.
+
+A expansão da plataforma deverá ocorrer prioritariamente pela modelagem de novos domínios de conhecimento, preservando a estabilidade, a rastreabilidade e a reutilização da arquitetura existente.
+
+---
+
+## Anexo A – Princípios Arquiteturais Permanentes
+
+Toda evolução da plataforma deverá respeitar os seguintes princípios:
+
+1. Separação entre conhecimento e inferência.
+2. Conhecimento explícito e estruturado.
+3. Independência entre domínios.
+4. Reutilização máxima do Núcleo Permanente.
+5. Evolução por expansão das Bases de Conhecimento.
+6. Rastreabilidade integral das decisões.
+7. Determinismo sempre que tecnicamente possível.
+8. Explicabilidade das conclusões.
+9. Neutralidade decisória.
+10. Independência tecnológica.
+11. Escalabilidade para novos processos administrativos.
+12. Manutenção simplificada mediante modularização do conhecimento.
+
+

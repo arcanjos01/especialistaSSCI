@@ -1,0 +1,239 @@
+Documento 11 – Modelo das Obrigações Normativas e das Responsabilidades Técnicas
+
+Versão: 3.0 Status: Arquitetura Oficial da Plataforma
+
+1. Objetivo
+
+Este documento estabelece o modelo conceitual oficial utilizado pela
+Plataforma de Sistemas Especialistas para Análise Documental do CBMSC.
+
+A unidade lógica fundamental da plataforma passa a ser a Obrigação
+Normativa. As Responsabilidades Técnicas, Produtos Técnicos, Evidências
+e Documentos Obrigatórios constituem formas de atendimento ou
+comprovação dessas obrigações.
+
+------------------------------------------------------------------------
+
+2. Princípio Fundamental
+
+Toda Não Conformidade representa o não atendimento de uma Obrigação
+Normativa.
+
+Essa obrigação pode consistir na:
+
+-   comprovação de uma Responsabilidade Técnica;
+-   apresentação de um Produto Técnico;
+-   apresentação de um Documento Obrigatório;
+-   apresentação de outra Evidência prevista na Base de Conhecimento.
+
+A ausência de um documento, por si só, não constitui uma Não
+Conformidade. Ela somente gera uma Não Conformidade quando impede o
+atendimento de uma Obrigação Normativa.
+
+------------------------------------------------------------------------
+
+3. Hierarquia Conceitual
+
+NORMA
+
+↓
+
+OBRIGAÇÃO NORMATIVA
+
+↓
+
+REQUIREMENT
+
+↓
+
+CRITERION
+
+↓
+
+NÃO CONFORMIDADE
+
+As Obrigações Normativas podem ser satisfeitas por diferentes mecanismos
+definidos pela Base de Conhecimento.
+
+------------------------------------------------------------------------
+
+4. Classificação das Obrigações Normativas
+
+As Obrigações Normativas podem exigir:
+
+4.1 Responsabilidade Técnica
+
+Obrigação atendida mediante demonstração de responsabilidade
+profissional regularmente constituída.
+
+Exemplos:
+
+-   execução;
+-   inspeção;
+-   ensaio;
+-   avaliação;
+-   comissionamento;
+-   manutenção;
+-   regularização.
+
+4.2 Produto Técnico
+
+Obrigação atendida mediante apresentação de produto técnico elaborado
+por profissional habilitado.
+
+Exemplos:
+
+-   relatório;
+-   laudo;
+-   memorial;
+-   relatório de comissionamento;
+-   relatório de ensaio;
+-   projeto.
+
+4.3 Documento Obrigatório
+
+Obrigação atendida pela apresentação de documento exigido pela norma.
+
+Exemplos:
+
+-   manual do proprietário;
+-   declaração;
+-   checklist;
+-   certificado;
+-   termo;
+-   plano.
+
+4.4 Evidência
+
+Elemento documental utilizado para comprovar o atendimento da obrigação.
+
+Exemplos:
+
+-   ART;
+-   RRT;
+-   TRT;
+-   certificados;
+-   relatórios;
+-   demais documentos aceitos pela Base de Conhecimento.
+
+------------------------------------------------------------------------
+
+5. Responsabilidade Técnica
+
+A Responsabilidade Técnica permanece como elemento central da análise
+documental, porém deixa de representar a unidade máxima da arquitetura.
+
+Ela passa a ser um subconjunto das Obrigações Normativas.
+
+Cada Responsabilidade Técnica deverá possuir:
+
+-   identificador do catálogo;
+-   descrição;
+-   natureza;
+-   profissional habilitado;
+-   SMSCI relacionado;
+-   atividades compatíveis;
+-   documentos aceitos como evidência;
+-   produtos técnicos associados;
+-   critérios de validação.
+
+------------------------------------------------------------------------
+
+6. Catálogo Oficial
+
+O Catálogo Oficial de Responsabilidades Técnicas (Anexo A) constitui a
+única referência autorizada para:
+
+-   identificação das responsabilidades;
+-   atividades compatíveis;
+-   profissionais habilitados;
+-   documentos aceitos;
+-   produtos técnicos associados.
+
+------------------------------------------------------------------------
+
+7. Papel da DRT
+
+A DRT (ART, RRT ou TRT) não constitui uma obrigação normativa.
+
+Sua função é exclusivamente servir como evidência documental aceita para
+demonstrar o atendimento de uma Responsabilidade Técnica.
+
+Consequentemente:
+
+-   uma DRT nunca é a unidade lógica da decisão;
+-   uma DRT nunca gera, isoladamente, uma Não Conformidade;
+-   a validade da DRT é avaliada apenas como evidência da obrigação
+    correspondente.
+
+------------------------------------------------------------------------
+
+8. Papel dos Produtos Técnicos
+
+Produtos Técnicos não constituem responsabilidades.
+
+Eles representam entregas decorrentes de uma Responsabilidade Técnica ou
+exigências específicas da Base de Conhecimento.
+
+Sua ausência ou inconsistência poderá caracterizar o não atendimento da
+Obrigação Normativa correspondente.
+
+------------------------------------------------------------------------
+
+9. Relação com a Base de Conhecimento
+
+A arquitetura oficial passa a seguir o seguinte fluxo:
+
+Processo
+
+↓
+
+Obrigações Normativas aplicáveis
+
+↓
+
+Requirements
+
+↓
+
+Criteria
+
+↓
+
+Evidências
+
+↓
+
+Validação
+
+↓
+
+Não Conformidades
+
+↓
+
+Relatório Final
+
+------------------------------------------------------------------------
+
+10. Princípios Arquiteturais
+
+Toda evolução da plataforma deverá respeitar os seguintes princípios:
+
+-   a unidade normativa é a Obrigação Normativa;
+-   Responsabilidades Técnicas são subconjuntos das Obrigações
+    Normativas;
+-   documentos são apenas evidências ou produtos exigidos;
+-   critérios nunca devem depender diretamente de um tipo documental
+    específico;
+-   toda decisão deve ser rastreável até uma Obrigação Normativa;
+-   toda Não Conformidade deve indicar claramente qual Obrigação
+    Normativa deixou de ser atendida.
+
+------------------------------------------------------------------------
+
+11. Compatibilidade
+
+Esta arquitetura aplica-se a qualquer Base de Conhecimento desenvolvida
+para a plataforma, incluindo Habite-se, IRA, Eventos Temporários,
+Fiscalização e futuras especializações.

@@ -1,0 +1,207 @@
+###############################################################################
+# 03_table1_rev2.txt
+# BASECONHECIMENTO_V4
+# IRV - TABELA 1
+# VERIFICAÇÃO DE RESPONSABILIDADES TÉCNICAS E EVIDÊNCIAS
+#
+# Todo critério parte de uma Responsabilidade Técnica requerida. A DRT é
+# acessada somente como evidência documental vinculada à responsabilidade.
+###############################################################################
+
+###############################################################################
+# RESPONSABILIDADE DE EXECUÇÃO DE OBRA
+###############################################################################
+
+CRITERION T1_DRT_REQUIRED
+
+TABLE 1
+
+USES REQ_T1_DRT_REQUIRED
+
+CONTEXT REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA
+
+ASSERT RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE(
+    RT_002_EXECUCAO_DE_OBRA
+)
+
+FAIL NC_T1_001
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_REGISTERED
+
+TABLE 1
+
+USES REQ_T1_DRT_REGISTERED
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    REGISTERED
+)
+
+FAIL NC_T1_004
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_SIGNED
+
+TABLE 1
+
+USES REQ_T1_DRT_SIGNED
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    SIGNED
+)
+
+FAIL NC_T1_005
+
+END
+
+###############################################################################
+# RELATÓRIO DE CONFORMIDADE
+###############################################################################
+
+CRITERION T1_CONFORMITY_REPORT
+
+TABLE 1
+
+USES REQ_T1_CONFORMITY_REPORT
+
+CONTEXT REQUIRED_TECHNICAL_RESPONSIBILITY RT_007_AVALIACAO_TECNICA
+
+ASSERT RESPONSIBILITY_HAS_TECHNICAL_PRODUCT(
+    RT_007_AVALIACAO_TECNICA,
+    CONFORMITY_REPORT
+)
+
+FAIL NC_T1_003
+
+END
+
+###############################################################################
+# DADOS DA EVIDÊNCIA DA RESPONSABILIDADE
+###############################################################################
+
+CRITERION T1_DRT_RI_NAME
+
+TABLE 1
+
+USES REQ_T1_DRT_BASIC_DATA
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    RI_NAME
+)
+
+FAIL NC_T1_006_RI
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_RT_NAME
+
+TABLE 1
+
+USES REQ_T1_DRT_BASIC_DATA
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    RT_NAME
+)
+
+FAIL NC_T1_006_RT
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_ADDRESS
+
+TABLE 1
+
+USES REQ_T1_DRT_BASIC_DATA
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    ADDRESS
+)
+
+FAIL NC_T1_006_ADDRESS
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_AREA
+
+TABLE 1
+
+USES REQ_T1_DRT_BASIC_DATA
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    AREA
+)
+
+FAIL NC_T1_006_AREA
+
+END
+
+###############################################################################
+# DADOS TÉCNICOS DA RESPONSABILIDADE
+###############################################################################
+
+CRITERION T1_DRT_ACTIVITY_EXECUTION
+
+TABLE 1
+
+USES REQ_T1_DRT_ACTIVITY_EXECUTION
+
+CONTEXT REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA
+
+ASSERT RESPONSIBILITY_ACTIVITY_COMPATIBLE(
+    RT_002_EXECUCAO_DE_OBRA
+)
+
+FAIL NC_T1_008
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_SMSCI_COVERAGE
+
+TABLE 1
+
+USES REQ_T1_DRT_SMSCI
+
+CONTEXT REQUIRED_TECHNICAL_RESPONSIBILITY RT_003_EXECUCAO_DE_SISTEMA
+
+FOR_EACH WORKLIST.SMSCI
+
+ASSERT RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI(
+    RT_003_EXECUCAO_DE_SISTEMA,
+    WORKLIST.SMSCI
+)
+
+FAIL NC_T1_002
+
+END

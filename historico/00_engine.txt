@@ -1,0 +1,188 @@
+###############################################################################
+# 00_engine.dsl
+# BASECONHECIMENTO_V4.DSL
+# LANGUAGE SPECIFICATION
+# VERSION 1.0
+###############################################################################
+
+ENGINE CBMSC_IRV_ENGINE
+
+VERSION 4.0
+
+DOMAIN HABITESE
+
+SOURCE IRV_2024
+
+MODE STRICT
+
+EXECUTION SEQUENTIAL
+
+###############################################################################
+# EXECUTION PRINCIPLES
+###############################################################################
+
+EXECUTE_ONLY_DECLARED_CRITERIA
+
+EXECUTE_IN_FILE_ORDER
+
+NO_EXTERNAL_KNOWLEDGE
+
+NO_ASSUMPTIONS
+
+NO_INFERENCE
+
+NO_NEW_RULES
+
+NO_NEW_OBJECTS
+
+NO_NEW_ATTRIBUTES
+
+NO_NEW_DOCUMENTS
+
+NO_NEW_SMSCI
+
+NO_RESULT_WITHOUT_EVIDENCE
+
+PROCESS_ALL_CRITERIA
+
+PROCESS_ALL_DOCUMENTS
+
+###############################################################################
+# RESERVED WORDS
+###############################################################################
+
+ENGINE
+
+VERSION
+
+DOMAIN
+
+SOURCE
+
+MODE
+
+EXECUTION
+
+ENTITY
+
+ATTRIBUTE
+
+TYPE
+
+CRITERION
+
+ASSERT
+
+OUTPUT
+
+FROM
+
+###############################################################################
+# ENTITY DECLARATION
+###############################################################################
+
+ENTITY <ENTITY_NAME>
+
+ATTRIBUTE <ATTRIBUTE_NAME> <ATTRIBUTE_TYPE>
+
+###############################################################################
+# ATTRIBUTE TYPES
+###############################################################################
+
+BOOLEAN
+
+TEXT
+
+NUMBER
+
+DATE
+
+ADDRESS
+
+SET
+
+ENUM
+
+DOCUMENT
+
+IMAGE
+
+###############################################################################
+# ASSERT SYNTAX
+###############################################################################
+
+ASSERT <FUNCTION>(...)
+
+###############################################################################
+# STANDARD FUNCTIONS
+###############################################################################
+
+EXISTS()
+
+NOT_EXISTS()
+
+MATCH()
+
+EQUALS()
+
+CONTAINS()
+
+CONTAINS_ALL()
+
+CONTAINS_ANY()
+
+GREATER_THAN()
+
+LESS_THAN()
+
+BETWEEN()
+
+VALID()
+
+REGISTERED()
+
+SIGNED()
+
+APPROVED()
+
+PAID()
+
+EMPTY()
+
+NOT_EMPTY()
+
+COUNT()
+
+###############################################################################
+# ASSERT RESULT
+###############################################################################
+
+TRUE
+
+FALSE
+
+UNKNOWN
+
+NOT_APPLICABLE
+
+###############################################################################
+# ENGINE
+###############################################################################
+
+FOR EACH CRITERION
+
+    EXECUTE ASSERT
+
+    IF FALSE
+
+        REGISTER OUTPUT
+
+END
+
+###############################################################################
+# REPORT
+###############################################################################
+
+GENERATE REPORT
+
+END

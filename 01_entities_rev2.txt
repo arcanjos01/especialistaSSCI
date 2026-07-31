@@ -1,0 +1,872 @@
+###############################################################################
+# 01_entities.txt
+# BASECONHECIMENTO_V4
+# ENTIDADES DO DOMÍNIO
+###############################################################################
+
+###############################################################################
+# PROCESSO
+###############################################################################
+
+ENTITY PROCESS
+
+TYPE PROCESS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PPCI
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RE
+
+TYPE IDENTIFIER
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PROTOCOL
+
+TYPE IDENTIFIER
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RT
+
+TYPE PERSON
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RI
+
+TYPE PERSON
+
+END
+
+###############################################################################
+# DOCUMENTOS
+###############################################################################
+
+ENTITY DRT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY ART
+
+TYPE DRT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RRT
+
+TYPE DRT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TRT
+
+TYPE DRT
+
+END
+
+###############################################################################
+# RESPONSABILIDADES TÉCNICAS
+###############################################################################
+
+ENTITY TECHNICAL_RESPONSIBILITY
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Unidade fundamental de conhecimento que representa uma obrigação técnica
+assumida por profissional legalmente habilitado. Seus registros são definidos
+no Catálogo Oficial de Responsabilidades Técnicas (Anexo A).
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY REQUIRED_TECHNICAL_RESPONSIBILITY
+
+TYPE TECHNICAL_RESPONSIBILITY
+
+DESCRIPTION
+
+Responsabilidade técnica exigida para um processo, conforme requisito
+normativo aplicável.
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY PROCESS_REQUIRED_RESPONSIBILITY_RELATION
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre um processo e as responsabilidades técnicas exigidas para seu
+atendimento.
+
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TECHNICAL_RESPONSIBILITY_IDENTIFIER
+
+TYPE IDENTIFIER
+
+DESCRIPTION
+
+Identificador único da responsabilidade técnica no catálogo oficial.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TECHNICAL_RESPONSIBILITY_NATURE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Natureza da responsabilidade técnica.
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY TECHNICAL_RESPONSIBILITY_DESCRIPTION
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Descrição da responsabilidade técnica no catálogo oficial.
+
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_OBLIGATORINESS
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Condição de obrigatoriedade da responsabilidade técnica no processo.
+
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_REQUIREMENT_RELATION
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre uma responsabilidade técnica e os requisitos normativos
+aplicáveis que a exigem.
+
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_ACCEPTED_DOCUMENT
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre uma responsabilidade técnica e os tipos de DRT aceitos como
+evidência documental.
+
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_ACTIVITY_COMPATIBILITY
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre uma responsabilidade técnica e as atividades técnicas
+compatíveis com sua comprovação.
+
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_PROFESSIONAL_RELATION
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre uma responsabilidade técnica e a habilitação profissional
+esperada.
+
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TECHNICAL_ACTIVITY
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Atividade técnica declarada na DRT e avaliada quanto à compatibilidade com
+a responsabilidade técnica que a DRT comprova.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PROFESSIONAL_COMPETENCE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Habilitação profissional esperada para a responsabilidade técnica.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TECHNICAL_RESPONSIBILITY_HIERARCHY
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Relação hierárquica aplicável entre responsabilidades técnicas.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_SMSCI_RELATION
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Relação entre uma responsabilidade técnica e o SMSCI a que ela se aplica.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_DRT_EVIDENCE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Relação que associa uma DRT aceita à responsabilidade técnica que ela
+comprova, preservando a DRT como evidência documental.
+
+END
+
+
+-------------------------------------------------------------------------------
+
+ENTITY RESPONSIBILITY_TECHNICAL_PRODUCT_RELATION
+
+
+TYPE CONCEPT
+
+
+DESCRIPTION
+
+
+Relação entre uma responsabilidade técnica e os produtos técnicos associados
+à sua comprovação.
+
+
+END
+
+###############################################################################
+# ESCOPO DA DRT
+###############################################################################
+
+ENTITY DRT_GENERAL_SCOPE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Objeto técnico de execução com abrangência sobre todos os
+sistemas e medidas preventivos contra incêndio e pânico,
+excetuados apenas aqueles cuja legislação exige documento
+ou responsabilidade técnica específica.
+
+MATCH
+
+"SISTEMAS E MEDIDAS PREVENTIVOS CONTRA INCÊNDIO E PÂNICO"
+
+MATCH
+
+"PREVENÇÃO E COMBATE A INCÊNDIO E PÂNICO"
+
+MATCH
+
+"SISTEMA PREVENTIVO CONTRA INCÊNDIO"
+
+MATCH
+
+"EXECUÇÃO DOS SISTEMAS PREVENTIVOS"
+
+END
+
+###############################################################################
+# CLASSIFICAÇÃO FUNCIONAL DAS DRT
+###############################################################################
+
+ENTITY MAIN_EXECUTION_DRT
+
+TYPE DRT
+
+DESCRIPTION
+
+Estrutura legada de classificação documental para DRT que assume a
+responsabilidade global pela execução dos sistemas e medidas preventivos
+contra incêndio e pânico da edificação.
+
+RULE
+
+É identificado quando o objeto técnico possuir abrangência compatível
+com DRT_GENERAL_SCOPE.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY AUXILIARY_EXECUTION_DRT
+
+TYPE DRT
+
+DESCRIPTION
+
+Estrutura legada de classificação documental para DRT destinada exclusivamente
+à execução, inspeção, ensaio, comissionamento ou outro serviço específico de
+um SMSCI.
+
+END
+
+
+###############################################################################
+
+ENTITY DRT_SPECIFIC_SCOPE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Objeto técnico restrito a sistemas específicos.
+
+END
+-------------------------------------------------------------------------------
+
+ENTITY REPORT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY DECLARATION
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY MANUAL
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TEST_REPORT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY COMMISSIONING_REPORT
+
+TYPE DOCUMENT
+
+END
+
+###############################################################################
+# SMSCI
+###############################################################################
+
+ENTITY SMSCI_IE
+
+TYPE SMSCI
+
+NAME
+
+Iluminação de Emergência
+
+ALIAS
+
+IE
+
+ILUMINACAO_DE_EMERGENCIA
+
+ILUMINAÇÃO_DE_EMERGÊNCIA
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SAL
+
+TYPE SMSCI
+
+NAME
+
+Sinalização para Abandono
+
+ALIAS
+
+SAL
+
+SINALIZACAO
+
+SINALIZAÇÃO
+
+ABANDONO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_PPE
+
+TYPE SMSCI
+
+NAME
+
+Proteção por Extintores
+
+ALIAS
+
+PPE
+
+EXTINTORES
+
+EXTINTOR
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_BI
+
+TYPE SMSCI
+
+NAME
+
+Brigada de Incêndio
+
+ALIAS
+
+BI
+
+BRIGADA
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_GAS
+
+TYPE SMSCI
+
+NAME
+
+Instalação de Gás
+
+ALIAS
+
+GLP
+
+GAS
+
+GÁS
+
+CENTRAL_GLP
+
+INSTALACAO_GAS
+
+INSTALAÇÃO_GÁS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SHP
+
+TYPE SMSCI
+
+NAME
+
+Sistema Hidráulico Preventivo
+
+ALIAS
+
+SHP
+
+HIDRANTE
+
+HIDRANTES
+
+REDE_DE_HIDRANTES
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SDAI
+
+TYPE SMSCI
+
+NAME
+
+Sistema de Detecção e Alarme de Incêndio
+
+ALIAS
+
+SDAI
+
+ALARME
+
+DETECÇÃO
+
+DETECCAO
+
+ALARME_DE_INCENDIO
+
+DETECÇÃO_DE_INCÊNDIO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_PRESSURIZATION
+
+TYPE SMSCI
+
+NAME
+
+Escada Pressurizada
+
+ALIAS
+
+PRESSURIZACAO
+
+PRESSURIZAÇÃO
+
+ESCADA_PRESSURIZADA
+
+GRADIENTE_DE_PRESSAO
+
+GRADIENTE_DE_PRESSÃO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SMOKE_CONTROL
+
+TYPE SMSCI
+
+NAME
+
+Controle de Fumaça
+
+ALIAS
+
+CONTROLE_DE_FUMACA
+
+CONTROLE_DE_FUMAÇA
+
+SMOKE_CONTROL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SPRINKLER
+
+TYPE SMSCI
+
+NAME
+
+Sistema de Chuveiros Automáticos
+
+ALIAS
+
+SPRINKLER
+
+SPRINKLERS
+
+CHUVEIROS_AUTOMATICOS
+
+CHUVEIROS_AUTOMÁTICOS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_CMAR
+
+TYPE SMSCI
+
+NAME
+
+Controle de Materiais de Acabamento e Revestimento
+
+ALIAS
+
+CMAR
+
+MATERIAIS_DE_ACABAMENTO
+
+MATERIAIS_DE_REVESTIMENTO
+
+ACABAMENTO
+
+REVESTIMENTO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_IEL
+
+TYPE SMSCI
+
+NAME
+
+Instalações Elétricas de Baixa Tensão
+
+ALIAS
+
+IEL
+
+INSTALACOES_ELETRICAS
+
+INSTALAÇÕES_ELÉTRICAS
+
+BAIXA_TENSAO
+
+BAIXA_TENSÃO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_M5
+
+TYPE SMSCI
+
+NAME
+
+Ocupação M-5
+
+ALIAS
+
+M5
+
+EXPLOSIVOS
+
+FOGOS_DE_ARTIFICIO
+
+FOGOS_DE_ARTIFÍCIO
+
+END
+
+###############################################################################
+# TIPOS DE DOCUMENTOS
+###############################################################################
+
+ENTITY SHP_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+SMSCI SMSCI_SHP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GAS_TIGHTNESS_REPORT
+
+TYPE TEST_REPORT
+
+SMSCI SMSCI_GAS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GAS_OWNER_MANUAL
+
+TYPE MANUAL
+
+SMSCI SMSCI_GAS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SDAI_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+SMSCI SMSCI_SDAI
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY CMAR_DECLARATION
+
+TYPE DECLARATION
+
+SMSCI SMSCI_CMAR
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY LOW_VOLTAGE_EXECUTION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY LOW_VOLTAGE_FINAL_VERIFICATION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GROUNDING_EXECUTION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+###############################################################################
+# END
+###############################################################################
+
+ENTITY SMSCI_SMOKE_CONTROL_MECHANICAL
+
+TYPE SMSCI
+
+END
+
+ENTITY IN09_ART122_REQUIRED_ITEMS
+
+TYPE SET
+
+END
+
+ENTITY M5_EXPLOSION_PROTECTION
+TYPE SMSCI
+END
+
+ENTITY M5_DUST_CONTROL
+TYPE SMSCI
+END
+
+ENTITY M5_HEAT_SENSORS
+TYPE SMSCI
+END
+
+ENTITY M5_LIGHTNING_PROTECTION
+TYPE SMSCI
+END

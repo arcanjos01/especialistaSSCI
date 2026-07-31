@@ -1,0 +1,419 @@
+###############################################################################
+# BASECONHECIMENTO_REV1
+# 02_requirements.txt
+# REQUISITOS NORMATIVOS
+###############################################################################
+
+###############################################################################
+# TABELA 1
+###############################################################################
+
+REQUIREMENT REQ_T1_DRT_REQUIRED
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT DRT
+
+NONCONFORMITY NC_T1_001
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_DRT_SIGNED
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT DRT
+
+NONCONFORMITY NC_T1_005
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_DRT_REGISTERED
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT REGISTERED_DRT
+
+NONCONFORMITY NC_T1_004
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_DRT_SCOPE
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT EXECUTION_DRT
+
+DESCRIPTION
+
+A DRT de execução deve possuir escopo abrangente
+ou contemplar individualmente todos os SMSCI previstos.
+
+NONCONFORMITY NC_T1_007
+
+END
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_DRT_SMSCI
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT EXECUTION_DRT
+
+NONCONFORMITY NC_T1_002
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_CONFORMITY_REPORT
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT CONFORMITY_REPORT
+
+NONCONFORMITY NC_T1_003
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_T1_DRT_BASIC_DATA
+
+TABLE 1
+
+SOURCE IN01
+
+DOCUMENT DRT
+
+NONCONFORMITY NC_T1_006_RI
+
+NONCONFORMITY NC_T1_006_RT
+
+NONCONFORMITY NC_T1_006_ADDRESS
+
+NONCONFORMITY NC_T1_006_AREA
+
+END
+
+###############################################################################
+# IN07
+###############################################################################
+
+REQUIREMENT REQ_IN07_COMMISSIONING
+
+TABLE 4
+
+SMSCI SMSCI_SHP
+
+SOURCE IN07
+
+ARTICLE 106
+
+DOCUMENT SHP_COMMISSIONING_REPORT
+
+NONCONFORMITY NC_T4_001
+
+END
+
+###############################################################################
+# IN08
+###############################################################################
+
+REQUIREMENT REQ_IN08_ESTANQUEIDADE
+
+TABLE 4
+
+SMSCI SMSCI_GAS
+
+SOURCE IN08
+
+ARTICLE 95
+
+DOCUMENT GAS_TIGHTNESS_REPORT
+
+NONCONFORMITY NC_T4_002
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN08_MANUAL
+
+TABLE 4
+
+SMSCI SMSCI_GAS
+
+SOURCE IN08
+
+ARTICLE 80
+
+DOCUMENT GAS_OWNER_MANUAL
+
+NONCONFORMITY NC_T4_003
+
+END
+
+###############################################################################
+# IN09
+###############################################################################
+
+REQUIREMENT REQ_IN09_DRT
+
+TABLE 4
+
+SMSCI SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+DOCUMENT PRESSURIZATION_DRT
+
+NONCONFORMITY NC_T4_004
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN09_TEST_REPORT
+
+TABLE 4
+
+SMSCI SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+DOCUMENT PRESSURIZATION_TEST_REPORT
+
+NONCONFORMITY NC_T4_005
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN09_MANUAL
+
+TABLE 4
+
+SMSCI SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+DOCUMENT PRESSURIZATION_OPERATION_MANUAL
+
+NONCONFORMITY NC_T4_006
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN09_CHECKLIST
+
+TABLE 4
+
+SMSCI SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+DOCUMENT PRESSURIZATION_MAINTENANCE_CHECKLIST
+
+NONCONFORMITY NC_T4_007
+
+END
+
+###############################################################################
+# IN10
+###############################################################################
+
+REQUIREMENT REQ_IN10_COMMISSIONING
+
+TABLE 4
+
+SMSCI SMSCI_SMOKE_CONTROL
+
+SOURCE IN10
+
+ARTICLE 41
+
+DOCUMENT SMOKE_CONTROL_COMMISSIONING_REPORT
+
+NONCONFORMITY NC_T4_008
+
+END
+
+###############################################################################
+# IN12
+###############################################################################
+
+REQUIREMENT REQ_IN12_COMMISSIONING
+
+TABLE 4
+
+SMSCI SMSCI_SDAI
+
+SOURCE IN12
+
+ARTICLE 47
+
+DOCUMENT SDAI_COMMISSIONING_REPORT
+
+NONCONFORMITY NC_T4_009
+
+END
+
+###############################################################################
+# IN15
+###############################################################################
+
+REQUIREMENT REQ_IN15_COMMISSIONING
+
+TABLE 4
+
+SMSCI SMSCI_SPRINKLER
+
+SOURCE IN15
+
+ARTICLE 30
+
+DOCUMENT SPRINKLER_COMMISSIONING_REPORT
+
+NONCONFORMITY NC_T4_010
+
+END
+
+###############################################################################
+# IN18
+###############################################################################
+
+REQUIREMENT REQ_IN18_CMAR
+
+TABLE 4
+
+SMSCI SMSCI_CMAR
+
+SOURCE IN18
+
+ARTICLE 14
+
+DOCUMENT CMAR_DECLARATION
+
+NONCONFORMITY NC_T4_011
+
+END
+
+###############################################################################
+# IN19
+###############################################################################
+
+REQUIREMENT REQ_IN19_EXECUTION
+
+TABLE 4
+
+SMSCI SMSCI_IEL
+
+SOURCE IN19
+
+DOCUMENT LOW_VOLTAGE_EXECUTION_DRT
+
+NONCONFORMITY NC_T4_012
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN19_GROUNDING
+
+TABLE 4
+
+SMSCI SMSCI_IEL
+
+SOURCE IN19
+
+DOCUMENT GROUNDING_EXECUTION_DRT
+
+NONCONFORMITY NC_T4_013
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN19_FINAL_VERIFICATION
+
+TABLE 4
+
+SMSCI SMSCI_IEL
+
+SOURCE IN19
+
+DOCUMENT LOW_VOLTAGE_FINAL_VERIFICATION_DRT
+
+NONCONFORMITY NC_T4_014
+
+END
+
+-------------------------------------------------------------------------------
+
+REQUIREMENT REQ_IN19_MAINTENANCE
+
+TABLE 4
+
+SMSCI SMSCI_IEL
+
+SOURCE IN19
+
+DOCUMENT LOW_VOLTAGE_MAINTENANCE_DRT
+
+DOCUMENT LOW_VOLTAGE_RENOVATION_DRT
+
+RULE ANY
+
+NONCONFORMITY NC_T4_015
+
+END
+
+###############################################################################
+# IN34
+###############################################################################
+
+REQUIREMENT REQ_IN34_M5
+
+TABLE 4
+
+SMSCI SMSCI_M5
+
+SOURCE IN34
+
+DOCUMENT M5_SPECIAL_SYSTEMS_DRT
+
+NONCONFORMITY NC_T4_016
+
+END
+
+###############################################################################
+# END
+###############################################################################

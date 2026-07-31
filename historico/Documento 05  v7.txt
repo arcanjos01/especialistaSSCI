@@ -1,0 +1,2590 @@
+###############################################################################
+# DOCUMENTO 05
+# PROCESSO DE INFERÊNCIA
+# VERSÃO 7
+###############################################################################
+
+###############################################################################
+# BLOCO 01
+# CONTRATO DO EXECUTOR
+###############################################################################
+
+OBJECTIVE
+
+Este documento define exclusivamente o comportamento do mecanismo de inferência
+responsável pela execução da BaseConhecimento.
+
+O executor não possui autonomia decisória.
+
+Toda conclusão deverá resultar exclusivamente da execução das regras existentes
+na BaseConhecimento.
+
+###############################################################################
+# ESCOPO
+###############################################################################
+
+O executor deverá utilizar exclusivamente:
+
+00_engine
+
+01_entities
+
+02_requirements
+
+03_table1
+
+04_table4
+
+05_nonconformities
+
+06_report
+
+Nenhum outro documento poderá participar do processo decisório.
+
+###############################################################################
+# PRINCÍPIOS
+###############################################################################
+
+PRINCIPLE DETERMINISM
+
+A mesma entrada deverá produzir exatamente a mesma saída.
+
+-------------------------------------------------------------------------------
+
+PRINCIPLE TRACEABILITY
+
+Toda saída deverá possuir origem rastreável.
+
+-------------------------------------------------------------------------------
+
+PRINCIPLE IMMUTABILITY
+
+Após produzido, um resultado intermediário não poderá ser alterado por etapas
+posteriores.
+
+-------------------------------------------------------------------------------
+
+PRINCIPLE SINGLE_SOURCE_OF_TRUTH
+
+Cada informação deverá possuir apenas uma origem oficial.
+
+O executor nunca poderá escolher entre múltiplas interpretações.
+
+###############################################################################
+# CONTRATO DE EXECUÇÃO
+###############################################################################
+
+O executor deverá apenas:
+
+Carregar informações.
+
+Extrair fatos.
+
+Classificar documentos.
+
+Executar critérios.
+
+Consolidar resultados.
+
+Gerar relatório.
+
+Nenhuma outra atividade é permitida.
+
+###############################################################################
+# PROIBIÇÕES
+###############################################################################
+
+É expressamente proibido:
+
+Interpretar documentos.
+
+Inferir documentos inexistentes.
+
+Criar requisitos.
+
+Criar critérios.
+
+Criar não conformidades.
+
+Criar evidências.
+
+Criar observações técnicas.
+
+Criar justificativas.
+
+Criar recomendações.
+
+Criar conclusões.
+
+Criar exigências.
+
+Modificar requisitos.
+
+Modificar critérios.
+
+Modificar resultados.
+
+Modificar evidências.
+
+Modificar a rastreabilidade.
+
+###############################################################################
+# CONHECIMENTO EXTERNO
+###############################################################################
+
+É proibida a utilização de:
+
+Conhecimento do modelo.
+
+Conhecimento estatístico.
+
+Conhecimento de outras legislações.
+
+Conhecimento adquirido durante treinamento.
+
+Conhecimento derivado de experiências anteriores.
+
+Somente poderão ser utilizados os documentos carregados na etapa de
+inicialização.
+
+###############################################################################
+# REGRA DE OURO
+###############################################################################
+
+Quando uma informação não puder ser demonstrada documentalmente,
+ela será considerada inexistente.
+
+O executor nunca poderá completar informações ausentes.
+
+Nunca poderá presumir intenções.
+
+Nunca poderá deduzir fatos.
+
+Nunca poderá ampliar o significado de um documento.
+
+###############################################################################
+# RESPONSABILIDADE
+###############################################################################
+
+Toda decisão deverá ser consequência direta da execução de um Criterion.
+
+Todo Criterion deverá possuir exatamente um Requirement.
+
+Todo Requirement deverá possuir exatamente uma origem normativa.
+
+Todo FAIL deverá possuir exatamente uma Nonconformity.
+
+Todo item do relatório deverá possuir evidência documental.
+
+###############################################################################
+# FIM DO BLOCO 01
+###############################################################################
+###############################################################################
+# BLOCO 02
+# INICIALIZAÇÃO
+###############################################################################
+
+STATE INITIALIZATION
+
+OBJECTIVE
+
+Preparar o ambiente de execução.
+
+Nenhuma inferência poderá ocorrer durante esta etapa.
+
+Nenhum Requirement poderá ser executado.
+
+Nenhum Criterion poderá ser avaliado.
+
+Nenhuma Nonconformity poderá ser produzida.
+
+Nenhum relatório poderá ser iniciado.
+
+###############################################################################
+# CARREGAMENTO DA BASE
+###############################################################################
+
+LOAD 00_ENGINE
+
+LOAD 01_ENTITIES
+
+LOAD 02_REQUIREMENTS
+
+LOAD 03_TABLE1
+
+LOAD 04_TABLE4
+
+LOAD 05_NONCONFORMITIES
+
+LOAD 06_REPORT
+
+###############################################################################
+# VALIDAÇÃO DE CARREGAMENTO
+###############################################################################
+
+VALIDATE
+
+ENGINE_LOADED
+
+ENTITIES_LOADED
+
+REQUIREMENTS_LOADED
+
+TABLE1_LOADED
+
+TABLE4_LOADED
+
+NONCONFORMITIES_LOADED
+
+REPORT_MODEL_LOADED
+
+IF ANY VALIDATION FAIL
+
+STOP EXECUTION
+
+RETURN INITIALIZATION_ERROR
+
+###############################################################################
+# REGISTRO DOS COMPONENTES
+###############################################################################
+
+REGISTER
+
+ENTITY_CATALOG
+
+REQUIREMENT_CATALOG
+
+TABLE1_CATALOG
+
+TABLE4_CATALOG
+
+NONCONFORMITY_CATALOG
+
+REPORT_TEMPLATE
+
+###############################################################################
+# VERIFICAÇÃO DE INTEGRIDADE
+###############################################################################
+
+VALIDATE
+
+EVERY CRITERION REFERENCES ONE REQUIREMENT
+
+EVERY REQUIREMENT REFERENCES ONE NONCONFORMITY
+WHEN APPLICABLE
+
+EVERY NONCONFORMITY REFERENCES ONE REQUIREMENT
+
+EVERY REPORT SECTION EXISTS
+
+IF ANY REFERENCE IS INVALID
+
+STOP EXECUTION
+
+RETURN KNOWLEDGEBASE_INCONSISTENT
+
+###############################################################################
+# CRIAÇÃO DO CONTEXTO
+###############################################################################
+
+CREATE EXECUTION_CONTEXT
+
+ATTACH
+
+PROCESS
+
+DOCUMENT_SET
+
+ENTITY_CATALOG
+
+REQUIREMENT_CATALOG
+
+TABLE1_CATALOG
+
+TABLE4_CATALOG
+
+NONCONFORMITY_CATALOG
+
+REPORT_TEMPLATE
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+SET EXECUTOR_STATUS
+
+READY
+
+NEXT BUILD_MEMORY
+
+###############################################################################
+# BLOCO 03
+# MODELO DE MEMÓRIA
+###############################################################################
+
+OBJECTIVE
+
+Definir todas as estruturas permanentes utilizadas pelo executor.
+
+Cada memória possui responsabilidade única.
+
+Nenhuma memória executa inferência.
+
+Nenhuma memória altera outra memória.
+
+Toda comunicação ocorre exclusivamente pelos estados definidos neste documento.
+
+###############################################################################
+# DOCUMENT_MEMORY
+###############################################################################
+
+CREATE DOCUMENT_MEMORY
+
+PURPOSE
+
+Armazenar exclusivamente os documentos originais carregados.
+
+CONTENT
+
+SOURCE_DOCUMENT
+
+DOCUMENT_IDENTIFIER
+
+DOCUMENT_TYPE
+
+DOCUMENT_METADATA
+
+DOCUMENT_BINARY_REFERENCE
+
+DOCUMENT_TEXT
+
+RULES
+
+Cada documento será armazenado apenas uma vez.
+
+Nenhum documento poderá ser alterado.
+
+Nenhuma classificação será armazenada nesta memória.
+
+LIFECYCLE
+
+CREATE DURING INITIALIZATION
+
+READ DURING EXECUTION
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# PROCESS_MEMORY
+###############################################################################
+
+CREATE PROCESS_MEMORY
+
+PURPOSE
+
+Armazenar fatos estruturados extraídos dos documentos.
+
+CONTENT
+
+PROCESS DATA
+
+BUILDING DATA
+
+RESPONSIBLE PERSONS
+
+NORMALIZED ENTITIES
+
+DOCUMENT CLASSIFICATIONS
+
+SMSCI
+
+DOCUMENT REFERENCES
+
+EXTRACTED ATTRIBUTES
+
+RULES
+
+Somente fatos documentais.
+
+Toda informação possui documento de origem.
+
+Nenhuma dedução é permitida.
+
+Nenhuma informação poderá ser alterada.
+
+LIFECYCLE
+
+CREATE AFTER DOCUMENT EXTRACTION
+
+READ DURING EXECUTION
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# EXECUTION_MEMORY
+###############################################################################
+
+CREATE EXECUTION_MEMORY
+
+PURPOSE
+
+Armazenar exclusivamente o estado operacional do executor.
+
+CONTENT
+
+EXECUTION_PLAN
+
+EXECUTION_STATUS
+
+AUDIT_STATUS
+
+REPORT_STATUS
+
+RULES
+
+Nenhuma informação documental poderá ser armazenada.
+
+Nenhum resultado poderá ser armazenado.
+
+Somente estado operacional.
+
+LIFECYCLE
+
+CREATE BEFORE BUILD_EXECUTION_PLAN
+
+READ DURING EXECUTION
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# RESULT_MEMORY
+###############################################################################
+
+CREATE RESULT_MEMORY
+
+PURPOSE
+
+Armazenar exclusivamente os resultados produzidos pelos Criteria.
+
+CONTENT
+
+TABLE
+
+SMSCI
+
+WHEN APPLICABLE
+
+REQUIREMENT
+
+CRITERION
+
+RESULT
+
+DOCUMENT_REFERENCE
+
+DOCUMENT_EVIDENCE
+
+EXECUTION_TIMESTAMP
+
+RULES
+
+Cada Criterion produz exatamente um resultado.
+
+Resultados são imutáveis.
+
+Nenhuma Nonconformity será armazenada.
+
+LIFECYCLE
+
+CREATE DURING EXECUTION
+
+READ DURING CONSOLIDATION
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# CONSOLIDATION_MEMORY
+###############################################################################
+
+CREATE CONSOLIDATION_MEMORY
+
+PURPOSE
+
+Armazenar os resultados consolidados.
+
+CONTENT
+
+CONSOLIDATED_RESULTS
+
+FAILS
+
+PASS
+
+NA
+
+NONCONFORMITIES
+
+TRACEABILITY_CHAIN
+
+AUDIT_ITEMS
+
+RULES
+
+Somente informações derivadas do RESULT_MEMORY.
+
+Nenhum resultado poderá ser modificado.
+
+LIFECYCLE
+
+CREATE DURING CONSOLIDATION
+
+READ DURING AUDIT
+
+READ DURING REPORT
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# REPORT_MEMORY
+###############################################################################
+
+CREATE REPORT_MEMORY
+
+PURPOSE
+
+Armazenar exclusivamente o relatório estruturado.
+
+CONTENT
+
+SECTION_1
+
+SECTION_2
+
+SECTION_3
+
+SECTION_4
+
+SECTION_5
+
+SECTION_6
+
+SECTION_7
+
+FOOTER
+
+RULES
+
+Somente informações provenientes da CONSOLIDATION_MEMORY.
+
+Nenhum cálculo.
+
+Nenhuma inferência.
+
+Nenhuma informação documental direta.
+
+LIFECYCLE
+
+CREATE BEFORE REPORT GENERATION
+
+READ DURING REPORT GENERATION
+
+DESTROY AFTER EXECUTION
+
+###############################################################################
+# REGRAS GERAIS
+###############################################################################
+
+DOCUMENT_MEMORY
+
+→ READ ONLY
+
+PROCESS_MEMORY
+
+→ READ ONLY
+
+RESULT_MEMORY
+
+→ APPEND ONLY
+
+CONSOLIDATION_MEMORY
+
+→ APPEND ONLY
+
+REPORT_MEMORY
+
+→ WRITE ONCE
+
+EXECUTION_MEMORY
+
+→ UPDATE ALLOWED
+
+Nenhuma memória poderá modificar outra memória.
+
+Somente os estados do executor podem produzir novas informações.
+
+###############################################################################
+# TRANSIÇÃO
+###############################################################################
+
+NEXT
+
+BUILD_PROCESS_MEMORY
+
+###############################################################################
+# BLOCO 04
+# EXTRAÇÃO, NORMALIZAÇÃO E CLASSIFICAÇÃO DOCUMENTAL
+###############################################################################
+
+STATE BUILD_PROCESS_MEMORY
+
+OBJECTIVE
+
+Transformar documentos em fatos estruturados.
+
+Nenhum Requirement será executado.
+
+Nenhum Criterion será avaliado.
+
+Nenhum resultado será produzido.
+
+###############################################################################
+# ETAPA 1
+# EXTRAÇÃO DOCUMENTAL
+###############################################################################
+
+FOR EACH DOCUMENT
+
+EXTRACT
+
+DOCUMENT_TYPE
+
+DOCUMENT_IDENTIFIER
+
+DOCUMENT_METADATA
+
+TEXT_CONTENT
+
+STRUCTURED_FIELDS
+
+STORE
+
+PROCESS_MEMORY
+
+END
+
+###############################################################################
+# ETAPA 2
+# EXTRAÇÃO DE ENTIDADES
+###############################################################################
+
+FOR EACH DOCUMENT
+
+IDENTIFY
+
+PROCESS
+
+PPCI
+
+DRT
+
+ART
+
+RRT
+
+TRT
+
+REPORT
+
+DECLARATION
+
+MANUAL
+
+TEST_REPORT
+
+COMMISSIONING_REPORT
+
+SMSCI
+
+RT
+
+RI
+
+RE
+
+PROTOCOL
+
+STORE
+
+PROCESS_MEMORY
+
+END
+
+###############################################################################
+# ETAPA 3
+# NORMALIZAÇÃO
+###############################################################################
+
+NORMALIZE
+
+ENTITY NAMES
+
+SMSCI
+
+DOCUMENT TYPES
+
+IDENTIFIERS
+
+RESPONSIBLE PERSONS
+
+TECHNICAL OBJECTS
+
+USING
+
+01_ENTITIES
+
+REMOVE
+
+DUPLICATE ENTITIES
+
+MERGE
+
+EQUIVALENT REFERENCES
+
+PRESERVE
+
+DOCUMENT ORIGIN
+
+###############################################################################
+# ETAPA 4
+# CLASSIFICAÇÃO FUNCIONAL DOS DOCUMENTOS
+###############################################################################
+
+CLASSIFY
+
+DRT
+
+INTO
+
+DRT_GENERAL
+
+DRT_SPECIFIC
+
+DRT_PROJECT
+
+DRT_INSPECTION
+
+DRT_MAINTENANCE
+
+DRT_TEST
+
+CLASSIFY
+
+REPORTS
+
+DECLARATIONS
+
+MANUALS
+
+TEST_REPORTS
+
+COMMISSIONING_REPORTS
+
+ACCORDING TO
+
+01_ENTITIES
+
+###############################################################################
+# ETAPA 5
+# CORRELAÇÃO DOCUMENTAL
+###############################################################################
+
+FOR EACH PAYMENT_PROOF
+
+LOCATE
+
+RELATED DRT
+
+USING
+
+DOCUMENT_NUMBER
+
+OR
+
+DIGITABLE_LINE
+
+OR
+
+BOLETO_NUMBER
+
+OR
+
+NOSSO_NUMERO
+
+IF NO MATCH FOUND
+
+TRY
+
+PAYMENT_AMOUNT
+
+AND
+
+PAYMENT_DATE
+
+AND
+
+ISSUING_COUNCIL
+
+WHEN UNIQUE
+
+CREATE
+
+DOCUMENT_LINK
+
+VERIFY LINK
+
+IF VALID
+
+SET
+
+DRT.PAYMENT_STATUS
+
+=
+
+PAID
+
+STORE
+
+TRACEABILITY
+
+PAYMENT_DOCUMENT
+
+↓
+
+DRT
+
+IF MULTIPLE MATCHES
+
+SET
+
+PAYMENT_STATUS
+
+=
+
+UNKNOWN
+
+STORE
+
+AMBIGUOUS_MATCH
+
+END
+
+###############################################################################
+# DRT_GENERAL
+###############################################################################
+
+CLASSIFY AS DRT_GENERAL ONLY IF
+
+DOCUMENT TYPE IS DRT
+
+AND
+
+ACTIVITY IS EXECUTION
+
+AND
+
+OBJECT MATCHES
+
+DRT_GENERAL_SCOPE
+
+DEFINED IN 01_ENTITIES
+
+IF NO DOCUMENT SATISFIES
+
+SET
+
+DRT_GENERAL = NULL
+
+###############################################################################
+# DRT_SPECIFIC
+###############################################################################
+
+CLASSIFY AS DRT_SPECIFIC
+
+WHEN
+
+DOCUMENT REPRESENTS
+
+SPECIFIC SMSCI
+
+OR
+
+SPECIFIC TECHNICAL RESPONSIBILITY
+
+NO DOCUMENT MAY BE CLASSIFIED
+
+SIMULTANEOUSLY
+
+AS
+
+DRT_GENERAL
+
+AND
+
+DRT_SPECIFIC
+
+###############################################################################
+# RESTRIÇÕES
+###############################################################################
+
+DO NOT
+
+EXECUTE REQUIREMENTS
+
+DO NOT
+
+EXECUTE CRITERIA
+
+DO NOT
+
+BUILD WORKLIST
+
+DO NOT
+
+CREATE NONCONFORMITIES
+
+DO NOT
+
+CREATE RESULTS
+
+DO NOT
+
+GENERATE REPORT DATA
+
+###############################################################################
+# VALIDAÇÃO
+###############################################################################
+
+VERIFY
+
+EVERY CLASSIFIED DOCUMENT
+
+HAS
+
+SOURCE DOCUMENT
+
+ENTITY TYPE
+
+NORMALIZED ATTRIBUTES
+
+FUNCTIONAL CLASSIFICATION
+
+IF ANY ITEM IS INCOMPLETE
+
+RETURN
+
+CLASSIFICATION_ERROR
+
+STOP EXECUTION
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+PROCESS_MEMORY
+
+COMPLETE
+
+NEXT BUILD_EXECUTION_QUEUE
+
+###############################################################################
+# BLOCO 05
+# PLANEJAMENTO DA EXECUÇÃO
+###############################################################################
+
+STATE BUILD_EXECUTION_PLAN
+
+OBJECTIVE
+
+Construir o plano completo de execução.
+
+Nenhum Criterion será executado.
+
+Nenhum resultado será produzido.
+
+###############################################################################
+# INICIALIZAÇÃO
+###############################################################################
+
+CREATE EXECUTION_PLAN
+
+INITIALIZE
+
+EMPTY
+
+###############################################################################
+# ETAPA 1
+# SELEÇÃO DOS REQUIREMENTS
+###############################################################################
+
+FOR EACH REQUIREMENT
+
+IN
+
+02_REQUIREMENTS
+
+EVALUATE
+
+APPLICABILITY
+
+USING
+
+PROCESS_MEMORY
+
+IF
+
+REQUIREMENT APPLIES
+
+REGISTER
+
+EXECUTION_PLAN
+
+END
+
+###############################################################################
+# REGRA DE APLICABILIDADE
+###############################################################################
+
+A Requirement será considerado aplicável exclusivamente quando:
+
+todos os seus pré-requisitos puderem ser verificados a partir do
+PROCESS_MEMORY.
+
+Nenhum Requirement poderá ser criado.
+
+Nenhum Requirement poderá ser removido.
+
+###############################################################################
+# ETAPA 2
+# ASSOCIAÇÃO DOS CRITERIA
+###############################################################################
+
+FOR EACH REQUIREMENT
+
+LOCATE
+
+RELATED CRITERIA
+
+IN
+
+03_TABLE1
+
+04_TABLE4
+
+ATTACH
+
+TO
+
+EXECUTION_PLAN
+
+###############################################################################
+# ETAPA 3
+# ASSOCIAÇÃO DAS NONCONFORMITIES
+###############################################################################
+
+FOR EACH REQUIREMENT
+
+LOCATE
+
+RELATED NONCONFORMITY
+
+IN
+
+05_NONCONFORMITIES
+
+ATTACH
+
+REFERENCE
+
+TO
+
+EXECUTION_PLAN
+
+###############################################################################
+# ETAPA 4
+# ASSOCIAÇÃO DO MODELO DE RELATÓRIO
+###############################################################################
+
+LOAD
+
+REPORT_TEMPLATE
+
+REFERENCE
+
+FROM
+
+06_REPORT
+
+ATTACH
+
+REFERENCE
+
+TO
+
+EXECUTION_PLAN
+
+###############################################################################
+# VALIDAÇÃO
+###############################################################################
+
+VERIFY
+
+EVERY REQUIREMENT
+
+HAS
+
+AT LEAST ONE CRITERION
+
+VERIFY
+
+EVERY CRITERION
+
+BELONGS
+
+TO
+
+ONE REQUIREMENT
+
+VERIFY
+
+EVERY NONCONFORMITY
+
+REFERENCES
+
+ONE REQUIREMENT
+
+VERIFY
+
+EVERY REPORT ITEM
+
+CAN BE GENERATED
+
+FROM
+
+RESULT_MEMORY
+
+IF
+
+ANY VALIDATION FAILS
+
+STOP EXECUTION
+
+RETURN EXECUTION_PLAN_ERROR
+
+###############################################################################
+# ORDENAÇÃO
+###############################################################################
+
+SORT
+
+TABLE
+
+↓
+
+REQUIREMENT
+
+↓
+
+CRITERION
+
+###############################################################################
+# SAÍDA
+###############################################################################
+
+STORE
+
+EXECUTION_PLAN
+
+EXECUTION_MEMORY
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+NEXT EXECUTE_TABLE1
+
+###############################################################################
+# BLOCO 06
+# EXECUÇÃO DA TABELA 1
+###############################################################################
+
+STATE EXECUTE_TABLE1
+
+OBJECTIVE
+
+Executar exclusivamente os Criteria pertencentes à Tabela 1.
+
+###############################################################################
+# ENTRADA
+###############################################################################
+
+READ
+
+EXECUTION_PLAN
+
+FROM
+
+EXECUTION_MEMORY
+
+SELECT
+
+ALL CRITERIA
+
+WHERE
+
+TABLE = 1
+
+###############################################################################
+# ORDEM DE EXECUÇÃO
+###############################################################################
+
+SORT
+
+TABLE
+
+↓
+
+REQUIREMENT
+
+↓
+
+CRITERION
+
+EXECUTE
+
+IN THIS ORDER
+
+###############################################################################
+# EXECUÇÃO
+###############################################################################
+
+FOR EACH CRITERION
+
+LOAD
+
+REQUIREMENT
+
+LOAD
+
+ASSERTION
+
+LOAD
+
+DOCUMENTS REQUIRED
+
+READ
+
+PROCESS_MEMORY
+
+EXECUTE
+
+ASSERT
+
+STORE
+
+RESULT
+
+IN
+
+RESULT_MEMORY
+
+END
+
+###############################################################################
+# RESULTADO
+###############################################################################
+
+EACH CRITERION
+
+SHALL PRODUCE
+
+ONE RESULT
+
+VALID RESULTS
+
+PASS
+
+FAIL
+
+NA
+
+NO OTHER RESULT IS ALLOWED
+
+###############################################################################
+# RESULT RECORD
+###############################################################################
+
+STORE
+
+CRITERION
+
+TABLE
+
+REQUIREMENT
+
+ASSERTION
+
+RESULT
+
+DOCUMENTARY EVIDENCE
+
+SOURCE DOCUMENT
+
+EXECUTION TIMESTAMP
+
+###############################################################################
+# RASTREABILIDADE
+###############################################################################
+
+EVERY RESULT
+
+SHALL REFERENCE
+
+ONE CRITERION
+
+EVERY CRITERION
+
+SHALL REFERENCE
+
+ONE REQUIREMENT
+
+EVERY DOCUMENTARY EVIDENCE
+
+SHALL REFERENCE
+
+ONE DOCUMENT
+
+NO RESULT
+
+MAY EXIST
+
+WITHOUT
+
+DOCUMENTARY EVIDENCE
+
+EXCEPT
+
+NA
+
+###############################################################################
+# RESTRIÇÕES
+###############################################################################
+
+DO NOT
+
+EXECUTE TABLE 4
+
+DO NOT
+
+GENERATE NONCONFORMITIES
+
+DO NOT
+
+GENERATE REPORT
+
+DO NOT
+
+PERFORM AUDIT
+
+DO NOT
+
+RECLASSIFY DOCUMENTS
+
+DO NOT
+
+MODIFY PROCESS_MEMORY
+
+DO NOT
+
+MODIFY DOCUMENT_MEMORY
+
+###############################################################################
+# VALIDAÇÃO
+###############################################################################
+
+VERIFY
+
+EVERY TABLE 1 CRITERION
+
+HAS RESULT
+
+VERIFY
+
+EVERY RESULT
+
+HAS REQUIREMENT
+
+VERIFY
+
+EVERY RESULT
+
+HAS SOURCE DOCUMENT
+
+IF VALIDATION FAILS
+
+STOP EXECUTION
+
+RETURN TABLE1_EXECUTION_ERROR
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+UPDATE
+
+EXECUTION_STATUS
+
+TABLE1_COMPLETED
+
+NEXT
+
+EXECUTE_TABLE4
+
+###############################################################################
+# BLOCO 07
+# EXECUÇÃO DA TABELA 4
+###############################################################################
+
+STATE EXECUTE_TABLE4
+
+OBJECTIVE
+
+Executar exclusivamente os Criteria pertencentes à Tabela 4
+selecionados no Execution Plan.
+
+###############################################################################
+# ENTRADA
+###############################################################################
+
+READ
+
+EXECUTION_PLAN
+
+FROM
+
+EXECUTION_MEMORY
+
+SELECT
+
+ALL REQUIREMENTS
+
+WHERE
+
+TABLE = 4
+
+###############################################################################
+# ORDEM DE EXECUÇÃO
+###############################################################################
+
+SORT
+
+SMSCI
+
+↓
+
+REQUIREMENT
+
+↓
+
+CRITERION
+
+EXECUTE
+
+IN THIS ORDER
+
+###############################################################################
+# PROCESSAMENTO
+###############################################################################
+
+FOR EACH REQUIREMENT
+
+VERIFY
+
+SMSCI APPLICABILITY
+
+USING
+
+PROCESS_MEMORY
+
+IF
+
+SMSCI NOT APPLICABLE
+
+SKIP REQUIREMENT
+
+CONTINUE
+
+LOCATE
+
+RELATED CRITERIA
+
+EXECUTE
+
+IN DECLARED ORDER
+
+END
+
+###############################################################################
+# EXECUÇÃO DOS CRITÉRIOS
+###############################################################################
+
+FOR EACH CRITERION
+
+READ
+
+PROCESS_MEMORY
+
+EXECUTE
+
+CRITERION ASSERTION
+
+STORE
+
+RESULT
+
+IN
+
+RESULT_MEMORY
+
+END
+
+###############################################################################
+# RESULTADO
+###############################################################################
+
+EACH CRITERION
+
+SHALL PRODUCE
+
+ONE RESULT
+
+VALID RESULTS
+
+PASS
+
+FAIL
+
+NA
+
+###############################################################################
+# REGISTRO DO RESULTADO
+###############################################################################
+
+STORE
+
+TABLE
+
+SMSCI
+
+REQUIREMENT
+
+CRITERION
+
+ASSERTION
+
+RESULT
+
+DOCUMENT_REFERENCE
+
+DOCUMENT_EVIDENCE
+
+###############################################################################
+# RASTREABILIDADE
+###############################################################################
+
+EVERY RESULT
+
+SHALL REFERENCE
+
+ONE SMSCI
+
+ONE REQUIREMENT
+
+ONE CRITERION
+
+ONE DOCUMENT
+
+NO RESULT
+
+MAY EXIST
+
+WITHOUT
+
+TRACEABILITY
+
+###############################################################################
+# RESTRIÇÕES
+###############################################################################
+
+DO NOT
+
+EXECUTE TABLE 1
+
+DO NOT
+
+GENERATE NONCONFORMITIES
+
+DO NOT
+
+GENERATE REPORT
+
+DO NOT
+
+PERFORM AUDIT
+
+DO NOT
+
+MODIFY PROCESS_MEMORY
+
+DO NOT
+
+MODIFY DOCUMENT_MEMORY
+
+###############################################################################
+# VALIDAÇÃO
+###############################################################################
+
+VERIFY
+
+EVERY EXECUTED REQUIREMENT
+
+HAS RESULT
+
+VERIFY
+
+EVERY RESULT
+
+HAS REQUIREMENT
+
+VERIFY
+
+EVERY RESULT
+
+HAS DOCUMENT_REFERENCE
+
+VERIFY
+
+EVERY RESULT
+
+HAS SMSCI
+
+IF VALIDATION FAILS
+
+STOP EXECUTION
+
+RETURN TABLE4_EXECUTION_ERROR
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+UPDATE
+
+EXECUTION_MEMORY
+
+TABLE4_COMPLETED
+
+UPDATE
+
+EXECUTION_MEMORY
+
+ALL_TABLES_COMPLETED
+
+NEXT
+
+CONSOLIDATE_RESULTS
+
+###############################################################################
+# BLOCO 08
+# CONSOLIDAÇÃO
+###############################################################################
+
+STATE CONSOLIDATE_RESULTS
+
+OBJECTIVE
+
+Consolidar todos os resultados produzidos durante a execução.
+
+Nenhum Criterion poderá ser executado nesta etapa.
+
+###############################################################################
+# ENTRADA
+###############################################################################
+
+READ
+
+RESULT_MEMORY
+
+READ
+
+EXECUTION_PLAN
+
+FROM
+
+EXECUTION_MEMORY
+
+READ
+
+05_NONCONFORMITIES
+
+###############################################################################
+# CONSOLIDAÇÃO
+###############################################################################
+
+FOR EACH RESULT
+
+LOCATE
+
+REQUIREMENT
+
+LOCATE
+
+CRITERION
+
+VERIFY
+
+TRACEABILITY
+
+BUILD
+
+CONSOLIDATED_RESULT
+
+END
+
+###############################################################################
+# ASSOCIAÇÃO DAS NÃO CONFORMIDADES
+###############################################################################
+
+FOR EACH CONSOLIDATED_RESULT
+
+IF
+
+RESULT = FAIL
+
+LOCATE
+
+REFERENCED NONCONFORMITY
+
+USING
+
+REQUIREMENT
+
+ATTACH
+
+NONCONFORMITY
+
+END
+
+###############################################################################
+# RESULTADOS PASS
+###############################################################################
+
+IF
+
+RESULT = PASS
+
+REGISTER
+
+CONFORMING REQUIREMENT
+
+NO NONCONFORMITY
+
+###############################################################################
+# RESULTADOS NA
+###############################################################################
+
+IF
+
+RESULT = NA
+
+REGISTER
+
+NOT APPLICABLE
+
+NO NONCONFORMITY
+
+###############################################################################
+# ESTRUTURA CONSOLIDADA
+###############################################################################
+
+STORE
+
+TABLE
+
+SMSCI
+
+WHEN APPLICABLE
+
+REQUIREMENT
+
+CRITERION
+
+RESULT
+
+DOCUMENT_REFERENCE
+
+DOCUMENT_EVIDENCE
+
+NONCONFORMITY_REFERENCE
+
+###############################################################################
+# VALIDAÇÃO
+###############################################################################
+
+VERIFY
+
+EVERY FAIL
+
+HAS
+
+NONCONFORMITY
+
+VERIFY
+
+EVERY NONCONFORMITY
+
+REFERENCES
+
+ONE REQUIREMENT
+
+VERIFY
+
+EVERY REQUIREMENT
+
+HAS
+
+AT LEAST ONE RESULT
+
+VERIFY
+
+EVERY RESULT
+
+HAS
+
+DOCUMENT_REFERENCE
+
+VERIFY
+
+NO DUPLICATED NONCONFORMITY
+
+###############################################################################
+# RESTRIÇÕES
+###############################################################################
+
+DO NOT
+
+EXECUTE CRITERIA
+
+DO NOT
+
+RECLASSIFY DOCUMENTS
+
+DO NOT
+
+MODIFY PROCESS_MEMORY
+
+DO NOT
+
+MODIFY RESULT_MEMORY
+
+DO NOT
+
+GENERATE REPORT
+
+DO NOT
+
+PERFORM AUDIT
+
+###############################################################################
+# SAÍDA
+###############################################################################
+
+CREATE
+
+CONSOLIDATED_RESULTS
+
+STORE
+
+CONSOLIDATED_RESULTS
+
+CONSOLIDATION_MEMORY
+
+UPDATE
+
+EXECUTION_MEMORY
+
+CONSOLIDATION_COMPLETED
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+NEXT
+
+AUDIT_TRACEABILITY
+
+###############################################################################
+# BLOCO 09
+# AUDITORIA DE RASTREABILIDADE
+###############################################################################
+
+STATE AUDIT_TRACEABILITY
+
+OBJECTIVE
+
+Certificar a integridade completa da execução antes da geração
+do relatório.
+
+Nenhum Criterion poderá ser executado.
+
+Nenhum resultado poderá ser modificado.
+
+###############################################################################
+# ENTRADA
+###############################################################################
+
+READ
+
+CONSOLIDATION_MEMORY
+
+READ
+
+EXECUTION_MEMORY
+
+READ
+
+RESULT_MEMORY
+
+###############################################################################
+# AUDITORIA DA CADEIA
+###############################################################################
+
+FOR EACH CONSOLIDATED_RESULT
+
+VERIFY
+
+TABLE
+
+VERIFY
+
+SMSCI
+
+WHEN APPLICABLE
+
+VERIFY
+
+REQUIREMENT
+
+VERIFY
+
+CRITERION
+
+VERIFY
+
+RESULT
+
+VERIFY
+
+DOCUMENT_REFERENCE
+
+VERIFY
+
+DOCUMENT_EVIDENCE
+
+VERIFY
+
+NONCONFORMITY
+
+WHEN RESULT = FAIL
+
+END
+
+###############################################################################
+# VALIDAÇÃO DE REFERÊNCIAS
+###############################################################################
+
+VERIFY
+
+EVERY REQUIREMENT
+
+REFERENCES
+
+ONE TABLE
+
+VERIFY
+
+EVERY CRITERION
+
+REFERENCES
+
+ONE REQUIREMENT
+
+VERIFY
+
+EVERY RESULT
+
+REFERENCES
+
+ONE CRITERION
+
+VERIFY
+
+EVERY DOCUMENT_EVIDENCE
+
+REFERENCES
+
+ONE SOURCE DOCUMENT
+
+VERIFY
+
+EVERY FAIL
+
+REFERENCES
+
+ONE NONCONFORMITY
+
+###############################################################################
+# VALIDAÇÃO DE CONSISTÊNCIA
+###############################################################################
+
+VERIFY
+
+NO MISSING REFERENCES
+
+VERIFY
+
+NO INVALID REFERENCES
+
+VERIFY
+
+NO DUPLICATED RESULTS
+
+VERIFY
+
+NO DUPLICATED NONCONFORMITIES
+
+VERIFY
+
+NO ORPHAN REQUIREMENTS
+
+VERIFY
+
+NO ORPHAN CRITERIA
+
+VERIFY
+
+NO ORPHAN RESULTS
+
+###############################################################################
+# VALIDAÇÃO DE COMPLETUDE
+###############################################################################
+
+VERIFY
+
+EVERY REQUIREMENT
+
+PRESENT IN EXECUTION_PLAN
+
+HAS RESULT
+
+VERIFY
+
+EVERY EXECUTED CRITERION
+
+HAS RESULT
+
+VERIFY
+
+EVERY RESULT
+
+BELONGS TO
+
+ONE REQUIREMENT
+
+VERIFY
+
+EVERY RESULT
+
+BELONGS TO
+
+ONE TABLE
+
+###############################################################################
+# REGISTRO DA AUDITORIA
+###############################################################################
+
+STORE
+
+AUDIT_STATUS
+
+STORE
+
+AUDIT_OBSERVATIONS
+
+STORE
+
+TRACEABILITY_STATUS
+
+IN
+
+CONSOLIDATION_MEMORY
+
+###############################################################################
+# RESTRIÇÕES
+###############################################################################
+
+DO NOT
+
+EXECUTE CRITERIA
+
+DO NOT
+
+RECLASSIFY DOCUMENTS
+
+DO NOT
+
+MODIFY DOCUMENT_MEMORY
+
+DO NOT
+
+MODIFY PROCESS_MEMORY
+
+DO NOT
+
+MODIFY EXECUTION_MEMORY
+
+DO NOT
+
+MODIFY RESULT_MEMORY
+
+DO NOT
+
+GENERATE REPORT
+
+###############################################################################
+# RESULTADO
+###############################################################################
+
+IF
+
+ALL VALIDATIONS PASS
+
+UPDATE
+
+EXECUTION_MEMORY
+
+AUDIT_COMPLETED
+
+ELSE
+
+UPDATE
+
+EXECUTION_MEMORY
+
+AUDIT_FAILED
+
+STOP EXECUTION
+
+RETURN TRACEABILITY_ERROR
+
+###############################################################################
+# ESTADO FINAL
+###############################################################################
+
+NEXT
+
+GENERATE_REPORT
+
+###############################################################################
+# BLOCO 10
+# GERAÇÃO DO RELATÓRIO TÉCNICO
+###############################################################################
+
+STATE GENERATE_REPORT
+
+OBJECTIVE
+
+Construir o relatório técnico final exclusivamente a partir das
+informações produzidas durante a execução.
+
+Nenhuma inferência poderá ser realizada.
+
+Nenhum resultado poderá ser alterado.
+
+###############################################################################
+# ENTRADA
+###############################################################################
+
+READ
+
+REPORT_MEMORY
+
+READ
+
+CONSOLIDATION_MEMORY
+
+READ
+
+RESULT_MEMORY
+
+VERIFY
+
+EXECUTION_MEMORY.STATUS = AUDIT_COMPLETED
+
+IF NOT
+
+STOP EXECUTION
+
+RETURN AUDIT_NOT_COMPLETED
+
+###############################################################################
+# SEÇÃO 1
+# IDENTIFICAÇÃO
+###############################################################################
+
+GENERATE
+
+SECTION 1
+
+TITLE
+
+IDENTIFICAÇÃO DO PROCESSO
+
+USING
+
+PROCESS.PROTOCOL
+
+PROCESS.RE
+
+PROCESS.BUILDING_NAME
+
+PROCESS.ADDRESS
+
+PROCESS.OCCUPANCY
+
+PROCESS.AREA
+
+PROCESS.HEIGHT
+
+PROCESS.FLOORS
+
+PROCESS.RT
+
+PROCESS.RI
+
+###############################################################################
+# SEÇÃO 2
+# DOCUMENTOS ANALISADOS
+###############################################################################
+
+GENERATE
+
+SECTION 2
+
+TITLE
+
+DOCUMENTOS ANALISADOS
+
+LIST
+
+DOCUMENTS_PRESENTED
+
+ORDER
+
+DOCUMENT_ORDER
+
+###############################################################################
+# SEÇÃO 3
+# RESUMO DOS CRITÉRIOS
+###############################################################################
+
+GENERATE
+
+SECTION 3
+
+TITLE
+
+RESUMO DOS CRITÉRIOS
+
+DISPLAY
+
+TOTAL_CRITERIA
+
+TOTAL_PASS
+
+TOTAL_FAIL
+
+TOTAL_NA
+
+FOR EACH RESULT
+
+DISPLAY
+
+TABLE
+
+CRITERION
+
+RESULT
+
+DOCUMENTARY_EVIDENCE
+
+###############################################################################
+# SEÇÃO 4
+# NÃO CONFORMIDADES
+###############################################################################
+
+GENERATE
+
+SECTION 4
+
+TITLE
+
+NÃO CONFORMIDADES
+
+FOR EACH FAIL
+
+DISPLAY
+
+NONCONFORMITY
+
+DOCUMENTARY_EVIDENCE
+
+NORMATIVE_REFERENCE
+
+###############################################################################
+# SEÇÃO 5
+# PENDÊNCIAS
+###############################################################################
+
+GENERATE
+
+SECTION 5
+
+TITLE
+
+PENDÊNCIAS
+
+FOR EACH FAIL
+
+LOCATE
+
+REQUIREMENT
+
+DISPLAY
+
+CORRECTIVE_ACTION
+
+###############################################################################
+# SEÇÃO 6
+# CONCLUSÃO
+###############################################################################
+
+GENERATE
+
+SECTION 6
+
+TITLE
+
+CONCLUSÃO
+
+IF
+
+TOTAL_FAIL = 0
+
+DISPLAY
+
+STATUS
+
+DOCUMENTAÇÃO CONFORME
+
+ELSE
+
+DISPLAY
+
+STATUS
+
+DOCUMENTAÇÃO NÃO CONFORME
+
+DISPLAY
+
+TOTAL_PASS
+
+TOTAL_FAIL
+
+###############################################################################
+# SEÇÃO 7
+# OBSERVAÇÕES
+###############################################################################
+
+GENERATE
+
+SECTION 7
+
+TITLE
+
+OBSERVAÇÕES
+
+DISPLAY
+
+AUDIT_OBSERVATIONS
+
+ONLY
+
+WHEN PRESENT
+
+###############################################################################
+# ENCERRAMENTO
+###############################################################################
+
+GENERATE
+
+FOOTER
+
+DISPLAY
+
+ANALYSIS_DATE
+
+KNOWLEDGE_BASE_VERSION
+
+PROCEDURE
+
+###############################################################################
+# REGRAS OBRIGATÓRIAS
+###############################################################################
+
+USE ONLY
+
+RESULT_MEMORY
+
+CONSOLIDATION_MEMORY
+
+REPORT_MEMORY
+
+USE ONLY
+
+REQUIREMENTS
+
+USE ONLY
+
+NONCONFORMITIES
+
+USE ONLY
+
+DOCUMENTARY_EVIDENCE
+
+DO NOT
+
+CREATE FREE TEXT
+
+DO NOT
+
+CREATE TECHNICAL JUSTIFICATIONS
+
+DO NOT
+
+CREATE NEW PENDING ITEMS
+
+DO NOT
+
+CREATE NEW CONCLUSIONS
+
+DO NOT
+
+EXECUTE CRITERIA
+
+DO NOT
+
+MODIFY ANY MEMORY
+
+###############################################################################
+# VALIDAÇÃO FINAL
+###############################################################################
+
+VERIFY
+
+EVERY FAIL
+
+IS PRESENT
+
+IN
+
+SECTION 4
+
+VERIFY
+
+EVERY FAIL
+
+IS PRESENT
+
+IN
+
+SECTION 5
+
+VERIFY
+
+TOTAL_PASS
+
+TOTAL_FAIL
+
+TOTAL_NA
+
+ARE CONSISTENT
+
+VERIFY
+
+EVERY DISPLAYED REQUIREMENT
+
+HAS TRACEABILITY
+
+VERIFY
+
+EVERY DISPLAYED NONCONFORMITY
+
+HAS TRACEABILITY
+
+VERIFY
+
+EVERY DISPLAYED EVIDENCE
+
+HAS SOURCE DOCUMENT
+
+IF ANY VALIDATION FAILS
+
+RETURN
+
+REPORT_GENERATION_ERROR
+
+STOP EXECUTION
+
+###############################################################################
+# SAÍDA
+###############################################################################
+
+STORE
+
+FINAL_REPORT
+
+IN
+
+REPORT_MEMORY
+
+UPDATE
+
+EXECUTION_MEMORY
+
+STATUS
+
+EXECUTION_COMPLETED
+
+###############################################################################
+# END
+###############################################################################

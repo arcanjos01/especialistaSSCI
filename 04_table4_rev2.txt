@@ -1,0 +1,492 @@
+###############################################################################
+# 04_table4.txt
+# BASECONHECIMENTO_REV1
+# TABELA 4
+# DOCUMENTOS ESPECÍFICOS DOS SMSCI
+# PARTE 1/2
+###############################################################################
+
+###############################################################################
+# IN07
+###############################################################################
+
+CRITERION T4_IN07_COMMISSIONING
+
+TABLE 4
+
+APPLIES_TO SMSCI_SHP
+
+SOURCE IN07
+
+ARTICLE 106
+
+REQUIREMENT REQ_IN07_COMMISSIONING
+
+REQUIRE DOCUMENT SHP_COMMISSIONING_REPORT
+
+ASSERT ALL
+
+EXISTS(SHP_COMMISSIONING_REPORT)
+
+DRT_COVERS(SHP_COMMISSIONING_REPORT,SMSCI_SHP)
+
+END
+
+FAIL NC_T4_001
+
+END
+
+###############################################################################
+# IN08
+###############################################################################
+
+CRITERION T4_IN08_ESTANQUEIDADE
+
+TABLE 4
+
+APPLIES_TO SMSCI_GAS
+
+SOURCE IN08
+
+ARTICLE 95
+
+REQUIREMENT REQ_IN08_ESTANQUEIDADE
+
+REQUIRE DOCUMENT GAS_TIGHTNESS_REPORT
+
+ASSERT ALL
+
+EXISTS(GAS_TIGHTNESS_REPORT)
+
+VALID_WITHIN_YEARS(GAS_TIGHTNESS_REPORT,5)
+
+DRT_COVERS(GAS_TIGHTNESS_REPORT,SMSCI_GAS)
+
+END
+
+FAIL NC_T4_002
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN08_MANUAL
+
+TABLE 4
+
+APPLIES_TO SMSCI_GAS
+
+SOURCE IN08
+
+ARTICLE 80
+
+REQUIREMENT REQ_IN08_MANUAL
+
+REQUIRE DOCUMENT GAS_OWNER_MANUAL
+
+ASSERT EXISTS(GAS_OWNER_MANUAL)
+
+FAIL NC_T4_003
+
+END
+
+###############################################################################
+# IN09
+###############################################################################
+
+CRITERION T4_IN09_DRT
+
+TABLE 4
+
+APPLIES_TO SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+REQUIREMENT REQ_IN09_DRT
+
+REQUIRE DOCUMENT PRESSURIZATION_DRT
+
+ASSERT ALL
+
+HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,"EXECUCAO")
+
+HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,"VISTORIA_ENSAIO")
+
+END
+
+FAIL NC_T4_004
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN09_TEST_REPORT
+
+TABLE 4
+
+APPLIES_TO SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+REQUIREMENT REQ_IN09_TEST_REPORT
+
+REQUIRE DOCUMENT PRESSURIZATION_TEST_REPORT
+
+ASSERT ALL
+
+EXISTS(PRESSURIZATION_TEST_REPORT)
+
+DRT_COVERS(PRESSURIZATION_TEST_REPORT,SMSCI_PRESSURIZATION)
+
+REPORT_CONTAINS(PRESSURIZATION_TEST_REPORT,IN09_ART122_REQUIRED_ITEMS)
+
+END
+
+FAIL NC_T4_005
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN09_MANUAL
+
+TABLE 4
+
+APPLIES_TO SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+REQUIREMENT REQ_IN09_MANUAL
+
+REQUIRE DOCUMENT PRESSURIZATION_OPERATION_MANUAL
+
+ASSERT EXISTS(PRESSURIZATION_OPERATION_MANUAL)
+
+FAIL NC_T4_006
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN09_CHECKLIST
+
+TABLE 4
+
+APPLIES_TO SMSCI_PRESSURIZATION
+
+SOURCE IN09
+
+ARTICLE 122
+
+REQUIREMENT REQ_IN09_CHECKLIST
+
+REQUIRE DOCUMENT PRESSURIZATION_MAINTENANCE_CHECKLIST
+
+ASSERT EXISTS(PRESSURIZATION_MAINTENANCE_CHECKLIST)
+
+FAIL NC_T4_007
+
+END
+
+###############################################################################
+# IN10
+###############################################################################
+
+CRITERION T4_IN10_COMMISSIONING
+
+TABLE 4
+
+APPLIES_TO SMSCI_SMOKE_CONTROL_MECHANICAL
+
+SOURCE IN10
+
+ARTICLE 41
+
+REQUIREMENT REQ_IN10_COMMISSIONING
+
+REQUIRE DOCUMENT SMOKE_CONTROL_COMMISSIONING_REPORT
+
+ASSERT ALL
+
+EXISTS(SMOKE_CONTROL_COMMISSIONING_REPORT)
+
+REPORT_PREPARED_BY_INDEPENDENT_PARTY(SMOKE_CONTROL_COMMISSIONING_REPORT)
+
+DRT_COVERS(SMOKE_CONTROL_COMMISSIONING_REPORT,SMSCI_SMOKE_CONTROL)
+
+END
+
+FAIL NC_T4_008
+
+END
+
+###############################################################################
+# IN12
+###############################################################################
+
+CRITERION T4_IN12_COMMISSIONING
+
+TABLE 4
+
+APPLIES_TO SMSCI_SDAI
+
+SOURCE IN12
+
+ARTICLE 47
+
+REQUIREMENT REQ_IN12_COMMISSIONING
+
+REQUIRE DOCUMENT SDAI_COMMISSIONING_REPORT
+
+ASSERT ALL
+
+EXISTS(SDAI_COMMISSIONING_REPORT)
+
+DRT_COVERS(SDAI_COMMISSIONING_REPORT,SMSCI_SDAI)
+
+END
+
+FAIL NC_T4_009
+
+END
+
+###############################################################################
+# FIM DA PARTE 1
+###############################################################################
+###############################################################################
+# 04_table4.txt
+# BASECONHECIMENTO_V4
+# TABELA 4
+# DOCUMENTOS ESPECÍFICOS DOS SMSCI
+# PARTE 2/2
+###############################################################################
+
+###############################################################################
+# IN15
+###############################################################################
+
+CRITERION T4_IN15_COMMISSIONING
+
+TABLE 4
+
+APPLIES_TO SMSCI_SPRINKLER
+
+SOURCE IN15
+
+ARTICLE 30
+
+REQUIREMENT REQ_IN15_COMMISSIONING
+
+REQUIRE DOCUMENT SPRINKLER_COMMISSIONING_REPORT
+
+ASSERT ALL
+
+EXISTS(SPRINKLER_COMMISSIONING_REPORT)
+
+DRT_COVERS(SPRINKLER_COMMISSIONING_REPORT,SMSCI_SPRINKLER)
+
+END
+
+FAIL NC_T4_010
+
+END
+
+###############################################################################
+# IN18
+###############################################################################
+
+CRITERION T4_IN18_CMAR
+
+TABLE 4
+
+APPLIES_TO SMSCI_CMAR
+
+SOURCE IN18
+
+ARTICLE 14
+
+REQUIREMENT REQ_IN18_CMAR
+
+REQUIRE DOCUMENT CMAR_DECLARATION
+
+ASSERT EXISTS(CMAR_DECLARATION)
+
+FAIL NC_T4_011
+
+END
+
+###############################################################################
+# IN19
+###############################################################################
+
+###############################################################################
+# OBRA NOVA
+###############################################################################
+
+CRITERION T4_IN19_EXECUTION
+
+TABLE 4
+
+APPLIES_TO SMSCI_IEL
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_EXECUTION
+
+REQUIRE DOCUMENT LOW_VOLTAGE_EXECUTION_DRT
+
+ASSERT EXISTS(LOW_VOLTAGE_EXECUTION_DRT)
+
+FAIL NC_T4_012
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN19_GROUNDING
+
+TABLE 4
+
+APPLIES_TO SMSCI_IEL
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_GROUNDING
+
+REQUIRE DOCUMENT GROUNDING_EXECUTION_DRT
+
+ASSERT EXISTS(GROUNDING_EXECUTION_DRT)
+
+FAIL NC_T4_013
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN19_FINAL_VERIFICATION
+
+TABLE 4
+
+APPLIES_TO SMSCI_IEL
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_FINAL_VERIFICATION
+
+REQUIRE DOCUMENT LOW_VOLTAGE_FINAL_VERIFICATION_DRT
+
+ASSERT EXISTS(LOW_VOLTAGE_FINAL_VERIFICATION_DRT)
+
+FAIL NC_T4_014
+
+END
+
+###############################################################################
+# EDIFICAÇÃO EXISTENTE
+###############################################################################
+
+CRITERION T4_IN19_MAINTENANCE
+
+TABLE 4
+
+APPLIES_TO SMSCI_IEL
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_MAINTENANCE
+
+ASSERT
+
+EXISTS(LOW_VOLTAGE_MAINTENANCE_DRT)
+
+OR
+
+EXISTS(LOW_VOLTAGE_RENOVATION_DRT)
+
+FAIL NC_T4_015
+
+END
+
+###############################################################################
+# IN34
+###############################################################################
+
+CRITERION T4_IN34_EXPLOSION_PROTECTION
+
+TABLE 4
+
+APPLIES_TO M5_EXPLOSION_PROTECTION
+
+SOURCE IN34
+
+REQUIREMENT REQ_IN34_EXPLOSION_PROTECTION
+
+ASSERT HAS_DRT_ACTIVITY(M5_EXPLOSION_PROTECTION,"EXECUCAO")
+
+FAIL NC_T4_016_01
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN34_DUST_CONTROL
+
+TABLE 4
+
+APPLIES_TO M5_DUST_CONTROL
+
+SOURCE IN34
+
+REQUIREMENT REQ_IN34_DUST_CONTROL
+
+ASSERT HAS_DRT_ACTIVITY(M5_DUST_CONTROL,"EXECUCAO")
+
+FAIL NC_T4_016_02
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN34_HEAT_SENSORS
+
+TABLE 4
+
+APPLIES_TO M5_HEAT_SENSORS
+
+SOURCE IN34
+
+REQUIREMENT REQ_IN34_HEAT_SENSORS
+
+ASSERT HAS_DRT_ACTIVITY(M5_HEAT_SENSORS,"EXECUCAO")
+
+FAIL NC_T4_016_03
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN34_LIGHTNING_PROTECTION
+
+TABLE 4
+
+APPLIES_TO M5_LIGHTNING_PROTECTION
+
+SOURCE IN34
+
+REQUIREMENT REQ_IN34_LIGHTNING_PROTECTION
+
+ASSERT HAS_DRT_ACTIVITY(M5_LIGHTNING_PROTECTION,"EXECUCAO")
+
+FAIL NC_T4_016_04
+
+END
+
+###############################################################################
+# END
+###############################################################################

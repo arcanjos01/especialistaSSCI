@@ -1,0 +1,551 @@
+###############################################################################
+# 01_entities.txt
+# BASECONHECIMENTO_V4
+# ENTIDADES DO DOMÍNIO
+###############################################################################
+
+###############################################################################
+# PROCESSO
+###############################################################################
+
+ENTITY PROCESS
+
+TYPE PROCESS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PPCI
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RE
+
+TYPE IDENTIFIER
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PROTOCOL
+
+TYPE IDENTIFIER
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RT
+
+TYPE PERSON
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RI
+
+TYPE PERSON
+
+END
+
+###############################################################################
+# DOCUMENTOS
+###############################################################################
+
+ENTITY DRT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY ART
+
+TYPE DRT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY RRT
+
+TYPE DRT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TRT
+
+TYPE DRT
+
+END
+
+###############################################################################
+# ESCOPO DA DRT
+###############################################################################
+
+ENTITY DRT_GENERAL_SCOPE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Objeto técnico de execução com abrangência sobre todos os
+sistemas e medidas preventivos contra incêndio e pânico,
+excetuados apenas aqueles cuja legislação exige documento
+ou responsabilidade técnica específica.
+
+MATCH
+
+"SISTEMAS E MEDIDAS PREVENTIVOS CONTRA INCÊNDIO E PÂNICO"
+
+MATCH
+
+"PREVENÇÃO E COMBATE A INCÊNDIO E PÂNICO"
+
+MATCH
+
+"SISTEMA PREVENTIVO CONTRA INCÊNDIO"
+
+MATCH
+
+"EXECUÇÃO DOS SISTEMAS PREVENTIVOS"
+
+END
+
+###############################################################################
+
+ENTITY DRT_SPECIFIC_SCOPE
+
+TYPE CONCEPT
+
+DESCRIPTION
+
+Objeto técnico restrito a sistemas específicos.
+
+END
+-------------------------------------------------------------------------------
+
+ENTITY REPORT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY DECLARATION
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY MANUAL
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY TEST_REPORT
+
+TYPE DOCUMENT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY COMMISSIONING_REPORT
+
+TYPE DOCUMENT
+
+END
+
+###############################################################################
+# SMSCI
+###############################################################################
+
+ENTITY SMSCI_IE
+
+TYPE SMSCI
+
+NAME
+
+Iluminação de Emergência
+
+ALIAS
+
+IE
+
+ILUMINACAO_DE_EMERGENCIA
+
+ILUMINAÇÃO_DE_EMERGÊNCIA
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SAL
+
+TYPE SMSCI
+
+NAME
+
+Sinalização para Abandono
+
+ALIAS
+
+SAL
+
+SINALIZACAO
+
+SINALIZAÇÃO
+
+ABANDONO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_PPE
+
+TYPE SMSCI
+
+NAME
+
+Proteção por Extintores
+
+ALIAS
+
+PPE
+
+EXTINTORES
+
+EXTINTOR
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_BI
+
+TYPE SMSCI
+
+NAME
+
+Brigada de Incêndio
+
+ALIAS
+
+BI
+
+BRIGADA
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_GAS
+
+TYPE SMSCI
+
+NAME
+
+Instalação de Gás
+
+ALIAS
+
+GLP
+
+GAS
+
+GÁS
+
+CENTRAL_GLP
+
+INSTALACAO_GAS
+
+INSTALAÇÃO_GÁS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SHP
+
+TYPE SMSCI
+
+NAME
+
+Sistema Hidráulico Preventivo
+
+ALIAS
+
+SHP
+
+HIDRANTE
+
+HIDRANTES
+
+REDE_DE_HIDRANTES
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SDAI
+
+TYPE SMSCI
+
+NAME
+
+Sistema de Detecção e Alarme de Incêndio
+
+ALIAS
+
+SDAI
+
+ALARME
+
+DETECÇÃO
+
+DETECCAO
+
+ALARME_DE_INCENDIO
+
+DETECÇÃO_DE_INCÊNDIO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_PRESSURIZATION
+
+TYPE SMSCI
+
+NAME
+
+Escada Pressurizada
+
+ALIAS
+
+PRESSURIZACAO
+
+PRESSURIZAÇÃO
+
+ESCADA_PRESSURIZADA
+
+GRADIENTE_DE_PRESSAO
+
+GRADIENTE_DE_PRESSÃO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SMOKE_CONTROL
+
+TYPE SMSCI
+
+NAME
+
+Controle de Fumaça
+
+ALIAS
+
+CONTROLE_DE_FUMACA
+
+CONTROLE_DE_FUMAÇA
+
+SMOKE_CONTROL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SPRINKLER
+
+TYPE SMSCI
+
+NAME
+
+Sistema de Chuveiros Automáticos
+
+ALIAS
+
+SPRINKLER
+
+SPRINKLERS
+
+CHUVEIROS_AUTOMATICOS
+
+CHUVEIROS_AUTOMÁTICOS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_CMAR
+
+TYPE SMSCI
+
+NAME
+
+Controle de Materiais de Acabamento e Revestimento
+
+ALIAS
+
+CMAR
+
+MATERIAIS_DE_ACABAMENTO
+
+MATERIAIS_DE_REVESTIMENTO
+
+ACABAMENTO
+
+REVESTIMENTO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_IEL
+
+TYPE SMSCI
+
+NAME
+
+Instalações Elétricas de Baixa Tensão
+
+ALIAS
+
+IEL
+
+INSTALACOES_ELETRICAS
+
+INSTALAÇÕES_ELÉTRICAS
+
+BAIXA_TENSAO
+
+BAIXA_TENSÃO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_M5
+
+TYPE SMSCI
+
+NAME
+
+Ocupação M-5
+
+ALIAS
+
+M5
+
+EXPLOSIVOS
+
+FOGOS_DE_ARTIFICIO
+
+FOGOS_DE_ARTIFÍCIO
+
+END
+
+###############################################################################
+# TIPOS DE DOCUMENTOS
+###############################################################################
+
+ENTITY SHP_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+SMSCI SMSCI_SHP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GAS_TIGHTNESS_REPORT
+
+TYPE TEST_REPORT
+
+SMSCI SMSCI_GAS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GAS_OWNER_MANUAL
+
+TYPE MANUAL
+
+SMSCI SMSCI_GAS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SDAI_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+SMSCI SMSCI_SDAI
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY CMAR_DECLARATION
+
+TYPE DECLARATION
+
+SMSCI SMSCI_CMAR
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY LOW_VOLTAGE_EXECUTION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY LOW_VOLTAGE_FINAL_VERIFICATION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY GROUNDING_EXECUTION_DRT
+
+TYPE DRT
+
+SMSCI SMSCI_IEL
+
+END
+
+###############################################################################
+# END
+###############################################################################

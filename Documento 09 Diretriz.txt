@@ -1,0 +1,131 @@
+Documento 09 – Diretriz Arquitetural da Plataforma de Sistemas Especialistas para Análise Documental do CBMSC
+1. Finalidade
+
+Este documento estabelece os princípios arquiteturais permanentes da Plataforma de Sistemas Especialistas para Análise Documental do Corpo de Bombeiros Militar de Santa Catarina (CBMSC).
+
+Seu objetivo é orientar toda evolução futura do projeto, garantindo consistência conceitual, reutilização de componentes e independência entre o mecanismo de inferência e os diferentes processos administrativos analisados.
+
+Este documento possui precedência sobre interpretações que limitem o projeto a um único tipo de processo administrativo.
+
+2. Natureza da Plataforma
+
+A plataforma não constitui um sistema especialista para Habite-se.
+
+O sistema de Habite-se é apenas uma das possíveis aplicações da plataforma.
+
+A finalidade da plataforma é executar análises documentais baseadas em conhecimento estruturado para qualquer processo administrativo cuja decisão possa ser representada por regras documentadas, critérios verificáveis e evidências documentais.
+
+3. Escopo Institucional
+
+A plataforma deverá permitir a implementação de sistemas especialistas para diferentes processos administrativos do CBMSC, incluindo, entre outros:
+
+Análise de Projeto Preventivo Contra Incêndio (IRA);
+Habite-se;
+Eventos Temporários;
+Fiscalização;
+Recursos Técnicos;
+Consultas Técnicas;
+Outros processos administrativos que possuam critérios normativos formalizados.
+4. Arquitetura Geral
+
+A arquitetura da plataforma é composta por dois níveis independentes.
+
+Nível 1 – Núcleo Permanente
+
+O Núcleo Permanente representa o mecanismo de inferência comum a todos os processos.
+
+São componentes permanentes:
+
+Inventário documental;
+Extração de entidades;
+Construção da Memória de Trabalho;
+Motor de Inferência;
+Consolidação dos resultados;
+Geração do relatório técnico.
+
+Esses componentes não devem depender de qualquer processo administrativo específico.
+
+Nível 2 – Bases de Conhecimento
+
+Cada processo administrativo deverá possuir sua própria Base de Conhecimento.
+
+Cada Base de Conhecimento conterá exclusivamente as regras daquele domínio.
+
+Exemplos:
+
+Base IRA;
+Base Habite-se;
+Base Eventos;
+Base Fiscalização.
+
+As Bases de Conhecimento são intercambiáveis.
+
+O Núcleo Permanente deverá executar qualquer Base de Conhecimento sem alterações em seu funcionamento interno.
+
+5. Princípio da Independência do Domínio
+
+O mecanismo de inferência nunca deverá conter regras específicas de Habite-se, IRA ou qualquer outro processo.
+
+Todo conhecimento específico deverá residir exclusivamente na respectiva Base de Conhecimento.
+
+O Núcleo Permanente deverá ser completamente independente do domínio analisado.
+
+6. Estrutura Geral de uma Base de Conhecimento
+
+Toda Base de Conhecimento deverá possuir, sempre que aplicável:
+
+Entidades;
+Requisitos;
+Critérios;
+Regras;
+Evidências exigidas;
+Não Conformidades;
+Modelo de Consolidação.
+
+Nenhum desses elementos deverá ser implementado diretamente no mecanismo de inferência.
+
+7. Processo Geral de Inferência
+
+Independentemente do domínio analisado, toda análise seguirá obrigatoriamente as seguintes etapas:
+
+Inventário documental;
+Extração das entidades;
+Construção da Memória de Trabalho;
+Identificação dos requisitos aplicáveis;
+Aplicação das regras;
+Identificação das não conformidades;
+Consolidação;
+Geração do relatório.
+
+A sequência acima constitui o algoritmo oficial da plataforma.
+
+8. POPs
+
+Os Procedimentos Operacionais Padrão (POPs) pertencem ao Núcleo Permanente.
+
+Os POPs não deverão ser reescritos para cada domínio.
+
+Sempre que necessário, deverão apenas receber parâmetros referentes à Base de Conhecimento utilizada.
+
+9. Evolução da Plataforma
+
+A evolução futura da plataforma deverá priorizar:
+
+melhoria do mecanismo de inferência;
+melhoria da extração de entidades;
+melhoria da consolidação dos resultados;
+criação de novas Bases de Conhecimento.
+
+A criação de um novo sistema especialista deverá ocorrer preferencialmente mediante desenvolvimento de uma nova Base de Conhecimento, evitando modificações no Núcleo Permanente.
+
+10. Princípio da Reutilização
+
+Toda funcionalidade que possa ser utilizada por mais de um processo administrativo deverá integrar o Núcleo Permanente.
+
+Somente funcionalidades exclusivas de determinado domínio poderão integrar sua respectiva Base de Conhecimento.
+
+11. Objetivo Final
+
+O objetivo estratégico deste projeto é constituir uma Plataforma Institucional de Sistemas Especialistas para Análise Documental do CBMSC.
+
+Os sistemas especialistas para Habite-se, IRA, Eventos Temporários e demais processos administrativos deverão ser compreendidos como módulos especializados que compartilham um único mecanismo de inferência e diferem apenas pela Base de Conhecimento empregada.

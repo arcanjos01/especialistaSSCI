@@ -1,0 +1,273 @@
+###############################################################################
+# 00_engine.dsl
+# BASECONHECIMENTO_REV2.DSL
+# LANGUAGE SPECIFICATION
+# VERSION 1.0
+###############################################################################
+
+ENGINE CBMSC_IRV_ENGINE
+
+VERSION 1.2
+
+DOMAIN HABITESE
+
+SOURCE IRV_2024
+
+MODE STRICT
+
+EXECUTION SEQUENTIAL
+
+###############################################################################
+# EXECUTION PRINCIPLES
+###############################################################################
+
+EXECUTE_ONLY_DECLARED_CRITERIA
+
+EXECUTE_IN_FILE_ORDER
+
+NO_EXTERNAL_KNOWLEDGE
+
+NO_ASSUMPTIONS
+
+NO_INFERENCE
+
+NO_NEW_RULES
+
+NO_NEW_OBJECTS
+
+NO_NEW_ATTRIBUTES
+
+NO_NEW_DOCUMENTS
+
+NO_NEW_SMSCI
+
+NO_RESULT_WITHOUT_EVIDENCE
+
+PROCESS_ALL_CRITERIA
+
+PROCESS_ALL_DOCUMENTS
+
+###############################################################################
+# RESERVED WORDS
+###############################################################################
+
+ENGINE
+
+VERSION
+
+DOMAIN
+
+SOURCE
+
+MODE
+
+EXECUTION
+
+ENTITY
+
+ATTRIBUTE
+
+TYPE
+
+CRITERION
+
+ASSERT
+
+OUTPUT
+
+FROM
+
+###############################################################################
+# ENTITY DECLARATION
+###############################################################################
+
+ENTITY <ENTITY_NAME>
+
+ATTRIBUTE <ATTRIBUTE_NAME> <ATTRIBUTE_TYPE>
+
+###############################################################################
+# ATTRIBUTE TYPES
+###############################################################################
+
+BOOLEAN
+
+TEXT
+
+NUMBER
+
+DATE
+
+ADDRESS
+
+SET
+
+ENUM
+
+DOCUMENT
+
+IMAGE
+
+###############################################################################
+# ASSERT SYNTAX
+###############################################################################
+
+ASSERT <FUNCTION>(...)
+
+###############################################################################
+# STANDARD FUNCTIONS
+###############################################################################
+
+EXISTS()
+
+NOT_EXISTS()
+
+MATCH()
+
+EQUALS()
+
+CONTAINS()
+
+CONTAINS_ALL()
+
+CONTAINS_ANY()
+
+GREATER_THAN()
+
+LESS_THAN()
+
+BETWEEN()
+
+VALID()
+
+REGISTERED()
+
+SIGNED()
+
+APPROVED()
+
+PAID()
+
+EMPTY()
+
+NOT_EMPTY()
+
+COUNT()
+
+DRT_SET_COVERS_ALL()
+
+ALL_DRT_HAVE_ACTIVITY()
+
+MAIN_EXECUTION_DRT()
+
+RETURNS
+
+The DRT classified as MAIN_EXECUTION_DRT.
+
+Returns UNKNOWN when no general execution DRT can be identified.
+
+Returns UNKNOWN when more than one DRT satisfies the definition.
+
+MATCH(
+MAIN_EXECUTION_DRT().RT_NAME,
+PROCESS.RT_NAME
+)
+
+DRT_COVERS RETURNS TRUE ONLY WHEN THE DRT EXPLICITLY COVERS THE DOCUMENT, SMSCI AND REQUIRED ACTIVITY.
+
+DRT_SET_COVERS_ALL RETURNS TRUE WHEN ONE GENERAL DRT EXPLICITLY COVERS ALL SMSCI OR WHEN THE UNION OF DRT SCOPES COVERS ALL SMSCI.
+
+ALL_DRT_HAVE_ACTIVITY RETURNS TRUE ONLY WHEN EACH DRT USED AS EVIDENCE DECLARES THE REQUIRED ACTIVITY.
+
+HAS_DRT_ACTIVITY ACCEPTS ONE OR MORE DRTS, INCLUDING ONE DRT WITH MORE THAN ONE EXPLICIT ACTIVITY.
+
+VALID_WITHIN_YEARS RETURNS UNKNOWN WHEN THE ISSUE DATE CANNOT BE VERIFIED.
+
+REPORT_CONTAINS RETURNS TRUE ONLY WHEN ALL REQUIRED ITEMS ARE IDENTIFIED IN THE REPORT.
+
+REPORT_PREPARED_BY_INDEPENDENT_PARTY RETURNS UNKNOWN WHEN INDEPENDENCE CANNOT BE VERIFIED FROM THE SOURCES.
+DRT_COVERS()
+HAS_DRT_ACTIVITY()
+VALID_WITHIN_YEARS()
+REPORT_CONTAINS()
+REPORT_PREPARED_BY_INDEPENDENT_PARTY()
+
+###############################################################################
+# ASSERT RESULT
+###############################################################################
+
+TRUE
+
+FALSE
+
+UNKNOWN
+
+NOT_APPLICABLE
+
+###############################################################################
+# EXECUTION MODEL
+###############################################################################
+
+FOR EACH CRITERION
+
+    IF APPLIES_TO IS NOT PRESENT IN PROCESS.SMSCI
+
+        REGISTER RESULT NOT_APPLICABLE
+        REGISTER CRITERION
+        REGISTER REQUIREMENT
+        CONTINUE
+
+    END
+
+    EXECUTE ASSERT
+
+    IF ASSERT_RESULT = TRUE
+
+        REGISTER RESULT TRUE
+        REGISTER CRITERION
+        REGISTER REQUIREMENT
+        REGISTER DOCUMENT_EVIDENCE
+
+    ELSE IF ASSERT_RESULT = FALSE
+
+        REGISTER RESULT FALSE
+        REGISTER CRITERION
+        REGISTER REQUIREMENT
+        REGISTER DOCUMENT_EVIDENCE
+        REGISTER NONCONFORMITY FROM FAIL
+
+    ELSE
+
+        REGISTER RESULT UNKNOWN
+        REGISTER CRITERION
+        REGISTER REQUIREMENT
+        REGISTER DOCUMENT_EVIDENCE
+
+    END
+
+END
+
+###############################################################################
+# EVIDENCE AND TRACEABILITY
+###############################################################################
+
+DOCUMENT_ABSENCE IS VALID_EVIDENCE
+
+EVERY RESULT MUST REFERENCE
+
+CRITERION
+REQUIREMENT
+SOURCE_DOCUMENT_OR_DOCUMENT_ABSENCE
+
+EVERY FALSE RESULT MUST REFERENCE
+
+ONE NONCONFORMITY
+
+STOP IF A REFERENCE IS MISSING OR INVALID
+
+###############################################################################
+# REPORT
+###############################################################################
+
+GENERATE REPORT
+
+END

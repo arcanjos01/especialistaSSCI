@@ -1,0 +1,186 @@
+ANEXO A – Catálogo Oficial das Responsabilidades Técnicas
+
+Revisão 2
+
+Status: Documento Normativo da Base de Conhecimento
+
+1. Finalidade
+
+O presente Anexo constitui o Catálogo Oficial das Responsabilidades
+Técnicas da Plataforma de Sistemas Especialistas para Análise Documental
+do Corpo de Bombeiros Militar de Santa Catarina (CBMSC).
+
+Este catálogo padroniza a identificação, classificação e validação das
+Responsabilidades Técnicas utilizadas pela Base de Conhecimento.
+
+Sua finalidade é assegurar que todas as Bases de Conhecimento utilizem a
+mesma definição para cada Responsabilidade Técnica, independentemente do
+domínio (Habite-se, IRA, Eventos Temporários, Fiscalização ou futuras
+especializações).
+
+------------------------------------------------------------------------
+
+2. Relação com o Documento 11
+
+Conforme o Documento 11, a unidade normativa fundamental da plataforma é
+a Obrigação Normativa.
+
+As Responsabilidades Técnicas representam apenas uma das categorias de
+Obrigações Normativas.
+
+Este Anexo cataloga exclusivamente Responsabilidades Técnicas.
+
+Não fazem parte deste catálogo:
+
+-   Produtos Técnicos;
+-   Documentos Obrigatórios;
+-   Evidências documentais;
+-   Critérios de conformidade;
+-   Não Conformidades.
+
+Esses elementos permanecem definidos nos documentos próprios da Base de
+Conhecimento.
+
+------------------------------------------------------------------------
+
+3. Papel do Catálogo
+
+O Catálogo Oficial constitui a única fonte autorizada para definir:
+
+-   identificadores oficiais (RT-001, RT-002…);
+-   descrição da responsabilidade;
+-   finalidade técnica;
+-   natureza da responsabilidade;
+-   profissionais habilitados;
+-   SMSCI relacionados;
+-   atividades profissionais compatíveis;
+-   evidências documentais aceitas;
+-   produtos técnicos normalmente associados;
+-   critérios gerais de validação.
+
+Nenhum desses atributos deverá ser redefinido diretamente em
+Requirements, Criteria, Engine ou Processo de Inferência.
+
+------------------------------------------------------------------------
+
+4. Estrutura Oficial de cada Responsabilidade Técnica
+
+Toda Responsabilidade Técnica cadastrada deverá seguir obrigatoriamente
+o modelo abaixo.
+
+IDENTIFIER
+
+DESCRIPTION
+
+PURPOSE
+
+NATURE
+
+APPLICABLE_SMSCI
+
+QUALIFIED_PROFESSIONALS
+
+COMPATIBLE_ACTIVITIES
+
+ACCEPTED_DOCUMENTARY_EVIDENCE
+
+ASSOCIATED_TECHNICAL_PRODUCTS
+
+GENERAL_VALIDATION_CRITERIA
+
+OBSERVATIONS
+
+------------------------------------------------------------------------
+
+5. Definição dos Campos
+
+IDENTIFIER
+    Código único da Responsabilidade Técnica (RT-001, RT-002…).
+
+DESCRIPTION
+    Nome oficial da responsabilidade.
+
+PURPOSE
+    Resultado técnico que a responsabilidade pretende assegurar.
+
+NATURE
+    Classificação funcional da responsabilidade (execução, inspeção,
+    ensaio, avaliação, comissionamento, manutenção, regularização ou
+    outra prevista).
+
+APPLICABLE_SMSCI
+    Sistemas e Medidas de Segurança Contra Incêndio aos quais a
+    responsabilidade pode ser aplicada.
+
+QUALIFIED_PROFESSIONALS
+    Categorias profissionais legalmente habilitadas para assumir a
+    responsabilidade.
+
+COMPATIBLE_ACTIVITIES
+    Atividades técnicas compatíveis constantes das respectivas ART, RRT
+    ou TRT.
+
+ACCEPTED_DOCUMENTARY_EVIDENCE
+    Tipos de documentos aceitos para comprovar a responsabilidade (ART,
+    RRT, TRT ou outro instrumento admitido pela legislação e pela Base
+    de Conhecimento).
+
+ASSOCIATED_TECHNICAL_PRODUCTS
+    Produtos técnicos normalmente produzidos em decorrência da
+    responsabilidade (relatórios, laudos, memoriais, projetos, ensaios,
+    comissionamentos etc.).
+
+GENERAL_VALIDATION_CRITERIA
+    Critérios gerais que deverão ser observados pela Base de
+    Conhecimento ao validar a responsabilidade.
+
+OBSERVATIONS
+    Informações complementares.
+
+------------------------------------------------------------------------
+
+6. Princípios de Utilização
+
+Toda Base de Conhecimento deverá observar:
+
+-   uma Responsabilidade Técnica nunca constitui uma Não Conformidade;
+-   uma DRT (ART, RRT ou TRT) nunca constitui uma Obrigação Normativa;
+-   a DRT atua exclusivamente como evidência documental aceita para
+    comprovação da Responsabilidade Técnica correspondente;
+-   Produtos Técnicos podem decorrer de uma Responsabilidade Técnica,
+    mas não se confundem com ela;
+-   a ausência de uma evidência somente gera Não Conformidade quando
+    impedir o atendimento de uma Obrigação Normativa.
+
+------------------------------------------------------------------------
+
+7. Compatibilidade Arquitetural
+
+Este Catálogo é utilizado por:
+
+-   Documento 11 – Modelo das Obrigações Normativas e das
+    Responsabilidades Técnicas;
+-   Entidades da Base de Conhecimento;
+-   Requirements;
+-   Criteria;
+-   Engine;
+-   Processo de Inferência;
+-   Relatórios;
+-   Não Conformidades.
+
+Toda evolução desses componentes deverá utilizar este Catálogo como
+fonte única para definição das Responsabilidades Técnicas.
+
+------------------------------------------------------------------------
+
+8. Evolução
+
+A inclusão de novas Responsabilidades Técnicas deverá ocorrer
+exclusivamente mediante revisão deste Catálogo.
+
+Nenhum componente da Base de Conhecimento poderá criar Responsabilidades
+Técnicas fora deste documento.
+
+Os registros RT-001 em diante permanecem definidos neste Anexo e deverão
+seguir obrigatoriamente a estrutura padronizada estabelecida nesta
+Revisão 2.

@@ -1,0 +1,239 @@
+###############################################################################
+# BASECONHECIMENTO_REV1
+# 06_report.txt
+# MODELO DE RELATÓRIO TÉCNICO
+###############################################################################
+
+RELATÓRIO
+
+###############################################################################
+# IDENTIFICAÇÃO
+###############################################################################
+
+SEÇÃO 1
+
+TÍTULO
+
+IDENTIFICAÇÃO DO PROCESSO
+
+EXIBIR
+
+PROTOCOLO
+
+RE
+
+NOME_EDIFICAÇÃO
+
+ENDEREÇO
+
+OCUPAÇÃO
+
+ÁREA
+
+ALTURA
+
+PAVIMENTOS
+
+RESPONSÁVEL_TÉCNICO
+
+RESPONSÁVEL_IMÓVEL
+
+###############################################################################
+# DOCUMENTOS
+###############################################################################
+
+SEÇÃO 2
+
+TÍTULO
+
+DOCUMENTOS ANALISADOS
+
+LISTAR
+
+DOCUMENTOS_APRESENTADOS
+
+ORDEM_DOCUMENTAL
+
+###############################################################################
+# CRITÉRIOS
+###############################################################################
+
+SEÇÃO 3
+
+TÍTULO
+
+RESUMO DOS CRITÉRIOS
+
+MOSTRAR
+
+TOTAL_CRITÉRIOS
+
+TOTAL_PASS
+
+TOTAL_FAIL
+
+TOTAL_NA
+
+TABELA
+
+NOME_CRITÉRIO
+
+RESULTADO
+
+EVIDÊNCIA
+
+###############################################################################
+# NÃO CONFORMIDADES
+###############################################################################
+
+SEÇÃO 4
+
+TÍTULO
+
+NÃO CONFORMIDADES
+
+PARA CADA FAIL
+
+MOSTRAR
+
+DESCRIÇÃO_DA_NÃO_CONFORMIDADE
+
+EVIDÊNCIA_DOCUMENTAL
+
+FUNDAMENTO_NORMATIVO
+
+FIM
+
+###############################################################################
+# PENDÊNCIAS
+###############################################################################
+
+SEÇÃO 5
+
+TÍTULO
+
+PENDÊNCIAS
+
+PARA CADA FAIL
+
+LOCALIZAR
+
+NONCONFORMITY
+
+↓
+
+EXIBIR
+
+DESCRIÇÃO_DA_NÃO_CONFORMIDADE
+
+FIM
+
+###############################################################################
+# CONCLUSÃO
+###############################################################################
+
+SEÇÃO 6
+
+TÍTULO
+
+CONCLUSÃO
+
+SE
+
+TOTAL_FAIL = 0
+
+STATUS
+
+DOCUMENTAÇÃO CONFORME
+
+SENÃO
+
+STATUS
+
+DOCUMENTAÇÃO NÃO CONFORME
+
+FIM
+
+MOSTRAR
+
+TOTAL_PASS
+
+TOTAL_FAIL
+
+###############################################################################
+# OBSERVAÇÕES
+###############################################################################
+
+SEÇÃO 7
+
+TÍTULO
+
+OBSERVAÇÕES
+
+LISTAR
+
+OBSERVAÇÕES_DE_AUDITORIA
+
+SOMENTE
+
+QUANDO_EXISTIREM
+
+###############################################################################
+# ENCERRAMENTO
+###############################################################################
+
+RODAPÉ
+
+DATA_DA_ANÁLISE
+
+VERSÃO_DA_BASE
+
+PROCEDIMENTO
+
+###############################################################################
+# REGRAS
+###############################################################################
+
+NUNCA
+
+CRIAR TEXTO LIVRE
+
+NUNCA
+
+CRIAR PENDÊNCIAS
+
+NUNCA
+
+CRIAR JUSTIFICATIVAS
+
+NUNCA
+
+CRIAR CONCLUSÕES TÉCNICAS
+
+UTILIZAR
+
+EXCLUSIVAMENTE
+
+RESULTADOS_DA_INFERÊNCIA
+
+UTILIZAR
+
+EXCLUSIVAMENTE
+
+NONCONFORMITIES
+
+UTILIZAR
+
+EXCLUSIVAMENTE
+
+REQUIREMENTS
+
+UTILIZAR
+
+EXCLUSIVAMENTE
+
+EVIDÊNCIAS_DOCUMENTAIS
+
+###############################################################################
+# END
+###############################################################################
