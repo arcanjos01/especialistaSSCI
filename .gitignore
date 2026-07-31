@@ -1,0 +1,15 @@
+# Arquivos temporários do LibreOffice
+.~lock*
+
+# Arquivos temporários
+*.tmp
+*.bak
+*~
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
