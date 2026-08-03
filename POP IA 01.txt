@@ -1,0 +1,25 @@
+POP-IA-01 – Preparação da Análise
+Objetivo
+Padronizar a preparação da análise documental antes da execução das regras da Base de Conhecimento.
+Entradas
+    • Solicitação de Habite-se
+    • Atestado para Construção, Reforma ou Ampliação (ACRA)
+    • Cadastro do processo no e-SCI
+    • DRTs, Relatórios de Conformidade e demais documentos anexados
+Procedimento
+    • 1. Inventariar todos os documentos recebidos.
+    • 2. Identificar documentos ausentes, duplicados, ilegíveis ou inconsistentes.
+    • 3. Definir as fontes primárias (e-SCI, Solicitação, ACRA) e secundárias (DRT, Relatórios etc.).
+    • 4. Extrair os dados relevantes de cada documento.
+    • 5. Resolver duplicidades utilizando a hierarquia de fontes.
+    • 6. Construir a Memória de Trabalho do processo.
+Memória de Trabalho
+    • Número do processo
+    • Endereço
+    • Responsável Técnico
+    • Responsável pelo imóvel
+    • Área, altura, ocupação e pavimentos
+    • Lista de SMSCI previstos
+    • Documentos presentes e ausentes
+Produto
+Memória de Trabalho consolidada e pronta para a execução das regras.
