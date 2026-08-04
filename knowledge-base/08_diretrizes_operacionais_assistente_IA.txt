@@ -1,6 +1,6 @@
 Documento 08 – Diretrizes Operacionais do Assistente de IA
 
-Versão: 2.0 Status: Documento Operacional
+Versão: 3.0 Status: Documento Operacional
 
 Objetivo
 

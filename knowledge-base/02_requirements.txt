@@ -1,6 +1,7 @@
 ###############################################################################
-# BASECONHECIMENTO_V4
-# 02_requirements_rev2.txt
+# BASECONHECIMENTO
+# 02_requirements.txt
+# VERSION 3.0
 # REQUISITOS NORMATIVOS ORIENTADOS A RESPONSABILIDADES TÉCNICAS
 #
 # A unidade normativa é a Responsabilidade Técnica requerida. DRTs são somente

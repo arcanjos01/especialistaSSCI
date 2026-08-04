@@ -1,6 +1,7 @@
 ###############################################################################
 # 04_table4.txt
-# BASECONHECIMENTO_REV1
+# BASECONHECIMENTO
+# VERSION 3.0
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2

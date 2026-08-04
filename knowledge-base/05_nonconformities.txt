@@ -1,5 +1,6 @@
 ###############################################################################
-# 05_nonconformities_rev1.dsl
+# 05_nonconformities.dsl
+# VERSION 3.0
 # Catálogo canônico e rastreável de não conformidades
 ###############################################################################
 
