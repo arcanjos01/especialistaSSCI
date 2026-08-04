@@ -79,11 +79,11 @@ END
 NONCONFORMITY NC_T1_006_RI
 TABLE 1
 SOURCE IN01
-REF_CRITERION T1_DRT_RI_NAME
+REF_CRITERION T1_DRT_RI_LEGAL_ENTITY
 REF_REQUIREMENT REQ_T1_DRT_BASIC_DATA
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
-CAUSE "O responsável pelo imóvel informado na DRT diverge do cadastro do processo."
+CAUSE "A evidência documental identifica que a pessoa jurídica responsável pelo imóvel informada no documento técnico é distinta da pessoa jurídica constante do cadastro do processo."
 END
 
 NONCONFORMITY NC_T1_006_RT
