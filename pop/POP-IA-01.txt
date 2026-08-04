@@ -23,3 +23,55 @@ Memória de Trabalho
     • Documentos presentes e ausentes
 Produto
 Memória de Trabalho consolidada e pronta para a execução das regras.
+
+POP-IA-02 – Execução da Base de Conhecimento
+Objetivo
+Executar as Regras Canônicas de Avaliação (RCA) sobre a Memória de Trabalho.
+Entradas
+    • Memória de Trabalho
+    • Base de Conhecimento
+    • Regras Canônicas aplicáveis
+Fluxo
+    • Selecionar apenas as regras aplicáveis ao processo.
+    • Verificar pré-condições.
+    • Localizar evidências.
+    • Aplicar a condição lógica da RCA.
+    • Registrar o resultado, a evidência documental utilizada e a justificativa produzida exclusivamente a partir dessa evidência.
+Estados possíveis
+    • Conforme
+    • Não Conforme
+    • Informação insuficiente
+    • Não foi possível verificar
+    • Necessita manifestação do RT
+    • Necessita análise humana
+    • Não se aplica
+Produto
+Lista completa de resultados individuais das regras executadas.
+
+POP-IA-03 – Consolidação e Geração do Relatório
+Objetivo
+Consolidar os resultados produzidos pelas RCAs e gerar o relatório técnico.
+Tratamento de conflitos
+    • Aplicar a hierarquia das fontes documentais.
+    • Persistindo conflito, classificar como 'Necessita análise humana'.
+Consolidação
+    • Agrupar conformidades.
+    • Agrupar não conformidades.
+    • Relacionar pendências documentais.
+    • Relacionar casos que exigem manifestação do RT.
+Estrutura do Relatório
+    • Identificação do processo
+    • Documentos analisados
+    • Resumo executivo
+    • Lista de Não Conformidades
+    • Lista de Pendências
+    • Regras executadas
+    • Evidências utilizadas
+    • Justificativas
+    • Histórico e versão da Base de Conhecimento
+Auditoria
+    • Registrar data, versão do POP-IA, versão da Base de Conhecimento e regras executadas.
+Produto
+Relatório técnico estruturado para apoio ao vistoriador.
+
+Todo o relatório técnico deve ser produzido exclusivamente em português (pt-BR). É proibido utilizar identificadores internos, nomes de critérios, códigos DSL ou termos em inglês na saída ao usuário. Identificadores como CRITERION, REQUIREMENT, NONCONFORMITY e SMSCI destinam-se apenas ao processo interno de inferência.
