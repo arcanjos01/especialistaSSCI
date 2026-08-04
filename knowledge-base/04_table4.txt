@@ -7,6 +7,66 @@
 ###############################################################################
 
 ###############################################################################
+# VALIDAÇÕES DOCUMENTAIS DA DRT
+###############################################################################
+
+CRITERION T4_DRT_REGISTERED
+
+TABLE 4
+
+REQUIREMENT REQ_T1_DRT_REGISTERED
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    REGISTERED
+)
+
+FAIL NC_T4_017
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_DRT_SIGNED
+
+TABLE 4
+
+REQUIREMENT REQ_T1_DRT_SIGNED
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
+    REQUIRED_TECHNICAL_RESPONSIBILITY,
+    SIGNED
+)
+
+FAIL NC_T4_018
+
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_DRT_PROFESSIONAL_REGULARITY
+
+TABLE 4
+
+REQUIREMENT REQ_T1_DRT_PROFESSIONAL_REGULARITY
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_PROFESSIONAL_REGULARITY(
+    REQUIRED_TECHNICAL_RESPONSIBILITY
+)
+
+FAIL NC_T4_019
+
+MANUAL_REVIEW "Verificação manual requerida da regularidade profissional da DRT emitida por conselho de outra UF."
+
+END
+
+###############################################################################
 # IN07
 ###############################################################################
 

@@ -62,6 +62,22 @@ ENTITY DRT
 
 TYPE DOCUMENT
 
+ATTRIBUTE COUNCIL_STATE TEXT
+
+ATTRIBUTE RESPONSIBILITY_TYPE ENUM
+
+ATTRIBUTE PROFESSIONAL_REGULARITY ENUM
+
+DESCRIPTION
+
+COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
+RESPONSIBILITY_TYPE registra a natureza declarada na DRT.
+PROFESSIONAL_REGULARITY registra o resultado documental da verificação de
+regularidade profissional: REGULAR, IRREGULAR ou MANUAL_REVIEW.
+
+Esses atributos qualificam exclusivamente a validade documental da DRT na
+Tabela 1; não criam uma nova responsabilidade técnica.
+
 END
 
 -------------------------------------------------------------------------------

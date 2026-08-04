@@ -402,6 +402,12 @@ DOCUMENT REFERENCES
 
 EXTRACTED ATTRIBUTES
 
+DRT COUNCIL_STATE
+
+DRT RESPONSIBILITY_TYPE
+
+DRT PROFESSIONAL_REGULARITY
+
 RULES
 
 Somente fatos documentais.
@@ -776,6 +782,35 @@ DRT_INSPECTION
 DRT_MAINTENANCE
 
 DRT_TEST
+
+FOR EACH DRT
+
+EXTRACT
+
+COUNCIL_STATE
+
+RESPONSIBILITY_TYPE
+
+CLASSIFY PROFESSIONAL_REGULARITY AS
+
+IRREGULAR
+
+ONLY WHEN DOCUMENTARY EVIDENCE IDENTIFIES PROFESSIONAL IRREGULARITY
+
+MANUAL_REVIEW
+
+WHEN COUNCIL_STATE IS FROM ANOTHER UF OR CANNOT BE DOCUMENTALLY IDENTIFIED,
+AND NO IRREGULARITY IS DOCUMENTED
+
+REGULAR
+
+WHEN COUNCIL_STATE IS SC AND NO IRREGULARITY IS DOCUMENTED
+
+STORE
+
+SOURCE DOCUMENT
+
+No conclusion of nonconformity is produced in this classification step.
 
 CLASSIFY
 
@@ -1317,6 +1352,8 @@ FAIL
 
 NA
 
+MANUAL_REVIEW
+
 NO OTHER RESULT IS ALLOWED
 
 ###############################################################################
@@ -1336,6 +1373,8 @@ ASSERTION
 RESULT
 
 DOCUMENTARY EVIDENCE
+
+OPERATIONAL_ALERT
 
 SOURCE DOCUMENT
 
@@ -1799,6 +1838,22 @@ CONFORMING REQUIREMENT
 NO NONCONFORMITY
 
 ###############################################################################
+# RESULTADOS COM VERIFICAÇÃO MANUAL
+###############################################################################
+
+IF
+
+RESULT = MANUAL_REVIEW
+
+REGISTER
+
+OPERATIONAL_ALERT
+
+"Verificação manual requerida da regularidade profissional da DRT emitida por conselho de outra UF."
+
+NO NONCONFORMITY
+
+###############################################################################
 # RESULTADOS NA
 ###############################################################################
 
@@ -2005,6 +2060,12 @@ VERIFY
 NONCONFORMITY
 
 WHEN RESULT = FAIL
+
+VERIFY
+
+OPERATIONAL_ALERT
+
+WHEN RESULT = MANUAL_REVIEW
 
 END
 
@@ -2325,6 +2386,8 @@ TOTAL_FAIL
 
 TOTAL_NA
 
+TOTAL_MANUAL_REVIEW
+
 FOR EACH RESULT
 
 DISPLAY
@@ -2383,6 +2446,18 @@ DISPLAY
 
 CORRECTIVE_ACTION
 
+FOR EACH RESULT
+
+WHEN RESULT = MANUAL_REVIEW
+
+DISPLAY
+
+"VERIFICAÇÃO MANUAL REQUERIDA"
+
+OPERATIONAL_ALERT
+
+DOCUMENTARY_EVIDENCE
+
 ###############################################################################
 # SEÇÃO 6
 # CONCLUSÃO
@@ -2419,6 +2494,8 @@ DISPLAY
 TOTAL_PASS
 
 TOTAL_FAIL
+
+TOTAL_MANUAL_REVIEW
 
 ###############################################################################
 # SEÇÃO 7

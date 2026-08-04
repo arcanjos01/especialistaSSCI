@@ -65,6 +65,16 @@ CATEGORY HABITESE
 CAUSE "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
 END
 
+NONCONFORMITY NC_T1_009
+TABLE 1
+SOURCE CONFEA_CREA
+REF_CRITERION T1_DRT_PROFESSIONAL_REGULARITY
+REF_REQUIREMENT REQ_T1_DRT_PROFESSIONAL_REGULARITY
+SEVERITY DOCUMENTAL
+CATEGORY HABITESE
+CAUSE "A DRT não apresenta regularidade profissional adequada junto ao conselho de classe emissor."
+END
+
 
 NONCONFORMITY NC_T1_006_RI
 TABLE 1
@@ -305,4 +315,34 @@ REF_REQUIREMENT REQ_IN34_LIGHTNING_PROTECTION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução do sistema contra descargas atmosféricas previsto no PPCI."
+END
+
+NONCONFORMITY NC_T4_017
+TABLE 4
+SOURCE IN01
+REF_CRITERION T4_DRT_REGISTERED
+REF_REQUIREMENT REQ_T1_DRT_REGISTERED
+SEVERITY DOCUMENTAL
+CATEGORY HABITESE
+CAUSE "A DRT vinculada ao documento específico não possui registro de emissão no conselho de classe."
+END
+
+NONCONFORMITY NC_T4_018
+TABLE 4
+SOURCE IN01
+REF_CRITERION T4_DRT_SIGNED
+REF_REQUIREMENT REQ_T1_DRT_SIGNED
+SEVERITY DOCUMENTAL
+CATEGORY HABITESE
+CAUSE "A DRT vinculada ao documento específico não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
+END
+
+NONCONFORMITY NC_T4_019
+TABLE 4
+SOURCE CONFEA_CREA
+REF_CRITERION T4_DRT_PROFESSIONAL_REGULARITY
+REF_REQUIREMENT REQ_T1_DRT_PROFESSIONAL_REGULARITY
+SEVERITY DOCUMENTAL
+CATEGORY HABITESE
+CAUSE "A DRT vinculada ao documento específico não apresenta regularidade profissional adequada junto ao conselho de classe emissor."
 END

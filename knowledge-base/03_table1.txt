@@ -66,6 +66,26 @@ FAIL NC_T1_005
 
 END
 
+-------------------------------------------------------------------------------
+
+CRITERION T1_DRT_PROFESSIONAL_REGULARITY
+
+TABLE 1
+
+USES REQ_T1_DRT_PROFESSIONAL_REGULARITY
+
+CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+
+ASSERT RESPONSIBILITY_EVIDENCE_PROFESSIONAL_REGULARITY(
+    REQUIRED_TECHNICAL_RESPONSIBILITY
+)
+
+FAIL NC_T1_009
+
+MANUAL_REVIEW "Verificação manual requerida da regularidade profissional da DRT emitida por conselho de outra UF."
+
+END
+
 ###############################################################################
 # RELATÓRIO DE CONFORMIDADE
 ###############################################################################

@@ -74,6 +74,8 @@ TOTAL_FAIL
 
 TOTAL_NA
 
+TOTAL_MANUAL_REVIEW
+
 TABELA
 
 NOME_CRITÉRIO
@@ -128,6 +130,18 @@ DESCRIÇÃO_DA_NÃO_CONFORMIDADE
 
 FIM
 
+PARA CADA RESULTADO MANUAL_REVIEW
+
+EXIBIR
+
+VERIFICAÇÃO MANUAL REQUERIDA
+
+DESCRIÇÃO_DO_ALERTA_OPERACIONAL
+
+EVIDÊNCIA_DOCUMENTAL
+
+FIM
+
 ###############################################################################
 # CONCLUSÃO
 ###############################################################################
@@ -159,6 +173,8 @@ MOSTRAR
 TOTAL_PASS
 
 TOTAL_FAIL
+
+TOTAL_MANUAL_REVIEW
 
 ###############################################################################
 # OBSERVAÇÕES
