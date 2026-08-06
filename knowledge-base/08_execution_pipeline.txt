@@ -1,0 +1,218 @@
+###############################################################################
+# 08_execution_pipeline.txt
+# BASE DE CONHECIMENTO
+# EXECUTION PIPELINE
+# VERSION 4.0
+###############################################################################
+
+OBJECTIVE
+
+This document defines the mandatory execution sequence of the Knowledge Base.
+
+It does not define Requirements, Criteria, Nonconformities or Report rules.
+
+Its only purpose is to define the execution order.
+
+###############################################################################
+# EXECUTION CONTRACT
+###############################################################################
+
+The executor acts exclusively as the execution engine of the Knowledge Base.
+
+The executor shall not:
+
+- create Requirements;
+- create Criteria;
+- create Nonconformities;
+- create documentary evidence;
+- create technical conclusions;
+- reinterpret the Knowledge Base;
+- use external knowledge;
+- modify execution results.
+
+Every output shall originate exclusively from the active Knowledge Base.
+
+###############################################################################
+# EXECUTION SEQUENCE
+###############################################################################
+
+Execute the following phases exactly in this order.
+
+Do not skip phases.
+
+Do not change the execution order.
+
+###############################################################################
+# PHASE 1
+# LOAD
+###############################################################################
+
+Load the active Knowledge Base.
+
+Load:
+
+00_engine
+
+01_entities
+
+02_requirements
+
+03_table1
+
+04_table4
+
+05_nonconformities
+
+06_report_operacional
+
+07_report_auditoria
+
+If any document is unavailable:
+
+STOP EXECUTION.
+
+###############################################################################
+# PHASE 2
+# DOCUMENT EXTRACTION
+###############################################################################
+
+Read every document submitted in the administrative process.
+
+Extract only documentary facts.
+
+Do not interpret.
+
+Do not classify compliance.
+
+Do not execute Requirements.
+
+###############################################################################
+# PHASE 3
+# ENTITY NORMALIZATION
+###############################################################################
+
+Normalize all extracted entities using 01_entities.
+
+Merge equivalent entities.
+
+Preserve the original documentary source.
+
+No inference is allowed.
+
+###############################################################################
+# PHASE 4
+# EXECUTION PLAN
+###############################################################################
+
+Determine which Requirements are applicable.
+
+Select exclusively the Criteria referenced by those Requirements.
+
+Associate the corresponding Nonconformities.
+
+No Requirement may be created.
+
+No Criterion may be created.
+
+###############################################################################
+# PHASE 5
+# TABLE EXECUTION
+###############################################################################
+
+Execute Table 1.
+
+After Table 1 completes, execute Table 4.
+
+Each Criterion shall produce exactly one result.
+
+Allowed results:
+
+PASS
+
+FAIL
+
+NOT_APPLICABLE
+
+MANUAL_REVIEW
+
+No other result is allowed.
+
+###############################################################################
+# PHASE 6
+# RESULT CONSOLIDATION
+###############################################################################
+
+Consolidate all Criterion results.
+
+Associate Nonconformities only with FAIL results.
+
+Associate operational alerts only with MANUAL_REVIEW results.
+
+Do not modify previous results.
+
+###############################################################################
+# PHASE 7
+# REPORT GENERATION
+###############################################################################
+
+Generate the operational report using only:
+
+06_report_operacional.
+
+If the user explicitly requests:
+
+- audit
+- auditoria
+- relatório completo
+- modo auditoria
+- anexo técnico
+- validação
+- homologação
+
+append the report defined by:
+
+07_report_auditoria.
+
+###############################################################################
+# EXECUTION RULES
+###############################################################################
+
+Never execute phases out of order.
+
+Never return to a previous phase.
+
+Never modify results produced in previous phases.
+
+Never replace documentary evidence with model knowledge.
+
+Never infer absent information.
+
+When documentary evidence cannot be verified, return exactly:
+
+Informação insuficiente para verificar.
+
+###############################################################################
+# TRACEABILITY
+###############################################################################
+
+Every reported result shall be traceable to:
+
+Requirement
+
+↓
+
+Criterion
+
+↓
+
+Documentary evidence
+
+↓
+
+Source document
+
+No reported information may exist without documentary traceability.
+
+###############################################################################
+# END
+###############################################################################

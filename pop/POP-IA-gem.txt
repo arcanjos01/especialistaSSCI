@@ -1,4 +1,5 @@
-POP-IA-01 – Preparação da Análise
+POP-IA-gem – Preparação da Análise
+versão 2.0
 Objetivo
 Padronizar a preparação da análise documental antes da execução das regras da Base de Conhecimento.
 Entradas
@@ -24,31 +25,7 @@ Memória de Trabalho
 Produto
 Memória de Trabalho consolidada e pronta para a execução das regras.
 
-POP-IA-02 – Execução da Base de Conhecimento
-Objetivo
-Executar as Regras Canônicas de Avaliação (RCA) sobre a Memória de Trabalho.
-Entradas
-    • Memória de Trabalho
-    • Base de Conhecimento
-    • Regras Canônicas aplicáveis
-Fluxo
-    • Selecionar apenas as regras aplicáveis ao processo.
-    • Verificar pré-condições.
-    • Localizar evidências.
-    • Aplicar a condição lógica da RCA.
-    • Registrar o resultado, a evidência documental utilizada e a justificativa produzida exclusivamente a partir dessa evidência.
-Estados possíveis
-    • Conforme
-    • Não Conforme
-    • Informação insuficiente
-    • Não foi possível verificar
-    • Necessita manifestação do RT
-    • Necessita análise humana
-    • Não se aplica
-Produto
-Lista completa de resultados individuais das regras executadas.
-
-POP-IA-03 – Consolidação e Geração do Relatório
+POP-IA-02 – Consolidação e Geração do Relatório
 Objetivo
 Consolidar os resultados produzidos pelas RCAs e gerar o relatório técnico.
 Tratamento de conflitos

@@ -1,0 +1,67 @@
+06_report_operacional.txt
+
+BASE DE CONHECIMENTO
+
+RELATÓRIO OPERACIONAL
+
+VERSION 1.0
+
+FINALIDADE
+
+Produza o relatório operacional destinado ao vistoriador do CBMSC.
+
+Utilize este modo em toda análise documental.
+
+É proibido apresentar: - Requirements; - Criteria; - Nonconformities; -
+identificadores DSL; - códigos internos; - nomes internos da Base.
+
+Escreva em português (pt-BR), com linguagem técnica, clara e objetiva.
+
+ORDEM OBRIGATÓRIA
+
+1.  RESULTADO DA ANÁLISE Template: STATUS: RESUMO EXECUTIVO
+
+-   Documentos analisados:
+-   Verificações executadas:
+-   ✔ Conformes:
+-   ❌ Não conformidades:
+-   ➖ Não aplicáveis:
+-   🔍 Necessitam análise humana:
+
+2.  PENDÊNCIAS IDENTIFICADAS Para cada pendência: PENDÊNCIA Nº Sistema:
+    Documento obrigatório: Situação: Fundamento normativo: Providência
+    necessária:
+
+3.  IDENTIFICAÇÃO DO PROCESSO Protocolo, RE, Edificação, Endereço,
+    Ocupação, Área, Altura, Pavimentos, Responsável Técnico e
+    Responsável pelo Imóvel.
+
+4.  DOCUMENTOS ANALISADOS Agrupar por categoria documental.
+
+5.  RESULTADO DAS VERIFICAÇÕES Modelo: Verificação: Resultado: Evidência
+    resumida:
+
+Utilizar apenas: ✔ Conforme ❌ Não Conforme ➖ Não Aplicável ⚠
+Informação insuficiente para verificar 🔍 Necessita análise humana
+
+6.  EVIDÊNCIAS DOCUMENTAIS Agrupar por documento. Listar apenas
+    constatações relevantes.
+
+7.  OBSERVAÇÕES Caso inexistentes: “Nenhuma observação adicional.”
+
+8.  RODAPÉ Informar:
+
+-   Data da análise
+-   Versão da Base
+-   Versão do POP
+-   Procedimento
+
+Incluir obrigatoriamente:
+
+“Este relatório foi produzido automaticamente a partir da Base de
+Conhecimento do SSCI. A decisão administrativa compete exclusivamente ao
+analista responsável do CBMSC.”
+
+Regras gerais: - Priorizar as pendências antes dos detalhes. - Evitar
+repetições. - Agrupar informações semelhantes. - Não explicar o
+funcionamento da Base.

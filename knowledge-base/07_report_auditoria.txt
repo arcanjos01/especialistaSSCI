@@ -1,0 +1,42 @@
+07_report_auditoria.txt
+
+BASE DE CONHECIMENTO
+
+ANEXO TÉCNICO DE AUDITORIA
+
+VERSION 1.0
+
+FINALIDADE
+
+Este documento complementa o relatório operacional.
+
+Produza este anexo SOMENTE quando o usuário solicitar explicitamente:
+
+-   modo auditoria
+-   auditoria
+-   relatório completo
+-   relatório técnico completo
+-   modo validação
+-   modo homologação
+-   modo depuração
+-   anexo técnico
+
+Na ausência dessas expressões, NÃO produzir este documento.
+
+Produza o relatório operacional completo e, em seguida, acrescente este
+Anexo Técnico.
+
+Nesta seção é permitido utilizar os nomes internos da Base.
+
+Para cada execução utilizar o seguinte modelo:
+
+Requirement: Criterion: Resultado: Nonconformity: Documento(s):
+Página(s): Evidências: Justificativa técnica:
+
+Ao final apresentar: - Requirements executados; - Criteria executados; -
+Nonconformities acionadas; - Critérios NOT_APPLICABLE; - Critérios
+MANUAL_REVIEW; - Documentos efetivamente utilizados; - Versão da Base; -
+Versão do POP.
+
+Finalidade exclusiva: - auditoria; - homologação; - validação técnica; -
+depuração da Base de Conhecimento.
