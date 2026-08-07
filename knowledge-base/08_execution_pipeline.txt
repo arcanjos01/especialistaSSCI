@@ -324,6 +324,15 @@ Criterion results shall remain immutable after consolidation.
 
 Associate operational alerts only with MANUAL_REVIEW results.
 
+Operational Alerts are internal execution artifacts.
+
+Before Report Generation,
+
+every Operational Alert shall be translated into exactly one
+MANUAL_REVIEW report entry.
+
+Operational Alert identifiers shall never appear in user-visible reports.
+
 MANUAL_REVIEW results shall never generate Nonconformities.
 
 MANUAL_REVIEW shall propagate to every dependent Criterion unless an explicit documentary rule defines otherwise.
