@@ -42,8 +42,8 @@ ASSERT RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
     REQUIRED_TECHNICAL_RESPONSIBILITY,
     SIGNED
 )
-
-FAIL NC_T4_018
+MANUAL_REVIEW
+"Não foi possível identificar assinatura digital documentalmente verificável. Conferir visualmente o documento."
 
 END
 

@@ -1,54 +1,13 @@
-POP-IA-gem – Preparação da Análise
-versão 2.0
-Objetivo
-Padronizar a preparação da análise documental antes da execução das regras da Base de Conhecimento.
-Entradas
-    • Solicitação de Habite-se
-    • Atestado para Construção, Reforma ou Ampliação (ACRA)
-    • Cadastro do processo no e-SCI
-    • DRTs, Relatórios de Conformidade e demais documentos anexados
-Procedimento
-    • 1. Inventariar todos os documentos recebidos.
-    • 2. Identificar documentos ausentes, duplicados, ilegíveis ou inconsistentes.
-    • 3. Definir as fontes primárias (e-SCI, Solicitação, ACRA) e secundárias (DRT, Relatórios etc.).
-    • 4. Extrair os dados relevantes de cada documento.
-    • 5. Resolver duplicidades utilizando a hierarquia de fontes.
-    • 6. Construir a Memória de Trabalho do processo.
-Memória de Trabalho
-    • Número do processo
-    • Endereço
-    • Responsável Técnico
-    • Responsável pelo imóvel
-    • Área, altura, ocupação e pavimentos
-    • Lista de SMSCI previstos
-    • Documentos presentes e ausentes
-Produto
-Memória de Trabalho consolidada e pronta para a execução das regras.
+POP-IA
+versão 3
+Este documento não define regras.
 
-POP-IA-02 – Consolidação e Geração do Relatório
-Objetivo
-Consolidar os resultados produzidos pelas RCAs e gerar o relatório técnico.
-Tratamento de conflitos
-    • Aplicar a hierarquia das fontes documentais.
-    • Persistindo conflito, classificar como 'Necessita análise humana'.
-Consolidação
-    • Agrupar conformidades.
-    • Agrupar não conformidades.
-    • Relacionar pendências documentais.
-    • Relacionar casos que exigem manifestação do RT.
-Estrutura do Relatório
-    • Identificação do processo
-    • Documentos analisados
-    • Resumo executivo
-    • Lista de Não Conformidades
-    • Lista de Pendências
-    • Regras executadas
-    • Evidências utilizadas
-    • Justificativas
-    • Histórico e versão da Base de Conhecimento
-Auditoria
-    • Registrar data, versão do POP-IA, versão da Base de Conhecimento e regras executadas.
-Produto
-Relatório técnico estruturado para apoio ao vistoriador.
+A execução da Base ocorrerá exclusivamente conforme:
 
-Todo o relatório técnico deve ser produzido exclusivamente em português (pt-BR). É proibido utilizar identificadores internos, nomes de critérios, códigos DSL ou termos em inglês na saída ao usuário. Identificadores como CRITERION, REQUIREMENT, NONCONFORMITY e SMSCI destinam-se apenas ao processo interno de inferência.
+08_execution_pipeline
+
+Os relatórios serão produzidos exclusivamente conforme:
+
+06_report_operacional
+
+07_report_auditoria

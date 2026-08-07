@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# VERSION 4.0
+# VERSION 4.2
 ###############################################################################
 
 OBJECTIVE
@@ -76,15 +76,167 @@ STOP EXECUTION.
 # DOCUMENT EXTRACTION
 ###############################################################################
 
-Read every document submitted in the administrative process.
+Read every document submitted in the administrative process completely before any execution step.
 
-Extract only documentary facts.
+The exclusive purpose of this phase is to collect documentary evidence.
 
-Do not interpret.
+This phase shall never perform execution.
 
-Do not classify compliance.
+Do not:
 
-Do not execute Requirements.
+- evaluate Requirements;
+- evaluate Criteria;
+- determine compliance;
+- determine noncompliance;
+- determine applicability;
+- generate Nonconformities;
+- generate operational alerts;
+- generate technical conclusions.
+
+###############################################################################
+# DOCUMENT STATE
+###############################################################################
+
+For each document required by the active Knowledge Base, determine exactly one documentary state:
+
+PRESENT
+
+ABSENT
+
+INCOMPLETE
+
+UNVERIFIABLE
+
+Store the documentary state for later execution.
+
+###############################################################################
+# DOCUMENTARY EXTRACTION
+###############################################################################
+
+Extract documentary information exactly as documented.
+
+Do not reinterpret documentary content.
+
+Do not classify documentary relevance.
+
+Do not determine whether documentary information satisfies any Requirement.
+
+Do not determine whether documentary information creates any Nonconformity.
+
+Do not determine whether documentary information requires MANUAL_REVIEW.
+
+Do not generate execution results from documentary content.
+
+Documentary statements contained in submitted documents are not execution results.
+
+They are only documentary evidence.
+
+###############################################################################
+# ATTRIBUTE EXTRACTION
+###############################################################################
+
+Extract documentary attributes required by the active Knowledge Base.
+
+Identify, when documentally verifiable:
+
+- REGISTERED
+- SIGNED
+- APPROVED
+- PAID
+- RT_NAME
+- RI_NAME
+- ADDRESS
+- AREA
+- DATES
+- IDENTIFIERS
+
+When evaluating SIGNED:
+
+Search only for documentally verifiable digital or electronic signatures.
+
+Do not infer the existence of a signature from:
+
+- the presence of a signature field;
+- the document type;
+- another signed document.
+
+When no documentally verifiable digital or electronic signature can be confirmed,
+
+store
+
+SIGNED = MANUAL_REVIEW.
+
+Do not store SIGNED = FALSE solely because no signature was identified.
+
+No documentary attribute may be inferred from another documentary attribute.
+
+Every stored attribute shall be directly supported by documentary evidence contained in the administrative process.
+
+###############################################################################
+# PROCESS MEMORY
+###############################################################################
+
+Store extracted documentary attributes exactly as documented.
+
+Process Memory is a passive repository of documentary evidence.
+
+Process Memory shall never:
+
+- interpret documentary evidence;
+- determine documentary relevance;
+- evaluate Requirements;
+- evaluate Criteria;
+- generate execution results;
+- generate Nonconformities.
+
+Once Process Memory is completed, it becomes immutable.
+
+No documentary attribute may be created, updated, removed or reinterpreted after Phase 2.
+
+Requirements, Criteria and Report generation shall consume Process Memory only.
+
+Do not retry documentary extraction during later phases.
+
+###############################################################################
+# EXECUTION BOUNDARY
+###############################################################################
+
+No documentary statement may influence the execution directly.
+
+Every execution result shall originate exclusively from the following execution chain:
+
+Process Memory
+
+↓
+
+Requirement
+
+↓
+
+Criterion
+
+↓
+
+Execution Result
+
+↓
+
+Nonconformity (when FAIL)
+
+Documentary evidence alone shall never generate:
+
+- PASS
+- FAIL
+- MANUAL_REVIEW
+- NOT_APPLICABLE
+- Nonconformity
+- Operational Alert
+
+unless explicitly evaluated by an applicable Criterion.
+
+Document extraction is complete only after every submitted document has been processed.
+
+END PHASE 2.
 
 ###############################################################################
 # PHASE 3
@@ -99,14 +251,26 @@ Preserve the original documentary source.
 
 No inference is allowed.
 
+The normalized entities and extracted documentary attributes shall be prepared for Process Memory construction.
+
 ###############################################################################
 # PHASE 4
 # EXECUTION PLAN
 ###############################################################################
 
+Build the Process Memory from the normalized entities and extracted
+documentary attributes.
+
+Only after the Process Memory is complete, determine the applicable
+Requirements.
+
 Determine which Requirements are applicable.
 
 Select exclusively the Criteria referenced by those Requirements.
+
+Only documentary attributes contained in the Process Memory may determine Requirement applicability.
+
+Resolve every VALIDATE declared by the applicable Requirements.
 
 Associate the corresponding Nonconformities.
 
@@ -119,11 +283,17 @@ No Criterion may be created.
 # TABLE EXECUTION
 ###############################################################################
 
+Execute all applicable Requirements using the Process Memory.
+
+After Requirement validation, execute the referenced Criteria.
+
 Execute Table 1.
 
-After Table 1 completes, execute Table 4.
+Complete every applicable Criterion in Table 1 before starting Table 4.
 
 Each Criterion shall produce exactly one result.
+
+Every applicable Requirement shall be evaluated exactly once.
 
 Allowed results:
 
@@ -137,6 +307,10 @@ MANUAL_REVIEW
 
 No other result is allowed.
 
+Criteria shall consume Process Memory only.
+
+Criteria shall never create, update or reinterpret documentary attributes.
+
 ###############################################################################
 # PHASE 6
 # RESULT CONSOLIDATION
@@ -146,9 +320,17 @@ Consolidate all Criterion results.
 
 Associate Nonconformities only with FAIL results.
 
+Criterion results shall remain immutable after consolidation.
+
 Associate operational alerts only with MANUAL_REVIEW results.
 
+MANUAL_REVIEW results shall never generate Nonconformities.
+
+MANUAL_REVIEW shall propagate to every dependent Criterion unless an explicit documentary rule defines otherwise.
+
 Do not modify previous results.
+
+No report section shall be generated before Result Consolidation completes.
 
 ###############################################################################
 # PHASE 7
@@ -156,6 +338,11 @@ Do not modify previous results.
 ###############################################################################
 
 Generate the operational report using only:
+
+Do not expose Requirements, Criteria or internal identifiers in the
+operational report.
+
+The operational report shall not reinterpret execution results.
 
 06_report_operacional.
 
@@ -172,6 +359,10 @@ If the user explicitly requests:
 append the report defined by:
 
 07_report_auditoria.
+
+The Technical Annex shall describe only the execution actually performed by the inference engine.
+
+The audit report shall not introduce new documentary findings after Result Consolidation.
 
 ###############################################################################
 # EXECUTION RULES
@@ -191,11 +382,27 @@ When documentary evidence cannot be verified, return exactly:
 
 Informação insuficiente para verificar.
 
+The report generation phase shall never trigger additional documentary analysis.
+
+If additional documentary evidence would be required to change a result, the execution shall terminate with the previously consolidated results.
+
 ###############################################################################
 # TRACEABILITY
 ###############################################################################
 
-Every reported result shall be traceable to:
+Every reported result shall be traceable through the complete execution chain:
+
+Source document
+
+↓
+
+Documentary evidence
+
+↓
+
+Process Memory
+
+↓
 
 Requirement
 
@@ -205,13 +412,13 @@ Criterion
 
 ↓
 
-Documentary evidence
+Reported result
 
-↓
+Every reported result shall preserve this traceability chain.
 
-Source document
+No execution phase may bypass any element of the traceability chain.
 
-No reported information may exist without documentary traceability.
+No reported information may exist without complete documentary traceability.
 
 ###############################################################################
 # END

@@ -1,7 +1,7 @@
 ###############################################################################
 # 03_table1.txt
 # BASECONHECIMENTO
-# VERSION 3.1
+# VERSION 3.2
 # IRV - TABELA 1
 # VERIFICAÇÃO DE RESPONSABILIDADES TÉCNICAS E EVIDÊNCIAS
 #
@@ -184,6 +184,25 @@ FAIL NC_T1_006_AREA
 
 END
 
+-------------------------------------------------------------------------------
+
+CRITERION T1_CONFORMITY_REPORT_SIGNED
+
+TABLE 1
+
+USES REQ_T1_CONFORMITY_REPORT_SIGNED
+
+CONTEXT REQUIRED_TECHNICAL_RESPONSIBILITY RT_007_AVALIACAO_TECNICA
+
+ASSERT TECHNICAL_PRODUCT_ATTRIBUTE(
+    CONFORMITY_REPORT,
+    SIGNED
+)
+
+MANUAL_REVIEW
+"Não foi possível identificar assinatura digital documentalmente verificável. Conferir visualmente o documento."
+
+END
 ###############################################################################
 # DADOS TÉCNICOS DA RESPONSABILIDADE
 ###############################################################################
