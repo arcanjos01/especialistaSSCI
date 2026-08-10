@@ -99,15 +99,7 @@ Geração do relatório.
 
 A sequência acima constitui o algoritmo oficial da plataforma.
 
-8. POPs
-
-Os Procedimentos Operacionais Padrão (POPs) pertencem ao Núcleo Permanente.
-
-Os POPs não deverão ser reescritos para cada domínio.
-
-Sempre que necessário, deverão apenas receber parâmetros referentes à Base de Conhecimento utilizada.
-
-9. Evolução da Plataforma
+8. Evolução da Plataforma
 
 A evolução futura da plataforma deverá priorizar:
 
@@ -118,13 +110,13 @@ criação de novas Bases de Conhecimento.
 
 A criação de um novo sistema especialista deverá ocorrer preferencialmente mediante desenvolvimento de uma nova Base de Conhecimento, evitando modificações no Núcleo Permanente.
 
-10. Princípio da Reutilização
+9. Princípio da Reutilização
 
 Toda funcionalidade que possa ser utilizada por mais de um processo administrativo deverá integrar o Núcleo Permanente.
 
 Somente funcionalidades exclusivas de determinado domínio poderão integrar sua respectiva Base de Conhecimento.
 
-11. Objetivo Final
+10. Objetivo Final
 
 O objetivo estratégico deste projeto é constituir uma Plataforma Institucional de Sistemas Especialistas para Análise Documental do CBMSC.
 

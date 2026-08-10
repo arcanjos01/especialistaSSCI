@@ -1,844 +1,529 @@
-# AGENTS.md
+4. FONTES E ESCOPO DE AUTORIDADE
 
-# Especialista SSCI — Diretrizes para Agentes de IA
+Não tratar todos os documentos como uma única hierarquia. Cada fonte possui autoridade dentro de seu escopo.
 
-## 1. OBJETIVO DO PROJETO
+Normas oficiais
 
-Este repositório implementa a Base de Conhecimento de um Sistema Especialista
-para apoio à análise documental de processos de Habite-se e demais processos
-relacionados à Segurança Contra Incêndio (SSCI) do Corpo de Bombeiros Militar
-de Santa Catarina (CBMSC).
+São a fonte primária do conteúdo normativo.
 
-O sistema é orientado por regras declarativas, com execução controlada,
-rastreável e auditável.
+Base de Conhecimento
 
-Toda alteração deve preservar:
+Formaliza o conhecimento normativo utilizado pelo sistema, incluindo entidades, Requirements, Criteria e Nonconformities.
 
-- consistência;
-- rastreabilidade;
-- auditabilidade;
-- previsibilidade;
-- baixo acoplamento;
-- simplicidade de manutenção;
-- separação entre conhecimento normativo, execução e apresentação.
+00_engine
 
-O agente não deve assumir que o sistema é matematicamente determinístico
-apenas porque utiliza uma Base de Conhecimento declarativa. A execução é
-realizada por um modelo de linguagem e, portanto, toda liberdade interpretativa
-deve ser explicitamente restringida pelas regras da arquitetura.
+Define o contrato e as restrições do executor.
 
----
+08_execution_pipeline
 
-# 2. PAPEL DO AGENTE
+Define a sequência e as fronteiras da execução.
 
-O agente atua como engenheiro de conhecimento responsável por analisar,
-manter e evoluir a Base de Conhecimento e sua arquitetura.
+Documento 09 — RDE
 
-O agente:
+Define a Representação Documental Estruturada e o contrato da EXTRACTION.
 
-- pode analisar a consistência da Base;
-- pode identificar inconsistências;
-- pode identificar lacunas;
-- pode propor alterações;
-- pode implementar alterações quando autorizado;
-- deve preservar a rastreabilidade entre os componentes da Base.
+Documento 10
 
-O agente NÃO atua como:
+Define princípios para evolução e preservação da arquitetura da plataforma.
 
-- autoridade normativa;
-- responsável técnico;
-- analista administrativo do processo;
-- substituto da decisão humana do CBMSC.
+Documento 11
 
-É proibido:
+Define o modelo conceitual das Obrigações Normativas, Responsabilidades Técnicas, Produtos Técnicos, Evidências e Documentos Obrigatórios.
 
-- criar interpretações normativas próprias;
-- substituir decisões humanas;
-- utilizar conhecimento externo para criar ou alterar regras;
-- preencher lacunas normativas por inferência;
-- transformar uma hipótese em regra;
-- criar comportamento não declarado pela Base.
+Anexo A
 
-Quando uma regra normativa não puder ser determinada pelos documentos
-autorizados, a situação deve ser registrada como lacuna ou conflito e
-submetida à decisão humana.
+É a fonte oficial do catálogo de Responsabilidades Técnicas e de seus atributos catalográficos.
 
----
+demais documentos de arquitetura
 
-# 3. FONTES AUTORIZADAS
+Devem ser considerados conforme o escopo e a vigência definidos neles.
 
-A fonte oficial do comportamento do sistema é a documentação autorizada
-existente no repositório.
+Relatórios
 
-São fontes autorizadas, conforme sua finalidade:
+Definem apresentação dos resultados e não devem criar ou alterar resultados.
 
-- Base de Conhecimento;
-- Engine;
-- Execution Pipeline;
-- documentos de arquitetura;
-- POPs;
-- Anexo A — Catálogo Oficial de Responsabilidades Técnicas;
-- normas oficiais utilizadas como referência;
-- demais documentos explicitamente incorporados à arquitetura do projeto.
+Se houver conflito:
 
-Conhecimento externo pode ser utilizado para compreensão técnica ou análise
-comparativa somente quando isso for explicitamente solicitado.
+identificar a fonte e o trecho envolvidos;
 
-Conhecimento externo NÃO pode ser utilizado para:
+identificar o escopo de autoridade de cada fonte;
 
-- criar Requirements;
-- criar Criteria;
-- criar Nonconformities;
-- alterar regras normativas;
-- alterar o comportamento da Base.
+não escolher arbitrariamente;
 
-Na existência de conflito entre fontes normativas ou documentos internos:
+não usar conhecimento externo para resolver o conflito;
 
-1. não escolher arbitrariamente uma interpretação;
-2. registrar o conflito;
-3. identificar os documentos envolvidos;
-4. interromper a alteração dependente desse conflito;
-5. solicitar decisão humana quando necessário.
+corrigir somente após decisão ou fundamento autorizado.
 
----
+5. ARQUITETURA QUE DEVE SER PRESERVADA
 
-# 4. ARQUITETURA CONCEITUAL
+A arquitetura deve manter separadas estas categorias:
 
-A arquitetura do sistema deve preservar a seguinte separação:
+DOCUMENTO≠EVIDÊNCIA DOCUMENTAL≠OBRIGAÇÃO NORMATIVA≠REQUIREMENT≠CRITERION≠RESULTADO≠NONCONFORMITY
 
-DOCUMENTOS
-↓
-EXTRAÇÃO DOCUMENTAL
-↓
-PROCESS MEMORY
-↓
-NORMALIZAÇÃO
-↓
-REQUIREMENTS
-↓
-CRITERIA
-↓
-EXECUTION RESULT
-↓
-NONCONFORMITY
-↓
-RELATÓRIO
+A unidade lógica fundamental do modelo normativo é a Obrigação Normativa,conforme o Documento 11.
 
-Cada camada possui uma responsabilidade específica.
+Responsabilidade Técnica é uma categoria de atendimento de obrigação normativa; DRT é evidência documental aceita para comprovação de uma Responsabilidade Técnica.
 
-Nenhuma camada deve assumir a função de outra.
+Uma DRT não é, por si só:
 
----
+uma Obrigação Normativa;
 
-# 5. UNIDADE NORMATIVA
+um Requirement;
 
-A unidade normativa fundamental do sistema é a:
+um Criterion;
 
-RESPONSABILIDADE TÉCNICA
+uma Nonconformity;
 
-Princípios obrigatórios:
+um resultado de conformidade.
 
-- Requirements representam obrigações normativas.
-- Criteria representam verificações dessas obrigações.
-- DRTs representam evidências documentais.
-- Responsabilidades Técnicas não são documentos.
-- DRT não constitui requisito normativo por si só.
-- Toda validação deve partir da obrigação normativa e utilizar a DRT como
-  evidência quando aplicável.
-- O Catálogo Oficial de Responsabilidades Técnicas (Anexo A) é a fonte
-  autorizada para identificação das Responsabilidades Técnicas.
+6. RDE E EXTRACTION
 
-A distinção deve ser preservada:
+O Documento 09 controla a estrutura e os princípios da RDE.
 
-RESPONSABILIDADE TÉCNICA
-≠
-DRT
-≠
-EVIDÊNCIA DOCUMENTAL
-≠
-RESULTADO DE CONFORMIDADE
+A EXTRACTION deve produzir somente representação de fatos documentais.
 
-Nenhuma alteração pode eliminar essa separação.
+Durante a EXTRACTION:
 
----
+Pode
 
-# 6. HIERARQUIA OPERACIONAL DOS DOCUMENTOS
+ler os documentos;
 
-Os documentos da arquitetura possuem funções diferentes.
+identificar documentos;
 
-Em especial:
+extrair fatos documentalmente comprovados;
 
-## 00_engine
+extrair atributos previstos;
 
-Define:
+preservar origem e rastreabilidade;
 
-- princípios de execução;
-- funções permitidas;
-- estados de resultado;
-- restrições do executor;
-- regras de rastreabilidade.
+registrar estados documentais conforme a arquitetura.
 
-## 01_entities
+Não pode
 
-Define as entidades e conceitos utilizados pela Base.
+executar Requirements;
 
-## 02_requirements
+executar Criteria;
 
-Define as obrigações normativas.
+determinar conformidade;
 
-## 03_table1
+determinar não conformidade;
 
-Define os Criteria da Tabela 1.
+criar Nonconformities;
 
-## 04_table4
+criar conclusões técnicas;
 
-Define os Criteria da Tabela 4.
+interpretar requisitos para produzir resultados;
 
-## 05_nonconformities
+usar conhecimento externo;
 
-Define as Nonconformities acionadas pelos Criteria.
+completar informação ausente por inferência.
 
-## 06_report_operacional
+Princípios da RDE
 
-Define a apresentação do resultado operacional.
+A RDE deve obedecer ao Documento 09, especialmente:
 
-## 07_report_auditoria
+fact only;
 
-Define o relatório técnico de auditoria quando explicitamente solicitado.
+representação canônica;
 
-## 08_execution_pipeline
+rastreabilidade;
 
-Define a sequência obrigatória de execução da Base.
+imutabilidade após a extração;
 
-Os documentos de arquitetura, POPs, Documento 10, Documento 11 e Anexo A
-devem ser considerados conforme suas respectivas funções.
+ausência de conteúdo normativo ou de resultado.
 
-Nenhum documento deve ser utilizado para substituir a função de outro.
+Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09 é a fonte dessa definição.
 
----
+7. RDE × PROCESS MEMORY
 
-# 7. EXECUTION PIPELINE
+Não assumir que RDE e Process Memory são o mesmo artefato.
 
-O `08_execution_pipeline` define a ordem obrigatória de execução.
+RDE: representação documental definida pelo Documento 09.
 
-Nenhum agente ou executor deve:
+Process Memory: representação utilizada pelas fases de execução conforme definida no 08_execution_pipeline.
 
-- inverter fases;
-- ignorar fases;
-- executar uma fase antecipadamente;
-- retornar a uma fase anterior;
-- modificar resultados de uma fase já concluída.
+A transformação entre essas representações deve preservar os fatos e suarastreabilidade e não pode criar conhecimento normativo.
 
-A execução deve respeitar:
+Se o Documento 09 e o 08_execution_pipeline apresentarem semânticas incompatíveis sobre essa fronteira, isso é uma inconsistência arquitetural aser reportada, não algo a ser resolvido por inferência do agente.
 
-FASE 1 — LOAD
-↓
-FASE 2 — DOCUMENT EXTRACTION
-↓
-FASE 3 — ENTITY NORMALIZATION
-↓
-FASE 4 — EXECUTION PLAN
-↓
-FASE 5 — TABLE EXECUTION
-↓
-FASE 6 — RESULT CONSOLIDATION
-↓
-FASE 7 — REPORT GENERATION
+8. IMUTABILIDADE E NÃO RETROCESSO
 
-O Pipeline não cria Requirements, Criteria ou Nonconformities.
+Depois que a representação documental for encerrada conforme o contrato da arquitetura:
 
-Sua função é exclusivamente definir a ordem e as fronteiras de execução.
+não adicionar fatos;
 
----
+não remover fatos;
 
-# 8. SEPARAÇÃO ENTRE EXTRAÇÃO E EXECUÇÃO
+não alterar fatos;
 
-A extração documental e a execução normativa são processos distintos.
+não reinterpretar fatos;
 
-## FASE 2 — EXTRAÇÃO DOCUMENTAL
+não retornar ao documento original para obter uma informação que deveria ter sido extraída na fase anterior.
 
-A Fase 2 existe exclusivamente para coletar evidências documentais.
+As fases posteriores devem consumir a representação de evidências disponível para execução.
 
-Pode:
+Se uma informação necessária não estiver disponível:
 
-- ler documentos;
-- identificar documentos;
-- localizar informações;
-- extrair atributos;
-- registrar documentos presentes;
-- registrar documentos ausentes;
-- registrar documentos incompletos;
-- registrar documentos não verificáveis;
-- preservar a origem documental da informação.
+não inventar;
 
-Não pode:
+não inferir;
 
-- avaliar Requirements;
-- executar Criteria;
-- determinar conformidade;
-- determinar não conformidade;
-- criar Nonconformities;
-- determinar aplicabilidade normativa;
-- produzir resultados de execução;
-- criar conclusões técnicas.
+não escolher arbitrariamente um resultado;
 
-Informações encontradas durante a extração são apenas evidências.
+aplicar somente a semântica declarada pelo Engine/Criterion;
 
-Elas não são resultados.
+registrar insuficiência ou conflito quando a arquitetura não definir o comportamento.
 
-## EXECUÇÃO
+9. ENGINE E EXECUTION PIPELINE
 
-Somente após a conclusão da extração e construção da Process Memory podem
-ser executados:
+O agente deve respeitar integralmente o 00_engine e o 08_execution_pipeline.
 
-- Requirements;
-- Criteria;
-- validações;
-- resultados;
-- Nonconformities.
+Não duplicar no AGENTS.md a definição completa das funções, estados ou regras desses documentos.
 
----
+Princípios que devem ser preservados:
 
-# 9. PROCESS MEMORY
+executar somente regras declaradas;
 
-A Process Memory é o repositório de evidências documentais extraídas
-durante a Fase 2.
+não criar Requirements;
 
-A Process Memory deve:
+não criar Criteria;
 
-- preservar a origem documental;
-- preservar os atributos extraídos;
-- preservar a distinção entre informação presente, ausente, incompleta e
-  não verificável;
-- ser utilizada pelas fases posteriores.
+não criar Nonconformities;
 
-Após a conclusão da Fase 2, a Process Memory torna-se IMUTÁVEL.
+não criar evidências;
 
-Depois disso:
+não usar conhecimento externo na execução;
 
-- nenhuma informação pode ser adicionada;
-- nenhuma informação pode ser removida;
-- nenhuma informação pode ser alterada;
-- nenhuma informação pode ser reinterpretada.
+não fazer inferência normativa não declarada;
 
-Requirements, Criteria, Nonconformities e relatórios devem consumir a
-Process Memory.
+não alterar resultados já consolidados;
 
-Eles não devem retornar aos documentos originais para realizar nova extração.
+não modificar a Base durante a execução.
 
-Se uma informação necessária não estiver disponível na Process Memory,
-não deve ser criada posteriormente por inferência.
+O 08_execution_pipeline define a ordem de execução. O agente não deve:
 
----
+pular fases;
 
-# 10. EXTRAÇÃO DE ATRIBUTOS
+inverter fases;
 
-A extração deve registrar somente informações documentalmente sustentadas.
+executar uma fase antecipadamente;
 
-Exemplos:
+retornar a uma fase anterior para alterar evidências;
 
-- REGISTERED;
-- SIGNED;
-- APPROVED;
-- PAID;
-- RT_NAME;
-- RI_NAME;
-- ADDRESS;
-- AREA;
-- DATE;
-- IDENTIFIER;
-- COUNCIL_STATE;
-- RESPONSIBILITY_TYPE;
-- PROFESSIONAL_REGULARITY.
+alterar o resultado de uma fase já concluída.
 
-Nenhum atributo pode ser inferido de outro atributo sem regra explícita.
+Se houver diferença entre a semântica do Engine e do Pipeline, registrar a inconsistência antes de alterar qualquer um deles.
 
-Em especial:
+10. REQUIREMENTS, CRITERIA E NONCONFORMITIES
 
-- existência de campo de assinatura não significa assinatura;
-- existência de documento não significa conformidade;
-- existência de DRT não significa que a responsabilidade requerida foi
-  satisfeita;
-- assinatura em outro documento não significa assinatura no documento
-  analisado.
+Requirements
 
-Quando uma assinatura digital ou eletrônica não puder ser documentalmente
-verificada, não deve ser automaticamente registrada como FALSE.
+Representam Obrigações Normativas formalizadas pela Base.
 
-A arquitetura poderá direcionar essa situação para MANUAL_REVIEW conforme
-as regras declaradas.
+Não criar ou alterar Requirement sem fundamento autorizado.
 
----
+Criteria
 
-# 11. REQUIREMENTS
+Representam verificações declaradas para Requirements.
 
-Requirements representam obrigações normativas.
+Um Criterion não pode:
 
-Todo Requirement deve possuir, quando aplicável:
+ampliar a obrigação;
 
-- identificação única;
-- origem normativa;
-- responsabilidade técnica requerida ou condição normativa equivalente;
-- condição de obrigatoriedade;
-- evidência esperada;
-- relação com Criterion;
-- Nonconformity correspondente quando houver possibilidade de FAIL.
+criar obrigação nova;
 
-O agente não pode criar um Requirement simplesmente porque entende que uma
-determinada exigência seria tecnicamente desejável.
+criar Nonconformity;
 
-A criação de Requirement exige fundamento documental autorizado.
+utilizar conhecimento externo;
 
----
+inventar regra de aplicabilidade.
 
-# 12. CRITERIA
+Nonconformities
 
-Criteria representam verificações declaradas para Requirements.
+Representam consequências declaradas de resultados FAIL.
 
-Todo Criterion deve:
+Não criar Nonconformity durante a execução.
 
-- referenciar um Requirement válido;
-- possuir regra de aplicabilidade quando necessária;
-- executar somente validações declaradas;
-- consumir a Process Memory;
-- produzir resultado rastreável;
-- utilizar somente Nonconformities declaradas.
+A ausência de evidência somente pode gerar FAIL/Nonconformity quando a Base declarar essa consequência para o Requirement e Criterion aplicáveis.
 
-Nenhum Criterion pode:
+11. RESPONSABILIDADES TÉCNICAS E ANEXO A
 
-- criar uma regra normativa;
-- ampliar o Requirement;
-- utilizar conhecimento externo;
-- criar uma Nonconformity;
-- produzir uma conclusão fora de sua definição.
+O Anexo A é a fonte oficial do catálogo de Responsabilidades Técnicas.
 
-Todo Requirement aplicável deve possuir cobertura por Criterion.
+Não:
 
-Todo Criterion deve possuir Requirement correspondente.
+criar identificador local;
 
-Qualquer divergência deve ser reportada antes de uma alteração.
+duplicar uma Responsabilidade Técnica;
 
----
+redefinir seus atributos em Requirement, Criterion ou Engine;
 
-# 13. NONCONFORMITIES
+criar uma Responsabilidade Técnica fora do catálogo.
 
-Nonconformities representam consequências declaradas de resultados FAIL.
+Ao precisar de uma Responsabilidade Técnica:
 
-Toda Nonconformity deve:
+verificar se ela existe no Anexo A;
 
-- possuir identificador único;
-- referenciar Requirement válido;
-- estar associada a Criterion válido;
-- possuir fundamento/origem normativa;
-- possuir causa definida.
+utilizar o identificador oficial;
 
-Nenhuma Nonconformity pode ser criada durante a execução.
+verificar as dependências;
 
-Nenhuma Nonconformity pode ser inventada pelo executor.
+se não existir, tratar a inclusão no catálogo como alteração própria,sujeita a fundamento e autorização.
 
-Uma Nonconformity somente pode ser produzida quando um Criterion declarado
-produzir FAIL e houver Nonconformity correspondente na Base.
+A DRT deve ser tratada como evidência documental, não como unidade normativa.
 
----
+12. ESTADOS E INCERTEZA
 
-# 14. ESTADOS DE EXECUÇÃO
+Não criar estados durante a execução.
 
-A arquitetura pode utilizar estados internos e estados finais distintos.
+A semântica dos estados deve ser obtida do 00_engine,08_execution_pipeline e Criteria aplicáveis.
 
-Os estados atualmente documentados incluem:
-
-- TRUE;
-- FALSE;
-- UNKNOWN;
-- NOT_APPLICABLE;
-- MANUAL_REVIEW;
-
-e, no nível do pipeline/relatório:
-
-- PASS;
-- FAIL;
-- NOT_APPLICABLE;
-- MANUAL_REVIEW.
-
-A semântica desses estados deve ser mantida consistente entre:
-
-- 00_engine;
-- 08_execution_pipeline;
-- Criteria;
-- relatórios.
-
-Qualquer divergência entre os estados ou sua semântica deve ser identificada
-e corrigida antes de uma alteração estrutural.
-
-Não assumir automaticamente que:
+Em particular, não assumir que:
 
 UNKNOWN = MANUAL_REVIEW
 
-sem verificar a arquitetura vigente.
+ou que ausência de evidência equivale automaticamente a FAIL.
 
----
+Quando houver divergência entre documentos sobre estados ou sua conversão,reportar a inconsistência antes de corrigi-la.
 
-# 15. MANUAL_REVIEW
+13. RASTREABILIDADE
 
-MANUAL_REVIEW representa uma situação que não pode ser resolvida
-automaticamente de forma documentalmente segura e que requer avaliação
-humana.
+Preservar a cadeia:
 
-MANUAL_REVIEW:
+SOURCE DOCUMENT→ DOCUMENTARY EVIDENCE→ REPRESENTAÇÃO DOCUMENTAL→ PROCESS MEMORY, quando aplicável→ REQUIREMENT→ CRITERION→ EXECUTION RESULT→ NONCONFORMITY, quando aplicável
 
-- não é FAIL;
-- não é PASS;
-- não gera Nonconformity automaticamente;
-- não deve ser convertido em FAIL por ausência de evidência;
-- não deve ser convertido em PASS por presunção.
+A implementação deve permitir reconstruir por que um resultado foi produzido.
 
-A origem do MANUAL_REVIEW deve permanecer rastreável.
+Nenhum relatório deve introduzir informação que não possa ser rastreadaaos resultados consolidados e às evidências correspondentes.
 
-Quando aplicável, o resultado deve ser apresentado no relatório como
-necessidade de análise humana.
+14. RELATÓRIOS
 
----
+Os relatórios são camada de apresentação.
 
-# 16. AUSÊNCIA DE EVIDÊNCIA
+Não devem:
 
-Não confundir:
+descobrir novas evidências;
 
-ABSENT
-INCOMPLETE
-UNVERIFIABLE
-UNKNOWN
-MANUAL_REVIEW
-NOT_APPLICABLE
+reabrir documentos;
 
-Esses estados possuem significados diferentes.
+executar novos Criteria;
 
-A ausência de um documento somente produz FAIL quando um Requirement
-aplicável e seu Criterion correspondente explicitamente determinarem essa
-consequência.
+criar Requirements;
 
-Não transformar automaticamente:
+criar Nonconformities;
 
-"não localizado"
+alterar resultados.
 
-em:
+Se um relatório exigir uma informação que não esteja disponível nos resultados consolidados, isso deve ser tratado como problema de arquitetura,não resolvido por nova inferência no relatório.
 
-"não conforme"
+15. EVOLUÇÃO DA PLATAFORMA
 
-sem a regra correspondente.
+Respeitar o Documento 10.
 
----
+Preferir:
 
-# 17. RASTREABILIDADE
+evolução da Base de Conhecimento;
 
-Todo resultado deve possuir a cadeia:
+reutilização do núcleo;
 
-SOURCE DOCUMENT
-↓
-DOCUMENTARY EVIDENCE
-↓
-PROCESS MEMORY
-↓
-REQUIREMENT
-↓
-CRITERION
-↓
-EXECUTION RESULT
+baixo acoplamento;
 
-Todo FAIL deve possuir também:
+componentes genéricos quando realmente reutilizáveis;
 
-NONCONFORMITY
+alterações locais quando o comportamento for específico de um domínio.
 
-Nenhum resultado deve existir sem referência rastreável.
+Não incorporar ao núcleo permanente uma regra específica de domínio sem justificativa arquitetural.
 
-Nenhum relatório deve introduzir informação que não exista nessa cadeia.
+Não transformar uma necessidade de uma Base específica em regra global apenas porque isso parece conveniente.
 
-Nenhum elemento da cadeia pode ser omitido deliberadamente.
+16. AUDITORIA ANTES DE ALTERAR
 
----
+Antes de uma alteração estrutural, verificar o impacto mínimo necessário em:
 
-# 18. RELATÓRIO
+00_engine;
 
-A geração do relatório ocorre somente após a consolidação dos resultados.
+01_entities;
 
-O relatório operacional deve:
+02_requirements;
 
-- apresentar os resultados já consolidados;
-- preservar o significado dos resultados;
-- apresentar as evidências relevantes;
-- não criar novas conclusões;
-- não executar novos Criteria;
-- não criar Requirements;
-- não criar Nonconformities;
-- não retornar aos documentos para nova extração.
+Tables/Criteria aplicáveis;
 
-O relatório de auditoria pode expor identificadores internos somente quando
-explicitamente solicitado conforme as regras do `07_report_auditoria`.
+05_nonconformities;
 
-A geração do relatório não pode modificar resultados anteriores.
-
----
-
-# 19. PROIBIÇÕES GERAIS DO EXECUTOR
-
-O executor não pode:
-
-- criar Requirements;
-- criar Criteria;
-- criar Nonconformities;
-- criar entidades não declaradas;
-- criar atributos não declarados;
-- criar documentos fictícios;
-- inventar evidências;
-- utilizar conhecimento externo;
-- inferir fatos ausentes;
-- alterar Process Memory;
-- alterar resultados consolidados;
-- reavaliar documentos em fases posteriores;
-- modificar regras durante a execução;
-- criar regras implícitas;
-- corrigir a Base durante a execução;
-- substituir decisão humana.
-
-Toda informação nova identificada durante uma execução deve ser tratada
-como evidência documental somente se estiver efetivamente presente nos
-documentos processuais.
-
----
-
-# 20. AUDITORIA ANTES DE ALTERAÇÕES
+relatórios;
 
-Antes de realizar uma alteração estrutural na Base, verificar a cadeia:
+08_execution_pipeline;
 
-00_engine
-↓
-01_entities
-↓
-02_requirements
-↓
-03_table1 / 04_table4
-↓
-05_nonconformities
-↓
-06_report_operacional / 07_report_auditoria
-↓
-08_execution_pipeline
-
-Também verificar os documentos de arquitetura e POPs impactados.
-
-Para cada alteração, identificar:
+Documento 09;
 
-- problema;
-- arquivo afetado;
-- dependências;
-- impacto na rastreabilidade;
-- possíveis efeitos colaterais;
-- necessidade de atualização de outros documentos.
+Documento 10;
 
-Quando a alteração envolver regra normativa, identificar a fonte normativa
-correspondente antes de modificar a Base.
+Documento 11;
 
----
+Anexo A;
 
-# 21. REGRAS DE CONSISTÊNCIA
+Demais documentos efetivamente dependentes.
 
-Verificar continuamente:
+Não presumir nomes ou caminhos de arquivos. Confirmar a estrutura real do repositório.
 
-- Requirements sem Criteria;
-- Criteria sem Requirements;
-- Requirements sem origem normativa;
-- Criteria sem origem rastreável;
-- Nonconformities sem Requirement;
-- Nonconformities sem Criterion;
-- identificadores órfãos;
-- documentos referenciados mas inexistentes;
-- entidades referenciadas mas inexistentes;
-- funções utilizadas mas não declaradas;
-- funções declaradas mas incompatíveis com seu uso;
-- estados de execução inconsistentes;
-- regras duplicadas ou conflitantes.
+A auditoria deve procurar, no mínimo:
 
-Nenhum identificador deve permanecer órfão.
+Requirements sem Criteria;
 
----
+Criteria sem Requirement;
 
-# 22. DEPENDÊNCIAS ENTRE DOCUMENTOS
+Nonconformities sem Criterion;
 
-Antes de concluir qualquer alteração, avaliar impactos em todos os documentos
-relacionados.
+identificadores órfãos;
 
-No mínimo:
+referências inexistentes;
 
-## knowledge-base/
+funções incompatíveis entre Engine e Base;
 
-- 00_engine
-- 01_entities
-- 02_requirements
-- 03_table1
-- 04_table4
-- 05_nonconformities
-- 06_report_operacional
-- 07_report_auditoria
-- 08_execution_pipeline
+divergências entre RDE e Pipeline;
 
-## docs/
+divergências entre Pipeline e Engine;
 
-- documentos de arquitetura vigentes;
-- Documento 10;
-- Documento 11;
-- Anexo A;
-- demais documentos explicitamente incorporados ao sistema.
+divergências entre Documento 11 e Base;
 
-## pop/
+divergências entre Anexo A e Base;
 
-- POP-IA-01;
-- POP-IA-02;
-- POP-IA-03;
-- demais POPs vigentes relacionados.
+resultados sem evidência;
 
-Os nomes exatos dos arquivos devem ser confirmados no repositório antes
-de qualquer alteração.
+FAIL sem Nonconformity quando exigida;
 
-Não presumir que documentação histórica ainda seja vigente apenas porque
-está presente no repositório.
+Nonconformity sem FAIL;
 
----
+possibilidade de reabrir documentos após a extração.
 
-# 23. POLÍTICA DE ALTERAÇÕES
+17. POLÍTICA DE ALTERAÇÃO
 
-Antes de modificar qualquer arquivo:
+Antes de modificar:
 
-1. identificar o problema;
-2. identificar a fonte do problema;
-3. informar os arquivos impactados;
-4. explicar a alteração proposta;
-5. avaliar efeitos colaterais;
-6. verificar a cadeia de rastreabilidade;
-7. verificar compatibilidade com a arquitetura vigente.
+identificar o problema;
 
-Priorizar:
+localizar a camada responsável;
 
-- alterações pequenas;
-- baixo risco;
-- baixo acoplamento;
-- preservação de comportamento existente;
-- rastreabilidade.
+identificar a fonte que sustenta a alteração;
 
-Evitar:
+mapear dependências;
 
-- refatorações extensas;
-- alterações simultâneas em várias camadas sem necessidade;
-- mudanças cosméticas;
-- mudanças cujo benefício não possa ser demonstrado.
+avaliar efeitos colaterais;
 
----
+propor a menor alteração suficiente;
 
-# 24. MODIFICAÇÕES NÃO SOLICITADAS
+verificar rastreabilidade;
 
-Não realizar alterações adicionais apenas porque parecem desejáveis.
+testar o comportamento afetado.
 
-Se durante uma tarefa forem identificados outros problemas:
+Não alterar outras partes do sistema somente porque parecem melhoráveis.
 
-1. registrar o problema;
-2. explicar o impacto;
-3. não modificá-lo automaticamente;
-4. aguardar autorização quando a alteração não fizer parte do escopo.
+Quando outro problema for encontrado fora do escopo:
 
-O agente deve otimizar para baixo risco, não para quantidade de mudanças.
+registrar;
 
----
+explicar o impacto;
 
-# 25. CONVENÇÕES DE ARQUIVOS
+não corrigir automaticamente.
 
-Não criar arquivos contendo:
+18. PRESERVAÇÃO E INVARIANTES
 
-- `_rev1`;
-- `_rev2`;
-- `_rev3`.
+Toda alteração deve preservar, salvo mudança explicitamente autorizada:
 
-O Git é a fonte oficial de histórico.
+separação EXTRACTION × EXECUTION;
 
-Preservar nomes padronizados.
+imutabilidade da representação de evidências após a fase correspondente;
 
-Não duplicar documentos apenas para preservar versões anteriores.
+ausência de regras implícitas;
 
----
+ausência de conhecimento externo na execução;
 
-# 26. ORGANIZAÇÃO DO REPOSITÓRIO
+rastreabilidade;
 
-Utilizar a estrutura oficial existente no repositório.
+correspondência Requirement → Criterion;
 
-Não criar novas pastas sem justificativa.
+correspondência FAIL → Nonconformity quando aplicável;
 
-Não mover arquivos sem avaliar:
+autoridade do Anexo A sobre Responsabilidades Técnicas;
 
-- referências;
-- dependências;
-- instruções do agente;
-- documentação;
-- automações;
-- scripts.
+papel do Documento 09 sobre a RDE;
 
----
+papel do 00_engine sobre o executor;
 
-# 27. GIT E COMMITS
+papel do 08_execution_pipeline sobre a sequência.
 
-Quando autorizado a modificar o projeto:
+Se uma alteração quebrar uma dessas invariantes, tratá-la como alteração arquitetural e não como simples manutenção.
 
-- utilizar commits pequenos e semanticamente coerentes;
-- utilizar mensagens objetivas;
-- não misturar correções independentes em um mesmo commit.
+19. TESTES
 
-Exemplos:
+Depois de alterações relevantes:
 
-- Atualiza arquitetura de responsabilidades técnicas
-- Corrige rastreabilidade da Tabela 4
-- Atualiza Documento 11
-- Corrige execução da Fase 2
-- Refatora processo de inferência
+validar sintaxe;
 
-Evitar:
+validar referências cruzadas;
 
-- Update
-- Fix
-- Changes
+validar identificadores;
 
----
+verificar cobertura Requirement → Criterion;
 
-# 28. PRINCÍPIO DE PRESERVAÇÃO
+verificar Criterion → Nonconformity;
 
-Quando houver dúvida entre duas alterações possíveis:
+verificar rastreabilidade;
 
-1. preservar a arquitetura existente;
-2. preferir a menor alteração capaz de resolver o problema;
-3. evitar mudanças de comportamento não demonstradas;
-4. solicitar decisão humana quando houver dúvida normativa ou arquitetural
-   relevante.
+executar testes representativos;
 
-Não modificar uma camada para compensar uma inconsistência que pertence a
-outra camada sem antes identificar a origem real do problema.
+comparar com o comportamento anterior quando apropriado;
 
----
+testar ausência/incompletude de documentos;
 
-# 29. OBJETIVO FINAL
+testar evidência não verificável;
 
-Toda alteração deve tornar o Sistema Especialista:
+testar MANUAL_REVIEW e NOT_APPLICABLE quando aplicáveis;
 
-- mais consistente;
-- mais rastreável;
-- mais auditável;
-- mais previsível;
-- mais simples de manter;
-- menos dependente de interpretação implícita do modelo.
+verificar que nenhuma regra não relacionada foi alterada.
 
-A evolução deve aumentar a capacidade da Base de controlar o executor,
-e não aumentar a liberdade do executor para interpretar a Base.
+Um teste isolado passando não prova consistência arquitetural.
+
+20. GIT E ORGANIZAÇÃO
+
+Não criar arquivos de versão como:
+
+_rev1;
+
+_rev2;
+
+_rev3.
+
+Usar o Git para histórico.
+
+Não renomear ou mover arquivos sem verificar referências e dependências.
+
+Quando autorizado a fazer commits:
+
+manter commits pequenos e coerentes;
+
+não misturar alterações independentes;
+
+usar mensagens objetivas.
+
+21. REGRA FINAL
 
 Quando houver dúvida:
 
-PRESERVAR A ARQUITETURA
-↓
-IDENTIFICAR A INCERTEZA
-↓
-DOCUMENTAR O PROBLEMA
-↓
-SOLICITAR DECISÃO HUMANA QUANDO NECESSÁRIO
+não inventar;
+
+não ampliar o escopo;
+
+não usar plausibilidade como regra;
+
+localizar a fonte autorizada;
+
+identificar a camada responsável;
+
+preservar as invariantes;
+
+escolher a menor alteração, quando autorizada;
+
+solicitar decisão humana quando a questão for normativa ou arquitetural.
+
+O objetivo do AGENTS.md é controlar o comportamento do agente e protegera arquitetura. Ele não deve duplicar a Base de Conhecimento nem substituiros documentos técnicos que são suas fontes de verdade.

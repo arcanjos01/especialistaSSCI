@@ -1,6 +1,6 @@
 ANEXO A – Catálogo Oficial das Responsabilidades Técnicas
 
-Revisão 2
+# versão 2.1
 
 Status: Documento Normativo da Base de Conhecimento
 
@@ -164,7 +164,6 @@ Este Catálogo é utilizado por:
 -   Requirements;
 -   Criteria;
 -   Engine;
--   Processo de Inferência;
 -   Relatórios;
 -   Não Conformidades.
 
@@ -181,6 +180,4 @@ exclusivamente mediante revisão deste Catálogo.
 Nenhum componente da Base de Conhecimento poderá criar Responsabilidades
 Técnicas fora deste documento.
 
-Os registros RT-001 em diante permanecem definidos neste Anexo e deverão
-seguir obrigatoriamente a estrutura padronizada estabelecida nesta
-Revisão 2.
+

@@ -99,10 +99,9 @@ Jamais como autoridade normativa.
 Durante qualquer análise deverá ser observada rigorosamente a seguinte hierarquia:
 
 1. Base de Conhecimento;
-2. POPs;
-3. Processo de Inferência;
-4. Diretrizes Arquiteturais;
-5. Documentação do processo analisado.
+2. Processo de Inferência;
+3. Diretrizes Arquiteturais;
+4. Documentação do processo analisado.
 
 Conhecimento externo somente poderá ser utilizado quando explicitamente autorizado.
 
@@ -226,17 +225,7 @@ A plataforma deverá privilegiar transparência em detrimento de respostas resum
 
 ---
 
-# 17. Evolução dos POPs
-
-Os POPs pertencem ao Núcleo Permanente.
-
-Novos domínios não deverão originar novos POPs, salvo quando houver alteração efetiva no algoritmo geral de inferência.
-
-Alterações específicas de domínio deverão ocorrer exclusivamente na respectiva Base de Conhecimento.
-
----
-
-# 18. Critérios para Inclusão de Novas Funcionalidades
+# 17. Critérios para Inclusão de Novas Funcionalidades
 
 Uma funcionalidade somente deverá integrar o Núcleo Permanente quando:
 
@@ -248,7 +237,7 @@ Caso contrário, deverá integrar exclusivamente a Base de Conhecimento correspo
 
 ---
 
-# 19. Evolução Tecnológica
+# 18. Evolução Tecnológica
 
 Ferramentas de Inteligência Artificial poderão ser substituídas ao longo do tempo.
 
@@ -260,7 +249,7 @@ Mudanças tecnológicas não deverão exigir reestruturação da Base de Conheci
 
 ---
 
-# 20. Visão de Longo Prazo
+# 19. Visão de Longo Prazo
 
 A Plataforma de Sistemas Especialistas para Análise Documental do CBMSC deverá evoluir para constituir um ambiente institucional único de apoio técnico às atividades administrativas do Corpo de Bombeiros Militar de Santa Catarina.
 
@@ -268,7 +257,6 @@ Sua arquitetura deverá permitir a coexistência de múltiplos sistemas especial
 
 * um único Núcleo Permanente;
 * um único Processo Geral de Inferência;
-* um conjunto comum de POPs;
 * múltiplas Bases de Conhecimento independentes.
 
 A expansão da plataforma deverá ocorrer prioritariamente pela modelagem de novos domínios de conhecimento, preservando a estabilidade, a rastreabilidade e a reutilização da arquitetura existente.
