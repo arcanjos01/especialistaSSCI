@@ -218,6 +218,10 @@ class PredicateContract:
             raise EngineContractError("predicate_id must be non-empty")
         if not self.allowed_results:
             raise EngineContractError("predicate must allow at least one result")
+        if EngineResult.NOT_APPLICABLE in self.allowed_results:
+            raise EngineContractError(
+                "NOT_APPLICABLE belongs to Criterion applicability, not predicates"
+            )
         if not isinstance(self.resolver, DomainPredicateResolver):
             raise EngineContractError(
                 "resolver must implement DomainPredicateResolver"

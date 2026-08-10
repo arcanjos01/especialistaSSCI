@@ -143,10 +143,26 @@ class EngineInfrastructureTests(unittest.TestCase):
             )
 
     def test_result_propagation(self):
-        for result in EngineResult:
+        for result in (
+            EngineResult.TRUE,
+            EngineResult.FALSE,
+            EngineResult.UNKNOWN,
+            EngineResult.MANUAL_REVIEW,
+        ):
             with self.subTest(result=result):
                 engine, _ = self.engine_for(result)
                 self.assertEqual(self.call(engine).result, result)
+
+    def test_predicate_rejects_not_applicable(self):
+        with self.assertRaises(EngineContractError):
+            PredicateContract(
+                predicate_id="TEST_NOT_APPLICABLE",
+                argument_schema=ArgumentSchema(
+                    (ArgumentSpec("subject", ArgumentKind.REFERENCE),)
+                ),
+                allowed_results=frozenset({EngineResult.NOT_APPLICABLE}),
+                resolver=StaticTestResolver(EngineResult.NOT_APPLICABLE),
+            )
 
     def test_exists_uses_process_memory_only(self):
         expression = Exists(self.reference)
