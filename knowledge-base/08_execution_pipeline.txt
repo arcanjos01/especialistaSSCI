@@ -67,7 +67,7 @@ Load:
 
 07_report_auditoria
 
-09_rde_specification
+09_Especificacao_da_RDE.txt (Documento 09-RDE)
 
 If any document is unavailable:
 
@@ -83,7 +83,7 @@ Representação Documental Estruturada (RDE).
 
 The RDE shall be constructed exactly as specified by:
 
-09_rde_specification.
+09_Especificacao_da_RDE.txt (Documento 09-RDE).
 
 Every extracted documentary fact shall be represented using the canonical representation defined by the RDE specification.
 
@@ -169,11 +169,10 @@ Do not infer the existence of a signature from:
 
 When no documentally verifiable digital or electronic signature can be confirmed,
 
-store
+leave the SIGNED attribute empty in the RDE.
 
-SIGNED = MANUAL_REVIEW.
-
-Do not store SIGNED = FALSE solely because no signature was identified.
+Do not store SIGNED = FALSE or an execution state such as MANUAL_REVIEW during
+EXTRACTION.
 
 No documentary attribute may be inferred from another documentary attribute.
 
@@ -188,7 +187,7 @@ using the extracted documentary entities and attributes.
 
 The RDE shall conform exactly to:
 
-09_rde_specification.
+09_Especificacao_da_RDE.txt (Documento 09-RDE).
 
 The completed RDE becomes immutable.
 

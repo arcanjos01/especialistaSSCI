@@ -18,9 +18,17 @@ Define o contrato e as restrições do executor.
 
 Define a sequência e as fronteiras da execução.
 
-Documento 09 — RDE
+Documento 09-RDE — Especificação da RDE
+
+Arquivo: knowledge-base/09_Especificacao_da_RDE.txt
 
 Define a Representação Documental Estruturada e o contrato da EXTRACTION.
+
+Documento 09-Diretriz — Diretriz Arquitetural
+
+Arquivo: docs/Documento 09 Diretriz.txt
+
+Define os princípios arquiteturais permanentes da plataforma.
 
 Documento 10
 
@@ -78,7 +86,7 @@ um resultado de conformidade.
 
 6. RDE E EXTRACTION
 
-O Documento 09 controla a estrutura e os princípios da RDE.
+O Documento 09-RDE controla a estrutura e os princípios da RDE.
 
 A EXTRACTION deve produzir somente representação de fatos documentais.
 
@@ -120,7 +128,7 @@ completar informação ausente por inferência.
 
 Princípios da RDE
 
-A RDE deve obedecer ao Documento 09, especialmente:
+A RDE deve obedecer ao Documento 09-RDE, especialmente:
 
 fact only;
 
@@ -132,19 +140,19 @@ imutabilidade após a extração;
 
 ausência de conteúdo normativo ou de resultado.
 
-Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09 é a fonte dessa definição.
+Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09-RDE é a fonte dessa definição.
 
 7. RDE × PROCESS MEMORY
 
 Não assumir que RDE e Process Memory são o mesmo artefato.
 
-RDE: representação documental definida pelo Documento 09.
+RDE: representação documental definida pelo Documento 09-RDE.
 
 Process Memory: representação utilizada pelas fases de execução conforme definida no 08_execution_pipeline.
 
 A transformação entre essas representações deve preservar os fatos e suarastreabilidade e não pode criar conhecimento normativo.
 
-Se o Documento 09 e o 08_execution_pipeline apresentarem semânticas incompatíveis sobre essa fronteira, isso é uma inconsistência arquitetural aser reportada, não algo a ser resolvido por inferência do agente.
+Se o Documento 09-RDE e o 08_execution_pipeline apresentarem semânticas incompatíveis sobre essa fronteira, isso é uma inconsistência arquitetural aser reportada, não algo a ser resolvido por inferência do agente.
 
 8. IMUTABILIDADE E NÃO RETROCESSO
 
@@ -354,7 +362,9 @@ relatórios;
 
 08_execution_pipeline;
 
-Documento 09;
+Documento 09-RDE;
+
+Documento 09-Diretriz;
 
 Documento 10;
 
@@ -446,7 +456,7 @@ correspondência FAIL → Nonconformity quando aplicável;
 
 autoridade do Anexo A sobre Responsabilidades Técnicas;
 
-papel do Documento 09 sobre a RDE;
+papel do Documento 09-RDE sobre a RDE;
 
 papel do 00_engine sobre o executor;
 
