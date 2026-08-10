@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-VERSION 1.0
+VERSION 1.1
 
 FINALIDADE
 
@@ -53,7 +53,6 @@ Informação insuficiente para verificar 🔍 Necessita análise humana
 
 -   Data da análise
 -   Versão da Base
--   Versão do POP
 -   Procedimento
 
 Incluir obrigatoriamente:

@@ -67,6 +67,8 @@ Load:
 
 07_report_auditoria
 
+09_rde_specification
+
 If any document is unavailable:
 
 STOP EXECUTION.
@@ -76,9 +78,14 @@ STOP EXECUTION.
 # DOCUMENT EXTRACTION
 ###############################################################################
 
-Read every document submitted in the administrative process completely before any execution step.
+The exclusive purpose of this phase is to construct the
+Representação Documental Estruturada (RDE).
 
-The exclusive purpose of this phase is to collect documentary evidence.
+The RDE shall be constructed exactly as specified by:
+
+09_rde_specification.
+
+Every extracted documentary fact shall be represented using the canonical representation defined by the RDE specification.
 
 This phase shall never perform execution.
 
@@ -173,12 +180,30 @@ No documentary attribute may be inferred from another documentary attribute.
 Every stored attribute shall be directly supported by documentary evidence contained in the administrative process.
 
 ###############################################################################
+# RDE CONSTRUCTION
+###############################################################################
+
+Construct the Representação Documental Estruturada (RDE)
+using the extracted documentary entities and attributes.
+
+The RDE shall conform exactly to:
+
+09_rde_specification.
+
+The completed RDE becomes immutable.
+
+No further documentary extraction is allowed.
+
+END RDE CONSTRUCTION.
+
+###############################################################################
 # PROCESS MEMORY
 ###############################################################################
 
-Store extracted documentary attributes exactly as documented.
+The Process Memory shall be built exclusively from the
+Representação Documental Estruturada (RDE).
 
-Process Memory is a passive repository of documentary evidence.
+The RDE is the only documentary input authorized for Process Memory construction.
 
 Process Memory shall never:
 
@@ -189,7 +214,9 @@ Process Memory shall never:
 - generate execution results;
 - generate Nonconformities.
 
-Once Process Memory is completed, it becomes immutable.
+Once the RDE has been completed, it becomes immutable.
+
+Process Memory shall consume only the immutable RDE.
 
 No documentary attribute may be created, updated, removed or reinterpreted after Phase 2.
 
@@ -243,7 +270,7 @@ END PHASE 2.
 # ENTITY NORMALIZATION
 ###############################################################################
 
-Normalize all extracted entities using 01_entities.
+Normalize the entities contained in the RDE using 01_entities.
 
 Merge equivalent entities.
 
@@ -251,15 +278,15 @@ Preserve the original documentary source.
 
 No inference is allowed.
 
-The normalized entities and extracted documentary attributes shall be prepared for Process Memory construction.
+The normalized entities contained in the RDE
+shall be prepared for Process Memory construction.
 
 ###############################################################################
 # PHASE 4
 # EXECUTION PLAN
 ###############################################################################
 
-Build the Process Memory from the normalized entities and extracted
-documentary attributes.
+Build Process Memory exclusively from the normalized RDE.
 
 Only after the Process Memory is complete, determine the applicable
 Requirements.
@@ -405,8 +432,7 @@ Source document
 
 ↓
 
-Documentary evidence
-
+Representação Documental Estruturada (RDE)
 ↓
 
 Process Memory

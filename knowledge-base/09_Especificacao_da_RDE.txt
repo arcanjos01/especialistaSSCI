@@ -1,0 +1,149 @@
+Documento 09 – Especificação da Representação Documental Estruturada (RDE)
+
+PURPOSE
+
+Este documento define exclusivamente a estrutura e os princípios da
+Representação Documental Estruturada (RDE).
+
+A RDE é o único artefato produzido durante o modo EXTRACTION.
+
+Este documento:
+
+-   não define entidades;
+-   não define Requirements;
+-   não define Criteria;
+-   não define Nonconformities;
+-   não define relatórios;
+-   não altera a Base de Conhecimento.
+
+Sua única função é padronizar a representação das evidências
+documentais.
+
+------------------------------------------------------------------------
+
+EXECUTION CONTRACT
+
+Durante o modo EXTRACTION:
+
+1.  Ler integralmente todos os documentos apresentados.
+2.  Extrair exclusivamente fatos documentalmente comprovados.
+3.  Organizar os fatos em uma RDE estruturada.
+4.  Encerrar imediatamente a execução.
+
+Durante a construção da RDE é proibido:
+
+-   executar Requirements;
+-   executar Criteria;
+-   produzir Conformes;
+-   produzir Não Conformidades;
+-   emitir pareceres;
+-   interpretar requisitos normativos;
+-   complementar informações ausentes;
+-   utilizar conhecimento externo.
+
+------------------------------------------------------------------------
+
+RDE PRINCIPLES
+
+P1 – FACT ONLY
+
+Registrar somente fatos documentalmente comprovados.
+
+Nunca registrar interpretações.
+
+------------------------------------------------------------------------
+
+P2 – CANONICAL REPRESENTATION
+
+Uma mesma entidade deverá possuir sempre a mesma estrutura lógica.
+
+Nunca alterar a estrutura conforme o documento.
+
+------------------------------------------------------------------------
+
+P3 – ONE FACT = ONE RECORD
+
+Cada fato documental deverá ser registrado apenas uma vez.
+
+Evitar duplicidades.
+
+------------------------------------------------------------------------
+
+P4 – TRACEABILITY
+
+Todo registro deverá permanecer rastreável ao documento de origem.
+
+Sempre registrar:
+
+-   source_document
+
+Sempre que possível registrar também:
+
+-   página;
+-   identificador do documento;
+-   número do anexo.
+
+------------------------------------------------------------------------
+
+P5 – IMMUTABILITY
+
+Após concluída, a RDE deverá ser considerada imutável.
+
+As etapas posteriores não poderão:
+
+-   alterar registros;
+-   criar registros;
+-   remover registros;
+-   reinterpretar documentos.
+
+------------------------------------------------------------------------
+
+ENTITY REPRESENTATION
+
+Toda entidade deverá obedecer obrigatoriamente ao formato abaixo.
+
+ENTITY:
+
+attribute: attribute: attribute:
+
+source_document:
+
+END ENTITY
+
+A ordem dos atributos deverá permanecer invariável.
+
+Campos inexistentes deverão permanecer vazios.
+
+Nunca alterar nomes de atributos.
+
+Nunca criar atributos não definidos pela Base.
+
+------------------------------------------------------------------------
+
+PROHIBITED CONTENT
+
+A RDE nunca poderá conter:
+
+-   conclusões;
+-   pareceres;
+-   conformidades;
+-   não conformidades;
+-   recomendações;
+-   justificativas;
+-   interpretações;
+-   fundamentações normativas.
+
+A RDE representa exclusivamente fatos documentais.
+
+------------------------------------------------------------------------
+
+OUTPUT
+
+Ao concluir o modo EXTRACTION produzir exclusivamente:
+
+Representação Documental Estruturada (RDE)
+
+Nenhum conteúdo adicional deverá ser produzido.
+
+A etapa EXECUTION utilizará exclusivamente a RDE como fonte de
+evidências.
