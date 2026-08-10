@@ -1,6 +1,6 @@
 # Documento 10 – Guia de Evolução da Plataforma de Sistemas Especialistas para Análise Documental do CBMSC
 
-**Versão:** 1.0
+**Versão:** 1.1
 **Status:** Documento Arquitetural Permanente
 **Precedência:** Alta
 
@@ -260,6 +260,346 @@ Sua arquitetura deverá permitir a coexistência de múltiplos sistemas especial
 * múltiplas Bases de Conhecimento independentes.
 
 A expansão da plataforma deverá ocorrer prioritariamente pela modelagem de novos domínios de conhecimento, preservando a estabilidade, a rastreabilidade e a reutilização da arquitetura existente.
+
+---
+
+# 20. Contrato Agnóstico de Execução
+
+Esta seção formaliza a fronteira entre um Criterion declarado pela Base de
+Conhecimento e o núcleo de execução. Ela não transforma o núcleo em
+interpretador de um domínio específico e não autoriza a criação de regras,
+entidades ou funções normativas durante a execução.
+
+O fluxo mínimo é:
+
+Criterion
+↓
+Criterion IR
+↓
+Predicate Registry estático
+↓
+Domain Predicate Resolver
+↓
+Process Memory imutável
+↓
+TRUE / FALSE / UNKNOWN / NOT_APPLICABLE / MANUAL_REVIEW
+↓
+Engine
+↓
+normalização para o contrato do Pipeline
+
+O Registry não é um sistema de plugins, não faz carregamento dinâmico, não
+define uma API externa e não constitui uma arquitetura distribuída. Ele é um
+catálogo estático de predicates disponíveis para a Base ativa, com resolvers
+associados em tempo de implementação ou configuração conhecida.
+
+## 20.1 Criterion IR
+
+O Criterion IR é a representação intermediária, estável e independente da
+sintaxe textual, de um Criterion executável.
+
+Cada Criterion IR deverá conter somente os elementos necessários para
+identificar a regra declarada, avaliá-la e reconstruir seu resultado:
+
+* criterion_id;
+* requirement_id;
+* condição de aplicabilidade, quando existente;
+* expressão de avaliação;
+* resultado esperado da asserção;
+* referência à Nonconformity associada ao resultado FALSE, quando declarada;
+* referência de origem e demais dados de rastreabilidade necessários.
+
+A expressão de avaliação é uma árvore composta por:
+
+* chamada de predicate, com predicate_id e argumentos nomeados;
+* ALL, que exige a satisfação de todos os operandos;
+* OR, que exige a satisfação de pelo menos um operando;
+* FOR_EACH, que aplica uma expressão a cada item de uma coleção declarada.
+
+ASSERT é a declaração de que a expressão do Criterion deve ser avaliada. No
+IR, seu resultado esperado é TRUE. FAIL e MANUAL_REVIEW são declarações de
+consequência ou orientação operacional do Criterion, e não predicates.
+
+Exemplo abstrato, sem criação de regra normativa:
+
+    criterion_id: CRITERION_EXAMPLE
+    requirement_id: REQUIREMENT_EXAMPLE
+    applicability: <condição declarada pela Base>
+    expression:
+      ALL:
+        - predicate_id: PREDICATE_A
+          arguments:
+            subject: <referência tipada>
+        - predicate_id: PREDICATE_B
+          arguments:
+            subject: <referência tipada>
+    expected_result: TRUE
+    nonconformity_on_false: <referência opcional>
+    traceability:
+      declaration_source: <origem do Criterion>
+
+O exemplo representa apenas a forma estrutural. A Base continua sendo a
+única fonte da obrigação, dos argumentos concretos e da consequência
+normativa.
+
+## 20.2 Predicate Registry
+
+O Predicate Registry é o catálogo estático que associa cada predicate_id a
+seu contrato de execução. O Engine consulta o Registry pelo identificador e
+não pelo significado do predicate.
+
+Cada entrada do Registry deverá declarar:
+
+* predicate_id — identificador estável;
+* argument_schema — nomes, tipos, cardinalidade e obrigatoriedade;
+* resolver — referência ao resolver associado, conhecida pela implementação
+  da Base ativa;
+* result_contract — estados que o resolver pode produzir e requisitos de
+  rastreabilidade de sua resposta.
+
+O Engine poderá verificar se o identificador existe, se os argumentos
+obedecem ao esquema e se o resultado respeita o contrato. O Engine não poderá
+inspecionar o significado de predicates relacionados a DRT, RT, SMSCI,
+CBMSC, conselho profissional, produto ou documento específico.
+
+Um predicate_id ausente ou uma chamada com argumentos incompatíveis é erro de
+contrato da Base. Não deve ser convertido automaticamente em UNKNOWN, FALSE
+ou MANUAL_REVIEW.
+
+## 20.3 Domain Predicate Resolver
+
+A implementação de predicates específicos pertence à camada da Base de
+Conhecimento e de seus resolvers ou adaptadores de domínio. Para a Base
+atual, essa camada contém a interpretação dos predicates específicos,
+incluindo suas relações catalográficas e documentais.
+
+O resolver deverá seguir exclusivamente este fluxo:
+
+Criterion → predicate_id → argumentos nomeados e tipados → Registry →
+resolver associado → Process Memory imutável → resultado e referências de
+evidência.
+
+O resolver não poderá consultar os documentos originais, reabrir a
+EXTRACTION, alterar a RDE ou criar fatos ausentes. A Process Memory é a única
+fonte documental autorizada durante a execução.
+
+## 20.4 Contrato dos argumentos
+
+Os argumentos deverão ser nomeados e tipados sempre que a posição puder
+causar ambiguidade. O contrato estrutural de cada argumento contém:
+
+* nome;
+* tipo de referência ou tipo literal;
+* cardinalidade;
+* obrigatoriedade;
+* referência à Process Memory quando representar fato ou entidade extraída.
+
+Uma referência tipada distingue, no mínimo, entidade documental, evidência
+documental, produto técnico, SMSCI, atividade e literal. O Engine valida o
+tipo estrutural; o resolver de domínio interpreta a relação entre as
+referências.
+
+O contrato não fixa ainda a semântica final de DRT_COVERS. Esse predicate
+deverá futuramente receber argumentos nomeados e tipados, sem pressupor que
+documento, evidência DRT, produto, SMSCI e atividade sejam a mesma entidade.
+
+HAS_DRT_ACTIVITY também deverá utilizar argumentos tipados. A relação
+documental primária é entre evidência DRT e atividade; a compatibilidade entre
+Responsabilidade Técnica e atividade é relação distinta da Base.
+
+## 20.5 Estados e fronteiras
+
+O resultado de um predicate ou Criterion no Engine poderá ser:
+
+* TRUE — condição comprovada;
+* FALSE — a condição foi efetivamente avaliada e não foi satisfeita;
+* UNKNOWN — a informação disponível é insuficiente ou inconclusiva para
+  determinar o resultado;
+* NOT_APPLICABLE — a condição de aplicabilidade determina que o Criterion não
+  se aplica;
+* MANUAL_REVIEW — revisão operacional explicitamente requerida pelo contrato.
+
+UNKNOWN não é FAIL e não é MANUAL_REVIEW automaticamente.
+
+MANUAL_REVIEW como resultado é um estado operacional de execução. A declaração
+MANUAL_REVIEW no Criterion é a consequência ou orientação declarada que pode
+produzir esse estado. Em qualquer das formas, MANUAL_REVIEW nunca é fato
+documental e nunca é produzido durante a EXTRACTION.
+
+FAIL é a consequência operacional de uma avaliação normativa FALSE no
+Criterion aplicável. A ausência de informação não produz FAIL por si só; a
+consequência depende da declaração da Base e do Criterion aplicável.
+
+NOT_APPLICABLE deverá ser determinado pela condição de aplicabilidade ou por
+um predicate cujo result_contract declare expressamente esse estado. Nenhum
+estado poderá ser criado por inferência do executor.
+
+O Engine preserva esses estados internamente. A normalização para o contrato
+do Pipeline deverá manter a distinção entre eles e as consequências
+operacionais. A conversão externa de UNKNOWN não é definida nesta seção,
+porque o Pipeline vigente não aceita UNKNOWN como resultado final.
+
+**[DECISÃO PENDENTE]** — definir, no contrato conjunto Engine/Pipeline, como
+UNKNOWN será transportado ou apresentado externamente. É proibido convertê-lo
+automaticamente em FAIL ou MANUAL_REVIEW enquanto essa decisão não existir.
+
+## 20.6 Composição lógica mínima
+
+O Engine deverá suportar somente a composição necessária para a estrutura
+declarada pela Base:
+
+* ASSERT — raiz da avaliação de um Criterion;
+* ALL — composição universal;
+* OR — composição alternativa;
+* FOR_EACH — aplicação a coleção explicitamente indicada;
+* chamada de predicate — folha da expressão;
+* EXISTS — predicate genérico de existência na Process Memory;
+* FAIL <id> — consequência declarativa para FALSE, quando existente;
+* MANUAL_REVIEW — orientação ou consequência declarativa para revisão.
+
+ASSERT, ALL, OR e FOR_EACH pertencem ao Criterion IR. EXISTS é predicate
+genérico resolvido contra a Process Memory. FAIL, mensagens de revisão,
+SOURCE, TABLE, ARTICLE, CONTEXT, USES, REQUIRE DOCUMENT e APPLIES_TO são
+metadados ou consequências da Base, não semântica de domínio incorporada ao
+núcleo.
+
+Para composição, a avaliação deverá ser determinística. Em ALL, FALSE
+prevalece; na ausência de FALSE, MANUAL_REVIEW prevalece sobre UNKNOWN; na
+ausência desses estados, UNKNOWN prevalece sobre TRUE. Em OR, TRUE prevalece;
+na ausência de TRUE, MANUAL_REVIEW prevalece sobre UNKNOWN; na ausência
+desses estados, UNKNOWN prevalece sobre FALSE. FOR_EACH aplica a mesma
+composição universal aos itens, salvo regra estrutural explicitamente
+declarada pela Base.
+
+A precedência entre MANUAL_REVIEW e UNKNOWN acima é a regra determinística
+definida para a execução desta especificação, mas deverá ser validada no
+Criterion piloto antes de ser considerada semanticamente consolidada para
+toda a Base.
+
+Essa composição não cria uma linguagem geral nem permite ao Engine inventar
+operadores, argumentos ou regras.
+
+## 20.7 Rastreabilidade
+
+Cada avaliação deverá preservar a cadeia:
+
+Requirement → Criterion → predicate e argumentos → referências da Process
+Memory → resultado → Nonconformity, quando houver consequência declarada.
+
+O registro de execução deverá permitir identificar:
+
+* requirement_id;
+* criterion_id;
+* predicate_id;
+* argumentos utilizados;
+* referências das entidades, atributos ou evidências consultadas na Process
+  Memory;
+* resultado produzido;
+* Nonconformity associada, quando aplicável;
+* origem declarativa do Criterion.
+
+O resolver deverá devolver as referências documentais e de Process Memory que
+fundamentaram o resultado. O Engine registra e encadeia essas referências,
+mas não cria justificativa normativa adicional.
+
+## 20.8 Responsabilidades do Engine
+
+Permanecem no núcleo somente responsabilidades genéricas:
+
+* carregar e validar o Criterion IR;
+* verificar referências a Requirements e Criteria;
+* localizar predicates pelo Registry;
+* validar argumentos conforme o esquema;
+* fornecer a Process Memory autorizada ao resolver;
+* executar composição lógica genérica;
+* controlar os estados de execução;
+* registrar resultados e rastreabilidade;
+* associar FALSE à Nonconformity declarada;
+* expor uma etapa de normalização para o contrato do Pipeline.
+
+Não pertencem ao Engine:
+
+* interpretação de DRT, RT ou SMSCI;
+* consulta ou interpretação do Anexo A;
+* regras do CBMSC;
+* semântica de documentos ou produtos específicos;
+* criação de obrigações, evidências ou consequências normativas;
+* acesso aos documentos originais.
+
+Se outra Base substituir a Base atual, somente seu IR, Registry, resolvers e
+dados de domínio deverão mudar. O núcleo deverá continuar executando o mesmo
+contrato genérico.
+
+## 20.9 Compatibilidade estrutural com a Base atual
+
+Os 34 Criteria atuais são estruturalmente representáveis pelo contrato:
+
+* chamadas de função podem ser folhas predicate_id da IR;
+* ASSERT ALL é representado por ALL;
+* OR é representado por composição alternativa;
+* FOR_EACH é representado por quantificação sobre coleção;
+* EXISTS é predicate genérico;
+* FAIL NC_* é consequência declarada para FALSE;
+* MANUAL_REVIEW é consequência ou orientação operacional;
+* APPLIES_TO, CONTEXT, USES, SOURCE, ARTICLE, TABLE e REQUIRE DOCUMENT são
+  metadados, aplicabilidade ou rastreabilidade.
+
+Exigirão adaptação futura, sem migração nesta onda:
+
+* chamadas atualmente posicionais, que deverão usar argumentos nomeados e
+  tipados;
+* predicates específicos de Responsabilidade Técnica, que precisarão de
+  entradas no Registry e resolvers da Base;
+* DRT_COVERS e HAS_DRT_ACTIVITY, cuja estrutura pode ser representada, mas
+  cuja modelagem final de entidades e escopos depende da evolução autorizada
+  da Base;
+* a relação entre VALIDATE dos Requirements e as precondições do Criterion IR;
+* a distinção operacional entre resultado do Engine e resultado aceito pelo
+  Pipeline.
+
+Nenhum dos 34 Criteria é estruturalmente impossível de representar. Isso não
+significa que todos estejam semanticamente compatíveis com o contrato atual:
+identificadores ausentes no Registry, argumentos incompatíveis e referências
+sem entidade continuam sendo erros da Base ou decisões arquiteturais
+pendentes, não devem ser resolvidos pelo núcleo.
+
+**[DECISÃO PENDENTE]** — escolher, em fase posterior, o primeiro Criterion
+piloto e confirmar a equivalência de seu resultado antes da migração gradual.
+
+## 20.10 Implementação futura de baixo risco
+
+Nenhuma fase abaixo é implementada por este documento:
+
+### FASE A — Infraestrutura mínima do Engine
+
+Implementar validação da IR, árvore de expressão, estados internos,
+composição e registro de rastreabilidade.
+
+### FASE B — Predicate Registry
+
+Implementar o Registry estático e a validação de predicate_id, esquema de
+argumentos e contrato de resultados. Não criar carregamento dinâmico.
+
+### FASE C — Primeiro resolver de domínio
+
+Associar um único resolver da Base ao Registry, com acesso somente à Process
+Memory e testes de rastreabilidade.
+
+### FASE D — Criterion piloto
+
+Escolher posteriormente um Criterion existente e representá-lo na IR, sem
+alterar sua obrigação, seus identificadores ou sua consequência normativa.
+
+### FASE E — Validação de equivalência
+
+Comparar o resultado do Criterion piloto com o comportamento consolidado,
+incluindo TRUE, FALSE, UNKNOWN, NOT_APPLICABLE e MANUAL_REVIEW quando
+aplicáveis.
+
+### FASE F — Migração gradual
+
+Migrar os demais Criteria individualmente, validando referências, argumentos,
+rastreabilidade e ausência de alteração normativa a cada etapa.
 
 ---
 
