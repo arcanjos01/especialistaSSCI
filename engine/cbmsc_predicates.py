@@ -26,6 +26,7 @@ COUNCIL_STATE_KEY = "COUNCIL_STATE"
 PROFESSIONAL_REGULARITY_KEY = "PROFESSIONAL_REGULARITY"
 
 SANTA_CATARINA = "SC"
+BRAZIL = "BR"
 IRREGULAR = "IRREGULAR"
 
 
@@ -83,7 +84,7 @@ class ProfessionalRegularityResolver(DomainPredicateResolver):
 
         council_state = drt.get(COUNCIL_STATE_KEY)
 
-        if council_state != SANTA_CATARINA:
+        if council_state not in {SANTA_CATARINA, BRAZIL}:
             return EngineResult.MANUAL_REVIEW
 
         regularity = drt.get(PROFESSIONAL_REGULARITY_KEY)

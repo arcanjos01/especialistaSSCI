@@ -1,3 +1,24 @@
+1. OBJETIVO SUPERIOR
+
+A plataforma deve maximizar a qualidade, consistência, rastreabilidade e utilidade da análise documental para apoiar a decisão do vistoriador do CBMSC. O sistema não substitui o vistoriador nem produz a decisão administrativa final.
+
+2. CRITÉRIO DE EVOLUÇÃO E PROPORCIONALIDADE
+
+O critério superior para avaliar qualquer evolução é o benefício efetivo que chega ao vistoriador. Antes de introduzir componente, camada, parser, executor, plugin, integração ou mecanismo de determinismo, verificar se há melhoria demonstrável na qualidade da análise. A complexidade técnica deve ser proporcional ao benefício operacional; sem benefício claro, preferir a solução mais simples.
+
+3. PRIORIDADES OPERACIONAIS
+
+Priorizar conceitualmente, nesta ordem:
+
+1. completude — reduzir omissões de documentos, evidências, atributos e Requirements relevantes;
+2. fidelidade documental — distinguir fatos documentados de ausência, inferência e interpretação;
+3. rastreabilidade — localizar a origem documental das informações e conclusões relevantes;
+4. consistência — reduzir variações desnecessárias entre processos e execuções;
+5. tratamento da incerteza — preservar a insuficiência e encaminhá-la adequadamente para análise humana;
+6. explicabilidade — permitir compreender verificações, evidências, regras e conclusões;
+7. não invenção — nunca apresentar suposição ou informação ausente como fato;
+8. utilidade operacional — facilitar a localização de pendências, conferência de evidências e decisão do vistoriador.
+
 4. FONTES E ESCOPO DE AUTORIDADE
 
 Não tratar todos os documentos como uma única hierarquia. Cada fonte possui autoridade dentro de seu escopo.
@@ -184,7 +205,9 @@ registrar insuficiência ou conflito quando a arquitetura não definir o comport
 
 9. ENGINE E EXECUTION PIPELINE
 
-O agente deve respeitar integralmente o 00_engine e o 08_execution_pipeline.
+O agente deve respeitar integralmente os contratos do 00_engine e do 08_execution_pipeline quando alterar ou utilizar componentes que os implementem. Esses documentos definem contratos técnicos; não determinam, por si sós, que o Engine Python seja o executor operacional atual.
+
+Atualmente, o ambiente operacional é o Gemini/Gem. O Engine Python desenvolvido nas ondas anteriores é infraestrutura de referência, experimentação e validação arquitetural. Não tratá-lo como componente operacional obrigatório nem criar integração externa somente por sofisticação. Isso somente muda mediante decisão explícita e benefício operacional demonstrado.
 
 Não duplicar no AGENTS.md a definição completa das funções, estados ou regras desses documentos.
 
@@ -326,7 +349,7 @@ Se um relatório exigir uma informação que não esteja disponível nos resulta
 
 15. EVOLUÇÃO DA PLATAFORMA
 
-Respeitar o Documento 10.
+Respeitar o Documento 10 e aplicar proporcionalidade arquitetural: a evolução deve ser justificada pelo benefício efetivo para o vistoriador, não pela busca de determinismo absoluto ou sofisticação técnica.
 
 Preferir:
 
@@ -464,6 +487,8 @@ papel do 08_execution_pipeline sobre a sequência.
 
 Se uma alteração quebrar uma dessas invariantes, tratá-la como alteração arquitetural e não como simples manutenção.
 
+LLMs são probabilísticos. O objetivo é reduzir variabilidade e erro onde isso produzir benefício real. Regras que possam ser formalizadas vantajosamente podem receber tratamento estruturado; tarefas de interpretação documental, reconhecimento ou julgamento contextual podem continuar utilizando o LLM. A separação EXTRACTION/EXECUTION não exige determinismo absoluto do LLM.
+
 19. TESTES
 
 Depois de alterações relevantes:
@@ -537,3 +562,13 @@ escolher a menor alteração, quando autorizada;
 solicitar decisão humana quando a questão for normativa ou arquitetural.
 
 O objetivo do AGENTS.md é controlar o comportamento do agente e protegera arquitetura. Ele não deve duplicar a Base de Conhecimento nem substituiros documentos técnicos que são suas fontes de verdade.
+
+22. AMBIENTE OPERACIONAL E RESPONSABILIDADES ATUAIS
+
+O ambiente operacional atual da solução é um Google Gemini Gem utilizado para análise documental de processos de Habite-se. Sua facilidade de replicação e utilização é uma característica importante enquanto produzir benefício operacional. A arquitetura deve permanecer aberta a mudanças futuras se houver benefício demonstrado, sem assumir que o Gemini será substituído por um executor externo.
+
+Componentes experimentais ou de validação não são automaticamente componentes obrigatórios da arquitetura operacional. O Engine Python permanece, no estado atual, infraestrutura de referência, experimentação e validação; não deve orientar o abandono do Gem nem receber novas camadas sem benefício operacional claro. O Engine deve permanecer agnóstico ao modelo, fornecedor, Gem, API ou interface de IA.
+
+A separação de responsabilidades deve permanecer clara: documentos são lidos pela EXTRACTION, que produz a RDE; a Base formaliza o conhecimento normativo em Requirements e Criteria; as regras podem ser aplicadas pelo executor disponível conforme o contrato; os resultados da análise devem ser rastreáveis; a decisão final permanece com o vistoriador. Essa separação não exige tornar o Gemini completamente determinístico.
+
+O Codex é utilizado para desenvolvimento, auditoria e evolução do repositório, não sendo o ambiente operacional da solução.
