@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# VERSION 4.2
+# VERSION 4.3
 ###############################################################################
 
 OBJECTIVE
@@ -57,15 +57,15 @@ Load:
 
 02_requirements
 
+02a_applicability
+
 03_table1
 
 04_table4
 
 05_nonconformities
 
-06_report_operacional
-
-07_report_auditoria
+06_reports
 
 09_Especificacao_da_RDE.txt (Documento 09-RDE)
 
@@ -196,42 +196,23 @@ No further documentary extraction is allowed.
 END RDE CONSTRUCTION.
 
 ###############################################################################
-# PROCESS MEMORY
-###############################################################################
-
-The Process Memory shall be built exclusively from the
-Representação Documental Estruturada (RDE).
-
-The RDE is the only documentary input authorized for Process Memory construction.
-
-Process Memory shall never:
-
-- interpret documentary evidence;
-- determine documentary relevance;
-- evaluate Requirements;
-- evaluate Criteria;
-- generate execution results;
-- generate Nonconformities.
-
-Once the RDE has been completed, it becomes immutable.
-
-Process Memory shall consume only the immutable RDE.
-
-No documentary attribute may be created, updated, removed or reinterpreted after Phase 2.
-
-Requirements, Criteria and Report generation shall consume Process Memory only.
-
-Do not retry documentary extraction during later phases.
-
-###############################################################################
 # EXECUTION BOUNDARY
 ###############################################################################
 
 No documentary statement may influence the execution directly.
 
-Every execution result shall originate exclusively from the following execution chain:
+Every SMSCI-scoped execution result shall originate exclusively from the
+following execution chain:
 
 Process Memory
+
+↓
+
+Applicability Rule
+
+↓
+
+PROCESS.SMSCI
 
 ↓
 
@@ -248,6 +229,9 @@ Execution Result
 ↓
 
 Nonconformity (when FAIL)
+
+General Requirements preserve the same chain without Applicability Rule and
+PROCESS.SMSCI. They shall not acquire an artificial SMSCI dependency.
 
 Documentary evidence alone shall never generate:
 
@@ -266,58 +250,154 @@ END PHASE 2.
 
 ###############################################################################
 # PHASE 3
-# ENTITY NORMALIZATION
+# ENTITY NORMALIZATION AND PROCESS MEMORY
 ###############################################################################
 
-Normalize the entities contained in the RDE using 01_entities.
+Consume only the completed, immutable RDE.
 
-Merge equivalent entities.
+Normalize representations derived from the RDE using 01_entities.
 
-Preserve the original documentary source.
+Do not alter, add, remove or reinterpret any RDE record.
+
+Merge equivalent entities only in the derived normalized representation.
+
+Preserve every reference to the original RDE record and Source Document.
 
 No inference is allowed.
 
-The normalized entities contained in the RDE
-shall be prepared for Process Memory construction.
+Build Process Memory exclusively from the normalized representation derived
+from the immutable RDE.
+
+The RDE is the only documentary input authorized for Process Memory
+construction.
+
+Process Memory shall never:
+
+- create or reinterpret documentary facts;
+- determine applicability;
+- evaluate Requirements;
+- evaluate Criteria;
+- generate execution results;
+- generate Nonconformities.
+
+Close Process Memory as complete and immutable before Phase 4.
+
+Requirements, Criteria and Report generation shall consume Process Memory only.
+
+Do not reopen Source Documents or retry documentary extraction in this or any
+later phase.
+
+END PHASE 3.
 
 ###############################################################################
-# PHASE 4
-# EXECUTION PLAN
+# PHASE 4A
+# SMSCI APPLICABILITY RESOLUTION
 ###############################################################################
 
-Build Process Memory exclusively from the normalized RDE.
+Apply 02a_applicability only after Process Memory is complete and immutable.
 
-Only after the Process Memory is complete, determine the applicable
-Requirements.
+Derive the targets to resolve from canonical entities already declared with
+TYPE SMSCI in 01_entities. Validate that Requirement SMSCI and Criterion
+APPLIES_TO references resolve to those canonical targets.
 
-Determine which Requirements are applicable.
+Evaluate only complete declared applicability rules against authorized,
+traceable Process Memory facts.
 
-Select exclusively the Criteria referenced by those Requirements.
+Alias normalization, textual occurrence, detected entities, document
+existence and SMSCI metadata on a report, manual, laudo, DRT or other document
+required by the target shall never activate that target.
 
-Only documentary attributes contained in the Process Memory may determine Requirement applicability.
+Every target shall receive an explicit, deterministic and traceable positive
+or negative decision before PROCESS.SMSCI is released.
 
-Resolve every VALIDATE declared by the applicable Requirements.
+If a rule is missing, a required fact is absent, incomplete or unverifiable,
+decisions conflict, or traceability is incomplete:
 
-Associate the corresponding Nonconformities.
+STOP APPLICABILITY RESOLUTION BEFORE THE ENGINE.
 
-No Requirement may be created.
+Do not emit a partial PROCESS.SMSCI.
 
-No Criterion may be created.
+Do not create a Criterion result or convert the indeterminacy to
+NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN or FAIL.
+
+END PHASE 4A.
+
+###############################################################################
+# PHASE 4B
+# REQUIREMENT APPLICABILITY RESOLUTION
+###############################################################################
+
+Only after Phase 4A completes, determine APPLICABLE_REQUIREMENTS from the
+resolved PROCESS.SMSCI and existing Requirement metadata.
+
+Requirements without SMSCI metadata retain their declared applicability
+semantics and shall not be filtered through PROCESS.SMSCI.
+
+Requirements with SMSCI metadata are applicable only when their declared
+target is present in PROCESS.SMSCI.
+
+Iterative Requirements retain their declared form.
+
+WORKLIST.SMSCI is a transient iteration view derived only from
+PROCESS.SMSCI. It shall always be a subset of PROCESS.SMSCI and shall never
+discover an SMSCI.
+
+For REQ_T1_DRT_SMSCI, WORKLIST.SMSCI projects the resolved applicable scope
+required by its declared iteration. This does not establish a general
+architectural identity between WORKLIST.SMSCI and PROCESS.SMSCI.
+
+No Requirement may be created or rewritten.
+
+END PHASE 4B.
+
+###############################################################################
+# PHASE 4C
+# CRITERION SELECTION
+###############################################################################
+
+Select SELECTED_CRITERIA exclusively through the declared USES or REQUIREMENT
+associations of APPLICABLE_REQUIREMENTS.
+
+Preserve declared file order, TABLE and CONTEXT.
+
+Do not create a Criterion or select one by alias, document, similarity or
+textual occurrence.
+
+APPLIES_TO shall be consistent with the completely resolved PROCESS.SMSCI.
+Any inconsistency shall stop execution before the Engine.
+
+Retain every VALIDATE declared by APPLICABLE_REQUIREMENTS in the execution
+plan. Do not execute it during Criterion selection.
+
+Validate the existing Criterion and Nonconformity references without creating
+or triggering a Nonconformity.
+
+END PHASE 4C.
 
 ###############################################################################
 # PHASE 5
 # TABLE EXECUTION
 ###############################################################################
 
-Execute all applicable Requirements using the Process Memory.
+Consume only the immutable Process Memory, the completely resolved
+PROCESS.SMSCI, APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA produced by
+Phases 4A through 4C.
 
-After Requirement validation, execute the referenced Criteria.
+The Engine consumes PROCESS.SMSCI as already resolved and shall never create it
+or modify it. The Engine shall never receive indeterminate or partial SMSCI
+scope.
+
+Execute all APPLICABLE_REQUIREMENTS using Process Memory.
+
+Resolve every VALIDATE declared by each APPLICABLE_REQUIREMENT.
+
+After Requirement validation, execute only SELECTED_CRITERIA.
 
 Execute Table 1.
 
 Complete every applicable Criterion in Table 1 before starting Table 4.
 
-Each Criterion shall produce exactly one result.
+Each selected Criterion shall produce exactly one result.
 
 Every applicable Requirement shall be evaluated exactly once.
 
@@ -372,28 +452,15 @@ No report section shall be generated before Result Consolidation completes.
 # REPORT GENERATION
 ###############################################################################
 
-Generate the operational report using only:
+Generate the operational report using only 06_reports.
 
 Do not expose Requirements, Criteria or internal identifiers in the
 operational report.
 
 The operational report shall not reinterpret execution results.
 
-06_report_operacional.
-
-If the user explicitly requests:
-
-- audit
-- auditoria
-- relatório completo
-- modo auditoria
-- anexo técnico
-- validação
-- homologação
-
-append the report defined by:
-
-07_report_auditoria.
+If the user explicitly requests any Technical Annex trigger declared by
+06_reports, append the Technical Annex defined by that same document.
 
 The Technical Annex shall describe only the execution actually performed by the inference engine.
 
@@ -438,6 +505,14 @@ Process Memory
 
 ↓
 
+Applicability Rule
+
+↓
+
+PROCESS.SMSCI
+
+↓
+
 Requirement
 
 ↓
@@ -446,7 +521,15 @@ Criterion
 
 ↓
 
-Reported result
+Result
+
+↓
+
+Nonconformity, when applicable
+
+For general Requirements, do not introduce an Applicability Rule or
+PROCESS.SMSCI dependency. Preserve their existing documentary traceability and
+declared Requirement metadata.
 
 Every reported result shall preserve this traceability chain.
 

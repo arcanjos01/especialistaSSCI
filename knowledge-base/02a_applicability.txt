@@ -1,0 +1,174 @@
+###############################################################################
+# 02a_applicability.txt
+# BASE DE CONHECIMENTO
+# SMSCI APPLICABILITY RESOLUTION
+###############################################################################
+
+PURPOSE
+
+This document defines the applicability-resolution boundary for SMSCI-scoped
+Requirements and Criteria.
+
+PROCESS.SMSCI is exclusively the output of Phase 4A. It is derived from
+immutable Process Memory by declared applicability rules. It is never an
+extracted fact and shall not be created by the Engine, a Requirement, a
+Criterion or a Report.
+
+INPUT
+
+Applicability Resolution consumes only:
+
+- complete, immutable Process Memory;
+- existing normalized entities represented in Process Memory;
+- existing documentary facts represented in Process Memory;
+- explicitly declared applicability rules; and
+- existing canonical TYPE SMSCI declarations, Requirement SMSCI metadata and
+  Criterion APPLIES_TO metadata.
+
+It shall not reopen source documents or the RDE. Normalized entities and
+documentary facts are inputs to declared rules; neither is a rule by itself.
+
+OUTPUT
+
+After the completeness guard succeeds, the outputs are:
+
+- PROCESS.SMSCI;
+- APPLICABLE_REQUIREMENTS; and
+- SELECTED_CRITERIA.
+
+PROCESS.SMSCI has an explicit, traceable decision for every target.
+APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA preserve their declared
+Requirement and Criterion identifiers and metadata.
+
+When the scope cannot be completed, ARCHITECTURAL_BLOCKER is a stop condition
+before the Engine, not an output state or a Criterion result. In that case the
+three outputs above are not released to the Engine.
+
+PROCESS.SMSCI shall never be emitted partially.
+
+RULE CONTRACT
+
+Each future productive applicability rule shall declare all of the following:
+
+- target SMSCI;
+- authorized source scope;
+- exact Process Memory fact reference;
+- deterministic condition; and
+- traceability equivalent to Applicability Rule -> Process Memory fact -> RDE
+  record -> Source Document.
+
+An explicit negative decision requires the same complete, traceable contract.
+The absence of a positive-rule trigger is not an explicit negative decision and
+does not prove non-applicability.
+
+SOURCE SCOPE AND CIRCULARITY
+
+The source scope of an applicability rule shall be authorized independently of
+the SMSCI it resolves. A report, manual, laudo, DRT or other document required
+by that SMSCI shall not activate it because it exists, mentions the SMSCI or
+contains SMSCI metadata.
+
+An alias, textual occurrence, detected entity, GLP_MASS_KG or CENTRAL_GLP is
+not an applicability rule and cannot activate an SMSCI.
+
+PHASE 4A: SMSCI APPLICABILITY RESOLUTION
+
+Derive the set of targets to resolve from canonical entities already declared
+with TYPE SMSCI in 01_entities. Requirement SMSCI and Criterion APPLIES_TO
+references shall resolve to that canonical set; a missing reference is a
+Knowledge Base consistency error.
+
+Aliases enumerate names for normalization only. They never add a target and
+never decide whether a canonical target is applicable.
+
+For each target, evaluate only a complete declared rule against its authorized
+Process Memory fact. Include a target in PROCESS.SMSCI only after an explicit
+positive decision. Exclude a target only after an explicit negative decision.
+
+Before the Engine, a missing rule, absent/incomplete/unverifiable required fact,
+conflict, or incomplete trace interrupts that SMSCI scope with
+ARCHITECTURAL_BLOCKER. It shall not produce a Criterion result and shall not be
+converted to NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN or FAIL. No new global state
+is created by this block.
+
+COMPLETENESS GUARD AND INDETERMINACY
+
+Phase 4A is complete only when every derived target has one explicit,
+deterministic and fully traceable positive or negative decision. The Engine may
+receive PROCESS.SMSCI only after this completeness guard succeeds. The Engine
+does not create SMSCI, and indeterminacy never reaches the Engine.
+
+PHASE 4B: REQUIREMENT APPLICABILITY RESOLUTION
+
+Requirements without SMSCI metadata retain their existing applicability
+semantics and shall not be filtered through PROCESS.SMSCI.
+
+Requirements with SMSCI metadata are applicable only after complete Phase 4A
+resolution when their target is in PROCESS.SMSCI. Iterative Requirements retain
+their declared form; they are not rewritten into new Requirements.
+
+PHASE 4C: CRITERION SELECTION
+
+Select Criteria exclusively through the declared USES/REQUIREMENT associations
+of applicable Requirements, preserving declared TABLE, CONTEXT and order.
+
+No Criterion may be created or selected dynamically by alias, document,
+similarity or textual occurrence. APPLIES_TO metadata shall be consistent with
+the resolved scope; an inconsistency blocks execution before the Engine.
+
+WORKLIST.SMSCI
+
+WORKLIST.SMSCI is a transient iteration view derived only from PROCESS.SMSCI.
+It never discovers an SMSCI and never contains a target outside
+PROCESS.SMSCI. For the current REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE
+iterator, it projects the resolved applicable scope required by that iteration.
+This projection is not a general architectural identity declaration.
+
+TRACEABILITY
+
+For SMSCI-scoped execution, preserve:
+
+Source Document -> RDE -> Process Memory -> Applicability Rule ->
+PROCESS.SMSCI -> Requirement -> Criterion -> Result -> Nonconformity when
+applicable.
+
+For general Requirements, Applicability Rule and PROCESS.SMSCI are not
+artificially required; preserve their existing documentary traceability and
+declared metadata.
+
+INVARIANTS
+
+ALIAS != APPLICABILITY
+TEXTUAL_OCCURRENCE != APPLICABILITY
+DOCUMENT_EXISTENCE != APPLICABILITY
+REQUIREMENT DOES NOT CREATE SMSCI
+CRITERION DOES NOT CREATE SMSCI
+REPORT DOES NOT CREATE SMSCI
+ENGINE DOES NOT CREATE SMSCI
+NO RULE != PERMISSION TO INFER
+NO EVIDENCE != PERMISSION TO INFER
+NO_EXTERNAL_KNOWLEDGE
+NO_ASSUMPTIONS
+NO_INFERENCE
+NO_NEW_RULES
+NO_NEW_OBJECTS
+NO_NEW_ATTRIBUTES
+NO_NEW_DOCUMENTS
+NO_NEW_SMSCI
+
+PRODUCTION RULE CATALOG
+
+EMPTY.
+
+The active Knowledge Base has no authorized canonical PPCI-scope fact and no
+productive positive applicability rule for any SMSCI.
+
+ARCHITECTURAL_BLOCKER
+
+Real SMSCI applicability resolution is operationally blocked until the active
+Knowledge Base contains an authorized canonical scope fact and complete
+declared rules meeting this contract. This blocker does not authorize an
+inference, a fallback state or a partial PROCESS.SMSCI.
+
+Synthetic facts and rules used only by automated tests demonstrate this
+mechanism; they are not productive Knowledge Base rules.
