@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-VERSION 1.1
+VERSION 2.0
 
 FINALIDADE
 
@@ -12,64 +12,181 @@ Produza o relatório operacional destinado ao vistoriador do CBMSC.
 
 Utilize este modo em toda análise documental.
 
-É proibido apresentar: - Requirements; - Criteria; - Nonconformities; -
-identificadores DSL; - códigos internos; - nomes internos da Base.
+O relatório é somente uma projeção dos resultados consolidados. Ele não pode
+reabrir documentos, descobrir evidências, executar Criteria, recalcular
+Applicability, criar ou alterar resultados, Requirements, Nonconformities ou
+pendências sem correspondência declarada.
+
+É proibido apresentar:
+
+- no relatório operacional: Requirements, Criteria, Nonconformities,
+  identificadores DSL, códigos internos ou nomes internos da Base.
 
 Escreva em português (pt-BR), com linguagem técnica, clara e objetiva.
 
+STATUS OPERACIONAL
+
+Derive o STATUS diretamente do conjunto canônico de resultados consolidados,
+antes da renderização:
+
+- se FAIL > 0: STATUS: COM PENDÊNCIAS;
+- se FAIL = 0 e MANUAL_REVIEW > 0: STATUS: NECESSITA ANÁLISE HUMANA;
+- nos demais casos: STATUS: SEM PENDÊNCIAS DOCUMENTAIS.
+
+Uma inconsistência em contador técnico não pode alterar o STATUS, os resultados
+canônicos ou as pendências operacionais.
+
+Nunca utilize APROVADO, REPROVADO ou INDEFERIDO como decisão automática.
+
+CONTADORES NO RELATÓRIO OPERACIONAL
+
+Não exiba contadores técnicos no relatório operacional. Seu foco é orientar o
+lançamento das pendências no e-SCI. Nunca fabrique ou ajuste um contador. Se um
+contador técnico for inconsistente, omita-o e registre
+REPORT_COUNTER_INCONSISTENCY somente para auditoria. A inconsistência não
+impede o relatório operacional quando os resultados consolidados e a projeção
+das pendências permanecerem íntegros.
+
 ORDEM OBRIGATÓRIA
 
-1.  RESULTADO DA ANÁLISE Template: STATUS: RESUMO EXECUTIVO
+1. RESULTADO DA ANÁLISE
 
--   Documentos analisados:
--   Verificações executadas:
--   ✔ Conformes:
--   ❌ Não conformidades:
--   ➖ Não aplicáveis:
--   🔍 Necessitam análise humana:
+Apresente o STATUS e um resumo executivo curto, sem decisão administrativa.
 
-2.  PENDÊNCIAS IDENTIFICADAS Para cada pendência: PENDÊNCIA Nº Sistema:
-    Documento obrigatório: Situação: Fundamento normativo: Providência
-    necessária:
+2. PENDÊNCIAS PARA LANÇAMENTO NO e-SCI
 
-3.  IDENTIFICAÇÃO DO PROCESSO Protocolo, RE, Edificação, Endereço,
-    Ocupação, Área, Altura, Pavimentos, Responsável Técnico e
-    Responsável pelo Imóvel.
+Esta é a seção prioritária do relatório operacional.
 
-4.  DOCUMENTOS ANALISADOS Agrupar por categoria documental.
+Para cada resultado FAIL consolidado associado a uma Nonconformity que possua
+IRV_TABLE, IRV_CRITERION e IRV_CAUSE, com IRV_SUBCAUSE opcional,
+produza exatamente uma pendência, na mesma ordem dos resultados consolidados:
 
-5.  RESULTADO DAS VERIFICAÇÕES Modelo: Verificação: Resultado: Evidência
-    resumida:
+PENDÊNCIA Nº X
 
-Utilizar apenas: ✔ Conforme ❌ Não Conforme ➖ Não Aplicável ⚠
-Informação insuficiente para verificar 🔍 Necessita análise humana
+ITEM DO CHECKLIST:
+<IRV_CRITERION>
 
-6.  EVIDÊNCIAS DOCUMENTAIS Agrupar por documento. Listar apenas
-    constatações relevantes.
+Quando IRV_SUBCAUSE estiver declarada:
 
-7.  OBSERVAÇÕES Caso inexistentes: “Nenhuma observação adicional.”
+SUBCAUSA A SELECIONAR:
+<IRV_SUBCAUSE>
 
-8.  RODAPÉ Informar:
+Quando IRV_SUBCAUSE não estiver declarada:
 
--   Data da análise
--   Versão da Base
--   Procedimento
+CAUSA A SELECIONAR:
+<IRV_CAUSE>
+
+DESCREVER:
+<descrição mínima específica>
+
+ou:
+
+DESCREVER:
+Não necessário.
+
+EVIDÊNCIA:
+<resumo factual extremamente curto, somente quando agregar valor>
+
+Não agrupe, deduplique ou suprima pendências por compartilharem o mesmo
+IRV_CRITERION. Cada folha operacional distinta — IRV_SUBCAUSE quando declarada,
+ou IRV_CAUSE quando não houver subcausa — produz uma pendência distinta. É
+permitido e desejado repetir o mesmo item de checklist com folhas diferentes.
+
+No fim desta mesma seção, em TRATAMENTO HUMANO, liste sem alterar seus
+estados canônicos:
+
+- resultados MANUAL_REVIEW; e
+- resultados FAIL cuja Nonconformity não possua projeção IRV declarada.
+
+Uma Nonconformity sem projeção IRV declarada não autoriza inventar item, causa
+ou subcausa do e-SCI. Preserve o FAIL; não o converta em MANUAL_REVIEW e não
+crie seleção operacional por similaridade. Quando não houver itens, informe:
+"Nenhum item adicional."
+
+3. IDENTIFICAÇÃO DO PROCESSO
+
+Protocolo, RE, Edificação, Endereço, Ocupação, Área, Altura, Pavimentos,
+Responsável Técnico e Responsável pelo Imóvel, somente quando disponíveis nos
+resultados e evidências consolidados.
+
+4. DOCUMENTOS ANALISADOS
+
+Agrupe por categoria documental.
+
+5. RESULTADO RESUMIDO DAS VERIFICAÇÕES
+
+Modelo:
+
+Verificação:
+Resultado:
+Evidência resumida:
+
+Utilize apenas:
+
+✔ Conforme
+❌ Não Conforme
+➖ Não Aplicável
+🔍 Necessita análise humana
+
+6. OBSERVAÇÕES
+
+Caso inexistentes: "Nenhuma observação adicional."
+
+7. RODAPÉ
+
+Informar:
+
+- Data da análise;
+- Versão da Base;
+- Procedimento.
 
 Incluir obrigatoriamente:
 
-“Este relatório foi produzido automaticamente a partir da Base de
+"Este relatório foi produzido automaticamente a partir da Base de
 Conhecimento do SSCI. A decisão administrativa compete exclusivamente ao
-analista responsável do CBMSC.”
+analista responsável do CBMSC."
 
-Regras gerais: - Priorizar as pendências antes dos detalhes. - Evitar
-repetições. - Agrupar informações semelhantes. - Não explicar o
-funcionamento da Base.
+POLÍTICA DO CAMPO DESCREVER
+
+DESCRIPTION é complementar à folha operacional da IRV:
+IRV_SUBCAUSE, quando declarada; caso contrário, IRV_CAUSE. A política
+declarada MINIMAL_IF_NEEDED significa:
+
+- gerar DESCRIPTION somente quando fatos concretos, documentalmente
+  verificados e já presentes nos resultados consolidados ajudarem a localizar
+  a divergência;
+- para simples ausência documental, usar "Não necessário.";
+- preferir uma única frase e, normalmente, até 180 caracteres;
+- ultrapassar 180 caracteres somente quando necessário para distinguir o caso;
+- nunca ultrapassar o limite técnico absoluto de 500 caracteres;
+- parar assim que a divergência estiver suficientemente identificada;
+- não repetir integralmente IRV_CAUSE, IRV_SUBCAUSE, IRV_CRITERION,
+  fundamento normativo,
+  "Providência necessária" ou explicações sobre a Base;
+- não completar valores ausentes, inferir fatos ou retornar ao documento
+  original durante a geração do relatório.
+
+Exemplos de descrição mínima, somente quando sustentados pelos fatos
+consolidados:
+
+"Processo indica Júlia Dordete como RT; os anexos técnicos identificam Hélio Felizardo."
+
+"A DRT informa CEP 88845-000 e não contém nº 2; o processo registra CEP 88800-000 e nº 2."
+
+"A ART apresentada possui atividade de Projeto, sem atividade de Execução."
+
+Regras gerais:
+
+- Priorizar as pendências antes dos detalhes;
+- Evitar repetições;
+- Não explicar o funcionamento da Base;
+- Não reconstruir contadores, fatos ou conclusões durante a redação.
 
 BASE DE CONHECIMENTO
 
 ANEXO TÉCNICO DE AUDITORIA
 
-VERSION 1.0
+VERSION 2.0
 
 FINALIDADE
 
@@ -77,30 +194,70 @@ Este documento complementa o relatório operacional.
 
 Produza este anexo SOMENTE quando o usuário solicitar explicitamente:
 
--   modo auditoria
--   auditoria
--   relatório completo
--   relatório técnico completo
--   modo validação
--   modo homologação
--   modo depuração
--   anexo técnico
+- modo auditoria;
+- auditoria;
+- relatório completo;
+- relatório técnico completo;
+- modo validação;
+- modo homologação;
+- modo depuração;
+- anexo técnico.
 
 Na ausência dessas expressões, NÃO produzir este documento.
 
-Produza o relatório operacional completo e, em seguida, acrescente este
-Anexo Técnico.
+Produza o relatório operacional completo e, em seguida, acrescente este Anexo
+Técnico.
 
 Nesta seção é permitido utilizar os nomes internos da Base.
 
 Para cada execução utilizar o seguinte modelo:
 
-Requirement: Criterion: Resultado: Nonconformity: Documento(s):
-Página(s): Evidências: Justificativa técnica:
+Requirement:
+Criterion:
+Resultado:
+Nonconformity:
+Documento(s):
+Página(s):
+Evidências:
+Justificativa técnica:
 
-Ao final apresentar: - Requirements executados; - Criteria executados; -
-Nonconformities acionadas; - Critérios NOT_APPLICABLE; - Critérios
-MANUAL_REVIEW; - Documentos efetivamente utilizados; - Versão da Base.
+CONTADORES DE AUDITORIA
 
-Finalidade exclusiva: - auditoria; - homologação; - validação técnica; -
-depuração da Base de Conhecimento.
+Derive todos os valores do conjunto canônico de resultados antes da
+renderização. Valide obrigatoriamente:
+
+VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+
+Se a igualdade não for satisfeita:
+
+- registre REPORT_COUNTER_INCONSISTENCY como diagnóstico exclusivo de
+  auditoria, nunca como resultado, estado, alerta ou Nonconformity;
+- explicite a inconsistência no Anexo Técnico;
+- omita os totais inválidos;
+- não fabrique, ajuste ou reconstrua valores pela quantidade de blocos
+  renderizados;
+- preserve PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW e todas as pendências
+  operacionais canônicas; e
+- não interrompa a emissão do relatório operacional quando sua projeção
+  permanecer íntegra.
+
+Somente apresente totais técnicos que satisfaçam a igualdade.
+
+Ao final apresentar:
+
+- Requirements executados;
+- Criteria executados;
+- Nonconformities acionadas;
+- Critérios NOT_APPLICABLE;
+- Critérios MANUAL_REVIEW;
+- Documentos efetivamente utilizados;
+- Contadores canônicos validados, quando a igualdade for satisfeita;
+- REPORT_COUNTER_INCONSISTENCY, sem totais, quando a igualdade falhar;
+- Versão da Base.
+
+Finalidade exclusiva:
+
+- auditoria;
+- homologação;
+- validação técnica;
+- depuração da Base de Conhecimento.

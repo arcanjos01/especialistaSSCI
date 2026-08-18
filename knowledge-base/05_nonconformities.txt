@@ -2,6 +2,28 @@
 # 05_nonconformities.dsl
 # VERSION 3.0
 # Catálogo canônico e rastreável de não conformidades
+#
+# PROJEÇÃO OPERACIONAL IRV
+#
+# IRV_TABLE, IRV_CRITERION, IRV_CAUSE e, quando a causa possuir folhas
+# selecionáveis, IRV_SUBCAUSE projetam uma Nonconformity já acionada para o
+# checklist operacional baseado na IRV. Esses metadados não criam nem alteram
+# resultado, Requirement, Criterion ou Nonconformity.
+# DESCRIPTION_POLICY MINIMAL_IF_NEEDED autoriza somente complemento factual
+# mínimo, quando a causa da IRV não for suficiente para identificar o caso.
+#
+# EXCEÇÕES SEM PROJEÇÃO IRV
+#
+# NC_T1_009 e NC_T4_019 têm fonte CONFEA_CREA e não possuem critério ou causa
+# correspondente na IRV. Nenhum texto aproximado deve ser criado para elas.
+#
+# NORMALIZAÇÕES DOCUMENTADAS DA PROJEÇÃO IRV
+#
+# A normalização limita-se a quebras de linha e espaços do PDF, ao espaço após
+# hífen nos critérios das IN 12 e IN 15 e, na IN 8, a "Laudo eu ensaio de
+# estanqueidade" para "Laudo ou ensaio de estanqueidade". Essas correções
+# saneiam artefatos evidentes de extração/diagramação; não alteram conteúdo
+# normativo nem criam taxonomia paralela.
 ###############################################################################
 
 NONCONFORMITY NC_T1_001
@@ -12,6 +34,11 @@ REF_REQUIREMENT REQ_T1_DRT_REQUIRED
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Não foi apresentada DRT para a execução dos sistemas e medidas de SCI previstos no PPCI."
+IRV_TABLE 1
+IRV_CRITERION "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1"
+IRV_CAUSE "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:"
+IRV_SUBCAUSE "DRT de execução dos sistemas e medidas de SCI previstos no PPCI."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_008
@@ -22,6 +49,10 @@ REF_REQUIREMENT REQ_T1_DRT_ACTIVITY_EXECUTION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "A atividade descrita na DRT não corresponde à execução."
+IRV_TABLE 1
+IRV_CRITERION "Correto registro das informações técnicas no(s) DRT."
+IRV_CAUSE "A atividade descrita no DRT não corresponde à \"Execução\"."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_002
@@ -33,6 +64,10 @@ REF_REQUIREMENT REQ_T1_DRT_SMSCI
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "DRT de execução dos sistemas e medidas de SCI previstos no PPCI."
+IRV_TABLE 1
+IRV_CRITERION "DRT de execução dos SMSCI previstos no PPCI"
+IRV_CAUSE "É necessário apresentar DRT de execução de todos os SMSCI executados na edificação, conforme o PPCI aprovado: (indicar os DRT inexistentes)."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_003
@@ -44,6 +79,11 @@ REF_REQUIREMENT REQ_T1_CONFORMITY_REPORT
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Relatório de conformidade dos SMSCI (Anexo I da IN 01, parte 1)."
+IRV_TABLE 1
+IRV_CRITERION "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1"
+IRV_CAUSE "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:"
+IRV_SUBCAUSE "Relatório de conformidade dos SMSCI (Anexo I da IN 01, parte 1)."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_004
@@ -54,6 +94,11 @@ REF_REQUIREMENT REQ_T1_DRT_REGISTERED
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Não possui registro de emissão no conselho de classe (rascunho, etc)."
+IRV_TABLE 1
+IRV_CRITERION "Autenticidade e validade do(s) DRT."
+IRV_CAUSE "DRT sem comprovação de autenticidade/validade:"
+IRV_SUBCAUSE "Não possui registro de emissão no conselho de classe (rascunho, etc)."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_005
@@ -64,6 +109,11 @@ REF_REQUIREMENT REQ_T1_DRT_SIGNED
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
+IRV_TABLE 1
+IRV_CRITERION "Autenticidade e validade do(s) DRT."
+IRV_CAUSE "DRT sem comprovação de autenticidade/validade:"
+IRV_SUBCAUSE "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_009
@@ -85,6 +135,11 @@ REF_REQUIREMENT REQ_T1_DRT_BASIC_DATA
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "A evidência documental identifica que a pessoa jurídica responsável pelo imóvel informada no documento técnico é distinta da pessoa jurídica constante do cadastro do processo."
+IRV_TABLE 1
+IRV_CRITERION "Correto registro das informações básicas no(s) DRT."
+IRV_CAUSE "As seguintes informações não constam no DRT ou contém inconsistências: (Indicar a informação inexistente)"
+IRV_SUBCAUSE "Nome do RI"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_006_RT
@@ -95,6 +150,11 @@ REF_REQUIREMENT REQ_T1_DRT_BASIC_DATA
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "O responsável técnico informado na DRT diverge do cadastro do processo."
+IRV_TABLE 1
+IRV_CRITERION "Correto registro das informações básicas no(s) DRT."
+IRV_CAUSE "As seguintes informações não constam no DRT ou contém inconsistências: (Indicar a informação inexistente)"
+IRV_SUBCAUSE "Nome do RT"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_006_ADDRESS
@@ -105,6 +165,11 @@ REF_REQUIREMENT REQ_T1_DRT_BASIC_DATA
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "O endereço informado na DRT diverge do cadastro do processo."
+IRV_TABLE 1
+IRV_CRITERION "Correto registro das informações básicas no(s) DRT."
+IRV_CAUSE "As seguintes informações não constam no DRT ou contém inconsistências: (Indicar a informação inexistente)"
+IRV_SUBCAUSE "Endereço do Imóvel"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T1_006_AREA
@@ -115,6 +180,11 @@ REF_REQUIREMENT REQ_T1_DRT_BASIC_DATA
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "A área informada na DRT diverge do cadastro do processo."
+IRV_TABLE 1
+IRV_CRITERION "Correto registro das informações básicas no(s) DRT."
+IRV_CAUSE "As seguintes informações não constam no DRT ou contém inconsistências: (Indicar a informação inexistente)"
+IRV_SUBCAUSE "Área do Imóvel"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_001
@@ -126,6 +196,10 @@ REF_REQUIREMENT REQ_IN07_COMMISSIONING
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "É necessário apresentar o relatório de comissionamento do sistema, conforme o artigo 106 da IN 7, com a emissão do respectivo DRT."
+IRV_TABLE 4
+IRV_CRITERION "IN 7 - Relatório de Comissionamento do SHP"
+IRV_CAUSE "É necessário apresentar o relatório de comissionamento do sistema, conforme o artigo 106 da IN 7, com a emissão do respectivo DRT."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_002
@@ -137,6 +211,10 @@ REF_REQUIREMENT REQ_IN08_ESTANQUEIDADE
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8."
+IRV_TABLE 4
+IRV_CRITERION "IN 8 - Laudo ou ensaio de estanqueidade"
+IRV_CAUSE "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_003
@@ -148,6 +226,10 @@ REF_REQUIREMENT REQ_IN08_MANUAL
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar manual do proprietário contendo as instruções para instalação dos aparelhos a gás, conforme o artigo 80 da IN 8."
+IRV_TABLE 4
+IRV_CRITERION "IN 8 - Cópia do manual do proprietário"
+IRV_CAUSE "Apresentar manual do proprietário contendo as instruções para instalação dos aparelhos a gás, conforme o artigo 80 da IN 8."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_004
@@ -159,6 +241,10 @@ REF_REQUIREMENT REQ_IN09_DRT
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "É necessário apresentar o DRT de execução e DRT de vistoria/ensaio do sistema de pressurização."
+IRV_TABLE 4
+IRV_CRITERION "IN 9 - Escada Pressurizada"
+IRV_CAUSE "É necessário apresentar o DRT de execução e DRT de vistoria/ensaio do sistema de pressurização, gradiente de pressão, alarme e detecção de incêndio constando o código ou descrição específica para escadas pressurizadas e de gradiente de pressão, conforme o artigo 122 da IN 09."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_005
@@ -170,6 +256,10 @@ REF_REQUIREMENT REQ_IN09_TEST_REPORT
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "É necessário apresentar laudo conforme NBR 14880 e IN 12."
+IRV_TABLE 4
+IRV_CRITERION "IN 9 - Escada Pressurizada"
+IRV_CAUSE "É necessário apresentar em complemento ao DRT de vistoria/ensaio, laudo de acordo com os parâmetros do item 7 da NBR 14880 e nos termos da IN 12 e do item 8 da NBR 17240, devendo ser realizada inspeção também nos itens elencados no inciso II do artigo 122 da IN 09."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_006
@@ -181,6 +271,10 @@ REF_REQUIREMENT REQ_IN09_MANUAL
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "É necessário apresentar o manual de operação e manutenção do sistema de pressurização."
+IRV_TABLE 4
+IRV_CRITERION "IN 9 - Escada Pressurizada"
+IRV_CAUSE "É necessário apresentar o manual de operação e manutenção do sistema de pressurização e de gradiente de pressão, conforme o artigo 122 da IN 09."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_007
@@ -192,6 +286,10 @@ REF_REQUIREMENT REQ_IN09_CHECKLIST
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "É necessário apresentar a lista de verificações dos procedimentos de manutenção."
+IRV_TABLE 4
+IRV_CRITERION "IN 9 - Escada Pressurizada"
+IRV_CAUSE "É necessário apresentar cópia da lista de verificações dos procedimentos de manutenção, a qual deve ser fornecida aos proprietários do edifício ao final das obras, pelos responsáveis da instalação do sistema, com manuais em português, conforme o artigo 122 da IN 09."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_008
@@ -203,6 +301,10 @@ REF_REQUIREMENT REQ_IN10_COMMISSIONING
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar relatório de comissionamento do sistema de controle de fumaça acompanhado do respectivo DRT."
+IRV_TABLE 4
+IRV_CRITERION "IN 10 - Relatório de comissionamento do Controle de Fumaça"
+IRV_CAUSE "Apresentar relatório de comissionamento do sistema de controle de fumaça (quando o sistema for mecânico) a ser elaborado por uma equipe ou profissional independente, sem vínculo técnico com o projeto ou execução acompanhado do respectivo DRT, conforme previsto no artigo 41 da IN 10."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_009
@@ -214,6 +316,10 @@ REF_REQUIREMENT REQ_IN12_COMMISSIONING
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar relatório de comissionamento do SDAI com respectivo DRT."
+IRV_TABLE 4
+IRV_CRITERION "IN 12 - Relatório de comissionamento do Sistema de Detecção e Alarme de Incêndio"
+IRV_CAUSE "Apresentar relatório de comissionamento do SDAI atendendo aos parâmetros do item 8 da NBR 17240, conforme previsto no artigo 47 da IN 12, com a emissão do respectivo DRT"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_010
@@ -225,6 +331,10 @@ REF_REQUIREMENT REQ_IN15_COMMISSIONING
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar relatório de comissionamento do sistema de chuveiros automáticos com respectivo DRT."
+IRV_TABLE 4
+IRV_CRITERION "IN 15 - Relatório de comissionamento para o Sistema de Chuveiros Automáticos"
+IRV_CAUSE "Apresentar relatório de comissionamento do sistema de chuveiros automáticos conforme previsto no artigo 30 da IN 15, com a emissão do respectivo DRT."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_011
@@ -236,6 +346,10 @@ REF_REQUIREMENT REQ_IN18_CMAR
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar declaração do RT informando o atendimento pleno dos requisitos de CMAR."
+IRV_TABLE 4
+IRV_CRITERION "IN 18 - Declaração de cumprimento dos requisitos de CMAR"
+IRV_CAUSE "Apresentar declaração do RT informando o atendimento pleno dos requisitos de CMAR previstos na IN 18, conforme o artigo 14 da IN 18."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_012
@@ -246,6 +360,10 @@ REF_REQUIREMENT REQ_IN19_EXECUTION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução da instalação elétrica de baixa tensão."
+IRV_TABLE 4
+IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
+IRV_CAUSE "Apresentar DRT de execução da instalação elétrica de baixa tensão;"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_013
@@ -256,6 +374,10 @@ REF_REQUIREMENT REQ_IN19_GROUNDING
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução do aterramento da instalação elétrica de baixa tensão."
+IRV_TABLE 4
+IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
+IRV_CAUSE "Apresentar DRT de execução do aterramento da instalação elétrica de baixa tensão;"
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_014
@@ -266,6 +388,10 @@ REF_REQUIREMENT REQ_IN19_FINAL_VERIFICATION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de verificação final da instalação elétrica de baixa tensão."
+IRV_TABLE 4
+IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
+IRV_CAUSE "Apresentar DRT de verificação final da instalação elétrica de baixa tensão."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_015
@@ -276,6 +402,10 @@ REF_REQUIREMENT REQ_IN19_MAINTENANCE
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de manutenção (5 anos) ou reforma (10 anos) da instalação elétrica de baixa tensão."
+IRV_TABLE 4
+IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
+IRV_CAUSE "Apresentar DRT de manutenção das instalações elétricas de baixa tensão, emitido nos últimos 5 anos; ou reforma das instalações elétricas de baixa tensão, emitido nos últimos 10 anos."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_016_01
@@ -286,6 +416,10 @@ REF_REQUIREMENT REQ_IN34_EXPLOSION_PROTECTION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução dos dispositivos contra explosão previstos no PPCI."
+IRV_TABLE 4
+IRV_CRITERION "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas"
+IRV_CAUSE "Apresentar DRT de execução dos dispositivos contra explosão."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_016_02
@@ -296,6 +430,10 @@ REF_REQUIREMENT REQ_IN34_DUST_CONTROL
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução do sistema de controle de poeira previsto no PPCI."
+IRV_TABLE 4
+IRV_CRITERION "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas"
+IRV_CAUSE "Apresentar DRT de execução do sistema de controle de poeira."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_016_03
@@ -306,6 +444,10 @@ REF_REQUIREMENT REQ_IN34_HEAT_SENSORS
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução dos sensores de calor previstos no PPCI."
+IRV_TABLE 4
+IRV_CRITERION "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas"
+IRV_CAUSE "Apresentar DRT de execução dos sensores de calor."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_016_04
@@ -316,6 +458,10 @@ REF_REQUIREMENT REQ_IN34_LIGHTNING_PROTECTION
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "Apresentar DRT de execução do sistema contra descargas atmosféricas previsto no PPCI."
+IRV_TABLE 4
+IRV_CRITERION "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas"
+IRV_CAUSE "Apresentar DRT de execução do sistema contra descargas atmosféricas."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_017
@@ -326,6 +472,11 @@ REF_REQUIREMENT REQ_T1_DRT_REGISTERED
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "A DRT vinculada ao documento específico não possui registro de emissão no conselho de classe."
+IRV_TABLE 1
+IRV_CRITERION "Autenticidade e validade do(s) DRT."
+IRV_CAUSE "DRT sem comprovação de autenticidade/validade:"
+IRV_SUBCAUSE "Não possui registro de emissão no conselho de classe (rascunho, etc)."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_018
@@ -336,6 +487,11 @@ REF_REQUIREMENT REQ_T1_DRT_SIGNED
 SEVERITY DOCUMENTAL
 CATEGORY HABITESE
 CAUSE "A DRT vinculada ao documento específico não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
+IRV_TABLE 1
+IRV_CRITERION "Autenticidade e validade do(s) DRT."
+IRV_CAUSE "DRT sem comprovação de autenticidade/validade:"
+IRV_SUBCAUSE "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
+DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 
 NONCONFORMITY NC_T4_019

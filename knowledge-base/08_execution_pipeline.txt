@@ -478,11 +478,81 @@ Do not modify previous results.
 No report section shall be generated before Result Consolidation completes.
 
 ###############################################################################
+# PHASE 6A
+# IRV OPERATIONAL PROJECTION
+###############################################################################
+
+Only after Result Consolidation completes, consume the immutable consolidated
+Criterion results and their declared Nonconformity associations.
+
+For each consolidated FAIL associated with a Nonconformity that declares
+IRV_TABLE, IRV_CRITERION and IRV_CAUSE in 05_nonconformities, create exactly
+one transient operational pending-entry. Load IRV_SUBCAUSE only when declared;
+the selectable leaf is IRV_SUBCAUSE when present, otherwise IRV_CAUSE. Preserve
+IRV_CAUSE as the internal parent when a subcause is present. Preserve consolidated result order and the complete traceability of the source
+FAIL and documentary evidence.
+
+The operational projection is not a Criterion result, a Nonconformity or
+documentary evidence. It shall never:
+
+- create, remove, merge or modify a FAIL;
+- create or modify a Nonconformity;
+- execute a Requirement or Criterion;
+- recalculate Applicability or PROCESS.SMSCI;
+- reopen a Source Document or the RDE;
+- infer an IRV item, cause or subcause by similarity;
+- create an artificial IRV_SUBCAUSE.
+
+Do not group, deduplicate or suppress pending entries because they share the
+same IRV_CRITERION. Distinct selectable leaves — IRV_SUBCAUSE when declared,
+otherwise IRV_CAUSE — shall remain distinct operational pending entries.
+
+FOR_EACH is a structural aggregation inside one Criterion evaluation. Its
+instances shall produce one consolidated Criterion result and, on FAIL, one
+association with the declared Nonconformity. Repeated failing instances with
+the same Nonconformity and the same selectable IRV leaf are evidence of that
+single pending entry, not additional pending entries. Preserve and aggregate
+their traceable evidence for a minimal DESCRIPTION when needed. This rule shall
+never merge distinct Nonconformities or distinct selectable IRV leaves.
+
+When a triggered Nonconformity has no declared IRV projection, preserve its
+FAIL and route the missing operational projection to the report's human
+treatment section. Do not invent an e-SCI item or cause and do not convert the
+FAIL to MANUAL_REVIEW.
+
+For DESCRIPTION_POLICY MINIMAL_IF_NEEDED, attach a DESCRIPTION only when a
+concrete fact already present in the consolidated result and its evidence is
+needed to identify the divergence. Simple documentary absence requires no
+additional description. DESCRIPTION shall normally contain one sentence of no
+more than 180 characters; 180 is a preference, not a validity limit. The
+absolute limit is 500 characters. DESCRIPTION shall not reproduce the complete
+IRV_CAUSE, IRV_SUBCAUSE or IRV_CRITERION. If no description is needed,
+project exactly "Não necessário." for report rendering.
+
+Derive candidate technical counters only from the canonical consolidated
+result set before rendering. Validate:
+
+VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+
+If the equality is not satisfied, record REPORT_COUNTER_INCONSISTENCY as an
+audit-only diagnostic and omit the invalid technical totals. Never fabricate,
+adjust or reconstruct a counter from rendered text blocks. The inconsistency
+shall not create or modify PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW,
+Nonconformities or operational pending entries. Continue operational report
+generation when the canonical results and operational projection remain
+intact; expose the inconsistency explicitly only in audit mode.
+
+The transient operational projection becomes immutable before Phase 7.
+
+END PHASE 6A.
+
+###############################################################################
 # PHASE 7
 # REPORT GENERATION
 ###############################################################################
 
-Generate the operational report using only 06_reports.
+Generate the operational report using only the immutable consolidated results,
+the immutable Phase 6A operational projection and 06_reports.
 
 Do not expose Requirements, Criteria or internal identifiers in the
 operational report.
