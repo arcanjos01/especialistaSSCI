@@ -482,6 +482,78 @@ TYPE DOCUMENT
 
 END
 
+-------------------------------------------------------------------------------
+
+ENTITY COMPROVANTE_DE_SOLICITACAO_DE_HABITESE
+
+TYPE DOCUMENT
+
+ATTRIBUTE REQUEST_IDENTIFIER TEXT
+
+ATTRIBUTE PROCESS_IDENTIFIER TEXT
+
+ATTRIBUTE PROTOCOL_IDENTIFIER TEXT
+
+NAME
+
+COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE
+
+DESCRIPTION
+
+Comprovante documental de uma solicitação de Habite-se. Os identificadores
+registrados são fatos documentais e permitem somente sua posterior vinculação
+à solicitação corrente; não determinam aplicabilidade.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SISTEMAS_E_MEDIDAS_DE_SEGURANCA
+
+TYPE DOCUMENT_SECTION
+
+ATTRIBUTE STRUCTURALLY_COMPLETE BOOLEAN
+
+ATTRIBUTE LEGIBLE BOOLEAN
+
+ATTRIBUTE VERIFIABLE BOOLEAN
+
+NAME
+
+SISTEMAS E MEDIDAS DE SEGURANÇA
+
+DESCRIPTION
+
+Seção documental "Sistemas e Medidas de Segurança" do comprovante de
+solicitação de Habite-se. STRUCTURALLY_COMPLETE, LEGIBLE e VERIFIABLE registram
+somente propriedades documentais diretamente verificadas da seção, sem
+conclusão normativa. Campo vazio não equivale a FALSE nem autoriza inferência.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM
+
+TYPE DOCUMENTARY_EVIDENCE
+
+ATTRIBUTE OFFICIAL_ESCI_CODE TEXT
+
+ATTRIBUTE PRESENTED_SYSTEM_MEASURE_DESCRIPTION TEXT
+
+ATTRIBUTE RPCI_ORIENTATIVE_TEXT TEXT
+
+ATTRIBUTE SOURCE_LOCATION TEXT
+
+DESCRIPTION
+
+Item documental da seção "Sistemas e Medidas de Segurança". OFFICIAL_ESCI_CODE,
+PRESENTED_SYSTEM_MEASURE_DESCRIPTION, RPCI_ORIENTATIVE_TEXT e SOURCE_LOCATION
+são fatos brutos extraídos. O texto orientativo RPCI permanece separado e não é
+regra de aplicabilidade. source_document continua obrigatório pela RDE.
+
+END
+
 ###############################################################################
 # SMSCI
 ###############################################################################
@@ -489,6 +561,10 @@ END
 ENTITY SMSCI_IE
 
 TYPE SMSCI
+
+OFFICIAL_ESCI_CODE IE
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
 
 NAME
 
@@ -509,6 +585,10 @@ END
 ENTITY SMSCI_SAL
 
 TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SAL
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
 
 NAME
 
@@ -532,6 +612,10 @@ ENTITY SMSCI_PPE
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE PPE
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Proteção por Extintores
@@ -552,6 +636,10 @@ ENTITY SMSCI_BI
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE BI
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Brigada de Incêndio
@@ -570,11 +658,17 @@ ENTITY SMSCI_GAS
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE IGC
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Instalação de Gás
 
 ALIAS
+
+IGC
 
 GLP
 
@@ -595,6 +689,10 @@ END
 ENTITY SMSCI_SHP
 
 TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SHP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
 
 NAME
 
@@ -617,6 +715,8 @@ END
 ENTITY SMSCI_SDAI
 
 TYPE SMSCI
+
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 
 NAME
 
@@ -644,11 +744,17 @@ ENTITY SMSCI_PRESSURIZATION
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE SPDE
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Escada Pressurizada
 
 ALIAS
+
+SPDE
 
 PRESSURIZACAO
 
@@ -668,11 +774,17 @@ ENTITY SMSCI_SMOKE_CONTROL
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE CF
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Controle de Fumaça
 
 ALIAS
+
+CF
 
 CONTROLE_DE_FUMACA
 
@@ -688,11 +800,17 @@ ENTITY SMSCI_SPRINKLER
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE SPK
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Sistema de Chuveiros Automáticos
 
 ALIAS
+
+SPK
 
 SPRINKLER
 
@@ -709,6 +827,10 @@ END
 ENTITY SMSCI_CMAR
 
 TYPE SMSCI
+
+OFFICIAL_ESCI_CODE CMAR
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
 
 NAME
 
@@ -734,6 +856,10 @@ ENTITY SMSCI_IEL
 
 TYPE SMSCI
 
+OFFICIAL_ESCI_CODE IEL
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
 NAME
 
 Instalações Elétricas de Baixa Tensão
@@ -754,9 +880,351 @@ END
 
 -------------------------------------------------------------------------------
 
+ENTITY SMSCI_AVTR
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE AVtr
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Acesso de viaturas
+
+ALIAS
+
+AVtr
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_AI
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE AI
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Alarme de incêndio
+
+ALIAS
+
+AI
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_CSEP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE CSEP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Controle de pós
+
+ALIAS
+
+CSEP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_COMP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE COMP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Compartimentação horizontal e/ou vertical
+
+ALIAS
+
+COMP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_CT
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE CT
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Controle de temperatura
+
+ALIAS
+
+CT
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_CRP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE CRP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Controle e registro de público
+
+ALIAS
+
+CRP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_DAI
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE DAI
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Detectores automáticos de incêndio
+
+ALIAS
+
+DAI
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_EE
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE EE
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Elevador de emergência
+
+ALIAS
+
+EE
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_IR
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE IR
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Isolamento de risco
+
+ALIAS
+
+IR
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_MSP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE MSP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Medidas de segurança para piscinas
+
+ALIAS
+
+MSP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_TRRF
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE TRRF
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Proteção estrutural
+
+ALIAS
+
+TRRF
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SIESP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SIESP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Sistema de espuma
+
+ALIAS
+
+SIESP
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SAN
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SAN
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Sistema de água nebulizada
+
+ALIAS
+
+SAN
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SE
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SE
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Saídas de emergência
+
+ALIAS
+
+SE
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SRPH
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SRPH
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Sistema de rede pública de hidrantes
+
+ALIAS
+
+SRPH
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SFG
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SFG
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Sistema fixo de gases limpos e dióxido de carbono
+
+ALIAS
+
+SFG
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_SAP
+
+TYPE SMSCI
+
+OFFICIAL_ESCI_CODE SAP
+
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE
+
+NAME
+
+Sistemas antissucção em piscinas
+
+ALIAS
+
+SAP
+
+END
+
+-------------------------------------------------------------------------------
+
 ENTITY SMSCI_M5
 
 TYPE SMSCI
+
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 
 NAME
 
@@ -861,6 +1329,8 @@ ENTITY SMSCI_SMOKE_CONTROL_MECHANICAL
 
 TYPE SMSCI
 
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
+
 END
 
 ENTITY IN09_ART122_REQUIRED_ITEMS
@@ -871,18 +1341,22 @@ END
 
 ENTITY M5_EXPLOSION_PROTECTION
 TYPE SMSCI
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 END
 
 ENTITY M5_DUST_CONTROL
 TYPE SMSCI
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 END
 
 ENTITY M5_HEAT_SENSORS
 TYPE SMSCI
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 END
 
 ENTITY M5_LIGHTNING_PROTECTION
 TYPE SMSCI
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
 END
 
 ###############################################################################

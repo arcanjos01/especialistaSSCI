@@ -6,127 +6,180 @@
 
 PURPOSE
 
-This document defines the applicability-resolution boundary for SMSCI-scoped
-Requirements and Criteria.
+This document defines the productive applicability-resolution boundary for
+SMSCI-scoped Requirements and Criteria. PROCESS.SMSCI is exclusively the output
+of Phase 4A. It is never an extracted fact and shall not be created by the
+Engine, a Requirement, a Criterion or a Report.
 
-PROCESS.SMSCI is exclusively the output of Phase 4A. It is derived from
-immutable Process Memory by declared applicability rules. It is never an
-extracted fact and shall not be created by the Engine, a Requirement, a
-Criterion or a Report.
+INPUT AND OUTPUT
 
-INPUT
+Applicability Resolution consumes only complete, immutable Process Memory,
+the canonical entities of 01_entities and the declared rules below. After the
+completeness guard succeeds, it releases PROCESS.SMSCI,
+APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA. PROCESS.SMSCI shall never be
+emitted partially.
 
-Applicability Resolution consumes only:
+ARCHITECTURAL_BLOCKER is a stop condition before the Engine, not an output
+state or Criterion result. It does not authorize NOT_APPLICABLE,
+MANUAL_REVIEW, UNKNOWN or FAIL.
 
-- complete, immutable Process Memory;
-- existing normalized entities represented in Process Memory;
-- existing documentary facts represented in Process Memory;
-- explicitly declared applicability rules; and
-- existing canonical TYPE SMSCI declarations, Requirement SMSCI metadata and
-  Criterion APPLIES_TO metadata.
+PRODUCTIVE AUTHORIZED SOURCE SCOPE
 
-It shall not reopen source documents or the RDE. Normalized entities and
-documentary facts are inputs to declared rules; neither is a rule by itself.
+The exclusive productive source is exactly one document with:
 
-OUTPUT
+- DOCUMENT TYPE COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, whose presented
+  document type is exactly "COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE";
+- a deterministic documentary match to the current request;
+- the section SISTEMAS_E_MEDIDAS_DE_SEGURANCA; and
+- a complete, legible and verifiable structural representation of that section.
 
-After the completeness guard succeeds, the outputs are:
+Select exactly one comprovante for the current request using only documentary
+REQUEST_IDENTIFIER, PROCESS_IDENTIFIER and PROTOCOL_IDENTIFIER facts already
+present in immutable Process Memory. PROCESS_IDENTIFIER identifies only the
+process or building shared between returns and shall never select the current
+comprovante by itself. A candidate shall have a comparable and equal
+PROTOCOL_IDENTIFIER or REQUEST_IDENTIFIER that documentally identifies the
+current request unambiguously, with no different value for any other strong
+identifier available on both sides. Conflicting strong identifiers are an
+ARCHITECTURAL_BLOCKER. When PROCESS_IDENTIFIER is available on both sides of a
+strongly matched document, its values shall also be equal; otherwise that
+document is not a candidate. A document matching only by PROCESS_IDENTIFIER is
+not a candidate and does not compete with exactly one strong candidate. If no
+strong candidate remains or more than one strong candidate remains, selection
+is indeterminate and shall block. A previous return that shares a process
+identifier but is documentally identified by different request and protocol
+identifiers is not the current candidate. Filename, newest date and
+attachment order shall never select a
+document. No unique matching document, contradictory identifiers within the
+selected record, an absent document, an absent section, an incomplete section,
+an illegible section, an unverifiable section, an unknown code or incomplete
+traceability is an ARCHITECTURAL_BLOCKER before the Engine and before partial
+PROCESS.SMSCI.
 
-- PROCESS.SMSCI;
-- APPLICABLE_REQUIREMENTS; and
-- SELECTED_CRITERIA.
-
-PROCESS.SMSCI has an explicit, traceable decision for every target.
-APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA preserve their declared
-Requirement and Criterion identifiers and metadata.
-
-When the scope cannot be completed, ARCHITECTURAL_BLOCKER is a stop condition
-before the Engine, not an output state or a Criterion result. In that case the
-three outputs above are not released to the Engine.
-
-PROCESS.SMSCI shall never be emitted partially.
+The minimal RDE schema already declared in 01_entities is sufficient for this
+source: the comprovante identifiers; section facts STRUCTURALLY_COMPLETE,
+LEGIBLE and VERIFIABLE; and item facts
+OFFICIAL_ESCI_CODE, PRESENTED_SYSTEM_MEASURE_DESCRIPTION,
+RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION. source_document remains required by
+Documento 09-RDE; this document does not alter that specification.
 
 RULE CONTRACT
 
-Each future productive applicability rule shall declare all of the following:
+Every productive rule declares its target, authorized document and section,
+exact Process Memory fact, deterministic condition and traceability equivalent
+to Applicability Rule -> Process Memory fact -> RDE record -> Source Document.
+An explicit negative decision requires the same complete trace. The absence of
+a positive trigger outside the complete authorized section is never a negative
+decision.
 
-- target SMSCI;
-- authorized source scope;
-- exact Process Memory fact reference;
-- deterministic condition; and
-- traceability equivalent to Applicability Rule -> Process Memory fact -> RDE
-  record -> Source Document.
+PRODUCTIVE RULE CATALOG
 
-An explicit negative decision requires the same complete, traceable contract.
-The absence of a positive-rule trigger is not an explicit negative decision and
-does not prove non-applicability.
+For every row in OFFICIAL_ESCI_CODE -> CANONICAL_ENTITY below, the authorized
+Process Memory fact is the exact OFFICIAL_ESCI_CODE in an item of the selected,
+complete, legible and verifiable section. The condition is deterministic:
 
-SOURCE SCOPE AND CIRCULARITY
+- exact code present: positive decision and include its canonical entity in
+  PROCESS.SMSCI;
+- exact code absent: explicit negative decision only because the selected
+  section is complete, legible and verifiable.
 
-The source scope of an applicability rule shall be authorized independently of
-the SMSCI it resolves. A report, manual, laudo, DRT or other document required
-by that SMSCI shall not activate it because it exists, mentions the SMSCI or
-contains SMSCI metadata.
+Record exactly one positive or negative applicability decision for each of the
+28 official targets, including the selected section fact and its Process Memory,
+RDE and Source Document references. Exclusion from PROCESS.SMSCI is permitted
+only after that explicit negative record exists.
 
-An alias, textual occurrence, detected entity, GLP_MASS_KG or CENTRAL_GLP is
-not an applicability rule and cannot activate an SMSCI.
+No other source, attribute or textual value participates. The third RPCI
+orientative-text column is raw documentary text and is excluded. Aliases,
+DRT, ART/RRT/TRT, laudo, manual, textual mention, CENTRAL_GLP and GLP_MASS_KG
+are not applicability inputs. Alias normalization never activates an entity.
 
-PHASE 4A: SMSCI APPLICABILITY RESOLUTION
+OFFICIAL_ESCI_CODE -> CANONICAL_ENTITY
 
-Derive the set of targets to resolve from canonical entities already declared
-with TYPE SMSCI in 01_entities. Requirement SMSCI and Criterion APPLIES_TO
-references shall resolve to that canonical set; a missing reference is a
-Knowledge Base consistency error.
+AVtr -> SMSCI_AVTR
+AI -> SMSCI_AI
+BI -> SMSCI_BI
+SPK -> SMSCI_SPRINKLER
+CSEP -> SMSCI_CSEP
+CMAR -> SMSCI_CMAR
+CF -> SMSCI_SMOKE_CONTROL
+COMP -> SMSCI_COMP
+CT -> SMSCI_CT
+CRP -> SMSCI_CRP
+DAI -> SMSCI_DAI
+EE -> SMSCI_EE
+IEL -> SMSCI_IEL
+IGC -> SMSCI_GAS
+IE -> SMSCI_IE
+IR -> SMSCI_IR
+MSP -> SMSCI_MSP
+TRRF -> SMSCI_TRRF
+PPE -> SMSCI_PPE
+SIESP -> SMSCI_SIESP
+SAN -> SMSCI_SAN
+SAL -> SMSCI_SAL
+SE -> SMSCI_SE
+SRPH -> SMSCI_SRPH
+SFG -> SMSCI_SFG
+SHP -> SMSCI_SHP
+SAP -> SMSCI_SAP
+SPDE -> SMSCI_PRESSURIZATION
 
-Aliases enumerate names for normalization only. They never add a target and
-never decide whether a canonical target is applicable.
+Only entities whose APPLICABILITY_TARGET_CLASS is OFFICIAL_ESCI_SCOPE are
+resolved by this catalog. The map is exact and closed: a code outside it blocks
+resolution and no non-official entity is directly resolved here.
 
-For each target, evaluate only a complete declared rule against its authorized
-Process Memory fact. Include a target in PROCESS.SMSCI only after an explicit
-positive decision. Exclude a target only after an explicit negative decision.
+DERIVED RULE: SMSCI_SDAI
 
-Before the Engine, a missing rule, absent/incomplete/unverifiable required fact,
-conflict, or incomplete trace interrupts that SMSCI scope with
-ARCHITECTURAL_BLOCKER. It shall not produce a Criterion result and shall not be
-converted to NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN or FAIL. No new global state
-is created by this block.
+After all official decisions are complete, preserve SMSCI_AI and SMSCI_DAI as
+separate official facts and decisions. If SMSCI_AI is positive OR SMSCI_DAI is
+positive, include SMSCI_SDAI as the explicit derived internal requirement scope.
+If both are negative, record the explicit derived negative decision for
+SMSCI_SDAI. This derived scope activates the existing IN12 Requirement/Criterion
+metadata only; it does not create a Requirement, Criterion or Nonconformity.
 
-COMPLETENESS GUARD AND INDETERMINACY
+Declared foundation: IRV Tabela 4 item IN12; IN12/2024 art. 1, definition in
+art. 4 XII, and art. 47. No area, height or GLP rule is authorized here.
 
-Phase 4A is complete only when every derived target has one explicit,
-deterministic and fully traceable positive or negative decision. The Engine may
-receive PROCESS.SMSCI only after this completeness guard succeeds. The Engine
-does not create SMSCI, and indeterminacy never reaches the Engine.
+DERIVED-INTERNAL DEBT
+
+SMSCI_M5, SMSCI_SMOKE_CONTROL_MECHANICAL, M5_EXPLOSION_PROTECTION,
+M5_DUST_CONTROL, M5_HEAT_SENSORS and M5_LIGHTNING_PROTECTION are
+DERIVED_INTERNAL_REQUIREMENT_SCOPE. They have no OFFICIAL_ESCI_CODE and are not
+directly resolved by this productive catalog. M5 remains an explicit knowledge
+debt: absence of a declared derived rule does not produce a negative decision,
+and its dependents are not selectable by this rule.
+
+PHASE 4A: COMPLETENESS GUARD
+
+Resolve exactly the 28 OFFICIAL_ESCI_SCOPE targets through the catalog. Before
+the Engine, any source-selection ambiguity, documentary insufficiency, unknown
+code, conflict, missing decision or incomplete traceability raises
+ARCHITECTURAL_BLOCKER. No PROCESS.SMSCI is released until all 28 official
+positive/negative decisions and the declared SDAI derivation are complete.
 
 PHASE 4B: REQUIREMENT APPLICABILITY RESOLUTION
 
-Requirements without SMSCI metadata retain their existing applicability
-semantics and shall not be filtered through PROCESS.SMSCI.
-
-Requirements with SMSCI metadata are applicable only after complete Phase 4A
-resolution when their target is in PROCESS.SMSCI. Iterative Requirements retain
-their declared form; they are not rewritten into new Requirements.
-
-PHASE 4C: CRITERION SELECTION
-
-Select Criteria exclusively through the declared USES/REQUIREMENT associations
-of applicable Requirements, preserving declared TABLE, CONTEXT and order.
-
-No Criterion may be created or selected dynamically by alias, document,
-similarity or textual occurrence. APPLIES_TO metadata shall be consistent with
-the resolved scope; an inconsistency blocks execution before the Engine.
+Requirements without SMSCI metadata retain their declared applicability
+semantics. Requirements with SMSCI metadata are applicable only after complete
+Phase 4A when their target is in PROCESS.SMSCI. Iterative Requirements retain
+their declared form; no Requirement is created or rewritten.
 
 WORKLIST.SMSCI
 
-WORKLIST.SMSCI is a transient iteration view derived only from PROCESS.SMSCI.
-It never discovers an SMSCI and never contains a target outside
-PROCESS.SMSCI. For the current REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE
-iterator, it projects the resolved applicable scope required by that iteration.
-This projection is not a general architectural identity declaration.
+WORKLIST.SMSCI is a transient subset of PROCESS.SMSCI. For exactly
+REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE, it contains every and only official
+positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes derived
+internal requirement scopes, including SMSCI_SDAI, so AI/DAI are not duplicated
+by the SDAI derivation. This is not a general architectural identity.
+
+PHASE 4C: CRITERION SELECTION
+
+Select Criteria exclusively through declared USES/REQUIREMENT associations of
+applicable Requirements, preserving TABLE, CONTEXT and order. APPLIES_TO must
+be consistent with complete PROCESS.SMSCI; an inconsistency blocks execution.
+No Criterion is created or selected by alias, document, similarity or text.
 
 TRACEABILITY
-
-For SMSCI-scoped execution, preserve:
 
 Source Document -> RDE -> Process Memory -> Applicability Rule ->
 PROCESS.SMSCI -> Requirement -> Criterion -> Result -> Nonconformity when
@@ -135,6 +188,10 @@ applicable.
 For general Requirements, Applicability Rule and PROCESS.SMSCI are not
 artificially required; preserve their existing documentary traceability and
 declared metadata.
+
+NO_NEW_ATTRIBUTES below prohibits the executor from inventing attributes at
+runtime. It does not prohibit the explicit, authorized documentary schema
+declared in 01_entities by this Knowledge Base evolution.
 
 INVARIANTS
 
@@ -155,20 +212,3 @@ NO_NEW_OBJECTS
 NO_NEW_ATTRIBUTES
 NO_NEW_DOCUMENTS
 NO_NEW_SMSCI
-
-PRODUCTION RULE CATALOG
-
-EMPTY.
-
-The active Knowledge Base has no authorized canonical PPCI-scope fact and no
-productive positive applicability rule for any SMSCI.
-
-ARCHITECTURAL_BLOCKER
-
-Real SMSCI applicability resolution is operationally blocked until the active
-Knowledge Base contains an authorized canonical scope fact and complete
-declared rules meeting this contract. This blocker does not authorize an
-inference, a fallback state or a partial PROCESS.SMSCI.
-
-Synthetic facts and rules used only by automated tests demonstrate this
-mechanism; they are not productive Knowledge Base rules.

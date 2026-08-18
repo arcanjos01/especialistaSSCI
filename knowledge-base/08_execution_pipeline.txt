@@ -138,6 +138,18 @@ Documentary statements contained in submitted documents are not execution result
 
 They are only documentary evidence.
 
+For COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, identified only when the presented
+document type is exactly "COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE", extract
+fact-only the documentally verifiable REQUEST_IDENTIFIER, PROCESS_IDENTIFIER
+and PROTOCOL_IDENTIFIER; the
+section SISTEMAS_E_MEDIDAS_DE_SEGURANCA and its directly verifiable
+STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE properties; and each item
+OFFICIAL_ESCI_CODE,
+PRESENTED_SYSTEM_MEASURE_DESCRIPTION, RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION.
+source_document remains required by Documento 09-RDE. The RPCI orientative-text
+column is extracted as raw documentary text and is excluded from applicability.
+This uses the schema in 01_entities and does not alter Documento 09-RDE.
+
 ###############################################################################
 # ATTRIBUTE EXTRACTION
 ###############################################################################
@@ -257,6 +269,13 @@ Consume only the completed, immutable RDE.
 
 Normalize representations derived from the RDE using 01_entities.
 
+For every comprovante section represented in the RDE, normalize an exact
+OFFICIAL_ESCI_CODE only through the authorized OFFICIAL_ESCI_CODE -> canonical
+entity combination declared in 02a_applicability. Do not select the current
+comprovante in this phase. Preserve AI and DAI as distinct documentary facts;
+do not normalize either into SMSCI_SDAI. Alias normalization does not create an
+applicability decision.
+
 Do not alter, add, remove or reinterpret any RDE record.
 
 Merge equivalent entities only in the derived normalized representation.
@@ -296,22 +315,31 @@ END PHASE 3.
 
 Apply 02a_applicability only after Process Memory is complete and immutable.
 
-Derive the targets to resolve from canonical entities already declared with
-TYPE SMSCI in 01_entities. Validate that Requirement SMSCI and Criterion
-APPLIES_TO references resolve to those canonical targets.
+Select exactly one current comprovante by the deterministic identifier contract
+declared in 02a_applicability. All comparable request, process and protocol
+identifiers shall agree. Do not select by filename, date or attachment order.
+
+Derive productive targets only from canonical entities declared with
+APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE in 01_entities. Resolve their
+exact official code only through the authorized document, section and mapping
+declared in 02a_applicability. Validate that Requirement SMSCI and Criterion
+APPLIES_TO references resolve to canonical entities with their declared target
+class.
 
 Evaluate only complete declared applicability rules against authorized,
 traceable Process Memory facts.
 
 Alias normalization, textual occurrence, detected entities, document
-existence and SMSCI metadata on a report, manual, laudo, DRT or other document
-required by the target shall never activate that target.
+existence, RPCI orientative text, GLP_MASS_KG and SMSCI metadata on a report,
+manual, laudo, DRT or other document required by the target shall never
+activate that target.
 
 Every target shall receive an explicit, deterministic and traceable positive
 or negative decision before PROCESS.SMSCI is released.
 
-If a rule is missing, a required fact is absent, incomplete or unverifiable,
-decisions conflict, or traceability is incomplete:
+If the selected document is absent or not identified, its section is absent,
+incomplete, illegible or unverifiable, its exact code is unknown, a required
+fact is absent, a decision conflicts, or traceability is incomplete:
 
 STOP APPLICABILITY RESOLUTION BEFORE THE ENGINE.
 
@@ -342,9 +370,11 @@ WORKLIST.SMSCI is a transient iteration view derived only from
 PROCESS.SMSCI. It shall always be a subset of PROCESS.SMSCI and shall never
 discover an SMSCI.
 
-For REQ_T1_DRT_SMSCI, WORKLIST.SMSCI projects the resolved applicable scope
-required by its declared iteration. This does not establish a general
-architectural identity between WORKLIST.SMSCI and PROCESS.SMSCI.
+For REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE, WORKLIST.SMSCI projects every
+and only positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes
+DERIVED_INTERNAL_REQUIREMENT_SCOPE targets, including SMSCI_SDAI, and this
+does not establish a general architectural identity between WORKLIST.SMSCI and
+PROCESS.SMSCI.
 
 No Requirement may be created or rewritten.
 
