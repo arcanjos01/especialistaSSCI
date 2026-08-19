@@ -385,8 +385,9 @@ END PHASE 4B.
 # CRITERION SELECTION
 ###############################################################################
 
-Select SELECTED_CRITERIA exclusively through the declared USES or REQUIREMENT
-associations of APPLICABLE_REQUIREMENTS.
+Materialize the ordered, closed and immutable list PLANNED_EXECUTION_UNITS
+exclusively through the declared USES or REQUIREMENT associations of
+APPLICABLE_REQUIREMENTS. Do not execute any Criterion while constructing it.
 
 Preserve declared file order, TABLE and CONTEXT.
 
@@ -397,12 +398,52 @@ APPLIES_TO shall be consistent with the completely resolved PROCESS.SMSCI.
 Any inconsistency shall stop execution before the Engine.
 
 Retain every VALIDATE declared by APPLICABLE_REQUIREMENTS in the execution
-plan. Do not execute it during Criterion selection.
+plan.
 
 Validate the existing Criterion and Nonconformity references without creating
 or triggering a Nonconformity.
 
 END PHASE 4C.
+
+Each PLANNED_EXECUTION_UNIT shall contain, at minimum:
+
+- UNIT_KEY = (requirement_id, criterion_id);
+- a reference to the already resolved Applicability;
+- no documentary evidence copied from the Process Memory;
+- no execution result;
+- no anticipated Nonconformity.
+
+The plan shall consume the already resolved Applicability; it shall not
+recalculate, reinterpret or modify Applicability.
+
+The list shall be frozen before Table 1 execution and remain frozen through
+Table 4 execution. It shall contain all and only the Criteria declared for
+each applicable Requirement, exactly once.
+
+The following Base-to-Plan invariant is mandatory:
+
+- every applicable Requirement shall have all its declared Criteria represented;
+- no applicable Requirement may be left without its planned Criteria;
+- no Criterion outside the resolved Applicability may enter the list;
+- no UNIT_KEY may occur more than once.
+
+For an iterative Criterion, PLANNED_EXECUTION_UNITS shall contain one unit for
+the Criterion, not one unit per binding. The unit shall contain a separately
+frozen ITERATION_DOMAIN describing the planned bindings.
+
+ITERATION_DOMAIN defines the complete planned_bindings set.
+
+planned_bindings = ITERATION_DOMAIN
+
+FOR_EACH remains an internal operation of that Criterion and preserves its
+aggregate result semantics. In particular, T1_DRT_SMSCI_COVERAGE remains one
+planned unit with multiple internal bindings and one aggregate result; it may
+produce at most one NC_T1_002 when its declared Criterion result is FAIL.
+
+No list parallel to PLANNED_EXECUTION_UNITS shall be introduced merely to
+duplicate its expected, selected or executed Criteria.
+
+END PLANNED_EXECUTION_UNITS CONSTRUCTION.
 
 ###############################################################################
 # PHASE 5
@@ -410,7 +451,7 @@ END PHASE 4C.
 ###############################################################################
 
 Consume only the immutable Process Memory, the completely resolved
-PROCESS.SMSCI, APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA produced by
+PROCESS.SMSCI, APPLICABLE_REQUIREMENTS and PLANNED_EXECUTION_UNITS produced by
 Phases 4A through 4C.
 
 The Engine consumes PROCESS.SMSCI as already resolved and shall never create it
@@ -421,7 +462,8 @@ Execute all APPLICABLE_REQUIREMENTS using Process Memory.
 
 Resolve every VALIDATE declared by each APPLICABLE_REQUIREMENT.
 
-After Requirement validation, execute only SELECTED_CRITERIA.
+After Requirement validation, execute exactly the Criteria represented by
+PLANNED_EXECUTION_UNITS, in the frozen plan order.
 
 Execute Table 1.
 
@@ -430,6 +472,15 @@ Complete every applicable Criterion in Table 1 before starting Table 4.
 Each selected Criterion shall produce exactly one result.
 
 Every applicable Requirement shall be evaluated exactly once.
+
+Every execution result shall record the UNIT_KEY of its planned unit.
+
+For every iterative Criterion, record the bindings actually evaluated and
+retain the planned ITERATION_DOMAIN. The execution shall verify:
+
+evaluated_bindings == planned_bindings
+
+before the results are consolidated or projected.
 
 Allowed results:
 
@@ -451,6 +502,30 @@ Criteria shall never create, update or reinterpret documentary attributes.
 # PHASE 6
 # RESULT CONSOLIDATION
 ###############################################################################
+
+Before consolidation or projection, verify the Plan-to-Results invariant:
+
+- every PLANNED_EXECUTION_UNITS UNIT_KEY produced exactly one result;
+- no UNIT_KEY produced two or more results;
+- no result exists without a UNIT_KEY in PLANNED_EXECUTION_UNITS;
+- for every iterative Criterion, evaluated_bindings equals planned_bindings.
+
+If any of these checks fails, stop execution with EXECUTION_INTEGRITY_ERROR.
+
+EXECUTION_INTEGRITY_ERROR is an internal execution error only. It is not a
+normative result and shall never be treated as:
+
+PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN or Nonconformity.
+
+On EXECUTION_INTEGRITY_ERROR:
+
+- stop before IRV/e-SCI projection;
+- do not generate a pendency;
+- do not alter normative results;
+- do not convert the error to MANUAL_REVIEW;
+- expose it only through the existing audit/debug channel when supported by the
+  architecture;
+- do not trigger Report Generation or IRV/e-SCI projection.
 
 Consolidate all Criterion results.
 
