@@ -2,7 +2,45 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# VERSION 4.3
+# DOCUMENT_VERSION: 4.4.0
+###############################################################################
+
+###############################################################################
+# KNOWLEDGE BASE RELEASE MANIFEST
+###############################################################################
+
+KNOWLEDGE_BASE_ID: SSCI-HABITESE
+
+KNOWLEDGE_BASE_VERSION: 5.1.0
+
+SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
+
+DOCUMENT_SET:
+
+00_engine.txt: DOCUMENT_VERSION 4.0.0
+01_entities.txt: DOCUMENT_VERSION 3.0.0
+02_requirements.txt: DOCUMENT_VERSION 3.1.0
+02a_applicability.txt: DOCUMENT_VERSION 1.1.0
+03_table1.txt: DOCUMENT_VERSION 3.2.0
+04_table4.txt: DOCUMENT_VERSION 3.0.0
+05_nonconformities.txt: DOCUMENT_VERSION 3.0.0
+06_reports.txt: DOCUMENT_VERSION 2.1.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.4.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
+
+END DOCUMENT_SET.
+
+This manifest is operational release metadata only. It is not documentary
+evidence, a Requirement, Criterion, Applicability rule, Nonconformity,
+normative result or execution state.
+
+RELEASE_BUILD_REQUIRED is a source-tree placeholder. The release builder shall
+replace it in the deployable copy with the full Git commit from which the
+complete ten-document release was produced. It shall also expose in each
+deployable document the DOCUMENT_VERSION declared above. Never deploy the
+placeholder or reconstruct SOURCE_COMMIT from model knowledge. The files in
+knowledge-base are source templates; deployment shall use only the complete
+release directory produced by the release builder.
 ###############################################################################
 
 OBJECTIVE
@@ -69,9 +107,24 @@ Load:
 
 09_Especificacao_da_RDE.txt (Documento 09-RDE)
 
+08_execution_pipeline.txt is the current structural document containing this
+manifest and completes the ten-document loaded set.
+
 If any document is unavailable:
 
 STOP EXECUTION.
+
+Before normative execution, compare the loaded filenames and their
+DOCUMENT_VERSION metadata with DOCUMENT_SET. In audit/debug mode, expose
+KNOWLEDGE_BASE_ID, KNOWLEDGE_BASE_VERSION, SOURCE_COMMIT and every loaded
+DOCUMENT_VERSION.
+
+When the loaded identity metadata provides sufficient evidence of a missing,
+extra or version-incompatible document, state the identity incompatibility
+clearly in the existing audit/debug channel. Do not silently reconstruct the
+expected release. This descriptive audit finding is not a new Engine state and
+shall never create or modify PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW,
+EXECUTION_INTEGRITY_ERROR, a Nonconformity or an IRV/e-SCI pending entry.
 
 ###############################################################################
 # PHASE 2

@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-VERSION 2.0
+DOCUMENT_VERSION: 2.1.0
 
 FINALIDADE
 
@@ -137,8 +137,11 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Versão da Base;
+- Base: SSCI-Habite-se 5.1.0;
 - Procedimento.
+
+Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
+individuais de documentos ou diagnóstico técnico de identidade da Base.
 
 Incluir obrigatoriamente:
 
@@ -186,8 +189,6 @@ BASE DE CONHECIMENTO
 
 ANEXO TÉCNICO DE AUDITORIA
 
-VERSION 2.0
-
 FINALIDADE
 
 Este documento complementa o relatório operacional.
@@ -209,6 +210,24 @@ Produza o relatório operacional completo e, em seguida, acrescente este Anexo
 Técnico.
 
 Nesta seção é permitido utilizar os nomes internos da Base.
+
+IDENTIDADE DA BASE
+
+Expor os metadados operacionais declarados no manifesto de
+08_execution_pipeline:
+
+KNOWLEDGE_BASE_ID:
+KNOWLEDGE_BASE_VERSION:
+SOURCE_COMMIT:
+DOCUMENT_VERSION por documento carregado:
+VALIDAÇÃO DO DOCUMENT_SET: COMPATÍVEL ou INCOMPATÍVEL
+
+Quando houver evidência suficiente de documento ausente, extra ou com
+DOCUMENT_VERSION divergente, descrever a incompatibilidade somente nesta
+seção. Não reconstruir silenciosamente a release esperada. A incompatibilidade
+de identidade não é resultado, estado normativo, MANUAL_REVIEW,
+EXECUTION_INTEGRITY_ERROR, Nonconformity ou pendência IRV/e-SCI e não pode
+alterar os resultados consolidados nem o relatório operacional.
 
 Para cada execução utilizar o seguinte modelo:
 
@@ -253,7 +272,7 @@ Ao final apresentar:
 - Documentos efetivamente utilizados;
 - Contadores canônicos validados, quando a igualdade for satisfeita;
 - REPORT_COUNTER_INCONSISTENCY, sem totais, quando a igualdade falhar;
-- Versão da Base.
+- identidade técnica completa da Base e validação do DOCUMENT_SET.
 
 Finalidade exclusiva:
 
