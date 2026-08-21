@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.4.0
+# DOCUMENT_VERSION: 4.5.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.1.0
+KNOWLEDGE_BASE_VERSION: 5.2.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -24,8 +24,8 @@ DOCUMENT_SET:
 03_table1.txt: DOCUMENT_VERSION 3.2.0
 04_table4.txt: DOCUMENT_VERSION 3.0.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.0.0
-06_reports.txt: DOCUMENT_VERSION 2.1.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.4.0
+06_reports.txt: DOCUMENT_VERSION 2.2.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.5.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -435,68 +435,54 @@ END PHASE 4B.
 
 ###############################################################################
 # PHASE 4C
-# CRITERION SELECTION
+# PLAN MATERIALIZATION
 ###############################################################################
 
-Materialize the ordered, closed and immutable list PLANNED_EXECUTION_UNITS
-exclusively through the declared USES or REQUIREMENT associations of
-APPLICABLE_REQUIREMENTS. Do not execute any Criterion while constructing it.
+INPUT: APPLICABLE_REQUIREMENTS and the release-derived
+COMPILED_EXECUTION_INDEX. Freeze APPLICABLE_REQUIREMENTS and consume it only;
+do not recalculate, reinterpret or modify Applicability.
 
-Preserve declared file order, TABLE and CONTEXT.
+Materialize the ordered, closed and immutable PLANNED_EXECUTION_UNITS as a
+local procedure:
 
-Do not create a Criterion or select one by alias, document, similarity or
-textual occurrence.
+1. For each applicable Requirement in its resolved order, find its block in
+   COMPILED_EXECUTION_INDEX and copy every listed UNIT_KEY in that block order.
+   UNIT_KEY shall be copied literally. Do not generate, rename, summarize or
+   reinterpret it. Semantic labels are not valid substitutes.
 
-APPLIES_TO shall be consistent with the completely resolved PROCESS.SMSCI.
-Any inconsistency shall stop execution before the Engine.
+2. Preserve the declared TABLE, CONTEXT and every VALIDATE associated with the
+   copied Requirement and Criterion. APPLIES_TO shall be consistent with the
+   completely resolved PROCESS.SMSCI; any inconsistency stops execution before
+   the Engine.
 
-Retain every VALIDATE declared by APPLICABLE_REQUIREMENTS in the execution
-plan.
+3. When the Requirement block declares ITERATION_SOURCE, materialize one unit
+   for each listed UNIT_KEY, resolve and freeze its ITERATION_DOMAIN from that
+   ITERATION_SOURCE. Do not materialize a UNIT_KEY per binding.
 
-Validate the existing Criterion and Nonconformity references without creating
-or triggering a Nonconformity.
+4. Validate the existing Criterion and Nonconformity references without
+   creating or triggering a Nonconformity. Do not execute a Criterion while
+   constructing the plan.
 
-END PHASE 4C.
+5. Freeze PLANNED_EXECUTION_UNITS. Compare its ordered UNIT_KEY sequence for
+   exact equality with the ordered sequence selected from
+   COMPILED_EXECUTION_INDEX for the applicable Requirements. Any order change,
+   absence, extra key or duplicate is EXECUTION_INTEGRITY_ERROR: STOP BEFORE
+   EXECUTION.
 
-Each PLANNED_EXECUTION_UNIT shall contain, at minimum:
+Each PLANNED_EXECUTION_UNIT contains its literal UNIT_KEY and a reference to
+the already resolved Applicability, but no documentary evidence copied from
+Process Memory, execution result or anticipated Nonconformity.
 
-- UNIT_KEY = (requirement_id, criterion_id);
-- a reference to the already resolved Applicability;
-- no documentary evidence copied from the Process Memory;
-- no execution result;
-- no anticipated Nonconformity.
-
-The plan shall consume the already resolved Applicability; it shall not
-recalculate, reinterpret or modify Applicability.
-
-The list shall be frozen before Table 1 execution and remain frozen through
-Table 4 execution. It shall contain all and only the Criteria declared for
-each applicable Requirement, exactly once.
-
-The following Base-to-Plan invariant is mandatory:
-
-- every applicable Requirement shall have all its declared Criteria represented;
-- no applicable Requirement may be left without its planned Criteria;
-- no Criterion outside the resolved Applicability may enter the list;
-- no UNIT_KEY may occur more than once.
-
-For an iterative Criterion, PLANNED_EXECUTION_UNITS shall contain one unit for
-the Criterion, not one unit per binding. The unit shall contain a separately
-frozen ITERATION_DOMAIN describing the planned bindings.
-
-ITERATION_DOMAIN defines the complete planned_bindings set.
-
-planned_bindings = ITERATION_DOMAIN
-
-FOR_EACH remains an internal operation of that Criterion and preserves its
-aggregate result semantics. In particular, T1_DRT_SMSCI_COVERAGE remains one
-planned unit with multiple internal bindings and one aggregate result; it may
-produce at most one NC_T1_002 when its declared Criterion result is FAIL.
+ITERATION_DOMAIN defines the complete planned_bindings set. FOR_EACH remains
+internal to the Criterion and preserves aggregate result semantics. In
+particular, T1_DRT_SMSCI_COVERAGE remains one planned unit with multiple
+internal bindings and one aggregate result; it may produce at most one
+NC_T1_002 when its declared Criterion result is FAIL.
 
 No list parallel to PLANNED_EXECUTION_UNITS shall be introduced merely to
 duplicate its expected, selected or executed Criteria.
 
-END PLANNED_EXECUTION_UNITS CONSTRUCTION.
+END PHASE 4C.
 
 ###############################################################################
 # PHASE 5
