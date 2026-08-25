@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.5.0
+# DOCUMENT_VERSION: 4.6.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.2.0
+KNOWLEDGE_BASE_VERSION: 5.3.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
 00_engine.txt: DOCUMENT_VERSION 4.0.0
-01_entities.txt: DOCUMENT_VERSION 3.0.0
-02_requirements.txt: DOCUMENT_VERSION 3.1.0
-02a_applicability.txt: DOCUMENT_VERSION 1.1.0
+01_entities.txt: DOCUMENT_VERSION 3.1.0
+02_requirements.txt: DOCUMENT_VERSION 3.2.0
+02a_applicability.txt: DOCUMENT_VERSION 1.2.0
 03_table1.txt: DOCUMENT_VERSION 3.2.0
-04_table4.txt: DOCUMENT_VERSION 3.0.0
+04_table4.txt: DOCUMENT_VERSION 3.1.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.0.0
-06_reports.txt: DOCUMENT_VERSION 2.2.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.5.0
+06_reports.txt: DOCUMENT_VERSION 2.3.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.6.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -379,6 +379,13 @@ declared in 02a_applicability. Validate that Requirement SMSCI and Criterion
 APPLIES_TO references resolve to canonical entities with their declared target
 class.
 
+Only after every official decision is complete, derive the internal scopes
+declared in 02a_applicability. In particular, a negative SMSCI_IEL decision
+from a complete, legible and verifiable official section shall derive only
+SMSCI_IN19_APPLICABILITY_REVIEW; it shall not create SMSCI_IEL or determine
+whether IN19 applies or is dispensed. An incomplete, illegible or unverifiable
+section remains an ARCHITECTURAL_BLOCKER before any derivation.
+
 Evaluate only complete declared applicability rules against authorized,
 traceable Process Memory facts.
 
@@ -425,9 +432,9 @@ discover an SMSCI.
 
 For REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE, WORKLIST.SMSCI projects every
 and only positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes
-DERIVED_INTERNAL_REQUIREMENT_SCOPE targets, including SMSCI_SDAI, and this
-does not establish a general architectural identity between WORKLIST.SMSCI and
-PROCESS.SMSCI.
+DERIVED_INTERNAL_REQUIREMENT_SCOPE targets, including SMSCI_SDAI and
+SMSCI_IN19_APPLICABILITY_REVIEW, and this does not establish a general
+architectural identity between WORKLIST.SMSCI and PROCESS.SMSCI.
 
 No Requirement may be created or rewritten.
 

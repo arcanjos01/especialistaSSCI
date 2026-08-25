@@ -78,6 +78,11 @@ def productive_resolution(documents, current_identifiers):
         decisions["SMSCI_SDAI"] = "POSITIVE"
     else:
         decisions["SMSCI_SDAI"] = "NEGATIVE"
+    if decisions["SMSCI_IEL"] == "NEGATIVE":
+        scope.add("SMSCI_IN19_APPLICABILITY_REVIEW")
+        decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "POSITIVE"
+    else:
+        decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "NEGATIVE"
     return {
         "process_smsci": frozenset(scope),
         "decisions": decisions,
@@ -210,7 +215,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             self.current_identifiers(),
         )
         self.assertEqual(
-            scope, frozenset({"SMSCI_PPE", "SMSCI_IE", "SMSCI_SAL"})
+            scope, frozenset({
+                "SMSCI_PPE", "SMSCI_IE", "SMSCI_SAL",
+                "SMSCI_IN19_APPLICABILITY_REVIEW",
+            })
         )
 
     def test_b_igc_absence_is_negative_only_with_complete_verifiable_section(self):
@@ -260,7 +268,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         for target in OFFICIAL_MAP.values():
             self.assertEqual(resolution["decisions"][target], "POSITIVE")
             self.assertIn(target, resolution["process_smsci"])
-        self.assertEqual(len(resolution["decisions"]), 29)
+        self.assertEqual(len(resolution["decisions"]), 30)
         official = {
             entity: fields for entity, fields in self.entities.items()
             if fields.get("TYPE") == "SMSCI"
@@ -339,7 +347,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             [old_return, self.current_document(("PPE",))],
             self.current_identifiers(),
         )
-        self.assertEqual(scope, frozenset({"SMSCI_PPE"}))
+        self.assertEqual(
+            scope,
+            frozenset({"SMSCI_PPE", "SMSCI_IN19_APPLICABILITY_REVIEW"}),
+        )
         self.assertIn("Select exactly one comprovante", self.applicability)
         self.assertIn("Filename, newest date and\nattachment order", self.applicability)
 
@@ -383,7 +394,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         scope = productive_resolve(
             [current_document, historical_generic], current
         )
-        self.assertEqual(scope, frozenset({"SMSCI_PPE"}))
+        self.assertEqual(
+            scope,
+            frozenset({"SMSCI_PPE", "SMSCI_IN19_APPLICABILITY_REVIEW"}),
+        )
 
     def test_l1d_strong_match_with_different_process_does_not_select(self):
         current = {
@@ -426,11 +440,114 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertIn("If both are negative", self.applicability)
         self.assertIn("Preserve AI and DAI", self.pipeline)
 
+    def test_in19_a_iel_present_preserves_current_in19_scope(self):
+        resolution = productive_resolution(
+            [self.current_document(("IEL",))], self.current_identifiers()
+        )
+        scope = resolution["process_smsci"]
+        self.assertIn("SMSCI_IEL", scope)
+        self.assertEqual(resolution["decisions"]["SMSCI_IEL"], "POSITIVE")
+        self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", scope)
+        self.assertEqual(
+            resolution["decisions"]["SMSCI_IN19_APPLICABILITY_REVIEW"],
+            "NEGATIVE",
+        )
+        applicable = applicable_requirement_ids(self.requirement_records, scope)
+        for requirement_id in (
+            "REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING",
+            "REQ_IN19_FINAL_VERIFICATION", "REQ_IN19_MAINTENANCE",
+        ):
+            self.assertIn(requirement_id, applicable)
+        self.assertNotIn("REQ_IN19_APPLICABILITY_REVIEW", applicable)
+
+    def test_in19_b_iel_absent_selects_only_manual_review(self):
+        resolution = productive_resolution(
+            [self.current_document(())], self.current_identifiers()
+        )
+        scope = resolution["process_smsci"]
+        self.assertEqual(resolution["decisions"]["SMSCI_IEL"], "NEGATIVE")
+        self.assertNotIn("SMSCI_IEL", scope)
+        self.assertEqual(
+            resolution["decisions"]["SMSCI_IN19_APPLICABILITY_REVIEW"],
+            "POSITIVE",
+        )
+        self.assertIn("SMSCI_IN19_APPLICABILITY_REVIEW", scope)
+        applicable = applicable_requirement_ids(self.requirement_records, scope)
+        selected = selected_criterion_ids(self.criterion_records, applicable)
+        self.assertIn("REQ_IN19_APPLICABILITY_REVIEW", applicable)
+        self.assertIn("T4_IN19_APPLICABILITY_REVIEW", selected)
+        for requirement_id in (
+            "REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING",
+            "REQ_IN19_FINAL_VERIFICATION", "REQ_IN19_MAINTENANCE",
+        ):
+            self.assertNotIn(requirement_id, applicable)
+        criterion = self.table4.split(
+            "CRITERION T4_IN19_APPLICABILITY_REVIEW", 1
+        )[1].split("END", 1)[0]
+        requirement = self.requirements.split(
+            "REQUIREMENT REQ_IN19_APPLICABILITY_REVIEW", 1
+        )[1].split("END", 1)[0]
+        self.assertIn("ASSERT MANUAL_REVIEW", criterion)
+        self.assertIn(
+            "Verificar manualmente a aplicabilidade da IN 19. "
+            "Instalações elétricas de baixa tensão (IEL) não constam no "
+            "escopo registrado do PPCI/e-SCI.",
+            criterion,
+        )
+        self.assertNotIn("FAIL", criterion)
+        self.assertNotIn("NONCONFORMITY", requirement)
+        self.assertNotIn("DRT_EVIDENCE", requirement)
+
+    def test_in19_c_other_official_smsci_remain_independent(self):
+        resolution = productive_resolution(
+            [self.current_document(("PPE", "SE", "IE", "SAL", "IGC"))],
+            self.current_identifiers(),
+        )
+        self.assertEqual(
+            resolution["process_smsci"],
+            frozenset({
+                "SMSCI_PPE", "SMSCI_SE", "SMSCI_IE", "SMSCI_SAL", "SMSCI_GAS",
+                "SMSCI_IN19_APPLICABILITY_REVIEW",
+            }),
+        )
+        self.assertNotIn("SMSCI_IEL", resolution["process_smsci"])
+
+    def test_in19_d_incomplete_section_remains_architectural_blocker(self):
+        with self.assertRaisesRegex(ArchitecturalBlocker, "section"):
+            productive_resolution(
+                [self.current_document((), structurally_complete=False)],
+                self.current_identifiers(),
+            )
+        self.assertIn(
+            "an ARCHITECTURAL_BLOCKER shall never be converted to its\nmanual review",
+            self.applicability,
+        )
+
+    def test_in19_e_review_scope_is_outside_t1_smsci_worklist(self):
+        scope = productive_resolve(
+            [self.current_document(())], self.current_identifiers()
+        )
+        worklist = set(worklist_for_t1_drt_smsci(scope, self.entities))
+        self.assertIn("SMSCI_IN19_APPLICABILITY_REVIEW", scope)
+        self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", worklist)
+        self.assertNotIn("SMSCI_IEL", worklist)
+        self.assertIn("no iterative DRT unit", self.applicability)
+
+    def test_in19_f_report_uses_manual_review_without_nonconformity(self):
+        criterion = self.table4.split(
+            "CRITERION T4_IN19_APPLICABILITY_REVIEW", 1
+        )[1].split("END", 1)[0]
+        self.assertNotIn("FAIL", criterion)
+        self.assertNotIn("NONCONFORMITY", criterion)
+        self.assertIn("TRATAMENTO HUMANO", self.reports)
+        self.assertIn("resultados MANUAL_REVIEW", self.reports)
+        self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", self.reports)
+
     def test_n_m5_and_other_internal_scopes_are_not_official_or_direct(self):
         for entity in (
             "SMSCI_M5", "SMSCI_SMOKE_CONTROL_MECHANICAL",
             "M5_EXPLOSION_PROTECTION", "M5_DUST_CONTROL", "M5_HEAT_SENSORS",
-            "M5_LIGHTNING_PROTECTION",
+            "M5_LIGHTNING_PROTECTION", "SMSCI_IN19_APPLICABILITY_REVIEW",
         ):
             with self.subTest(entity=entity):
                 self.assertEqual(
@@ -444,7 +561,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         scope = productive_resolve(
             [self.current_document(("PPE",))], self.current_identifiers()
         )
-        self.assertEqual(SyntheticEngine().execute(scope), ("SMSCI_PPE",))
+        self.assertEqual(
+            SyntheticEngine().execute(scope),
+            ("SMSCI_IN19_APPLICABILITY_REVIEW", "SMSCI_PPE"),
+        )
         self.assertIn("Engine consumes PROCESS.SMSCI", self.pipeline)
         self.assertIn("shall never create it", self.pipeline)
         self.assertIn("NO_NEW_SMSCI", self.engine)
@@ -517,6 +637,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertTrue(worklist <= scope)
         self.assertEqual(worklist, {"SMSCI_AI", "SMSCI_PPE", "SMSCI_SE"})
         self.assertNotIn("SMSCI_SDAI", worklist)
+        self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", worklist)
 
     def test_u_closed_phase_boundaries_and_immutability_regression(self):
         for text in (self.applicability, self.pipeline):

@@ -1,7 +1,7 @@
 ###############################################################################
 # BASECONHECIMENTO
 # 02_requirements.txt
-# VERSION 3.1
+# VERSION 3.2
 # REQUISITOS NORMATIVOS ORIENTADOS A RESPONSABILIDADES TÉCNICAS
 #
 # A unidade normativa da arquitetura é a Obrigação Normativa.
@@ -322,6 +322,13 @@ END
 ###############################################################################
 # IN19
 ###############################################################################
+REQUIREMENT REQ_IN19_APPLICABILITY_REVIEW
+TABLE 4
+SMSCI SMSCI_IN19_APPLICABILITY_REVIEW
+SOURCE IN19
+END
+
+-------------------------------------------------------------------------------
 REQUIREMENT REQ_IN19_EXECUTION
 TABLE 4
 SMSCI SMSCI_IEL

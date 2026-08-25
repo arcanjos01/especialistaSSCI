@@ -349,7 +349,7 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         self.assertEqual({path.name for path in KB.glob("*.txt")}, expected_files)
         self.assertEqual(len(CATALOG), 33)
         self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 12)
-        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 22)
+        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 23)
 
 
 if __name__ == "__main__":

@@ -140,6 +140,22 @@ metadata only; it does not create a Requirement, Criterion or Nonconformity.
 Declared foundation: IRV Tabela 4 item IN12; IN12/2024 art. 1, definition in
 art. 4 XII, and art. 47. No area, height or GLP rule is authorized here.
 
+DERIVED RULE: SMSCI_IN19_APPLICABILITY_REVIEW
+
+After all official decisions are complete, preserve SMSCI_IEL as the separate
+official fact and decision. If SMSCI_IEL is positive, record the explicit
+derived negative decision for SMSCI_IN19_APPLICABILITY_REVIEW. If SMSCI_IEL is
+negative because the selected section is complete, legible and verifiable,
+include SMSCI_IN19_APPLICABILITY_REVIEW as the explicit derived internal
+requirement scope and record its positive decision with the same traceability.
+This derived scope selects only the IN19 applicability manual-review
+Requirement/Criterion. It does not represent an SMSCI registered in the
+PPCI/e-SCI, does not create SMSCI_IEL, does not establish that IN19 applies or
+is dispensed, and does not create a Requirement, Criterion or Nonconformity.
+
+No occupation, area, height, population, risk, construction date, transitional
+rule or other external applicability rule is authorized by this derivation.
+
 DERIVED-INTERNAL DEBT
 
 SMSCI_M5, SMSCI_SMOKE_CONTROL_MECHANICAL, M5_EXPLOSION_PROTECTION,
@@ -156,6 +172,9 @@ the Engine, any source-selection ambiguity, documentary insufficiency, unknown
 code, conflict, missing decision or incomplete traceability raises
 ARCHITECTURAL_BLOCKER. No PROCESS.SMSCI is released until all 28 official
 positive/negative decisions and the declared SDAI derivation are complete.
+The declared IN19 applicability-review derivation is completed only after that
+same guard succeeds; an ARCHITECTURAL_BLOCKER shall never be converted to its
+manual review.
 
 PHASE 4B: REQUIREMENT APPLICABILITY RESOLUTION
 
@@ -169,8 +188,10 @@ WORKLIST.SMSCI
 WORKLIST.SMSCI is a transient subset of PROCESS.SMSCI. For exactly
 REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE, it contains every and only official
 positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes derived
-internal requirement scopes, including SMSCI_SDAI, so AI/DAI are not duplicated
-by the SDAI derivation. This is not a general architectural identity.
+internal requirement scopes, including SMSCI_SDAI and
+SMSCI_IN19_APPLICABILITY_REVIEW, so AI/DAI are not duplicated by the SDAI
+derivation and the IN19 applicability review has no iterative DRT unit. This is
+not a general architectural identity.
 
 PHASE 4C: CRITERION SELECTION
 

@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.0
+# VERSION 3.1
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -385,6 +385,24 @@ END
 ###############################################################################
 # IN19
 ###############################################################################
+
+CRITERION T4_IN19_APPLICABILITY_REVIEW
+
+TABLE 4
+
+APPLIES_TO SMSCI_IN19_APPLICABILITY_REVIEW
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_APPLICABILITY_REVIEW
+
+ASSERT MANUAL_REVIEW
+
+MANUAL_REVIEW "Verificar manualmente a aplicabilidade da IN 19. Instalações elétricas de baixa tensão (IEL) não constam no escopo registrado do PPCI/e-SCI."
+
+END
+
+-------------------------------------------------------------------------------
 
 ###############################################################################
 # OBRA NOVA

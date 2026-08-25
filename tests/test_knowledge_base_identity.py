@@ -35,7 +35,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.2\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.3\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.2.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.3.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -142,6 +142,13 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(
             unit_keys("REQ_IN08_MANUAL"),
             ["REQ_IN08_MANUAL, T4_IN08_MANUAL"],
+        )
+        self.assertEqual(
+            unit_keys("REQ_IN19_APPLICABILITY_REVIEW"),
+            [
+                "REQ_IN19_APPLICABILITY_REVIEW, "
+                "T4_IN19_APPLICABILITY_REVIEW"
+            ],
         )
         process_smsci = {
             "SMSCI_PPE", "SMSCI_SE", "SMSCI_IE", "SMSCI_SAL", "SMSCI_GAS"

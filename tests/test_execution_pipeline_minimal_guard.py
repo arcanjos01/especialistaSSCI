@@ -103,6 +103,9 @@ class MinimalGuardContractTests(unittest.TestCase):
             "REQ_IN19_GROUNDING": {"PROCESS.SMSCI": "SMSCI_IEL"},
             "REQ_IN19_FINAL_VERIFICATION": {"PROCESS.SMSCI": "SMSCI_IEL"},
             "REQ_IN19_MAINTENANCE": {"PROCESS.SMSCI": "SMSCI_IEL"},
+            "REQ_IN19_APPLICABILITY_REVIEW": {
+                "PROCESS.SMSCI": "SMSCI_IN19_APPLICABILITY_REVIEW"
+            },
         }
         self.criteria = {
             "REQ_IN12_COMMISSIONING": ("T4_IN12_COMMISSIONING",),
@@ -111,6 +114,9 @@ class MinimalGuardContractTests(unittest.TestCase):
             "REQ_IN19_GROUNDING": ("T4_IN19_GROUNDING",),
             "REQ_IN19_FINAL_VERIFICATION": ("T4_IN19_FINAL_VERIFICATION",),
             "REQ_IN19_MAINTENANCE": ("T4_IN19_MAINTENANCE",),
+            "REQ_IN19_APPLICABILITY_REVIEW": (
+                "T4_IN19_APPLICABILITY_REVIEW",
+            ),
         }
         self.plan = build_plan(self.applicability, self.criteria)
 
@@ -170,6 +176,16 @@ class MinimalGuardContractTests(unittest.TestCase):
             {unit["UNIT_KEY"] for unit in self.plan},
             {(requirement, criterion) for requirement in self.criteria for criterion in self.criteria[requirement]},
         )
+
+    def test_in19_applicability_review_unit_is_non_iterative(self):
+        unit = next(
+            unit for unit in self.plan
+            if unit["UNIT_KEY"] == (
+                "REQ_IN19_APPLICABILITY_REVIEW",
+                "T4_IN19_APPLICABILITY_REVIEW",
+            )
+        )
+        self.assertNotIn("ITERATION_DOMAIN", unit)
 
     def test_omitted_criterion_is_detected(self):
         with self.assertRaises(ExecutionIntegrityError):

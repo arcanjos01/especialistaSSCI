@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.0
+# VERSION 3.1
 ###############################################################################
 
 ###############################################################################
@@ -735,6 +735,21 @@ DETECCAO
 ALARME_DE_INCENDIO
 
 DETECÇÃO_DE_INCÊNDIO
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMSCI_IN19_APPLICABILITY_REVIEW
+
+TYPE SMSCI
+
+APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
+
+NAME
+
+Escopo interno de revisão da aplicabilidade da IN 19; não representa SMSCI
+registrado no PPCI/e-SCI
 
 END
 
