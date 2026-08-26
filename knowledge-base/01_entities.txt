@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.1
+# VERSION 3.2
 ###############################################################################
 
 ###############################################################################
@@ -488,6 +488,8 @@ ENTITY COMPROVANTE_DE_SOLICITACAO_DE_HABITESE
 
 TYPE DOCUMENT
 
+ATTRIBUTE REQUEST_DATE DATE
+
 ATTRIBUTE REQUEST_IDENTIFIER TEXT
 
 ATTRIBUTE PROCESS_IDENTIFIER TEXT
@@ -500,9 +502,12 @@ COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE
 
 DESCRIPTION
 
-Comprovante documental de uma solicitação de Habite-se. Os identificadores
-registrados são fatos documentais e permitem somente sua posterior vinculação
-à solicitação corrente; não determinam aplicabilidade.
+Comprovante documental de uma solicitação de Habite-se. REQUEST_DATE é o fato
+documental extraído exclusivamente do campo "Data da Solicitação" do respectivo
+comprovante de origem; não expressa conclusão, início, previsão ou qualquer
+outro marco da obra. Os identificadores registrados são fatos documentais e
+permitem somente sua posterior vinculação à solicitação corrente; não
+determinam aplicabilidade.
 
 END
 

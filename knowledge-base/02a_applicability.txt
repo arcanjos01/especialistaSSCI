@@ -16,8 +16,11 @@ INPUT AND OUTPUT
 Applicability Resolution consumes only complete, immutable Process Memory,
 the canonical entities of 01_entities and the declared rules below. After the
 completeness guard succeeds, it releases PROCESS.SMSCI,
-APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA. PROCESS.SMSCI shall never be
-emitted partially.
+APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA, plus
+IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. PROCESS.SMSCI shall
+never be emitted partially. IN19_DOCUMENTATION_REGIME is an internal
+applicability-selection value, never an SMSCI, documentary fact, Requirement,
+Criterion or result.
 
 ARCHITECTURAL_BLOCKER is a stop condition before the Engine, not an output
 state or Criterion result. It does not authorize NOT_APPLICABLE,
@@ -57,8 +60,8 @@ traceability is an ARCHITECTURAL_BLOCKER before the Engine and before partial
 PROCESS.SMSCI.
 
 The minimal RDE schema already declared in 01_entities is sufficient for this
-source: the comprovante identifiers; section facts STRUCTURALLY_COMPLETE,
-LEGIBLE and VERIFIABLE; and item facts
+source: the comprovante REQUEST_DATE and identifiers; section facts
+STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE; and item facts
 OFFICIAL_ESCI_CODE, PRESENTED_SYSTEM_MEASURE_DESCRIPTION,
 RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION. source_document remains required by
 Documento 09-RDE; this document does not alter that specification.
@@ -183,6 +186,39 @@ semantics. Requirements with SMSCI metadata are applicable only after complete
 Phase 4A when their target is in PROCESS.SMSCI. Iterative Requirements retain
 their declared form; no Requirement is created or rewritten.
 
+IN19 DOCUMENTATION REGIME RESOLUTION
+
+Only after the explicit positive SMSCI_IEL decision, resolve exactly one
+internal IN19_DOCUMENTATION_REGIME before selecting any IN19 Requirement:
+
+- REQUEST_DATE documentally extracted from the selected comprovante, in a
+  complete, legible, verifiable and safely comparable DATE representation, is
+  less than or equal to 2024-04-24: LEGACY;
+- the same REQUEST_DATE greater than 2024-04-24: CURRENT;
+- absent, incomplete, illegible, unverifiable or not safely comparable
+  REQUEST_DATE: UNRESOLVED.
+
+The only authorized automatic input is the selected comprovante REQUEST_DATE.
+Do not use PPCI, ART/RRT/TRT, atestado, previsão, início, conclusion date,
+textual mention of obra nova or any other document or date. This resolution
+does not change the selected document, PROCESS.SMSCI, WORKLIST.SMSCI or the
+official SMSCI_IEL decision. When SMSCI_IEL is negative, do not resolve an
+IN19_DOCUMENTATION_REGIME and preserve the declared IN19 applicability-review
+path.
+
+For a positive SMSCI_IEL decision, select IN19 Requirements only by their
+declared IN19_DOCUMENTATION_REGIME in addition to their SMSCI metadata:
+
+- CURRENT selects only REQ_IN19_EXECUTION, REQ_IN19_GROUNDING and
+  REQ_IN19_FINAL_VERIFICATION;
+- LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION;
+- UNRESOLVED selects only REQ_IN19_REGIME_REVIEW.
+
+No IN19 Requirement declared for another regime is applicable. A regime is not
+derived from a Criterion result, including UNKNOWN. The required chain is
+SMSCI_IEL -> IN19_DOCUMENTATION_REGIME -> APPLICABLE_REQUIREMENTS ->
+COMPILED_EXECUTION_INDEX -> PLANNED_EXECUTION_UNITS.
+
 WORKLIST.SMSCI
 
 WORKLIST.SMSCI is a transient subset of PROCESS.SMSCI. For exactly
@@ -203,8 +239,8 @@ No Criterion is created or selected by alias, document, similarity or text.
 TRACEABILITY
 
 Source Document -> RDE -> Process Memory -> Applicability Rule ->
-PROCESS.SMSCI -> Requirement -> Criterion -> Result -> Nonconformity when
-applicable.
+PROCESS.SMSCI -> IN19_DOCUMENTATION_REGIME when applicable -> Requirement ->
+Criterion -> Result -> Nonconformity when applicable.
 
 For general Requirements, Applicability Rule and PROCESS.SMSCI are not
 artificially required; preserve their existing documentary traceability and

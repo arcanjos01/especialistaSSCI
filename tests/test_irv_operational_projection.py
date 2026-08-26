@@ -113,7 +113,6 @@ EXPECTED = {
     "NC_T4_012": ("4", "IN 19 - DRT das instalações elétricas de baixa tensão", "Apresentar DRT de execução da instalação elétrica de baixa tensão;"),
     "NC_T4_013": ("4", "IN 19 - DRT das instalações elétricas de baixa tensão", "Apresentar DRT de execução do aterramento da instalação elétrica de baixa tensão;"),
     "NC_T4_014": ("4", "IN 19 - DRT das instalações elétricas de baixa tensão", "Apresentar DRT de verificação final da instalação elétrica de baixa tensão."),
-    "NC_T4_015": ("4", "IN 19 - DRT das instalações elétricas de baixa tensão", "Apresentar DRT de manutenção das instalações elétricas de baixa tensão, emitido nos últimos 5 anos; ou reforma das instalações elétricas de baixa tensão, emitido nos últimos 10 anos."),
     "NC_T4_016_01": ("4", "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas", "Apresentar DRT de execução dos dispositivos contra explosão."),
     "NC_T4_016_02": ("4", "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas", "Apresentar DRT de execução do sistema de controle de poeira."),
     "NC_T4_016_03": ("4", "IN 34 - Para ocupação M-5: DRT de execução dos seguintes sistemas: dispositivos de proteção contra explosão, controle de poeira, sensor de calor, proteção contra descargas atmosféricas", "Apresentar DRT de execução dos sensores de calor."),
@@ -135,10 +134,10 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             self.assertEqual(CATALOG[nc_id]["DESCRIPTION_POLICY"], "MINIMAL_IF_NEEDED")
 
     def test_b_actionable_coverage_and_explicit_non_irv_exceptions(self):
-        self.assertEqual(len(ACTIONABLE), 32)
-        self.assertEqual(len(set(ACTIONABLE)), 32)
+        self.assertEqual(len(ACTIONABLE), 31)
+        self.assertEqual(len(set(ACTIONABLE)), 31)
         mapped_actionable = {nc_id for nc_id in ACTIONABLE if "IRV_TABLE" in CATALOG[nc_id]}
-        self.assertEqual(len(mapped_actionable), 30)
+        self.assertEqual(len(mapped_actionable), 29)
         self.assertEqual(set(ACTIONABLE) - mapped_actionable, NON_IRV_EXCEPTIONS)
         self.assertIn("fonte CONFEA_CREA", NONCONFORMITIES)
         self.assertIn("Nenhum texto aproximado deve ser criado", NONCONFORMITIES)
@@ -153,15 +152,19 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         self.assertEqual({entry["description"] for entry in pending}, {"Não necessário."})
 
     def test_d_in19_keeps_direct_causes_and_pending_entries_distinct(self):
-        ids = ["NC_T4_012", "NC_T4_013", "NC_T4_014", "NC_T4_015"]
+        ids = ["NC_T4_012", "NC_T4_013", "NC_T4_014"]
         pending, human = project(ids)
         self.assertEqual(human, [])
-        self.assertEqual(len(pending), 4)
+        self.assertEqual(len(pending), 3)
         self.assertEqual(len({entry["item"] for entry in pending}), 1)
-        self.assertEqual(len({entry["selection"] for entry in pending}), 4)
+        self.assertEqual(len({entry["selection"] for entry in pending}), 3)
         self.assertTrue(all(entry["subcause"] is None for entry in pending))
-        self.assertIn("manutenção das instalações elétricas", CATALOG["NC_T4_015"]["IRV_CAUSE"])
-        self.assertIn("reforma das instalações elétricas", CATALOG["NC_T4_015"]["IRV_CAUSE"])
+        self.assertNotIn("NC_T4_015", CATALOG)
+
+    def test_d1_in19_manual_reviews_are_human_treatment_not_esci_pending(self):
+        self.assertIn("TRATAMENTO HUMANO", REPORTS)
+        self.assertIn("resultados MANUAL_REVIEW", REPORTS)
+        self.assertNotIn("NC_T4_015", NONCONFORMITIES)
 
     def test_e_in1_basic_data_preserves_parent_and_four_subcauses(self):
         ids = ["NC_T1_006_RI", "NC_T1_006_RT", "NC_T1_006_ADDRESS", "NC_T1_006_AREA"]
@@ -191,12 +194,12 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             {"Não possui registro de emissão no conselho de classe (rascunho, etc).", "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."},
         )
 
-    def test_e2_mapping_cardinality_is_ten_subcauses_and_twenty_one_direct_causes(self):
+    def test_e2_mapping_cardinality_is_ten_subcauses_and_twenty_direct_causes(self):
         mapped = {nc_id: record for nc_id, record in CATALOG.items() if "IRV_TABLE" in record}
         subcause_ids = {nc_id for nc_id, record in mapped.items() if "IRV_SUBCAUSE" in record}
-        self.assertEqual(len(mapped), 31)
+        self.assertEqual(len(mapped), 30)
         self.assertEqual(len(subcause_ids), 10)
-        self.assertEqual(len(set(mapped) - subcause_ids), 21)
+        self.assertEqual(len(set(mapped) - subcause_ids), 20)
         self.assertTrue(all("IRV_SUBCAUSE" not in mapped[nc_id] for nc_id in set(mapped) - subcause_ids))
 
     def test_e3_direct_cause_coverage_has_no_artificial_subcause(self):
@@ -347,9 +350,9 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             "08_execution_pipeline.txt", "09_Especificacao_da_RDE.txt",
         }
         self.assertEqual({path.name for path in KB.glob("*.txt")}, expected_files)
-        self.assertEqual(len(CATALOG), 33)
+        self.assertEqual(len(CATALOG), 32)
         self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 12)
-        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 23)
+        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 24)
 
 
 if __name__ == "__main__":

@@ -102,7 +102,14 @@ class MinimalGuardContractTests(unittest.TestCase):
             "REQ_IN19_EXECUTION": {"PROCESS.SMSCI": "SMSCI_IEL"},
             "REQ_IN19_GROUNDING": {"PROCESS.SMSCI": "SMSCI_IEL"},
             "REQ_IN19_FINAL_VERIFICATION": {"PROCESS.SMSCI": "SMSCI_IEL"},
-            "REQ_IN19_MAINTENANCE": {"PROCESS.SMSCI": "SMSCI_IEL"},
+            "REQ_IN19_LEGACY_DOCUMENTATION": {
+                "PROCESS.SMSCI": "SMSCI_IEL",
+                "IN19_DOCUMENTATION_REGIME": "LEGACY",
+            },
+            "REQ_IN19_REGIME_REVIEW": {
+                "PROCESS.SMSCI": "SMSCI_IEL",
+                "IN19_DOCUMENTATION_REGIME": "UNRESOLVED",
+            },
             "REQ_IN19_APPLICABILITY_REVIEW": {
                 "PROCESS.SMSCI": "SMSCI_IN19_APPLICABILITY_REVIEW"
             },
@@ -113,7 +120,10 @@ class MinimalGuardContractTests(unittest.TestCase):
             "REQ_IN19_EXECUTION": ("T4_IN19_EXECUTION",),
             "REQ_IN19_GROUNDING": ("T4_IN19_GROUNDING",),
             "REQ_IN19_FINAL_VERIFICATION": ("T4_IN19_FINAL_VERIFICATION",),
-            "REQ_IN19_MAINTENANCE": ("T4_IN19_MAINTENANCE",),
+            "REQ_IN19_LEGACY_DOCUMENTATION": (
+                "T4_IN19_LEGACY_DOCUMENTATION",
+            ),
+            "REQ_IN19_REGIME_REVIEW": ("T4_IN19_REGIME_REVIEW",),
             "REQ_IN19_APPLICABILITY_REVIEW": (
                 "T4_IN19_APPLICABILITY_REVIEW",
             ),
@@ -186,6 +196,62 @@ class MinimalGuardContractTests(unittest.TestCase):
             )
         )
         self.assertNotIn("ITERATION_DOMAIN", unit)
+
+    def test_in19_regime_units_enter_closed_plan_and_reconcile(self):
+        keys = {unit["UNIT_KEY"] for unit in self.plan}
+        self.assertIn(
+            ("REQ_IN19_LEGACY_DOCUMENTATION", "T4_IN19_LEGACY_DOCUMENTATION"),
+            keys,
+        )
+        self.assertIn(
+            ("REQ_IN19_REGIME_REVIEW", "T4_IN19_REGIME_REVIEW"), keys
+        )
+        validate_plan(self.applicability, self.criteria, self.plan)
+
+    def test_phase4c_consumes_exactly_one_preselected_in19_branch(self):
+        branches = {
+            "CURRENT": {
+                "REQ_IN19_EXECUTION": ("T4_IN19_EXECUTION",),
+                "REQ_IN19_GROUNDING": ("T4_IN19_GROUNDING",),
+                "REQ_IN19_FINAL_VERIFICATION": (
+                    "T4_IN19_FINAL_VERIFICATION",
+                ),
+            },
+            "LEGACY": {
+                "REQ_IN19_LEGACY_DOCUMENTATION": (
+                    "T4_IN19_LEGACY_DOCUMENTATION",
+                ),
+            },
+            "UNRESOLVED": {
+                "REQ_IN19_REGIME_REVIEW": ("T4_IN19_REGIME_REVIEW",),
+            },
+        }
+        for regime, criteria in branches.items():
+            with self.subTest(regime=regime):
+                applicability = {
+                    requirement: {"IN19_DOCUMENTATION_REGIME": regime}
+                    for requirement in criteria
+                }
+                plan = build_plan(applicability, criteria)
+                validate_plan(applicability, criteria, plan)
+                self.assertEqual(
+                    {unit["UNIT_KEY"][0] for unit in plan}, set(criteria)
+                )
+
+    def test_worklist_smsci_contract_remains_unchanged_for_54a(self):
+        applicability = (BASE / "02a_applicability.txt").read_text()
+        table1 = (BASE / "03_table1.txt").read_text()
+        worklist_block = applicability.split(
+            "WORKLIST.SMSCI", 1
+        )[1].split("PHASE 4C", 1)[0]
+        self.assertIn(
+            "REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE", worklist_block
+        )
+        self.assertIn("every and only official", worklist_block)
+        self.assertIn("FOR_EACH WORKLIST.SMSCI", table1)
+        self.assertIn(
+            "RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI", table1
+        )
 
     def test_omitted_criterion_is_detected(self):
         with self.assertRaises(ExecutionIntegrityError):

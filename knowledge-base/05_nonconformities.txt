@@ -1,6 +1,6 @@
 ###############################################################################
 # 05_nonconformities.dsl
-# VERSION 3.0
+# VERSION 3.1
 # Catálogo canônico e rastreável de não conformidades
 #
 # PROJEÇÃO OPERACIONAL IRV
@@ -391,20 +391,6 @@ CAUSE "Apresentar DRT de verificação final da instalação elétrica de baixa 
 IRV_TABLE 4
 IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
 IRV_CAUSE "Apresentar DRT de verificação final da instalação elétrica de baixa tensão."
-DESCRIPTION_POLICY MINIMAL_IF_NEEDED
-END
-
-NONCONFORMITY NC_T4_015
-TABLE 4
-SOURCE IN19
-REF_CRITERION T4_IN19_MAINTENANCE
-REF_REQUIREMENT REQ_IN19_MAINTENANCE
-SEVERITY DOCUMENTAL
-CATEGORY HABITESE
-CAUSE "Apresentar DRT de manutenção (5 anos) ou reforma (10 anos) da instalação elétrica de baixa tensão."
-IRV_TABLE 4
-IRV_CRITERION "IN 19 - DRT das instalações elétricas de baixa tensão"
-IRV_CAUSE "Apresentar DRT de manutenção das instalações elétricas de baixa tensão, emitido nos últimos 5 anos; ou reforma das instalações elétricas de baixa tensão, emitido nos últimos 10 anos."
 DESCRIPTION_POLICY MINIMAL_IF_NEEDED
 END
 

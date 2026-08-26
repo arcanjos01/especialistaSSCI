@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.1
+# VERSION 3.2
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -405,7 +405,7 @@ END
 -------------------------------------------------------------------------------
 
 ###############################################################################
-# OBRA NOVA
+# REGIME CURRENT
 ###############################################################################
 
 CRITERION T4_IN19_EXECUTION
@@ -467,10 +467,10 @@ FAIL NC_T4_014
 END
 
 ###############################################################################
-# EDIFICAÇÃO EXISTENTE
+# REGIME LEGACY
 ###############################################################################
 
-CRITERION T4_IN19_MAINTENANCE
+CRITERION T4_IN19_LEGACY_DOCUMENTATION
 
 TABLE 4
 
@@ -478,17 +478,35 @@ APPLIES_TO SMSCI_IEL
 
 SOURCE IN19
 
-REQUIREMENT REQ_IN19_MAINTENANCE
+REQUIREMENT REQ_IN19_LEGACY_DOCUMENTATION
+
+REQUIRE DOCUMENT LOW_VOLTAGE_EXECUTION_DRT
 
 ASSERT
 
-EXISTS(LOW_VOLTAGE_MAINTENANCE_DRT)
+EXISTS(LOW_VOLTAGE_EXECUTION_DRT)
 
-OR
+OR MANUAL_REVIEW
 
-EXISTS(LOW_VOLTAGE_RENOVATION_DRT)
+MANUAL_REVIEW "Verificar manualmente a documentação substitutiva da IN 19 para imóvel em regime diferenciado, incluindo enquadramento e validade de eventual DRT de manutenção ou reforma."
 
-FAIL NC_T4_015
+END
+
+-------------------------------------------------------------------------------
+
+CRITERION T4_IN19_REGIME_REVIEW
+
+TABLE 4
+
+APPLIES_TO SMSCI_IEL
+
+SOURCE IN19
+
+REQUIREMENT REQ_IN19_REGIME_REVIEW
+
+ASSERT MANUAL_REVIEW
+
+MANUAL_REVIEW "Verificar manualmente o regime documental aplicável à IN 19."
 
 END
 

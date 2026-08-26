@@ -4,6 +4,7 @@ The small resolver below models only declared catalog semantics so the tests can
 verify the documentary boundary without turning the Engine into a resolver.
 """
 
+from datetime import date
 from pathlib import Path
 import unittest
 
@@ -27,10 +28,34 @@ OFFICIAL_MAP = {
 STRONG_REQUEST_IDENTIFIERS = frozenset({
     "REQUEST_IDENTIFIER", "PROTOCOL_IDENTIFIER",
 })
+IN19_VIGENCY = date(2024, 4, 24)
 
 
 class ArchitecturalBlocker(RuntimeError):
     """Synthetic pre-Engine interruption; not a global execution state."""
+
+
+def in19_documentation_regime(document, decisions):
+    """Resolve only the declared pre-execution IN19 selection value."""
+    if decisions["SMSCI_IEL"] != "POSITIVE":
+        return None
+    if document.get("request_date_verifiable") is not True:
+        return "UNRESOLVED"
+    request_date = document.get("request_date")
+    if not isinstance(request_date, str):
+        return "UNRESOLVED"
+    try:
+        parsed = date.fromisoformat(request_date)
+    except ValueError:
+        return "UNRESOLVED"
+    if request_date != parsed.isoformat():
+        return "UNRESOLVED"
+    return "LEGACY" if parsed <= IN19_VIGENCY else "CURRENT"
+
+
+def legacy_documentation_result(execution_drt_exists):
+    """Model EXISTS(execution DRT) OR MANUAL_REVIEW without a FAIL path."""
+    return "PASS" if execution_drt_exists is True else "MANUAL_REVIEW"
 
 
 def productive_resolution(documents, current_identifiers):
@@ -83,9 +108,11 @@ def productive_resolution(documents, current_identifiers):
         decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "POSITIVE"
     else:
         decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "NEGATIVE"
+    regime = in19_documentation_regime(document, decisions)
     return {
         "process_smsci": frozenset(scope),
         "decisions": decisions,
+        "in19_documentation_regime": regime,
         "trace": trace,
     }
 
@@ -115,9 +142,15 @@ def requirement_metadata(text):
     for line in text.splitlines():
         if line.startswith("REQUIREMENT "):
             current = line.split(maxsplit=1)[1]
-            records[current] = None
-        elif current and line.startswith("SMSCI "):
-            records[current] = line.split(maxsplit=1)[1]
+            records[current] = {
+                "SMSCI": None,
+                "IN19_DOCUMENTATION_REGIME": None,
+            }
+        elif current and line.startswith((
+            "SMSCI ", "IN19_DOCUMENTATION_REGIME ",
+        )):
+            key, value = line.split(maxsplit=1)
+            records[current][key] = value
         elif current and line == "END":
             current = None
     return records
@@ -136,11 +169,15 @@ def criterion_requirements(*texts):
     return records
 
 
-def applicable_requirement_ids(metadata, process_smsci):
+def applicable_requirement_ids(metadata, process_smsci, in19_regime=None):
     return {
         requirement_id
-        for requirement_id, smsci in metadata.items()
-        if smsci is None or smsci in process_smsci
+        for requirement_id, fields in metadata.items()
+        if (fields["SMSCI"] is None or fields["SMSCI"] in process_smsci)
+        and (
+            fields["IN19_DOCUMENTATION_REGIME"] is None
+            or fields["IN19_DOCUMENTATION_REGIME"] == in19_regime
+        )
     }
 
 
@@ -200,6 +237,8 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             "legible": True,
             "verifiable": True,
             "official_codes": tuple(codes),
+            "request_date": "2026-08-03",
+            "request_date_verifiable": True,
             "trace": {
                 "process_memory_fact": "PM.COMPROVANTE.REQ-1.SMSCI",
                 "rde_record": "RDE.COMPROVANTE.REQ-1.SMSCI",
@@ -440,32 +479,13 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertIn("If both are negative", self.applicability)
         self.assertIn("Preserve AI and DAI", self.pipeline)
 
-    def test_in19_a_iel_present_preserves_current_in19_scope(self):
-        resolution = productive_resolution(
-            [self.current_document(("IEL",))], self.current_identifiers()
-        )
-        scope = resolution["process_smsci"]
-        self.assertIn("SMSCI_IEL", scope)
-        self.assertEqual(resolution["decisions"]["SMSCI_IEL"], "POSITIVE")
-        self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", scope)
-        self.assertEqual(
-            resolution["decisions"]["SMSCI_IN19_APPLICABILITY_REVIEW"],
-            "NEGATIVE",
-        )
-        applicable = applicable_requirement_ids(self.requirement_records, scope)
-        for requirement_id in (
-            "REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING",
-            "REQ_IN19_FINAL_VERIFICATION", "REQ_IN19_MAINTENANCE",
-        ):
-            self.assertIn(requirement_id, applicable)
-        self.assertNotIn("REQ_IN19_APPLICABILITY_REVIEW", applicable)
-
-    def test_in19_b_iel_absent_selects_only_manual_review(self):
+    def test_in19_54a_a_iel_absent_preserves_53_without_regime(self):
         resolution = productive_resolution(
             [self.current_document(())], self.current_identifiers()
         )
         scope = resolution["process_smsci"]
         self.assertEqual(resolution["decisions"]["SMSCI_IEL"], "NEGATIVE")
+        self.assertIsNone(resolution["in19_documentation_regime"])
         self.assertNotIn("SMSCI_IEL", scope)
         self.assertEqual(
             resolution["decisions"]["SMSCI_IN19_APPLICABILITY_REVIEW"],
@@ -476,11 +496,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         selected = selected_criterion_ids(self.criterion_records, applicable)
         self.assertIn("REQ_IN19_APPLICABILITY_REVIEW", applicable)
         self.assertIn("T4_IN19_APPLICABILITY_REVIEW", selected)
-        for requirement_id in (
-            "REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING",
-            "REQ_IN19_FINAL_VERIFICATION", "REQ_IN19_MAINTENANCE",
-        ):
-            self.assertNotIn(requirement_id, applicable)
+        self.assertEqual(
+            {item for item in applicable if item.startswith("REQ_IN19_")},
+            {"REQ_IN19_APPLICABILITY_REVIEW"},
+        )
         criterion = self.table4.split(
             "CRITERION T4_IN19_APPLICABILITY_REVIEW", 1
         )[1].split("END", 1)[0]
@@ -498,7 +517,177 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertNotIn("NONCONFORMITY", requirement)
         self.assertNotIn("DRT_EVIDENCE", requirement)
 
-    def test_in19_c_other_official_smsci_remain_independent(self):
+    def test_in19_54a_b_current_selects_only_three_ordinary_requirements(self):
+        resolution = productive_resolution(
+            [self.current_document(("IEL",), request_date="2026-08-03")],
+            self.current_identifiers(),
+        )
+        applicable = applicable_requirement_ids(
+            self.requirement_records,
+            resolution["process_smsci"],
+            resolution["in19_documentation_regime"],
+        )
+        self.assertEqual(resolution["in19_documentation_regime"], "CURRENT")
+        self.assertEqual(
+            {item for item in applicable if item.startswith("REQ_IN19_")},
+            {
+                "REQ_IN19_EXECUTION",
+                "REQ_IN19_GROUNDING",
+                "REQ_IN19_FINAL_VERIFICATION",
+            },
+        )
+        self.assertNotIn("REQ_IN19_LEGACY_DOCUMENTATION", applicable)
+        self.assertNotIn("REQ_IN19_REGIME_REVIEW", applicable)
+
+    def test_in19_54a_c_legacy_boundary_selects_only_legacy(self):
+        for request_date in ("2024-04-23", "2024-04-24"):
+            with self.subTest(request_date=request_date):
+                resolution = productive_resolution(
+                    [self.current_document(("IEL",), request_date=request_date)],
+                    self.current_identifiers(),
+                )
+                applicable = applicable_requirement_ids(
+                    self.requirement_records,
+                    resolution["process_smsci"],
+                    resolution["in19_documentation_regime"],
+                )
+                self.assertEqual(
+                    resolution["in19_documentation_regime"], "LEGACY"
+                )
+                self.assertEqual(
+                    {
+                        item for item in applicable
+                        if item.startswith("REQ_IN19_")
+                    },
+                    {"REQ_IN19_LEGACY_DOCUMENTATION"},
+                )
+                for requirement in (
+                    "REQ_IN19_EXECUTION",
+                    "REQ_IN19_GROUNDING",
+                    "REQ_IN19_FINAL_VERIFICATION",
+                    "REQ_IN19_REGIME_REVIEW",
+                ):
+                    self.assertNotIn(requirement, applicable)
+
+    def test_in19_54a_d_legacy_execution_passes_other_paths_review(self):
+        self.assertEqual(legacy_documentation_result(True), "PASS")
+        for execution_drt_exists in (False, None):
+            self.assertEqual(
+                legacy_documentation_result(execution_drt_exists),
+                "MANUAL_REVIEW",
+            )
+        criterion = self.table4.split(
+            "CRITERION T4_IN19_LEGACY_DOCUMENTATION", 1
+        )[1].split("END", 1)[0]
+        requirement = self.requirements.split(
+            "REQUIREMENT REQ_IN19_LEGACY_DOCUMENTATION", 1
+        )[1].split("END", 1)[0]
+        self.assertIn("EXISTS(LOW_VOLTAGE_EXECUTION_DRT)", criterion)
+        self.assertIn("OR MANUAL_REVIEW", criterion)
+        self.assertNotIn("FAIL", criterion)
+        self.assertNotIn("NONCONFORMITY", requirement)
+        self.assertIn(
+            "EXECUTION_OR_MAINTENANCE_5_YEARS_OR_REFORMA_10_YEARS",
+            requirement,
+        )
+        self.assertNotIn("REGULARIZACAO", requirement)
+        self.assertNotIn("RT_016", requirement)
+        self.assertIn(
+            "Verificar manualmente a documentação substitutiva da IN 19",
+            criterion,
+        )
+
+    def test_in19_54a_e_unresolved_selects_only_regime_review(self):
+        cases = (
+            {"request_date": None},
+            {"request_date": "24/04/2024"},
+            {"request_date": "2024-02-30"},
+            {"request_date_verifiable": False},
+        )
+        for attributes in cases:
+            with self.subTest(attributes=attributes):
+                resolution = productive_resolution(
+                    [self.current_document(("IEL",), **attributes)],
+                    self.current_identifiers(),
+                )
+                applicable = applicable_requirement_ids(
+                    self.requirement_records,
+                    resolution["process_smsci"],
+                    resolution["in19_documentation_regime"],
+                )
+                self.assertEqual(
+                    resolution["in19_documentation_regime"], "UNRESOLVED"
+                )
+                self.assertEqual(
+                    {
+                        item for item in applicable
+                        if item.startswith("REQ_IN19_")
+                    },
+                    {"REQ_IN19_REGIME_REVIEW"},
+                )
+        criterion = self.table4.split(
+            "CRITERION T4_IN19_REGIME_REVIEW", 1
+        )[1].split("END", 1)[0]
+        self.assertIn("ASSERT MANUAL_REVIEW", criterion)
+        self.assertNotIn("FAIL", criterion)
+        self.assertIn(
+            "Verificar manualmente o regime documental aplicável à IN 19.",
+            criterion,
+        )
+
+    def test_in19_54a_f_exactly_one_branch_for_positive_iel(self):
+        cases = {
+            "CURRENT": "2024-04-25",
+            "LEGACY": "2024-04-24",
+            "UNRESOLVED": None,
+        }
+        expected = {
+            "CURRENT": {
+                "REQ_IN19_EXECUTION",
+                "REQ_IN19_GROUNDING",
+                "REQ_IN19_FINAL_VERIFICATION",
+            },
+            "LEGACY": {"REQ_IN19_LEGACY_DOCUMENTATION"},
+            "UNRESOLVED": {"REQ_IN19_REGIME_REVIEW"},
+        }
+        for regime, request_date in cases.items():
+            with self.subTest(regime=regime):
+                resolution = productive_resolution(
+                    [self.current_document(("IEL",), request_date=request_date)],
+                    self.current_identifiers(),
+                )
+                applicable = applicable_requirement_ids(
+                    self.requirement_records,
+                    resolution["process_smsci"],
+                    resolution["in19_documentation_regime"],
+                )
+                self.assertEqual(resolution["in19_documentation_regime"], regime)
+                self.assertEqual(
+                    {
+                        item for item in applicable
+                        if item.startswith("REQ_IN19_")
+                    },
+                    expected[regime],
+                )
+
+    def test_in19_54a_g_incomplete_section_blocks_before_regime(self):
+        with self.assertRaisesRegex(ArchitecturalBlocker, "section"):
+            productive_resolution(
+                [
+                    self.current_document(
+                        ("IEL",), structurally_complete=False,
+                        request_date=None,
+                    )
+                ],
+                self.current_identifiers(),
+            )
+        self.assertIn(
+            "an ARCHITECTURAL_BLOCKER shall never be converted to its\n"
+            "manual review",
+            self.applicability,
+        )
+
+    def test_in19_54a_h_other_official_smsci_remain_independent(self):
         resolution = productive_resolution(
             [self.current_document(("PPE", "SE", "IE", "SAL", "IGC"))],
             self.current_identifiers(),
@@ -512,18 +701,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         )
         self.assertNotIn("SMSCI_IEL", resolution["process_smsci"])
 
-    def test_in19_d_incomplete_section_remains_architectural_blocker(self):
-        with self.assertRaisesRegex(ArchitecturalBlocker, "section"):
-            productive_resolution(
-                [self.current_document((), structurally_complete=False)],
-                self.current_identifiers(),
-            )
-        self.assertIn(
-            "an ARCHITECTURAL_BLOCKER shall never be converted to its\nmanual review",
-            self.applicability,
-        )
-
-    def test_in19_e_review_scope_is_outside_t1_smsci_worklist(self):
+    def test_in19_54a_i_review_scope_is_outside_t1_smsci_worklist(self):
         scope = productive_resolve(
             [self.current_document(())], self.current_identifiers()
         )
@@ -533,15 +711,88 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertNotIn("SMSCI_IEL", worklist)
         self.assertIn("no iterative DRT unit", self.applicability)
 
-    def test_in19_f_report_uses_manual_review_without_nonconformity(self):
-        criterion = self.table4.split(
-            "CRITERION T4_IN19_APPLICABILITY_REVIEW", 1
-        )[1].split("END", 1)[0]
-        self.assertNotIn("FAIL", criterion)
-        self.assertNotIn("NONCONFORMITY", criterion)
+    def test_in19_54a_j_manual_reviews_use_human_treatment_without_nc(self):
+        for criterion_id in (
+            "T4_IN19_APPLICABILITY_REVIEW",
+            "T4_IN19_LEGACY_DOCUMENTATION",
+            "T4_IN19_REGIME_REVIEW",
+        ):
+            criterion = self.table4.split(
+                f"CRITERION {criterion_id}", 1
+            )[1].split("END", 1)[0]
+            self.assertNotIn("FAIL", criterion)
         self.assertIn("TRATAMENTO HUMANO", self.reports)
         self.assertIn("resultados MANUAL_REVIEW", self.reports)
         self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", self.reports)
+
+    def test_in19_54a_k_only_request_date_is_authorized(self):
+        unresolved = productive_resolution(
+            [
+                self.current_document(
+                    ("IEL",),
+                    request_date=None,
+                    ppci_date="2019-01-01",
+                    art_date="2019-01-01",
+                    construction_attestation_date="2019-01-01",
+                    situation="NOVA",
+                )
+            ],
+            self.current_identifiers(),
+        )
+        self.assertEqual(
+            unresolved["in19_documentation_regime"], "UNRESOLVED"
+        )
+        self.assertIn("ATTRIBUTE REQUEST_DATE DATE", self.entities_text)
+        for prohibited in (
+            "PPCI, ART/RRT/TRT",
+            "atestado",
+            "previsão",
+            "textual mention of obra nova",
+        ):
+            self.assertIn(prohibited, self.applicability)
+
+    def test_in19_54a_l_etc_and_renata_textual_minimal_fixtures(self):
+        fixtures = {
+            "ETC-10": "Data da Solicitação: 03/08/2026\nSMSCI: IEL",
+            "Renata": "Data da Solicitação: 12/08/2026\nSMSCI:",
+        }
+
+        def extracted_fixture(name):
+            text = fixtures[name]
+            raw_date = text.split(
+                "Data da Solicitação: ", 1
+            )[1].splitlines()[0]
+            day, month, year = raw_date.split("/")
+            return self.current_document(
+                ("IEL",) if "SMSCI: IEL" in text else (),
+                request_date=f"{year}-{month}-{day}",
+            )
+
+        etc = productive_resolution(
+            [extracted_fixture("ETC-10")], self.current_identifiers()
+        )
+        renata = productive_resolution(
+            [extracted_fixture("Renata")], self.current_identifiers()
+        )
+        etc_applicable = applicable_requirement_ids(
+            self.requirement_records,
+            etc["process_smsci"],
+            etc["in19_documentation_regime"],
+        )
+        self.assertEqual(etc["in19_documentation_regime"], "CURRENT")
+        self.assertEqual(
+            {
+                item for item in etc_applicable
+                if item.startswith("REQ_IN19_")
+            },
+            {
+                "REQ_IN19_EXECUTION",
+                "REQ_IN19_GROUNDING",
+                "REQ_IN19_FINAL_VERIFICATION",
+            },
+        )
+        self.assertIsNone(renata["in19_documentation_regime"])
+        self.assertEqual(renata["decisions"]["SMSCI_IEL"], "NEGATIVE")
 
     def test_n_m5_and_other_internal_scopes_are_not_official_or_direct(self):
         for entity in (

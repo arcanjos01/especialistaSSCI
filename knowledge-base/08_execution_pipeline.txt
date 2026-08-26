@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.6.0
+# DOCUMENT_VERSION: 4.7.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.3.0
+KNOWLEDGE_BASE_VERSION: 5.4.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
 00_engine.txt: DOCUMENT_VERSION 4.0.0
-01_entities.txt: DOCUMENT_VERSION 3.1.0
-02_requirements.txt: DOCUMENT_VERSION 3.2.0
-02a_applicability.txt: DOCUMENT_VERSION 1.2.0
+01_entities.txt: DOCUMENT_VERSION 3.2.0
+02_requirements.txt: DOCUMENT_VERSION 3.3.0
+02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.2.0
-04_table4.txt: DOCUMENT_VERSION 3.1.0
-05_nonconformities.txt: DOCUMENT_VERSION 3.0.0
-06_reports.txt: DOCUMENT_VERSION 2.3.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.6.0
+04_table4.txt: DOCUMENT_VERSION 3.2.0
+05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
+06_reports.txt: DOCUMENT_VERSION 2.4.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.7.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -193,8 +193,8 @@ They are only documentary evidence.
 
 For COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, identified only when the presented
 document type is exactly "COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE", extract
-fact-only the documentally verifiable REQUEST_IDENTIFIER, PROCESS_IDENTIFIER
-and PROTOCOL_IDENTIFIER; the
+fact-only the documentally verifiable REQUEST_DATE, REQUEST_IDENTIFIER,
+PROCESS_IDENTIFIER and PROTOCOL_IDENTIFIER; the
 section SISTEMAS_E_MEDIDAS_DE_SEGURANCA and its directly verifiable
 STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE properties; and each item
 OFFICIAL_ESCI_CODE,
@@ -418,11 +418,26 @@ END PHASE 4A.
 Only after Phase 4A completes, determine APPLICABLE_REQUIREMENTS from the
 resolved PROCESS.SMSCI and existing Requirement metadata.
 
+After an explicit positive SMSCI_IEL decision, resolve exactly one internal
+IN19_DOCUMENTATION_REGIME from only the REQUEST_DATE extracted from the
+selected comprovante: REQUEST_DATE <= 2024-04-24 is LEGACY; REQUEST_DATE >
+2024-04-24 is CURRENT; absent, unverified or not safely comparable REQUEST_DATE
+is UNRESOLVED. Do not use PPCI, ART/RRT/TRT, atestado, previsão, início,
+conclusion date or textual mention of obra nova. SMSCI_IEL negative preserves
+the declared IN19 applicability-review path and does not resolve a regime.
+
 Requirements without SMSCI metadata retain their declared applicability
 semantics and shall not be filtered through PROCESS.SMSCI.
 
 Requirements with SMSCI metadata are applicable only when their declared
 target is present in PROCESS.SMSCI.
+
+For positive SMSCI_IEL, additionally select IN19 Requirements only when their
+declared IN19_DOCUMENTATION_REGIME equals the resolved value: CURRENT selects
+only REQ_IN19_EXECUTION, REQ_IN19_GROUNDING and REQ_IN19_FINAL_VERIFICATION;
+LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION; UNRESOLVED selects only
+REQ_IN19_REGIME_REVIEW. A Criterion result, including UNKNOWN, shall never
+resolve or reconstruct the regime.
 
 Iterative Requirements retain their declared form.
 
@@ -447,7 +462,8 @@ END PHASE 4B.
 
 INPUT: APPLICABLE_REQUIREMENTS and the release-derived
 COMPILED_EXECUTION_INDEX. Freeze APPLICABLE_REQUIREMENTS and consume it only;
-do not recalculate, reinterpret or modify Applicability.
+do not recalculate, reinterpret or modify Applicability or
+IN19_DOCUMENTATION_REGIME.
 
 Materialize the ordered, closed and immutable PLANNED_EXECUTION_UNITS as a
 local procedure:
