@@ -1,0 +1,76 @@
+{
+  "counts": {
+    "requirements": 30,
+    "criteria": 36,
+    "nonconformities": 32,
+    "entities": 84,
+    "rt_referenced": 7,
+    "rt_official_entries": 0,
+    "tracked_files": 31,
+    "local_case_files": 15
+  },
+  "requirements_without_criterion": [],
+  "criteria_orphan": [],
+  "nc_without_fail": [
+    "NC_T4_018"
+  ],
+  "criterion_fail_to_missing_nc": [],
+  "nc_orphan_refs": [],
+  "missing_document_definitions": [
+    {
+      "document_symbol": "PRESSURIZATION_DRT",
+      "criterion": "T4_IN09_DRT",
+      "location": "knowledge-base/04_table4.txt:158",
+      "occurrences_in_entities": 0
+    },
+    {
+      "document_symbol": "PRESSURIZATION_TEST_REPORT",
+      "criterion": "T4_IN09_TEST_REPORT",
+      "location": "knowledge-base/04_table4.txt:186",
+      "occurrences_in_entities": 0
+    },
+    {
+      "document_symbol": "PRESSURIZATION_OPERATION_MANUAL",
+      "criterion": "T4_IN09_MANUAL",
+      "location": "knowledge-base/04_table4.txt:216",
+      "occurrences_in_entities": 0
+    },
+    {
+      "document_symbol": "PRESSURIZATION_MAINTENANCE_CHECKLIST",
+      "criterion": "T4_IN09_CHECKLIST",
+      "location": "knowledge-base/04_table4.txt:238",
+      "occurrences_in_entities": 0
+    },
+    {
+      "document_symbol": "SMOKE_CONTROL_COMMISSIONING_REPORT",
+      "criterion": "T4_IN10_COMMISSIONING",
+      "location": "knowledge-base/04_table4.txt:262",
+      "occurrences_in_entities": 0
+    },
+    {
+      "document_symbol": "SPRINKLER_COMMISSIONING_REPORT",
+      "criterion": "T4_IN15_COMMISSIONING",
+      "location": "knowledge-base/04_table4.txt:335",
+      "occurrences_in_entities": 0
+    }
+  ],
+  "duplicates": {
+    "requirements": [],
+    "criteria": [],
+    "ncs": [],
+    "entities": []
+  },
+  "requirement_nc_to_missing_definition": [
+    "NC_T1_003_SIGNED"
+  ],
+  "missing_function_contracts": [
+    "RESPONSIBILITY_ACTIVITY_COMPATIBLE",
+    "RESPONSIBILITY_EVIDENCE_ATTRIBUTE",
+    "RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE",
+    "RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE",
+    "RESPONSIBILITY_HAS_TECHNICAL_PRODUCT",
+    "RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI"
+  ],
+  "additional_undeclared_technical_product": "CONFORMITY_REPORT",
+  "release_5_4_0_files_identical_to_baseline_build": 10
+}

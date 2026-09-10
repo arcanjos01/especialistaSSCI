@@ -1,0 +1,13 @@
+requirement,product,entity_declared,location
+REQ_T1_CONFORMITY_REPORT,CONFORMITY_REPORT,False,knowledge-base/02_requirements.txt:87
+REQ_T1_CONFORMITY_REPORT_SIGNED,CONFORMITY_REPORT,False,knowledge-base/02_requirements.txt:99
+REQ_IN07_COMMISSIONING,SHP_COMMISSIONING_REPORT,True,knowledge-base/02_requirements.txt:131
+REQ_IN08_ESTANQUEIDADE,GAS_TIGHTNESS_REPORT,True,knowledge-base/02_requirements.txt:149
+REQ_IN08_MANUAL,GAS_OWNER_MANUAL,True,knowledge-base/02_requirements.txt:166
+REQ_IN09_TEST_REPORT,PRESSURIZATION_TEST_REPORT,False,knowledge-base/02_requirements.txt:201
+REQ_IN09_MANUAL,PRESSURIZATION_OPERATION_MANUAL,False,knowledge-base/02_requirements.txt:220
+REQ_IN09_CHECKLIST,PRESSURIZATION_MAINTENANCE_CHECKLIST,False,knowledge-base/02_requirements.txt:234
+REQ_IN10_COMMISSIONING,SMOKE_CONTROL_COMMISSIONING_REPORT,False,knowledge-base/02_requirements.txt:252
+REQ_IN12_COMMISSIONING,SDAI_COMMISSIONING_REPORT,True,knowledge-base/02_requirements.txt:271
+REQ_IN15_COMMISSIONING,SPRINKLER_COMMISSIONING_REPORT,False,knowledge-base/02_requirements.txt:289
+REQ_IN18_CMAR,CMAR_DECLARATION,True,knowledge-base/02_requirements.txt:307

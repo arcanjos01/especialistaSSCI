@@ -1,0 +1,164 @@
+[
+  {
+    "file": "audit-cases/etc10/CBMSC_03-08-2026_15731490.pdf",
+    "text_file": "/tmp/astra-local-case-01.txt",
+    "returncode": 0,
+    "characters": 9385,
+    "pages": 2,
+    "comprovante": true,
+    "markers": [
+      "Data da Solicitação",
+      "SISTEMAS E MEDIDAS",
+      "IEL"
+    ]
+  },
+  {
+    "file": "audit-cases/etc10/DOC_AUXILIO_03-08-2026_15731491.pdf",
+    "text_file": "/tmp/astra-local-case-02.txt",
+    "returncode": 0,
+    "characters": 1922,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/etc10/DRT_EXC_03-08-2026_15731484_ART_10548378_9_Incendio_assinado.pdf",
+    "text_file": "/tmp/astra-local-case-03.txt",
+    "returncode": 0,
+    "characters": 6147,
+    "pages": 1,
+    "comprovante": false,
+    "markers": [
+      "Projeto"
+    ]
+  },
+  {
+    "file": "audit-cases/etc10/RLT_CONFORMIDADE_03-08-2026_15731435_CBMSC_03-08-2026_15728917 (1).pdf",
+    "text_file": "/tmp/astra-local-case-04.txt",
+    "returncode": 0,
+    "characters": 9096,
+    "pages": 2,
+    "comprovante": false,
+    "markers": [
+      "Data da Solicitação",
+      "SISTEMAS E MEDIDAS",
+      "IEL"
+    ]
+  },
+  {
+    "file": "audit-cases/etc10/RLT_CONFORMIDADE_03-08-2026_15731436_CBMSC_03-08-2026_15728918 (1).pdf",
+    "text_file": "/tmp/astra-local-case-05.txt",
+    "returncode": 0,
+    "characters": 8304,
+    "pages": 2,
+    "comprovante": false,
+    "markers": [
+      "Data da Solicitação",
+      "SISTEMAS E MEDIDAS",
+      "IEL"
+    ]
+  },
+  {
+    "file": "audit-cases/renata/CBMSC_04-08-2026_15749806.pdf",
+    "text_file": "/tmp/astra-local-case-06.txt",
+    "returncode": 0,
+    "characters": 12255,
+    "pages": 3,
+    "comprovante": false,
+    "markers": [
+      "Data da Solicitação",
+      "SISTEMAS E MEDIDAS",
+      "IGC",
+      "Projeto"
+    ]
+  },
+  {
+    "file": "audit-cases/renata/CBMSC_12-08-2026_15828288.pdf",
+    "text_file": "/tmp/astra-local-case-07.txt",
+    "returncode": 0,
+    "characters": 14386,
+    "pages": 2,
+    "comprovante": true,
+    "markers": [
+      "Data da Solicitação",
+      "SISTEMAS E MEDIDAS",
+      "IGC",
+      "Projeto"
+    ]
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_03-07-2026_15453786.pdf",
+    "text_file": "/tmp/astra-local-case-08.txt",
+    "returncode": 0,
+    "characters": 1882,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_04-08-2026_15739466.pdf",
+    "text_file": "/tmp/astra-local-case-09.txt",
+    "returncode": 0,
+    "characters": 1882,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_08-07-2026_15500244.pdf",
+    "text_file": "/tmp/astra-local-case-10.txt",
+    "returncode": 0,
+    "characters": 1882,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_12-08-2026_15828290.pdf",
+    "text_file": "/tmp/astra-local-case-11.txt",
+    "returncode": 0,
+    "characters": 1882,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_14-07-2025_12226110.pdf",
+    "text_file": "/tmp/astra-local-case-12.txt",
+    "returncode": 0,
+    "characters": 1884,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DOC_AUXILIO_26-06-2026_15396394.pdf",
+    "text_file": "/tmp/astra-local-case-13.txt",
+    "returncode": 0,
+    "characters": 1882,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  },
+  {
+    "file": "audit-cases/renata/DRT_EXC_12-08-2026_15828283_ART_RENATA_MENDES_10633026-0_assinado_assinado.pdf",
+    "text_file": "/tmp/astra-local-case-14.txt",
+    "returncode": 0,
+    "characters": 6485,
+    "pages": 1,
+    "comprovante": false,
+    "markers": [
+      "Execução",
+      "Projeto"
+    ]
+  },
+  {
+    "file": "audit-cases/renata/RLT_CONFORMIDADE_12-08-2026_15828281_Rel_de_Conformidade_assinado-1.pdf",
+    "text_file": "/tmp/astra-local-case-15.txt",
+    "returncode": 0,
+    "characters": 3092,
+    "pages": 1,
+    "comprovante": false,
+    "markers": []
+  }
+]

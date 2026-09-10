@@ -1,0 +1,71 @@
+{
+  "composition_oracle_checks": 168,
+  "empty_operators": {
+    "All": "TRUE",
+    "Or": "FALSE",
+    "ForEach": "TRUE"
+  },
+  "public_memory_alias_isolation": {
+    "nested": [
+      1
+    ]
+  },
+  "allowed_result_contract_mutated_after_registry": "FALSE",
+  "explicit_na_contract": "EngineContractError: NOT_APPLICABLE belongs to Criterion applicability, not predicates",
+  "trace_arguments_after_caller_mutation": {
+    "payload": {
+      "values": [
+        1,
+        2
+      ]
+    }
+  },
+  "false_without_evidence_or_nc": {
+    "result": "FALSE",
+    "refs": 0,
+    "evaluation_fields": [
+      "criterion_id",
+      "requirement_id",
+      "result",
+      "traceability",
+      "trace"
+    ]
+  },
+  "pilot_cardinality": {
+    "one_irregular": {
+      "result": "FALSE",
+      "trace_refs": [
+        "RTR"
+      ]
+    },
+    "duplicate_same_irregular": {
+      "result": "MANUAL_REVIEW",
+      "trace_refs": [
+        "RTR"
+      ]
+    },
+    "irregular_plus_regular": {
+      "result": "MANUAL_REVIEW",
+      "trace_refs": [
+        "RTR"
+      ]
+    },
+    "reverse": {
+      "result": "MANUAL_REVIEW",
+      "trace_refs": [
+        "RTR"
+      ]
+    },
+    "empty": {
+      "result": "MANUAL_REVIEW",
+      "trace_refs": [
+        "RTR"
+      ]
+    }
+  },
+  "engine_text_validate_order": {
+    "FALSE_MR": "MANUAL_REVIEW",
+    "MR_FALSE": "FALSE",
+    "MR_UNKNOWN": "UNKNOWN"
+  }
+}

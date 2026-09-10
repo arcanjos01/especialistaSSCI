@@ -1,0 +1,353 @@
+{
+  "baseline": "9d2e7f175507a4e81e3ed80d7ef57e89d73124d1",
+  "oracle": "IN19 p4 art18 and IRV p9; current helper is not normative oracle",
+  "cases": [
+    {
+      "id": "IN19-OLD-NEW-REQUEST",
+      "request_date": "2026-08-03",
+      "documentary_completion_date": "2020-01-01",
+      "codes": [
+        "IEL"
+      ],
+      "evidence": [
+        "maintenance_DRT_2025"
+      ],
+      "normative_expected": "IN19 art18 par único: documentação substitutiva admitida; data de solicitação não exclui esse direito",
+      "observed_scope": [
+        "SMSCI_IEL"
+      ],
+      "observed_regime": "CURRENT",
+      "planned_requirements": [
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_FINAL_VERIFICATION",
+        "REQ_IN19_GROUNDING",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_EXECUTION",
+        "T4_IN19_GROUNDING",
+        "T4_IN19_FINAL_VERIFICATION"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN19-CURRENT-MISSING",
+      "request_date": "2026-08-03",
+      "documentary_completion_date": "2025-01-01",
+      "codes": [
+        "IEL"
+      ],
+      "evidence": [],
+      "normative_expected": "IN19 art18 caput: execução, aterramento e verificação final",
+      "observed_scope": [
+        "SMSCI_IEL"
+      ],
+      "observed_regime": "CURRENT",
+      "planned_requirements": [
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_FINAL_VERIFICATION",
+        "REQ_IN19_GROUNDING",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_EXECUTION",
+        "T4_IN19_GROUNDING",
+        "T4_IN19_FINAL_VERIFICATION"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN19-LEGACY-MISSING",
+      "request_date": "2024-04-23",
+      "documentary_completion_date": "2020-01-01",
+      "codes": [
+        "IEL"
+      ],
+      "evidence": [],
+      "normative_expected": "Obrigações documentais permanecem; nenhum atendimento demonstrado",
+      "observed_scope": [
+        "SMSCI_IEL"
+      ],
+      "observed_regime": "LEGACY",
+      "planned_requirements": [
+        "REQ_IN19_LEGACY_DOCUMENTATION",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_LEGACY_DOCUMENTATION"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN19-LEGACY-EXECUTION",
+      "request_date": "2024-04-23",
+      "documentary_completion_date": "2020-01-01",
+      "codes": [
+        "IEL"
+      ],
+      "evidence": [
+        "execution_DRT"
+      ],
+      "normative_expected": "IN19 art18 par único: execução é uma alternativa, sem exigir dois DRT adicionais",
+      "observed_scope": [
+        "SMSCI_IEL"
+      ],
+      "observed_regime": "LEGACY",
+      "planned_requirements": [
+        "REQ_IN19_LEGACY_DOCUMENTATION",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_LEGACY_DOCUMENTATION"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN19-UNRESOLVED",
+      "request_date": null,
+      "documentary_completion_date": "2020-01-01",
+      "codes": [
+        "IEL"
+      ],
+      "evidence": [
+        "maintenance_DRT_2023"
+      ],
+      "normative_expected": "Preservar insuficiência do marco usado pela Base; revisão humana",
+      "observed_scope": [
+        "SMSCI_IEL"
+      ],
+      "observed_regime": "UNRESOLVED",
+      "planned_requirements": [
+        "REQ_IN19_REGIME_REVIEW",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_REGIME_REVIEW"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN19-IEL-ABSENT",
+      "request_date": "2026-08-03",
+      "documentary_completion_date": "2020-01-01",
+      "codes": [],
+      "evidence": [],
+      "normative_expected": "Base declara revisão de aplicabilidade; ausência IEL não dispensa IN19",
+      "observed_scope": [
+        "SMSCI_IN19_APPLICABILITY_REVIEW"
+      ],
+      "observed_regime": null,
+      "planned_requirements": [
+        "REQ_IN19_APPLICABILITY_REVIEW",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN19_APPLICABILITY_REVIEW"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    },
+    {
+      "id": "IN10-NATURAL",
+      "request_date": "2026-08-03",
+      "documentary_completion_date": "2025-01-01",
+      "codes": [
+        "CF"
+      ],
+      "evidence": [],
+      "normative_expected": "IRV p9 exige comissionamento IN10 quando mecânico; CF natural não satisfaz essa condição",
+      "observed_scope": [
+        "SMSCI_IN19_APPLICABILITY_REVIEW",
+        "SMSCI_SMOKE_CONTROL"
+      ],
+      "observed_regime": null,
+      "planned_requirements": [
+        "REQ_IN10_COMMISSIONING",
+        "REQ_IN19_APPLICABILITY_REVIEW",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_SMSCI"
+      ],
+      "planned_criteria": [
+        "T1_DRT_REQUIRED",
+        "T1_DRT_REGISTERED",
+        "T1_DRT_SIGNED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_CONFORMITY_REPORT",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T4_DRT_REGISTERED",
+        "T4_DRT_SIGNED",
+        "T4_DRT_PROFESSIONAL_REGULARITY",
+        "T4_IN10_COMMISSIONING",
+        "T4_IN19_APPLICABILITY_REVIEW"
+      ],
+      "execution_status": "not executed end-to-end; current test helper used only for selection"
+    }
+  ],
+  "boundary_declared_model": {
+    "2024-04-23": "LEGACY",
+    "2024-04-24": "LEGACY",
+    "2024-04-25": "CURRENT",
+    "2024-02-30": "UNRESOLVED",
+    "null": "UNRESOLVED"
+  },
+  "legacy_declared_model": {
+    "True": "PASS",
+    "False": "MANUAL_REVIEW",
+    "None": "MANUAL_REVIEW"
+  },
+  "limitations": [
+    "No Gemini run",
+    "No automatic normative date-of-publication assertion from date-of-vigency",
+    "No fabricated full execution or report ledger"
+  ]
+}

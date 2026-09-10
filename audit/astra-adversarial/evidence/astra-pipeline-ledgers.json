@@ -1,0 +1,1162 @@
+{
+  "baseline": "9d2e7f175507a4e81e3ed80d7ef57e89d73124d1",
+  "ledgers": [
+    {
+      "case": "minimal",
+      "EXPECTED_REQUIREMENTS_source": "02a + requirement metadata (not independent normative oracle)",
+      "EXPECTED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_APPLICABILITY_REVIEW"
+      ],
+      "PLANNED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_APPLICABILITY_REVIEW"
+      ],
+      "PLANNED_UNITS": [
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REQUIRED",
+            "T1_DRT_REQUIRED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T1_DRT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T4_DRT_SIGNED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T1_DRT_REGISTERED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T4_DRT_REGISTERED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T1_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T4_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_ACTIVITY_EXECUTION",
+            "T1_DRT_ACTIVITY_EXECUTION"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SMSCI",
+            "T1_DRT_SMSCI_COVERAGE"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RI_LEGAL_ENTITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RT_NAME"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_ADDRESS"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_AREA"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_APPLICABILITY_REVIEW",
+            "T4_IN19_APPLICABILITY_REVIEW"
+          ],
+          "TABLE": "4"
+        }
+      ],
+      "EXECUTED_CRITERIA": null,
+      "RESULTS": null,
+      "PROJECTED_RESULTS": null,
+      "REPORTED_RESULTS": null,
+      "unexecuted_reason": "No local end-to-end operational Gem/extractor/DSL executor. Closed plan has conflicting mandatory Table order.",
+      "ORDER_CONFLICT_TABLE1_AFTER_TABLE4": [
+        "T1_DRT_REGISTERED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T1_CONFORMITY_REPORT",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA"
+      ]
+    },
+    {
+      "case": "gas_ai_current",
+      "EXPECTED_REQUIREMENTS_source": "02a + requirement metadata (not independent normative oracle)",
+      "EXPECTED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN08_ESTANQUEIDADE",
+        "REQ_IN08_MANUAL",
+        "REQ_IN12_COMMISSIONING",
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_GROUNDING",
+        "REQ_IN19_FINAL_VERIFICATION"
+      ],
+      "PLANNED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN08_ESTANQUEIDADE",
+        "REQ_IN08_MANUAL",
+        "REQ_IN12_COMMISSIONING",
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_GROUNDING",
+        "REQ_IN19_FINAL_VERIFICATION"
+      ],
+      "PLANNED_UNITS": [
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REQUIRED",
+            "T1_DRT_REQUIRED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T1_DRT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T4_DRT_SIGNED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T1_DRT_REGISTERED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T4_DRT_REGISTERED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T1_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T4_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_ACTIVITY_EXECUTION",
+            "T1_DRT_ACTIVITY_EXECUTION"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SMSCI",
+            "T1_DRT_SMSCI_COVERAGE"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RI_LEGAL_ENTITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RT_NAME"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_ADDRESS"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_AREA"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN08_ESTANQUEIDADE",
+            "T4_IN08_ESTANQUEIDADE"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN08_MANUAL",
+            "T4_IN08_MANUAL"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN12_COMMISSIONING",
+            "T4_IN12_COMMISSIONING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_EXECUTION",
+            "T4_IN19_EXECUTION"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_GROUNDING",
+            "T4_IN19_GROUNDING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_FINAL_VERIFICATION",
+            "T4_IN19_FINAL_VERIFICATION"
+          ],
+          "TABLE": "4"
+        }
+      ],
+      "EXECUTED_CRITERIA": null,
+      "RESULTS": null,
+      "PROJECTED_RESULTS": null,
+      "REPORTED_RESULTS": null,
+      "unexecuted_reason": "No local end-to-end operational Gem/extractor/DSL executor. Closed plan has conflicting mandatory Table order.",
+      "ORDER_CONFLICT_TABLE1_AFTER_TABLE4": [
+        "T1_DRT_REGISTERED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T1_CONFORMITY_REPORT",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA"
+      ]
+    },
+    {
+      "case": "all_official_current",
+      "EXPECTED_REQUIREMENTS_source": "02a + requirement metadata (not independent normative oracle)",
+      "EXPECTED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN07_COMMISSIONING",
+        "REQ_IN08_ESTANQUEIDADE",
+        "REQ_IN08_MANUAL",
+        "REQ_IN09_DRT",
+        "REQ_IN09_TEST_REPORT",
+        "REQ_IN09_MANUAL",
+        "REQ_IN09_CHECKLIST",
+        "REQ_IN10_COMMISSIONING",
+        "REQ_IN12_COMMISSIONING",
+        "REQ_IN15_COMMISSIONING",
+        "REQ_IN18_CMAR",
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_GROUNDING",
+        "REQ_IN19_FINAL_VERIFICATION"
+      ],
+      "PLANNED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN07_COMMISSIONING",
+        "REQ_IN08_ESTANQUEIDADE",
+        "REQ_IN08_MANUAL",
+        "REQ_IN09_DRT",
+        "REQ_IN09_TEST_REPORT",
+        "REQ_IN09_MANUAL",
+        "REQ_IN09_CHECKLIST",
+        "REQ_IN10_COMMISSIONING",
+        "REQ_IN12_COMMISSIONING",
+        "REQ_IN15_COMMISSIONING",
+        "REQ_IN18_CMAR",
+        "REQ_IN19_EXECUTION",
+        "REQ_IN19_GROUNDING",
+        "REQ_IN19_FINAL_VERIFICATION"
+      ],
+      "PLANNED_UNITS": [
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REQUIRED",
+            "T1_DRT_REQUIRED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T1_DRT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T4_DRT_SIGNED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T1_DRT_REGISTERED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T4_DRT_REGISTERED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T1_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T4_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_ACTIVITY_EXECUTION",
+            "T1_DRT_ACTIVITY_EXECUTION"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SMSCI",
+            "T1_DRT_SMSCI_COVERAGE"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RI_LEGAL_ENTITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RT_NAME"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_ADDRESS"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_AREA"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN07_COMMISSIONING",
+            "T4_IN07_COMMISSIONING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN08_ESTANQUEIDADE",
+            "T4_IN08_ESTANQUEIDADE"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN08_MANUAL",
+            "T4_IN08_MANUAL"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN09_DRT",
+            "T4_IN09_DRT"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN09_TEST_REPORT",
+            "T4_IN09_TEST_REPORT"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN09_MANUAL",
+            "T4_IN09_MANUAL"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN09_CHECKLIST",
+            "T4_IN09_CHECKLIST"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN10_COMMISSIONING",
+            "T4_IN10_COMMISSIONING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN12_COMMISSIONING",
+            "T4_IN12_COMMISSIONING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN15_COMMISSIONING",
+            "T4_IN15_COMMISSIONING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN18_CMAR",
+            "T4_IN18_CMAR"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_EXECUTION",
+            "T4_IN19_EXECUTION"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_GROUNDING",
+            "T4_IN19_GROUNDING"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_FINAL_VERIFICATION",
+            "T4_IN19_FINAL_VERIFICATION"
+          ],
+          "TABLE": "4"
+        }
+      ],
+      "EXECUTED_CRITERIA": null,
+      "RESULTS": null,
+      "PROJECTED_RESULTS": null,
+      "REPORTED_RESULTS": null,
+      "unexecuted_reason": "No local end-to-end operational Gem/extractor/DSL executor. Closed plan has conflicting mandatory Table order.",
+      "ORDER_CONFLICT_TABLE1_AFTER_TABLE4": [
+        "T1_DRT_REGISTERED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T1_CONFORMITY_REPORT",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA"
+      ]
+    },
+    {
+      "case": "iel_legacy",
+      "EXPECTED_REQUIREMENTS_source": "02a + requirement metadata (not independent normative oracle)",
+      "EXPECTED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_LEGACY_DOCUMENTATION"
+      ],
+      "PLANNED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_LEGACY_DOCUMENTATION"
+      ],
+      "PLANNED_UNITS": [
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REQUIRED",
+            "T1_DRT_REQUIRED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T1_DRT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T4_DRT_SIGNED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T1_DRT_REGISTERED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T4_DRT_REGISTERED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T1_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T4_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_ACTIVITY_EXECUTION",
+            "T1_DRT_ACTIVITY_EXECUTION"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SMSCI",
+            "T1_DRT_SMSCI_COVERAGE"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RI_LEGAL_ENTITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RT_NAME"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_ADDRESS"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_AREA"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_LEGACY_DOCUMENTATION",
+            "T4_IN19_LEGACY_DOCUMENTATION"
+          ],
+          "TABLE": "4"
+        }
+      ],
+      "EXECUTED_CRITERIA": null,
+      "RESULTS": null,
+      "PROJECTED_RESULTS": null,
+      "REPORTED_RESULTS": null,
+      "unexecuted_reason": "No local end-to-end operational Gem/extractor/DSL executor. Closed plan has conflicting mandatory Table order.",
+      "ORDER_CONFLICT_TABLE1_AFTER_TABLE4": [
+        "T1_DRT_REGISTERED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T1_CONFORMITY_REPORT",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA"
+      ]
+    },
+    {
+      "case": "iel_unresolved",
+      "EXPECTED_REQUIREMENTS_source": "02a + requirement metadata (not independent normative oracle)",
+      "EXPECTED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_REGIME_REVIEW"
+      ],
+      "PLANNED_REQUIREMENTS": [
+        "REQ_T1_DRT_REQUIRED",
+        "REQ_T1_DRT_SIGNED",
+        "REQ_T1_DRT_REGISTERED",
+        "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+        "REQ_T1_DRT_ACTIVITY_EXECUTION",
+        "REQ_T1_DRT_SMSCI",
+        "REQ_T1_CONFORMITY_REPORT",
+        "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        "REQ_T1_DRT_BASIC_DATA",
+        "REQ_IN19_REGIME_REVIEW"
+      ],
+      "PLANNED_UNITS": [
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REQUIRED",
+            "T1_DRT_REQUIRED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T1_DRT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SIGNED",
+            "T4_DRT_SIGNED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T1_DRT_REGISTERED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_REGISTERED",
+            "T4_DRT_REGISTERED"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T1_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_PROFESSIONAL_REGULARITY",
+            "T4_DRT_PROFESSIONAL_REGULARITY"
+          ],
+          "TABLE": "4"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_ACTIVITY_EXECUTION",
+            "T1_DRT_ACTIVITY_EXECUTION"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_SMSCI",
+            "T1_DRT_SMSCI_COVERAGE"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RI_LEGAL_ENTITY"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_RT_NAME"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_ADDRESS"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_T1_DRT_BASIC_DATA",
+            "T1_DRT_AREA"
+          ],
+          "TABLE": "1"
+        },
+        {
+          "UNIT_KEY": [
+            "REQ_IN19_REGIME_REVIEW",
+            "T4_IN19_REGIME_REVIEW"
+          ],
+          "TABLE": "4"
+        }
+      ],
+      "EXECUTED_CRITERIA": null,
+      "RESULTS": null,
+      "PROJECTED_RESULTS": null,
+      "REPORTED_RESULTS": null,
+      "unexecuted_reason": "No local end-to-end operational Gem/extractor/DSL executor. Closed plan has conflicting mandatory Table order.",
+      "ORDER_CONFLICT_TABLE1_AFTER_TABLE4": [
+        "T1_DRT_REGISTERED",
+        "T1_DRT_PROFESSIONAL_REGULARITY",
+        "T1_DRT_ACTIVITY_EXECUTION",
+        "T1_DRT_SMSCI_COVERAGE",
+        "T1_CONFORMITY_REPORT",
+        "T1_CONFORMITY_REPORT_SIGNED",
+        "T1_DRT_RI_LEGAL_ENTITY",
+        "T1_DRT_RT_NAME",
+        "T1_DRT_ADDRESS",
+        "T1_DRT_AREA"
+      ]
+    }
+  ],
+  "reference_test_model_gaps": {
+    "reversed_plan_accepted": true,
+    "empty_provenance_accepted": {
+      "process_smsci": [
+        "SMSCI_GAS",
+        "SMSCI_IN19_APPLICABILITY_REVIEW"
+      ],
+      "decisions": {
+        "SMSCI_AVTR": "NEGATIVE",
+        "SMSCI_AI": "NEGATIVE",
+        "SMSCI_BI": "NEGATIVE",
+        "SMSCI_SPRINKLER": "NEGATIVE",
+        "SMSCI_CSEP": "NEGATIVE",
+        "SMSCI_CMAR": "NEGATIVE",
+        "SMSCI_SMOKE_CONTROL": "NEGATIVE",
+        "SMSCI_COMP": "NEGATIVE",
+        "SMSCI_CT": "NEGATIVE",
+        "SMSCI_CRP": "NEGATIVE",
+        "SMSCI_DAI": "NEGATIVE",
+        "SMSCI_EE": "NEGATIVE",
+        "SMSCI_IEL": "NEGATIVE",
+        "SMSCI_GAS": "POSITIVE",
+        "SMSCI_IE": "NEGATIVE",
+        "SMSCI_IR": "NEGATIVE",
+        "SMSCI_MSP": "NEGATIVE",
+        "SMSCI_TRRF": "NEGATIVE",
+        "SMSCI_PPE": "NEGATIVE",
+        "SMSCI_SIESP": "NEGATIVE",
+        "SMSCI_SAN": "NEGATIVE",
+        "SMSCI_SAL": "NEGATIVE",
+        "SMSCI_SE": "NEGATIVE",
+        "SMSCI_SRPH": "NEGATIVE",
+        "SMSCI_SFG": "NEGATIVE",
+        "SMSCI_SHP": "NEGATIVE",
+        "SMSCI_SAP": "NEGATIVE",
+        "SMSCI_PRESSURIZATION": "NEGATIVE",
+        "SMSCI_SDAI": "NEGATIVE",
+        "SMSCI_IN19_APPLICABILITY_REVIEW": "POSITIVE"
+      },
+      "in19_documentation_regime": null,
+      "trace": {
+        "process_memory_fact": "",
+        "rde_record": null,
+        "source_document": ""
+      }
+    },
+    "null_request_identifier_matches": {
+      "process_smsci": [
+        "SMSCI_GAS",
+        "SMSCI_IN19_APPLICABILITY_REVIEW"
+      ],
+      "decisions": {
+        "SMSCI_AVTR": "NEGATIVE",
+        "SMSCI_AI": "NEGATIVE",
+        "SMSCI_BI": "NEGATIVE",
+        "SMSCI_SPRINKLER": "NEGATIVE",
+        "SMSCI_CSEP": "NEGATIVE",
+        "SMSCI_CMAR": "NEGATIVE",
+        "SMSCI_SMOKE_CONTROL": "NEGATIVE",
+        "SMSCI_COMP": "NEGATIVE",
+        "SMSCI_CT": "NEGATIVE",
+        "SMSCI_CRP": "NEGATIVE",
+        "SMSCI_DAI": "NEGATIVE",
+        "SMSCI_EE": "NEGATIVE",
+        "SMSCI_IEL": "NEGATIVE",
+        "SMSCI_GAS": "POSITIVE",
+        "SMSCI_IE": "NEGATIVE",
+        "SMSCI_IR": "NEGATIVE",
+        "SMSCI_MSP": "NEGATIVE",
+        "SMSCI_TRRF": "NEGATIVE",
+        "SMSCI_PPE": "NEGATIVE",
+        "SMSCI_SIESP": "NEGATIVE",
+        "SMSCI_SAN": "NEGATIVE",
+        "SMSCI_SAL": "NEGATIVE",
+        "SMSCI_SE": "NEGATIVE",
+        "SMSCI_SRPH": "NEGATIVE",
+        "SMSCI_SFG": "NEGATIVE",
+        "SMSCI_SHP": "NEGATIVE",
+        "SMSCI_SAP": "NEGATIVE",
+        "SMSCI_PRESSURIZATION": "NEGATIVE",
+        "SMSCI_SDAI": "NEGATIVE",
+        "SMSCI_IN19_APPLICABILITY_REVIEW": "POSITIVE"
+      },
+      "in19_documentation_regime": null,
+      "trace": {
+        "process_memory_fact": "PM.COMPROVANTE.REQ-1.SMSCI",
+        "rde_record": "RDE.COMPROVANTE.REQ-1.SMSCI",
+        "source_document": "COMPROVANTE-REQ-1"
+      }
+    }
+  },
+  "projection_ledgers": [
+    {
+      "synthetic_consolidated_fail_ids": [
+        "NC_T4_002",
+        "NC_T4_003"
+      ],
+      "projected": [
+        {
+          "item": "IN 8 - Laudo ou ensaio de estanqueidade",
+          "cause": "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8.",
+          "subcause": null,
+          "selection": "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8.",
+          "description": "Não necessário."
+        },
+        {
+          "item": "IN 8 - Cópia do manual do proprietário",
+          "cause": "Apresentar manual do proprietário contendo as instruções para instalação dos aparelhos a gás, conforme o artigo 80 da IN 8.",
+          "subcause": null,
+          "selection": "Apresentar manual do proprietário contendo as instruções para instalação dos aparelhos a gás, conforme o artigo 80 da IN 8.",
+          "description": "Não necessário."
+        }
+      ],
+      "human": [],
+      "reported": null,
+      "scope": "Reference-test helper only; no Gemini rendering performed"
+    },
+    {
+      "synthetic_consolidated_fail_ids": [
+        "NC_T1_009",
+        "NC_T4_019",
+        "NC_T4_002"
+      ],
+      "projected": [
+        {
+          "item": "IN 8 - Laudo ou ensaio de estanqueidade",
+          "cause": "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8.",
+          "subcause": null,
+          "selection": "Apresentar laudo ou ensaio de estanqueidade da rede de gás com respectivo DRT, conforme o artigo 95 da IN 8.",
+          "description": "Não necessário."
+        }
+      ],
+      "human": [
+        "NC_T1_009",
+        "NC_T4_019"
+      ],
+      "reported": null,
+      "scope": "Reference-test helper only; no Gemini rendering performed"
+    },
+    {
+      "synthetic_consolidated_fail_ids": [
+        "NC_T1_001",
+        "NC_T1_003"
+      ],
+      "projected": [
+        {
+          "item": "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1",
+          "cause": "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:",
+          "subcause": "DRT de execução dos sistemas e medidas de SCI previstos no PPCI.",
+          "selection": "DRT de execução dos sistemas e medidas de SCI previstos no PPCI.",
+          "description": "Não necessário."
+        },
+        {
+          "item": "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1",
+          "cause": "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:",
+          "subcause": "Relatório de conformidade dos SMSCI (Anexo I da IN 01, parte 1).",
+          "selection": "Relatório de conformidade dos SMSCI (Anexo I da IN 01, parte 1).",
+          "description": "Não necessário."
+        }
+      ],
+      "human": [],
+      "reported": null,
+      "scope": "Reference-test helper only; no Gemini rendering performed"
+    },
+    {
+      "synthetic_consolidated_fail_ids": [
+        "NC_T1_004",
+        "NC_T4_017"
+      ],
+      "projected": [
+        {
+          "item": "Autenticidade e validade do(s) DRT.",
+          "cause": "DRT sem comprovação de autenticidade/validade:",
+          "subcause": "Não possui registro de emissão no conselho de classe (rascunho, etc).",
+          "selection": "Não possui registro de emissão no conselho de classe (rascunho, etc).",
+          "description": "Não necessário."
+        },
+        {
+          "item": "Autenticidade e validade do(s) DRT.",
+          "cause": "DRT sem comprovação de autenticidade/validade:",
+          "subcause": "Não possui registro de emissão no conselho de classe (rascunho, etc).",
+          "selection": "Não possui registro de emissão no conselho de classe (rascunho, etc).",
+          "description": "Não necessário."
+        }
+      ],
+      "human": [],
+      "reported": null,
+      "scope": "Reference-test helper only; no Gemini rendering performed"
+    }
+  ],
+  "duplicate_builder_rejections": [
+    {
+      "case": "duplicate_req",
+      "error": "REQUIREMENT duplicado: REQ_T1_DRT_REQUIRED"
+    },
+    {
+      "case": "duplicate_criterion",
+      "error": "CRITERION duplicado: T1_DRT_REQUIRED"
+    }
+  ]
+}

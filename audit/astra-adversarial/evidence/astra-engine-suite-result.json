@@ -1,0 +1,6 @@
+{
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+  "returncode": 0,
+  "seconds": 0.133,
+  "tail": "dit_only_and_non_normative) ... ok\ntest_manifest_matches_exactly_the_real_ten_document_set (test_knowledge_base_identity.KnowledgeBaseIdentityContractTests.test_manifest_matches_exactly_the_real_ten_document_set) ... ok\ntest_operational_report_exposes_only_short_global_release (test_knowledge_base_identity.KnowledgeBaseIdentityContractTests.test_operational_report_exposes_only_short_global_release) ... ok\ntest_source_commit_is_resolved_only_by_clean_release_build (test_knowledge_base_identity.KnowledgeBaseIdentityContractTests.test_source_commit_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.033s\n\nOK\n"
+}

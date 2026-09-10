@@ -1,0 +1,23 @@
+{
+  "baseline": "9d2e7f175507a4e81e3ed80d7ef57e89d73124d1",
+  "origin_main_observed": "9d2e7f175507a4e81e3ed80d7ef57e89d73124d1",
+  "branch": "audit/astra-adversarial-2026-09-09",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+  "tests": 120,
+  "passed": 120,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "runner_seconds": 0.043,
+  "wall_seconds": 0.135,
+  "syntax_files": 10,
+  "original_files_hashed": 31,
+  "original_hash_mismatches": [],
+  "product_diff": "",
+  "staged_files": "",
+  "status_short": "?? audit/\n",
+  "mutation_copy_restored": true,
+  "required_deliverables": 16,
+  "findings": 17,
+  "broken_relative_links": []
+}

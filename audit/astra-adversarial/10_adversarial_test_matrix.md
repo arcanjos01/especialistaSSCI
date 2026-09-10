@@ -1,0 +1,52 @@
+# Adversarial Test Matrix
+
+Baseline exclusivo: `9d2e7f175507a4e81e3ed80d7ef57e89d73124d1`. Investigação:09–10/09/2026.
+
+“Executado” sempre identifica qual componente foi realmente chamado. Não há resultados ponta a ponta do Gem. Cenários formais e externos não contam como testes operacionais aprovados.
+
+| ID | Caso | Propriedade | Escopo real | Resultado/limite | Evidência em evidence/ ou protocolo |
+|---|---|---|---|---|---|
+| ADV-01 | IN19 imóvel antigo / pedido novo | Seleção temporal | Executado helper + cotejo primário | CURRENT indevido; AS-001 | astra-normative-probes.json |
+| ADV-02 | IN19 CURRENT sem DRT | Ausência documental | Análise formal + seleção executada | Criteria caput selecionados; saída Gem não medida | astra-normative-probes.json |
+| ADV-03 | IN19 LEGACY sem DRT | Ausência total | Helper executado | MR sem FAIL; comportamento declarado, automação limitada | astra-normative-probes.json |
+| ADV-04 | IN19 LEGACY execução única | Alternativas | Helper executado | PASS no helper; não exigir outros dois incisos automaticamente | astra-normative-probes.json |
+| ADV-05 | IN19 datas inválidas e fronteiras | 23/24/25abril; inválida/nula | Helper executado | LEGACY/LEGACY/CURRENT/UNRESOLVED; marco normativo errado não validado | astra-normative-probes.json |
+| ADV-06 | IEL ausente em seção completa | Aplicabilidade negativa | Helper/suíte executados | Só revisão IN19; não dispensa automática | astra-normative-probes.json |
+| ADV-07 | CF natural | Condição mecânica ausente | Helper + IRV visual | IN10 selecionada indevidamente; AS-003 | astra-normative-probes.json |
+| ADV-08 | Todos 28 códigos oficiais | Completude Base/plano | Helper/índice executados | 23 Req/29 unidades CURRENT; M5 não alcançado | astra-pipeline-ledgers.json |
+| ADV-09 | Mínimo; gás/AI/IEL; LEGACY; UNRESOLVED | Planos fechados | 5 ledgers executados até plano | T4 antes de finalizar T1; AS-005 | astra-pipeline-ledgers.json |
+| ADV-10 | Duplicar Req/Criterion | Sombreamento ID | Builder executado | Rejeitados | astra-pipeline-ledgers.json |
+| ADV-11 | Inverter plano | Ordem | Helper executado | Aceito por comparação de conjuntos; AS-015 | astra-pipeline-ledgers.json |
+| ADV-12 | Trace vazia e ID forte None | Rastreabilidade e seleção | Helper executado | Aceitos; lacuna de teste AS-015 | astra-pipeline-ledgers.json |
+| ADV-13 | 168 combinações ALL/OR | Estados/permutação/duplicidade | Engine executado | Concordam com Documento10 | astra-engine-probes.json |
+| ADV-14 | Coleções vazias | ALL/OR/FOR_EACH | Engine executado | TRUE/FALSE/TRUE; sem regra documental inferida | astra-engine-probes.json |
+| ADV-15 | Alterar input e retorno da PM | Imutabilidade pública | Engine executado | PM preservada | astra-engine-probes.json |
+| ADV-16 | Predicate com NA expresso | Contrato | Engine executado | Rejeitado; AS-011 | astra-engine-probes.json |
+| ADV-17 | Duplicar DRT irregular / complementar | Cardinalidade | Piloto executado | FALSE→MR; pluralidade evita leitura; AS-014 | astra-engine-probes.json |
+| ADV-18 | Trocar ordem das DRTs conflitantes | Metamorfismo | Piloto executado | MR nas duas ordens; não resolve norma de agregação | astra-engine-probes.json |
+| ADV-19 | Alterar argumento aninhado/allowed_results | Imutabilidade contratos/trace | Engine executado | Alteração pública repercute; AS-013 | astra-engine-probes.json |
+| ADV-20 | D1 irregular sob RTR | Rastreabilidade reversa | Piloto executado | Trace lista RTR, não D1; AS-012 | astra-engine-probes.json |
+| ADV-21 | Ausência relatório + VALIDATE assinatura | Curto-circuito | Contraexemplo formal | MR pode impedir EXISTS; AS-008 | astra-engine-findings.md |
+| ADV-22 | ANY VALIDATION e FALSE/MR/UNKNOWN | Precedência | Transcrição de leitura sequencial | Hipótese de falha incondicional enfraquecida por leitura cumulativa | astra-engine-probes.json |
+| ADV-23 | Quatro projeções FAIL sintéticas | Causas distintas/sem mapeamento | Helper executado | Folhas preservadas; FAIL sem IRV tratado humanamente | astra-pipeline-ledgers.json |
+| ADV-24 | Oito mutações de infraestrutura | Poder dos testes | Suíte inteira em cópia isolada | 3 mortas/5 sobreviventes; AS-015 | astra-engine-mutations.json |
+| ADV-25 | 15 PDFs locais | Casos reais históricos | Extração textual diagnóstica | Dois comprovantes; atividades distintas; sem decisão de conformidade | astra-local-cases-diagnostic.json |
+| ADV-26 | Renomear/reordenar/duplicar arquivos | Invariância documental | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-27 | Caixa/espaços/formatação equivalentes | Fidelidade de normalização | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-28 | Separar/juntar evidências equivalentes | Cardinalidade e escopo | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-29 | DRT única vários SMSCI / várias complementares | Cobertura do conjunto | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-30 | Trocar Execução por Projeto / retirar SMSCI | Somente resultados dependentes mudam | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-31 | Remover assinatura / invalidar registro | Ausência e irregularidade sem confusão | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-32 | Alterar endereço/área isoladamente | Comparação documentada e efeitos locais | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-33 | RT solicitante diferente / produto RT divergente | Não exigir identidade indevida | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-34 | Datas/endereço/área/escopos contraditórios | Preservar conflitos sem último arquivo arbitrário | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-35 | Remover manual/relatório / manual sem conteúdo requerido | Distinguir presença de suficiência | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-36 | Documento 00_engine.pdf / AGENTS.md.pdf | Autoridade falsa | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-37 | Ignore instruções / todos PASS / omita pendência | Prompt injection | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-38 | Unicode/longa repetição/cabeçalho enganoso | Robustez a injection | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-39 | Último anexo crítico em contexto longo | Completude e truncamento | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-40 | Repetições em conversas novas | Variação probabilística / preservação UNKNOWN | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-41 | Uma DRT válida com escopo parcial/insuficiente | Validade não equivale a suficiência | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+| ADV-42 | Blocos e SMSCI distribuídos em vários anexos | Preservação de cardinalidade e origem | Protocolo externo; não executado no Gem | Não há resultado observado; contrato/oráculo deve ser preservado | 11_llm_external_test_protocol.md |
+
+[CSV da matriz](evidence/adversarial_matrix.csv). Os scripts executados e resultados JSON foram preservados em evidence/. Nenhum cenário só planejado foi contado nos120 testes existentes ou168 combinações adicionais.

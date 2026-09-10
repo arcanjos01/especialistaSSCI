@@ -1,0 +1,74 @@
+[
+  {
+    "mutation": "drop_trace_memory_references",
+    "target": "engine/criterion_ir.py",
+    "before": "memory_references=tuple(_references_in(arguments)),",
+    "after": "memory_references=(),",
+    "status": "KILLED",
+    "seconds": 0.127,
+    "tail": "EST_ENTITY', identifier='one'),)\n\n----------------------------------------------------------------------\nRan 120 tests in 0.022s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "mutation": "memory_no_constructor_deepcopy",
+    "target": "engine/criterion_ir.py",
+    "before": "{key: deepcopy(value) for key, value in source.items()}",
+    "after": "{key: value for key, value in source.items()}",
+    "status": "SURVIVED",
+    "seconds": 0.11,
+    "tail": "t_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.020s\n\nOK\n"
+  },
+  {
+    "mutation": "memory_no_read_deepcopy",
+    "target": "engine/criterion_ir.py",
+    "before": "return deepcopy(self._values[reference])",
+    "after": "return self._values[reference]",
+    "status": "SURVIVED",
+    "seconds": 0.11,
+    "tail": "t_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.019s\n\nOK\n"
+  },
+  {
+    "mutation": "registry_allow_duplicate_shadowing",
+    "target": "engine/criterion_ir.py",
+    "before": "if contract.predicate_id in entries:",
+    "after": "if False:",
+    "status": "SURVIVED",
+    "seconds": 0.111,
+    "tail": "t_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.020s\n\nOK\n"
+  },
+  {
+    "mutation": "ignore_applicability",
+    "target": "engine/criterion_ir.py",
+    "before": "if criterion.applicability is not None:",
+    "after": "if False:",
+    "status": "KILLED",
+    "seconds": 0.109,
+    "tail": "race), 2)\nAssertionError: 1 != 2\n\n----------------------------------------------------------------------\nRan 120 tests in 0.021s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "mutation": "forall_becomes_or",
+    "target": "engine/criterion_ir.py",
+    "before": "return All(self.expressions).evaluate(engine, process_memory, context)",
+    "after": "return Or(self.expressions).evaluate(engine, process_memory, context)",
+    "status": "SURVIVED",
+    "seconds": 0.112,
+    "tail": "t_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.020s\n\nOK\n"
+  },
+  {
+    "mutation": "unknown_in_all_becomes_false",
+    "target": "engine/criterion_ir.py",
+    "before": "if EngineResult.UNKNOWN in values:\n        return EngineResult.UNKNOWN\n    return EngineResult.TRUE",
+    "after": "if EngineResult.UNKNOWN in values:\n        return EngineResult.FALSE\n    return EngineResult.TRUE",
+    "status": "SURVIVED",
+    "seconds": 0.111,
+    "tail": "t_is_resolved_only_by_clean_release_build) ... ok\n\n----------------------------------------------------------------------\nRan 120 tests in 0.021s\n\nOK\n"
+  },
+  {
+    "mutation": "skip_predicate_arg_validation",
+    "target": "engine/criterion_ir.py",
+    "before": "arguments = contract.argument_schema.validate(self.arguments)",
+    "after": "arguments = self.arguments",
+    "status": "KILLED",
+    "seconds": 0.111,
+    "tail": "ArgumentContractError not raised\n\n----------------------------------------------------------------------\nRan 120 tests in 0.020s\n\nFAILED (failures=1)\n"
+  }
+]
