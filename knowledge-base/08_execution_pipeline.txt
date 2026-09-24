@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.9.0
+# DOCUMENT_VERSION: 4.10.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.6.0
+KNOWLEDGE_BASE_VERSION: 5.7.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.0.0
-01_entities.txt: DOCUMENT_VERSION 3.4.0
-02_requirements.txt: DOCUMENT_VERSION 3.4.0
+00_engine.txt: DOCUMENT_VERSION 4.1.0
+01_entities.txt: DOCUMENT_VERSION 3.5.0
+02_requirements.txt: DOCUMENT_VERSION 3.5.0
 02a_applicability.txt: DOCUMENT_VERSION 1.5.0
-03_table1.txt: DOCUMENT_VERSION 3.3.0
+03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.2.0
-05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
-06_reports.txt: DOCUMENT_VERSION 2.6.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.9.0
+05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
+06_reports.txt: DOCUMENT_VERSION 2.7.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.10.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -248,15 +248,29 @@ never documentary evidence.
 Identify, when documentally verifiable:
 
 - REGISTERED
+- REGISTRATION_DATE
 - SIGNED
 - APPROVED
 - PAID
+- PAYMENT_DATE
+- PAYMENT_REQUIRED_FOR_VALIDITY
 - RT_NAME
 - RI_NAME
 - ADDRESS
 - AREA
 - DATES
 - IDENTIFIERS
+
+For every DRT, REGISTERED and PAID are independent factual attributes.
+REGISTERED=TRUE requires an explicit registration/emission fact. REGISTERED=FALSE
+may be stored only when the source explicitly states that the DRT is not
+registered, is a draft or equivalent. PAID=TRUE requires explicit documentary
+quittance/payment. PAID=FALSE may be stored only when the source explicitly
+states payment pending, unpaid, "taxa a pagar" or equivalent. If either fact
+cannot be determined, leave that attribute empty. An unpaid DRT may still be
+REGISTERED=TRUE. Extract REGISTRATION_DATE and PAYMENT_DATE only when explicit.
+Extract PAYMENT_REQUIRED_FOR_VALIDITY only from an express statement in the
+document. Never derive registration from payment or payment from registration.
 
 When evaluating SIGNED:
 
@@ -343,6 +357,7 @@ Documentary evidence alone shall never generate:
 - PASS
 - FAIL
 - MANUAL_REVIEW
+- UNKNOWN
 - NOT_APPLICABLE
 - Nonconformity
 - Operational Alert
@@ -711,6 +726,13 @@ NOT_APPLICABLE
 
 MANUAL_REVIEW
 
+UNKNOWN
+
+UNKNOWN is a canonical Criterion result for evidentiary insufficiency after
+applicability has already been resolved. It is not MANUAL_REVIEW,
+APPLICABILITY_REVIEW_REQUIRED, FAIL or Nonconformity and shall never be
+automatically converted to any of them.
+
 No other result is allowed.
 
 Criteria shall consume Process Memory only.
@@ -753,6 +775,10 @@ Associate Nonconformities only with FAIL results.
 Criterion results shall remain immutable after consolidation.
 
 Associate operational alerts only with MANUAL_REVIEW results.
+
+UNKNOWN results remain immutable Criterion results. They generate no
+Nonconformity, no operational alert and no e-SCI pending entry; they are
+projected only to TRATAMENTO HUMANO by 06_reports.
 
 APPLICABILITY_REVIEW_REQUIRED incidences remain frozen Phase 4B decisions;
 they are not MANUAL_REVIEW results or Operational Alerts and do not affect
@@ -833,12 +859,12 @@ project exactly "Não necessário." for report rendering.
 Derive candidate technical counters only from the canonical consolidated
 result set before rendering. Validate:
 
-VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW + UNKNOWN
 
 If the equality is not satisfied, record REPORT_COUNTER_INCONSISTENCY as an
 audit-only diagnostic and omit the invalid technical totals. Never fabricate,
 adjust or reconstruct a counter from rendered text blocks. The inconsistency
-shall not create or modify PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW,
+shall not create or modify PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN,
 Nonconformities or operational pending entries. Continue operational report
 generation when the canonical results and operational projection remain
 intact; expose the inconsistency explicitly only in audit mode.
@@ -887,9 +913,11 @@ Never replace documentary evidence with model knowledge.
 
 Never infer absent information.
 
-When documentary evidence cannot be verified, return exactly:
-
-Informação insuficiente para verificar.
+When an applicable Criterion cannot determine TRUE or FALSE from the
+authorized documentary evidence and no stronger FALSE or MANUAL_REVIEW state
+applies, preserve the canonical UNKNOWN result through consolidation and
+project it only as defined in 06_reports. Do not replace UNKNOWN with free-form
+text, FAIL or MANUAL_REVIEW.
 
 The report generation phase shall never trigger additional documentary analysis.
 

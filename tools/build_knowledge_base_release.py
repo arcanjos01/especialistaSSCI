@@ -15,6 +15,7 @@ KNOWLEDGE_BASE = ROOT / "knowledge-base"
 PIPELINE = KNOWLEDGE_BASE / "08_execution_pipeline.txt"
 PLACEHOLDER = "RELEASE_BUILD_REQUIRED"
 REQUIREMENTS = KNOWLEDGE_BASE / "02_requirements.txt"
+NONCONFORMITIES = KNOWLEDGE_BASE / "05_nonconformities.txt"
 CRITERIA_SOURCES = (
     KNOWLEDGE_BASE / "03_table1.txt",
     KNOWLEDGE_BASE / "04_table4.txt",
@@ -105,6 +106,51 @@ def parse_criteria(text: str) -> list[tuple[str, str, str | None]]:
     return parsed
 
 
+def validate_reference_integrity(
+    requirements_text: str,
+    criteria_texts: tuple[str, ...],
+    nonconformities_text: str,
+) -> None:
+    """Reject dangling Requirement/Criterion/Nonconformity references."""
+    requirement_blocks = _blocks(requirements_text, "REQUIREMENT")
+    requirement_ids = {identifier for identifier, _ in requirement_blocks}
+
+    criterion_blocks: list[tuple[str, str]] = []
+    for text in criteria_texts:
+        criterion_blocks.extend(_blocks(text, "CRITERION"))
+    criterion_ids = {identifier for identifier, _ in criterion_blocks}
+
+    nonconformity_blocks = _blocks(nonconformities_text, "NONCONFORMITY")
+    nonconformity_ids = {identifier for identifier, _ in nonconformity_blocks}
+
+    errors: list[str] = []
+
+    for requirement_id, block in requirement_blocks:
+        for nc_id in re.findall(r"^NONCONFORMITY\s+(\S+)\s*$", block, re.M):
+            if nc_id not in nonconformity_ids:
+                errors.append(
+                    f"Requirement {requirement_id} referencia Nonconformity inexistente: {nc_id}"
+                )
+
+    for criterion_id, block in criterion_blocks:
+        for nc_id in re.findall(r"^FAIL\s+(\S+)\s*$", block, re.M):
+            if nc_id not in nonconformity_ids:
+                errors.append(
+                    f"Criterion {criterion_id} referencia Nonconformity inexistente: {nc_id}"
+                )
+
+    for nc_id, block in nonconformity_blocks:
+        requirement_refs = re.findall(r"^REF_REQUIREMENT\s+(\S+)\s*$", block, re.M)
+        criterion_refs = re.findall(r"^REF_CRITERION\s+(\S+)\s*$", block, re.M)
+        if len(requirement_refs) != 1 or requirement_refs[0] not in requirement_ids:
+            errors.append(f"Nonconformity {nc_id} possui REF_REQUIREMENT inválido")
+        if len(criterion_refs) != 1 or criterion_refs[0] not in criterion_ids:
+            errors.append(f"Nonconformity {nc_id} possui REF_CRITERION inválido")
+
+    if errors:
+        raise ValueError("integridade de referências inválida: " + "; ".join(errors))
+
+
 def compile_execution_index(requirements_text: str, *criteria_texts: str) -> str:
     """Compile only declared Requirement→Criterion identity links for a release."""
     requirements = parse_requirements(requirements_text)
@@ -164,9 +210,17 @@ def build(output: Path) -> None:
 
     source_commit = git("rev-parse", "HEAD")
     pipeline_text = PIPELINE.read_text(encoding="utf-8")
+    requirements_text = REQUIREMENTS.read_text(encoding="utf-8")
+    criteria_texts = tuple(
+        path.read_text(encoding="utf-8") for path in CRITERIA_SOURCES
+    )
+    nonconformities_text = NONCONFORMITIES.read_text(encoding="utf-8")
+    validate_reference_integrity(
+        requirements_text, criteria_texts, nonconformities_text
+    )
     compiled_index = compile_execution_index(
-        REQUIREMENTS.read_text(encoding="utf-8"),
-        *(path.read_text(encoding="utf-8") for path in CRITERIA_SOURCES),
+        requirements_text,
+        *criteria_texts,
     )
     pipeline_text = inject_compiled_execution_index(pipeline_text, compiled_index)
     manifest = parse_manifest(pipeline_text)

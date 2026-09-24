@@ -70,23 +70,23 @@ def project(failed_ids, descriptions=None):
     return pending, human
 
 
-def operational_status(fail, manual_review):
+def operational_status(fail, manual_review, unknown=0):
     if fail > 0:
         return "COM PENDÊNCIAS"
-    if manual_review > 0:
+    if manual_review > 0 or unknown > 0:
         return "NECESSITA ANÁLISE HUMANA"
     return "SEM PENDÊNCIAS DOCUMENTAIS"
 
 
-def validate_counters(executed, passed, failed, not_applicable, manual_review):
-    if executed != passed + failed + not_applicable + manual_review:
+def validate_counters(executed, passed, failed, not_applicable, manual_review, unknown):
+    if executed != passed + failed + not_applicable + manual_review + unknown:
         return "REPORT_COUNTER_INCONSISTENCY"
     return None
 
 
 CATALOG = parse_nonconformities(NONCONFORMITIES)
 ACTIONABLE = fail_references(TABLE1, TABLE4)
-NON_IRV_EXCEPTIONS = {"NC_T1_009", "NC_T4_019"}
+NON_IRV_EXCEPTIONS = {"NC_T1_009", "NC_T1_010", "NC_T4_019"}
 
 EXPECTED = {
     "NC_T1_001": ("1", "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1", "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:"),
@@ -134,8 +134,8 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             self.assertEqual(CATALOG[nc_id]["DESCRIPTION_POLICY"], "MINIMAL_IF_NEEDED")
 
     def test_b_actionable_coverage_and_explicit_non_irv_exceptions(self):
-        self.assertEqual(len(ACTIONABLE), 31)
-        self.assertEqual(len(set(ACTIONABLE)), 31)
+        self.assertEqual(len(ACTIONABLE), 32)
+        self.assertEqual(len(set(ACTIONABLE)), 32)
         mapped_actionable = {nc_id for nc_id in ACTIONABLE if "IRV_TABLE" in CATALOG[nc_id]}
         self.assertEqual(len(mapped_actionable), 29)
         self.assertEqual(set(ACTIONABLE) - mapped_actionable, NON_IRV_EXCEPTIONS)
@@ -262,16 +262,16 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         self.assertIn("limite técnico absoluto de 500 caracteres", REPORTS)
 
     def test_j_counter_inconsistency_is_audit_only_and_non_blocking(self):
-        self.assertIsNone(validate_counters(10, 4, 3, 2, 1))
+        self.assertIsNone(validate_counters(10, 4, 3, 2, 1, 0))
         self.assertEqual(
-            validate_counters(9, 4, 3, 2, 1),
+            validate_counters(9, 4, 3, 2, 1, 0),
             "REPORT_COUNTER_INCONSISTENCY",
         )
         pending, human = project(["NC_T4_012", "NC_T4_013"])
         self.assertEqual(len(pending), 2)
         self.assertEqual(human, [])
         self.assertIn(
-            "VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW",
+            "VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW + UNKNOWN",
             REPORTS,
         )
         self.assertIn("Continue operational report\ngeneration", PIPELINE)
@@ -303,7 +303,8 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
     def test_k_operational_status_is_neutral_and_deterministic(self):
         self.assertEqual(operational_status(1, 0), "COM PENDÊNCIAS")
         self.assertEqual(operational_status(0, 1), "NECESSITA ANÁLISE HUMANA")
-        self.assertEqual(operational_status(0, 0), "SEM PENDÊNCIAS DOCUMENTAIS")
+        self.assertEqual(operational_status(0, 0, 1), "NECESSITA ANÁLISE HUMANA")
+        self.assertEqual(operational_status(0, 0, 0), "SEM PENDÊNCIAS DOCUMENTAIS")
         operational = REPORTS.split("ANEXO TÉCNICO DE AUDITORIA", 1)[0]
         for forbidden in ("STATUS: APROVADO", "STATUS: REPROVADO", "STATUS: INDEFERIDO"):
             self.assertNotIn(forbidden, operational)
@@ -336,11 +337,19 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         positions = [REPORTS.index(section) for section in sections]
         self.assertEqual(positions, sorted(positions))
 
-    def test_n_known_debts_remain_unresolved(self):
-        self.assertIn("NC_T1_003_SIGNED", REQUIREMENTS)
+    def test_n_as006_is_closed_and_known_dead_nc_remains(self):
+        self.assertNotIn("NC_T1_003_SIGNED", REQUIREMENTS)
         self.assertNotIn("NC_T1_003_SIGNED", CATALOG)
         self.assertIn("NC_T4_018", CATALOG)
         self.assertNotIn("NC_T4_018", ACTIONABLE)
+
+    def test_n1_unpaid_drt_has_precise_non_irv_human_treatment(self):
+        self.assertIn("NC_T1_010", CATALOG)
+        self.assertNotIn("IRV_TABLE", CATALOG["NC_T1_010"])
+        pending, human = project(["NC_T1_010"])
+        self.assertEqual(pending, [])
+        self.assertEqual(human, ["NC_T1_010"])
+        self.assertIn("pagamento não realizado ou pendente", CATALOG["NC_T1_010"]["CAUSE"])
 
     def test_o_base_inventory_and_protected_catalog_sizes_remain_current(self):
         expected_files = {
@@ -350,8 +359,8 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             "08_execution_pipeline.txt", "09_Especificacao_da_RDE.txt",
         }
         self.assertEqual({path.name for path in KB.glob("*.txt")}, expected_files)
-        self.assertEqual(len(CATALOG), 32)
-        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 12)
+        self.assertEqual(len(CATALOG), 33)
+        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 13)
         self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 24)
 
 

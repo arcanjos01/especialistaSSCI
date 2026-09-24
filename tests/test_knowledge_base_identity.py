@@ -35,7 +35,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.6\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.7\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.6.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.7.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -190,6 +190,39 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             self.builder.compile_execution_index("REQUIREMENT REQ_A\nFOR_EACH A\nEND\n", "CRITERION C_A\nUSES REQ_A\nFOR_EACH B\nEND\n")
         with self.assertRaises(ValueError):
             self.builder.compile_execution_index("REQUIREMENT REQ_A\nEND\n", "CRITERION C_A\nUSES REQ_A\nUSES REQ_A\nEND\n")
+
+    def test_builder_rejects_dangling_nonconformity_references(self):
+        requirements = (
+            "REQUIREMENT REQ_A\n"
+            "NONCONFORMITY NC_MISSING\n"
+            "END\n"
+        )
+        criteria = (
+            "CRITERION C_A\n"
+            "USES REQ_A\n"
+            "FAIL NC_PRESENT\n"
+            "END\n",
+        )
+        nonconformities = (
+            "NONCONFORMITY NC_PRESENT\n"
+            "REF_REQUIREMENT REQ_A\n"
+            "REF_CRITERION C_A\n"
+            "END\n"
+        )
+        with self.assertRaises(ValueError):
+            self.builder.validate_reference_integrity(
+                requirements, criteria, nonconformities
+            )
+
+    def test_current_reference_graph_is_closed(self):
+        requirements = (KB / "02_requirements.txt").read_text(encoding="utf-8")
+        criteria = tuple(
+            path.read_text(encoding="utf-8") for path in self.builder.CRITERIA_SOURCES
+        )
+        nonconformities = (KB / "05_nonconformities.txt").read_text(encoding="utf-8")
+        self.builder.validate_reference_integrity(
+            requirements, criteria, nonconformities
+        )
 
     def test_identity_contract_does_not_define_normative_objects(self):
         manifest_section = self.pipeline.split(

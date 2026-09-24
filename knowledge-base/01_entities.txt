@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.4
+# VERSION 3.5
 ###############################################################################
 
 ###############################################################################
@@ -84,6 +84,16 @@ TYPE DOCUMENT
 
 ATTRIBUTE SIGNED BOOLEAN
 
+ATTRIBUTE REGISTERED BOOLEAN
+
+ATTRIBUTE REGISTRATION_DATE DATE
+
+ATTRIBUTE PAID BOOLEAN
+
+ATTRIBUTE PAYMENT_DATE DATE
+
+ATTRIBUTE PAYMENT_REQUIRED_FOR_VALIDITY BOOLEAN
+
 ATTRIBUTE COUNCIL_STATE TEXT
 
 ATTRIBUTE RESPONSIBILITY_TYPE ENUM
@@ -93,7 +103,17 @@ ATTRIBUTE PROFESSIONAL_REGULARITY ENUM
 DESCRIPTION
 
 SIGNED registra somente assinatura digital ou eletrônica documentalmente
-verificável. COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
+verificável. REGISTERED registra TRUE somente quando o próprio documento traz
+fato verificável de registro/emissão e FALSE somente quando traz declaração
+explícita de não registro, rascunho ou equivalente; na insuficiência o atributo
+permanece vazio. REGISTRATION_DATE registra somente data explícita de registro.
+PAID registra TRUE somente com quitação/pagamento documentalmente verificável e
+FALSE somente quando o documento declara pagamento pendente, não pago, "taxa a
+pagar" ou equivalente; na insuficiência permanece vazio. PAYMENT_DATE registra
+somente data explícita de pagamento. PAYMENT_REQUIRED_FOR_VALIDITY registra
+somente declaração expressa do próprio documento de que sua validade depende de
+pagamento. Registro e pagamento são fatos independentes.
+COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
 RESPONSIBILITY_TYPE registra a natureza declarada na DRT.
 PROFESSIONAL_REGULARITY registra o resultado documental da verificação de
 regularidade profissional: REGULAR, IRREGULAR ou MANUAL_REVIEW.

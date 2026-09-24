@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 2.6.0
+DOCUMENT_VERSION: 2.7.0
 
 FINALIDADE
 
@@ -30,7 +30,7 @@ Derive o STATUS dos resultados consolidados e do conjunto imutável
 APPLICABILITY_REVIEW_REQUIRED produzido na Phase 4B, antes da renderização:
 
 - se FAIL > 0: STATUS: COM PENDÊNCIAS;
-- se FAIL = 0 e (MANUAL_REVIEW > 0 ou existir incidência
+- se FAIL = 0 e (MANUAL_REVIEW > 0 ou UNKNOWN > 0 ou existir incidência
   APPLICABILITY_REVIEW_REQUIRED): STATUS: NECESSITA ANÁLISE HUMANA;
 - nos demais casos: STATUS: SEM PENDÊNCIAS DOCUMENTAIS.
 
@@ -103,6 +103,7 @@ No fim desta mesma seção, em TRATAMENTO HUMANO, liste sem alterar seus
 estados canônicos:
 
 - resultados MANUAL_REVIEW;
+- resultados UNKNOWN;
 - resultados FAIL cuja Nonconformity não possua projeção IRV declarada; e
 - incidências APPLICABILITY_REVIEW_REQUIRED, diretamente projetadas do
   conjunto imutável da Phase 4B.
@@ -115,6 +116,12 @@ informe esse fato sem completá-lo. Não redija justificativa nova nem reabra
 fontes. Não exiba Requirement, Criterion, estado interno, id de regra, id RDE
 ou id de alerta. Não converta a incidência em resultado, MANUAL_REVIEW, FAIL,
 NOT_APPLICABLE ou Nonconformity.
+
+Para cada resultado UNKNOWN, preserve o estado canônico, a verificação e as
+evidências já consolidadas. Projete-o somente em TRATAMENTO HUMANO como
+"Informação documental insuficiente para concluir automaticamente esta
+verificação." Não o converta em MANUAL_REVIEW, FAIL, NOT_APPLICABLE,
+Nonconformity ou pendência e-SCI.
 
 Uma Nonconformity sem projeção IRV declarada não autoriza inventar item, causa
 ou subcausa do e-SCI. Preserve o FAIL; não o converta em MANUAL_REVIEW e não
@@ -155,7 +162,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.6.0;
+- Base: SSCI-Habite-se 5.7.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
@@ -270,7 +277,7 @@ CONTADORES DE AUDITORIA
 Derive todos os valores do conjunto canônico de resultados antes da
 renderização. Valide obrigatoriamente:
 
-VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW + UNKNOWN
 
 Se a igualdade não for satisfeita:
 
@@ -280,8 +287,8 @@ Se a igualdade não for satisfeita:
 - omita os totais inválidos;
 - não fabrique, ajuste ou reconstrua valores pela quantidade de blocos
   renderizados;
-- preserve PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW e todas as pendências
-  operacionais canônicas; e
+- preserve PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW, UNKNOWN e todas as
+  pendências operacionais canônicas; e
 - não interrompa a emissão do relatório operacional quando sua projeção
   permanecer íntegra.
 
@@ -294,6 +301,7 @@ Ao final apresentar:
 - Nonconformities acionadas;
 - Critérios NOT_APPLICABLE;
 - Critérios MANUAL_REVIEW;
+- Critérios UNKNOWN;
 - Documentos efetivamente utilizados;
 - Contadores canônicos validados, quando a igualdade for satisfeita;
 - REPORT_COUNTER_INCONSISTENCY, sem totais, quando a igualdade falhar;

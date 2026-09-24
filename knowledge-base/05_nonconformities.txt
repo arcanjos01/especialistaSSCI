@@ -1,6 +1,6 @@
 ###############################################################################
 # 05_nonconformities.dsl
-# VERSION 3.1
+# VERSION 3.2
 # Catálogo canônico e rastreável de não conformidades
 #
 # PROJEÇÃO OPERACIONAL IRV
@@ -15,7 +15,10 @@
 # EXCEÇÕES SEM PROJEÇÃO IRV
 #
 # NC_T1_009 e NC_T4_019 têm fonte CONFEA_CREA e não possuem critério ou causa
-# correspondente na IRV. Nenhum texto aproximado deve ser criado para elas.
+# correspondente na IRV. NC_T1_010 registra pagamento/validade documental da
+# DRT quando a evidência é explicitamente não paga ou pendente; a IRV determina
+# verificar DRTs pagos, mas não oferece folha específica para "registrada porém
+# não quitada". Nenhum texto aproximado deve ser criado para esses casos.
 #
 # NORMALIZAÇÕES DOCUMENTADAS DA PROJEÇÃO IRV
 #
@@ -114,6 +117,16 @@ IRV_CRITERION "Autenticidade e validade do(s) DRT."
 IRV_CAUSE "DRT sem comprovação de autenticidade/validade:"
 IRV_SUBCAUSE "Não possui assinatura digital do RT ou certificação digital pelo conselho de classe."
 DESCRIPTION_POLICY MINIMAL_IF_NEEDED
+END
+
+NONCONFORMITY NC_T1_010
+TABLE 1
+SOURCE IRV_HABITESE
+REF_CRITERION T1_DRT_PAYMENT_VALIDITY
+REF_REQUIREMENT REQ_T1_DRT_PAYMENT_VALIDITY
+SEVERITY DOCUMENTAL
+CATEGORY HABITESE
+CAUSE "A DRT apresentada possui pagamento não realizado ou pendente, comprometendo a comprovação documental de sua validade."
 END
 
 NONCONFORMITY NC_T1_009
