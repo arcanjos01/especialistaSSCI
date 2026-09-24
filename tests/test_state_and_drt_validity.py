@@ -38,7 +38,7 @@ class StateAndDRTValidityContractTests(unittest.TestCase):
     def test_multiple_validate_preserves_manual_review_over_later_unknown(self):
         self.assertIn(
             "ELSE IF ANY VALIDATION RETURNS UNKNOWN\n"
-            "            AND ASSERT_RESULT IS TRUE",
+            "            AND (ASSERT_RESULT IS TRUE OR ASSERT_RESULT IS NOT_APPLICABLE)",
             ENGINE,
         )
         self.assertNotIn(
