@@ -41,7 +41,7 @@ def entity_block(entity_id):
 
 def t1_worklist_contract():
     return APPLICABILITY.split(
-        "\nWORKLIST.SMSCI\n", 1
+        "\nWORKLIST.SMSCI AND WORKLIST.SMSCI_EXECUTION\n", 1
     )[1].split("PHASE 4C", 1)[0]
 
 def official_map():
@@ -56,8 +56,7 @@ def documentary_intervention_relation_facts(statements):
     return [
         dict(statement)
         for statement in statements
-        if statement.get("individually_identified") is True
-        and statement.get("source_document")
+        if statement.get("source_document")
         and statement.get("source_location")
         and statement.get("relation") in RELATIONS
         and complete_smsci_target(statement) is not None
@@ -159,9 +158,302 @@ com as informações disponíveis.""")
     return violations
 
 
-def t1_drt_worklist(process_smsci, alteration_facts, relations):
-    """The prepared relation view does not filter DRT in this release."""
-    return frozenset(process_smsci)
+def t1_drt_worklist(process_smsci, alteration_facts=None, relations=None):
+    """Keep the global official target view intact across Phase 4B."""
+    return process_smsci
+
+
+DECISION_STATES = {
+    "APPLICABLE", "NOT_APPLICABLE", "APPLICABILITY_REVIEW_REQUIRED",
+}
+POSITIVE_INTERVENTION_RELATIONS = {
+    "EXECUTED_IN_INTERVENTION", "MODIFIED_OR_RESIZED",
+    "PREEXISTING_SYSTEM_AFFECTED",
+}
+T4_PENDENTE = {
+    "REQ_IN07_COMMISSIONING", "REQ_IN08_MANUAL", "REQ_IN09_DRT",
+    "REQ_IN09_MANUAL", "REQ_IN09_CHECKLIST", "REQ_IN10_COMMISSIONING",
+    "REQ_IN12_COMMISSIONING", "REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING",
+    "REQ_IN19_FINAL_VERIFICATION",
+}
+T4_PRESERVAR = {
+    "REQ_T1_CONFORMITY_REPORT", "REQ_T1_CONFORMITY_REPORT_SIGNED",
+    "REQ_IN08_ESTANQUEIDADE", "REQ_IN09_TEST_REPORT",
+    "REQ_IN15_COMMISSIONING", "REQ_IN18_CMAR",
+    "REQ_IN19_LEGACY_DOCUMENTATION",
+}
+
+
+def _has_source_reference(record):
+    return bool(record and record.get("source_document") and record.get("source_location"))
+
+
+def _record_matches_binding(record, binding_smsci):
+    code = record.get("official_esci_code")
+    return code == binding_smsci or official_map().get(code) == binding_smsci
+
+
+def cumulative_exclusion_proven(binding_smsci, bundle):
+    """Apply the contract's cumulative, identity-matched negative proof gate."""
+    ppci = bundle.get("approved_ppci", {})
+    if not (
+        ppci.get("submission_class") == "COMPLEMENTARY"
+        and ppci.get("approval_status") == "APPROVED"
+        and ppci.get("identifier")
+        and ppci.get("previous_attestado_protocol")
+        and _has_source_reference(ppci)
+    ):
+        return False
+    matches = [
+        att for att in bundle.get("previous_attestations", [])
+        if att.get("protocol_identifier") == ppci["previous_attestado_protocol"]
+        and _has_source_reference(att)
+    ]
+    if len(matches) != 1:
+        return False
+    statements = bundle.get("statements", [])
+    scope = [
+        row for row in statements
+        if _record_matches_binding(row, binding_smsci)
+        and row.get("relation") == "PREEXISTING_SYSTEM_DECLARED_UNCHANGED"
+        and row.get("outside_intervention_design_installation_declared") is True
+        and row.get("ppci_identifier") == ppci["identifier"]
+        and row.get("source_document") == ppci["source_document"]
+        and row.get("area_identifier")
+        and _has_source_reference(row)
+    ]
+    if len(scope) != 1:
+        return False
+    area = scope[0]["area_identifier"]
+    reports = [
+        row for row in bundle.get("signed_technical_reports", [])
+        if row.get("signed") is True
+        and row.get("ppci_identifier") == ppci["identifier"]
+        and row.get("previous_attestado_protocol") == ppci["previous_attestado_protocol"]
+        and _has_source_reference(row)
+    ]
+    if len(reports) != 1:
+        return False
+    report_statements = [
+        row for row in statements
+        if row.get("source_document") == reports[0]["source_document"]
+        and _record_matches_binding(row, binding_smsci)
+        and row.get("relation") == "PREEXISTING_SYSTEM_DECLARED_UNCHANGED"
+        and row.get("ppci_identifier") == ppci["identifier"]
+        and row.get("area_identifier") == area
+        and _has_source_reference(row)
+    ]
+    if len(report_statements) != 1:
+        return False
+    conflicting = [
+        row for row in bundle.get("conflicting_technical_records", [])
+        if row.get("signed") is True
+        and _record_matches_binding(row, binding_smsci)
+        and row.get("area_identifier") == area
+        and row.get("relation") in POSITIVE_INTERVENTION_RELATIONS
+        and _has_source_reference(row)
+    ]
+    return not conflicting
+
+
+def _decision(requirement, state, rationale, binding=None, facts=(), rde=(),
+              sources=(), locations=()):
+    source_status = (
+        "COMPLETE" if sources and locations else
+        "PARTIAL" if sources or locations else
+        "NO_INDIVIDUALIZED_SOURCE_REFERENCE"
+    )
+    return {
+        "requirement": requirement,
+        "binding_smsci": binding,
+        "rule_id": "REQ_T1_DRT_SMSCI_ART98_SCOPE" if binding else "DECLARED_REQUIREMENT_RULE",
+        "decision": state,
+        "pm_fact_references": tuple(facts),
+        "rde_record_references": tuple(rde),
+        "source_document_references": tuple(sources),
+        "source_document_locations": tuple(locations),
+        "source_reference_status": source_status,
+        "base_rationale": rationale,
+    }
+
+
+def _proof_bundle_records(bundle):
+    records = []
+    for key in ("approved_ppci",):
+        record = bundle.get(key)
+        if isinstance(record, dict) and record:
+            records.append(record)
+    for key in (
+        "previous_attestations", "statements", "signed_technical_reports",
+        "conflicting_technical_records",
+    ):
+        records.extend(row for row in bundle.get(key, []) if isinstance(row, dict))
+    return records
+
+
+def resolve_t1_smsci_incidences(process_smsci, formal_alteration, statements=(),
+                                proof_bundles=None):
+    """Model Phase 4B's one closed decision per Requirement/SMSCI incidence."""
+    proof_bundles = proof_bundles or {}
+    relations = explicit_intervention_relations(statements)
+    statement_by_target = {}
+    for row in documentary_intervention_relation_facts(statements):
+        target = complete_smsci_target(row)
+        if target is not None:
+            statement_by_target.setdefault(target, []).append(row)
+    decisions = []
+    if not process_smsci:
+        decisions.append(_decision(
+            "REQ_T1_DRT_SMSCI",
+            "APPLICABLE",
+            "Preserva a seleção geral declarada de RT-003 com domínio iterativo vazio.",
+        ))
+        validate_decision_ledger(
+            [("REQ_T1_DRT_SMSCI", None)], decisions, proof_bundles
+        )
+        return decisions
+    for binding in process_smsci:
+        rows = statement_by_target.get(binding, [])
+        bundle = proof_bundles.get(binding, {})
+        relation = relations.get(binding) if formal_alteration else None
+        proof_records = (
+            _proof_bundle_records(bundle)
+            if relation == "PREEXISTING_SYSTEM_DECLARED_UNCHANGED" else []
+        )
+        evidence_records = rows + proof_records
+        source_refs = tuple(sorted({r["source_document"] for r in evidence_records if r.get("source_document")}))
+        locations = tuple(sorted({r["source_location"] for r in evidence_records if r.get("source_location")}))
+        rde_refs = tuple(sorted({
+            r.get("rde_record_reference") or r.get("source_location")
+            for r in evidence_records
+            if r.get("rde_record_reference") or r.get("source_location")
+        }))
+        facts = tuple(sorted({
+            r.get("pm_fact_reference") or r.get("source_location")
+            for r in evidence_records
+            if r.get("pm_fact_reference") or r.get("source_location")
+        }))
+        if not formal_alteration:
+            state, rationale = "APPLICABLE", "Preserva seleção global sem alteração formal."
+        elif relation in POSITIVE_INTERVENTION_RELATIONS:
+            state, rationale = "APPLICABLE", "Incidência positiva documentada no SMSCI."
+        elif relation == "PREEXISTING_SYSTEM_DECLARED_UNCHANGED" and cumulative_exclusion_proven(
+            binding, bundle
+        ):
+            state, rationale = "NOT_APPLICABLE", "Escopo cumulativo comprova exclusão desta iteração."
+        else:
+            state, rationale = (
+                "APPLICABILITY_REVIEW_REQUIRED",
+                "Escopo documental insuficiente ou indeterminado para esta incidência.",
+            )
+        decisions.append(_decision(
+            "REQ_T1_DRT_SMSCI", state, rationale, binding, facts, rde_refs,
+            source_refs, locations,
+        ))
+    validate_decision_ledger(
+        [("REQ_T1_DRT_SMSCI", binding) for binding in process_smsci],
+        decisions, proof_bundles,
+    )
+    return decisions
+
+
+def validate_decision_ledger(candidate_keys, decisions, proof_bundles=None):
+    proof_bundles = proof_bundles or {}
+    keys = [(d["requirement"], d.get("binding_smsci")) for d in decisions]
+    if len(keys) != len(set(keys)) or set(keys) != set(candidate_keys):
+        raise ValueError("applicability decision ledger is not closed and unique")
+    if any(d.get("decision") not in DECISION_STATES for d in decisions):
+        raise ValueError("invalid decision state")
+    for decision in decisions:
+        if (
+            decision["requirement"] == "REQ_T1_DRT_SMSCI"
+            and decision["decision"] == "NOT_APPLICABLE"
+            and not cumulative_exclusion_proven(
+                decision.get("binding_smsci"),
+                proof_bundles.get(decision.get("binding_smsci"), {}),
+            )
+        ):
+            raise ValueError("NOT_APPLICABLE lacks cumulative RT-003 proof")
+        if decision["decision"] == "APPLICABILITY_REVIEW_REQUIRED":
+            if decision.get("source_reference_status") not in {
+                "COMPLETE", "PARTIAL", "NO_INDIVIDUALIZED_SOURCE_REFERENCE",
+            }:
+                raise ValueError("review source-reference status is not explicit")
+    return True
+
+
+def validate_review_routing(decisions, planned=(), engine=(), criterion=(),
+                            results=(), nonconformities=(), esci=()):
+    """Reject mutation of review incidences into execution or output streams."""
+    review_bindings = {
+        (d["requirement"], d.get("binding_smsci"))
+        for d in decisions
+        if d["decision"] == "APPLICABILITY_REVIEW_REQUIRED"
+    }
+    for label, rows in (
+        ("plan", planned), ("Engine", engine), ("Criterion", criterion),
+        ("result", results), ("Nonconformity", nonconformities),
+        ("e-SCI", esci),
+    ):
+        if review_bindings.intersection(rows):
+            raise ValueError(f"applicability review leaked into {label}")
+    return True
+
+
+def phase4c_t1_unit(decisions):
+    t1_decisions = [
+        d for d in decisions if d["requirement"] == "REQ_T1_DRT_SMSCI"
+    ]
+    applicable = tuple(
+        d["binding_smsci"] for d in t1_decisions
+        if d["decision"] == "APPLICABLE" and d.get("binding_smsci") is not None
+    )
+    selected_empty_domain = any(
+        d["decision"] == "APPLICABLE" and d.get("binding_smsci") is None
+        for d in t1_decisions
+    )
+    if not applicable and not selected_empty_domain:
+        return ()
+    return ({
+        "unit_key": "(REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)",
+        "planned_bindings": applicable,
+    },)
+
+
+def report_status(results, applicability_reviews=()):
+    if any(result == "FAIL" for result in results):
+        return "COM PENDÊNCIAS"
+    if any(result == "MANUAL_REVIEW" for result in results) or applicability_reviews:
+        return "NECESSITA ANÁLISE HUMANA"
+    return "SEM PENDÊNCIAS DOCUMENTAIS"
+
+
+def decide_t4_incidence(requirement, target, process_smsci, formal_alteration,
+                        relation=None, proof_bundle=None):
+    if target not in process_smsci:
+        return "NOT_APPLICABLE"
+    if not formal_alteration or requirement in T4_PRESERVAR:
+        return "APPLICABLE"
+    if requirement not in T4_PENDENTE:
+        return "APPLICABLE"
+    if relation in POSITIVE_INTERVENTION_RELATIONS:
+        return "APPLICABLE"
+    # The cumulative art. 98 proof is specific to RT-003, not Table 4.
+    return "APPLICABILITY_REVIEW_REQUIRED"
+
+
+def in19_regime_from_request_date(request_date):
+    if not request_date:
+        return "UNRESOLVED"
+    return "LEGACY" if request_date <= "2024-04-24" else "CURRENT"
+
+
+def in19_requirements_for_regime(regime):
+    return {
+        "CURRENT": {"REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING", "REQ_IN19_FINAL_VERIFICATION"},
+        "LEGACY": {"REQ_IN19_LEGACY_DOCUMENTATION"},
+        "UNRESOLVED": {"REQ_IN19_REGIME_REVIEW"},
+    }[regime]
 
 
 @dataclass
@@ -244,14 +536,12 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
         self.shp_changed = {
             "official_esci_code": "SHP",
             "relation": "MODIFIED_OR_RESIZED",
-            "individually_identified": True,
             "source_document": "memorial-sintetico",
             "source_location": "p. 1, par. 2",
         }
         self.shp_unchanged = {
             "official_esci_code": "SHP",
             "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
-            "individually_identified": True,
             "source_document": "memorial-sintetico",
             "source_location": "p. 1, par. 3",
         }
@@ -357,14 +647,12 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
             {
                 "smsci_reference_text": "CENTRAL_GLP",
                 "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
-                "individually_identified": True,
                 "source_document": "memorial-sintetico",
                 "source_location": "p. 1, par. 1",
             },
             {
                 "smsci_reference_text": "HIDRANTE",
                 "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
-                "individually_identified": True,
                 "source_document": "memorial-sintetico",
                 "source_location": "p. 1, par. 2",
             },
@@ -385,7 +673,6 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
         statement = {
             "smsci_reference_text": "Instalação de Gás",
             "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
-            "individually_identified": True,
             "source_document": "memorial-sintetico",
             "source_location": "p. 1, par. 3",
         }
@@ -405,7 +692,6 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
     def test_09_generic_remaining_systems_declaration_does_not_expand_per_system(self):
         generic = {
             "statement_text": "Os demais sistemas permanecem inalterados.",
-            "individually_identified": False,
             "source_document": "memorial-sintetico",
             "source_location": "p. 1",
         }
@@ -427,7 +713,6 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
         relation = {
             "official_esci_code": "IGC",
             "relation": "PREEXISTING_SYSTEM_AFFECTED",
-            "individually_identified": True,
             "source_document": "memorial-sintetico",
             "source_location": "p. 2",
         }
@@ -582,6 +867,8 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
         self.assertIn("sistema completo", relation_text)
         self.assertIn("CENTRAL_GLP não identifica toda a SMSCI_GAS", relation_text)
         self.assertIn("HIDRANTE, HIDRANTES ou REDE_DE_HIDRANTES", relation_text)
+        self.assertIn("OUTSIDE_INTERVENTION_DESIGN_INSTALLATION_DECLARED", relation_text)
+        self.assertIn("Ausência, silêncio ou omissão do SMSCI não", relation_text)
         self.assertIn("não crie um registro PPCI_ALTERATION_SMSCI_STATEMENT", relation_text)
         self.assertIn("ALTERATION_DESCRIPTION e SOURCE_LOCATION", relation_text)
         applicability_text = normalized_text(APPLICABILITY)
@@ -590,17 +877,390 @@ class PPCIAlterationInterventionTests(unittest.TestCase):
         self.assertIn("ATTRIBUTE ISSUE_DATE DATE", certificate)
         self.assertIn("Área previamente aprovada", certificate)
         worklist = t1_worklist_contract()
-        self.assertIn("every and only official", worklist)
-        self.assertIn("Declared intervention relations do not\nchange this worklist", worklist)
-        self.assertIn("does not use them", APPLICABILITY)
-        self.assertIn("alone to remove", APPLICABILITY)
-        self.assertIn("Table 4 retains this global rule", PIPELINE)
+        self.assertIn("every and only positive OFFICIAL_ESCI_SCOPE", worklist)
+        self.assertIn("WORKLIST.SMSCI_EXECUTION is the ordered subset", worklist)
+        self.assertIn("only iteration domain passed to T1_DRT_SMSCI_COVERAGE", worklist)
+        self.assertIn("PROCESS.SMSCI remain unchanged", APPLICABILITY)
+        self.assertIn("alone cannot prove NOT_APPLICABLE", APPLICABILITY)
+        self.assertIn("filter Table 4 as a block", normalized_text(PIPELINE))
         pipeline_text = normalized_text(PIPELINE)
         self.assertIn("complete, individually identified SMSCI", pipeline_text)
         self.assertIn("component mentions that do not identify a complete SMSCI", pipeline_text)
         self.assertIn("For an unresolved component mention, preserve its wording and source location only in ALTERATION_DESCRIPTION and SOURCE_LOCATION", pipeline_text)
         self.assertIn("No further documentary extraction is allowed", PIPELINE)
         self.assertIn("A RDE representa exclusivamente fatos documentais.", RDE)
+
+
+class RequirementIncidenceApplicabilityTests(unittest.TestCase):
+    def setUp(self):
+        self.global_scope = ("SMSCI_SHP", "SMSCI_GAS", "SMSCI_CMAR")
+        self.signed_off_scope_proof = {
+            "approved_ppci": {
+                "identifier": "PPCI-C-42",
+                "submission_class": "COMPLEMENTARY",
+                "approval_status": "APPROVED",
+                "previous_attestado_protocol": "ATEST-19",
+                "source_document": "ppci-complementar-aprovado",
+                "source_location": "folha de aprovação e identificação",
+            },
+            "previous_attestations": [{
+                "protocol_identifier": "ATEST-19",
+                "source_document": "atestado-anterior",
+                "source_location": "capa, protocolo",
+            }],
+            "statements": [{
+                "official_esci_code": "SHP",
+                "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+                "ppci_identifier": "PPCI-C-42",
+                "area_identifier": "AREA-BLOCO-A",
+                "outside_intervention_design_installation_declared": True,
+                "source_document": "ppci-complementar-aprovado",
+                "source_location": "prancha SHP, quadro de escopo",
+            }, {
+                "official_esci_code": "SHP",
+                "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+                "ppci_identifier": "PPCI-C-42",
+                "area_identifier": "AREA-BLOCO-A",
+                "source_document": "laudo-RT-003",
+                "source_location": "item 4, conclusão por sistema",
+            }],
+            "signed_technical_reports": [{
+                "signed": True,
+                "ppci_identifier": "PPCI-C-42",
+                "previous_attestado_protocol": "ATEST-19",
+                "source_document": "laudo-RT-003",
+                "source_location": "identificação e assinatura",
+            }],
+            "conflicting_technical_records": [],
+        }
+        self.shp_unchanged = {
+            "official_esci_code": "SHP",
+            "relation": "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+            "ppci_identifier": "PPCI-C-42",
+            "area_identifier": "AREA-BLOCO-A",
+            "source_document": "ppci-complementar-aprovado",
+            "source_location": "prancha SHP, quadro de escopo",
+        }
+
+    def decisions(self, statements=(), proof_bundles=None, formal=True):
+        return resolve_t1_smsci_incidences(
+            self.global_scope, formal, statements, proof_bundles
+        )
+
+    def state_by_binding(self, decisions):
+        return {row["binding_smsci"]: row["decision"] for row in decisions}
+
+    def test_01_to_03_closed_tri_state_and_cumulative_exclusion(self):
+        common = self.decisions([{
+            "official_esci_code": "SHP", "relation": "MODIFIED_OR_RESIZED",
+            "source_document": "oficio",
+            "source_location": "p. 2",
+        }])
+        self.assertEqual(self.state_by_binding(common)["SMSCI_SHP"], "APPLICABLE")
+        proven = self.decisions(
+            [self.shp_unchanged], {"SMSCI_SHP": self.signed_off_scope_proof}
+        )
+        self.assertEqual(self.state_by_binding(proven)["SMSCI_SHP"], "NOT_APPLICABLE")
+        proven_row = next(
+            d for d in proven if d["binding_smsci"] == "SMSCI_SHP"
+        )
+        self.assertTrue({"ppci-complementar-aprovado", "atestado-anterior", "laudo-RT-003"}.issubset(
+            set(proven_row["source_document_references"])
+        ))
+        self.assertTrue({
+            "folha de aprovação e identificação", "capa, protocolo",
+            "item 4, conclusão por sistema",
+        }.issubset(set(proven_row["source_document_locations"])))
+        self.assertEqual(proven_row["source_reference_status"], "COMPLETE")
+        incomplete = self.decisions([self.shp_unchanged])
+        self.assertEqual(
+            self.state_by_binding(incomplete)["SMSCI_SHP"],
+            "APPLICABILITY_REVIEW_REQUIRED",
+        )
+        keys = [("REQ_T1_DRT_SMSCI", binding) for binding in self.global_scope]
+        self.assertTrue(validate_decision_ledger(keys, incomplete))
+        for row in incomplete:
+            self.assertIn(row["decision"], DECISION_STATES)
+            self.assertTrue(row["rule_id"])
+            self.assertIn("base_rationale", row)
+            self.assertIn("pm_fact_references", row)
+            self.assertIn("rde_record_references", row)
+            self.assertIn("source_document_references", row)
+
+    def test_04_to_09_review_has_no_engine_plan_criterion_result_nc_or_esci_projection(self):
+        decisions = self.decisions()
+        reviews = [d for d in decisions if d["decision"] == "APPLICABILITY_REVIEW_REQUIRED"]
+        self.assertEqual(len(reviews), len(self.global_scope))
+        self.assertEqual(phase4c_t1_unit(decisions), ())
+        self.assertNotIn("APPLICABILITY_REVIEW_REQUIRED", NONCONFORMITIES)
+        engine = (KB / "00_engine.txt").read_text(encoding="utf-8")
+        self.assertNotIn("APPLICABILITY_REVIEW_REQUIRED", engine)
+        self.assertIn("not a Criterion result", PIPELINE)
+        self.assertIn("do not affect", PIPELINE)
+        self.assertIn("Nonconformities or e-SCI projection", PIPELINE)
+        self.assertIn("TRATAMENTO HUMANO", REPORTS)
+        self.assertIn("incidências APPLICABILITY_REVIEW_REQUIRED", REPORTS)
+        self.assertIn("HUMAN_TREATMENT_OBLIGATION", APPLICABILITY)
+        self.assertIn("HUMAN_TREATMENT_REASON", APPLICABILITY)
+        self.assertIn("HUMAN_TREATMENT_REASON", REPORTS)
+        self.assertNotIn("REQ_T1_DRT_SMSCI", REPORTS.split("STATUS OPERACIONAL", 1)[0])
+
+    def test_10_and_11_report_status_keeps_review_separate_from_fail(self):
+        decisions = self.decisions()
+        reviews = [d for d in decisions if d["decision"] == "APPLICABILITY_REVIEW_REQUIRED"]
+        self.assertEqual(report_status([], reviews), "NECESSITA ANÁLISE HUMANA")
+        self.assertEqual(report_status(["FAIL"], reviews), "COM PENDÊNCIAS")
+        self.assertIn("liste a revisão separadamente", normalized_text(REPORTS))
+        self.assertIn("sua presença afeta somente o status", normalized_text(REPORTS).casefold())
+
+    def test_12_to_17_no_alteration_and_all_positive_relations_preserve_rt003(self):
+        unchanged_process = self.decisions(formal=False)
+        self.assertEqual(set(self.state_by_binding(unchanged_process).values()), {"APPLICABLE"})
+        for relation in sorted(POSITIVE_INTERVENTION_RELATIONS):
+            with self.subTest(relation=relation):
+                statement = {
+                    "official_esci_code": "SHP", "relation": relation,
+                    "source_document": "oficio",
+                    "source_location": "p. 2, item 1",
+                }
+                decisions = self.decisions([statement])
+                self.assertEqual(self.state_by_binding(decisions)["SMSCI_SHP"], "APPLICABLE")
+                unit = phase4c_t1_unit(decisions)[0]
+                self.assertIn("SMSCI_SHP", unit["planned_bindings"])
+        proven = self.decisions(
+            [self.shp_unchanged], {"SMSCI_SHP": self.signed_off_scope_proof}
+        )
+        self.assertEqual(self.state_by_binding(proven)["SMSCI_SHP"], "NOT_APPLICABLE")
+        planned_bindings = {
+            binding for unit in phase4c_t1_unit(proven)
+            for binding in unit["planned_bindings"]
+        }
+        self.assertNotIn("SMSCI_SHP", planned_bindings)
+        unknown = self.decisions([{
+            "smsci_reference_text": "central_glp",
+            "relation": "MODIFIED_OR_RESIZED",
+            "source_document": "oficio",
+            "source_location": "p. 2",
+        }])
+        self.assertEqual(self.state_by_binding(unknown)["SMSCI_SHP"], "APPLICABILITY_REVIEW_REQUIRED")
+
+    def test_18_to_20_missing_silent_and_generic_officio_never_prove_out_of_scope(self):
+        absent = self.decisions()
+        silent = self.decisions([])
+        generic = self.decisions([{
+            "statement_text": "Os demais sistemas permanecem inalterados.",
+            "source_document": "oficio",
+            "source_location": "p. 1",
+        }])
+        for rows in (absent, silent, generic):
+            self.assertEqual(self.state_by_binding(rows)["SMSCI_SHP"], "APPLICABILITY_REVIEW_REQUIRED")
+            self.assertNotEqual(self.state_by_binding(rows)["SMSCI_SHP"], "NOT_APPLICABLE")
+
+    def test_21_phase4b_does_not_reduce_process_or_global_worklist(self):
+        decisions = self.decisions(
+            [self.shp_unchanged], {"SMSCI_SHP": self.signed_off_scope_proof}
+        )
+        self.assertEqual(t1_drt_worklist(self.global_scope, {}, decisions), self.global_scope)
+        self.assertEqual(set(self.global_scope), {"SMSCI_SHP", "SMSCI_GAS", "SMSCI_CMAR"})
+        self.assertEqual(phase4c_t1_unit(decisions), ())
+        self.assertIn("PROCESS.SMSCI remain unchanged", normalized_text(APPLICABILITY))
+
+        mixed_scope = ("SMSCI_SHP", "SMSCI_GAS")
+        mixed = resolve_t1_smsci_incidences(
+            mixed_scope,
+            True,
+            [{
+                "official_esci_code": "SHP",
+                "relation": "MODIFIED_OR_RESIZED",
+                "source_document": "ppci-complementar",
+                "source_location": "quadro de sistemas, SHP",
+            }],
+        )
+        self.assertEqual(self.state_by_binding(mixed), {
+            "SMSCI_SHP": "APPLICABLE",
+            "SMSCI_GAS": "APPLICABILITY_REVIEW_REQUIRED",
+        })
+        self.assertEqual(
+            phase4c_t1_unit(mixed)[0]["planned_bindings"], ("SMSCI_SHP",)
+        )
+        self.assertTrue(validate_review_routing(
+            mixed,
+            planned={("REQ_T1_DRT_SMSCI", "SMSCI_SHP")},
+        ))
+        self.assertIn("SMSCI_GAS", {
+            d["binding_smsci"] for d in mixed
+            if d["decision"] == "APPLICABILITY_REVIEW_REQUIRED"
+        })
+
+    def test_22_t4_keeps_preserved_requirements_and_reviews_only_pendente_incidence(self):
+        for requirement in sorted(T4_PENDENTE):
+            block = re.search(
+                rf"(?m)^REQUIREMENT {requirement}\n(.*?)^END$", REQUIREMENTS, re.S
+            ).group(1)
+            target = re.search(r"(?m)^SMSCI (\S+)$", block).group(1)
+            with self.subTest(requirement=requirement):
+                # Full RT-003 art. 98 proof cannot suppress a separate T4 obligation.
+                self.assertEqual(
+                    decide_t4_incidence(
+                        requirement, target, (target,), True,
+                        "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+                        self.signed_off_scope_proof,
+                    ),
+                    "APPLICABILITY_REVIEW_REQUIRED",
+                )
+                self.assertEqual(
+                    decide_t4_incidence(
+                        requirement, target, (target,), True,
+                        "PREEXISTING_SYSTEM_AFFECTED",
+                    ),
+                    "APPLICABLE",
+                )
+        preserved_t4 = {
+            "REQ_IN08_ESTANQUEIDADE", "REQ_IN09_TEST_REPORT",
+            "REQ_IN15_COMMISSIONING", "REQ_IN18_CMAR",
+            "REQ_IN19_LEGACY_DOCUMENTATION",
+        }
+        for requirement in sorted(preserved_t4):
+            block = re.search(
+                rf"(?m)^REQUIREMENT {requirement}\n(.*?)^END$", REQUIREMENTS, re.S
+            ).group(1)
+            target = re.search(r"(?m)^SMSCI (\S+)$", block).group(1)
+            self.assertEqual(
+                decide_t4_incidence(
+                    requirement, target, (target,), True,
+                    "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+                    self.signed_off_scope_proof,
+                ),
+                "APPLICABLE",
+            )
+        self.assertNotIn("same complete cumulative proof gate", APPLICABILITY)
+        self.assertIn("shall not be reused by analogy", APPLICABILITY)
+        self.assertIn("filter Table 4 as a block", normalized_text(PIPELINE))
+
+    def test_23_to_25_in19_temporal_regimes_remain_independent_of_intervention(self):
+        expected = {
+            "2025-01-03": ("CURRENT", {"REQ_IN19_EXECUTION", "REQ_IN19_GROUNDING", "REQ_IN19_FINAL_VERIFICATION"}),
+            "2024-01-03": ("LEGACY", {"REQ_IN19_LEGACY_DOCUMENTATION"}),
+            None: ("UNRESOLVED", {"REQ_IN19_REGIME_REVIEW"}),
+        }
+        for request_date, pair in expected.items():
+            regime, selected = pair
+            self.assertEqual(in19_regime_from_request_date(request_date), regime)
+            self.assertEqual(in19_requirements_for_regime(regime), selected)
+            t1 = self.decisions([self.shp_unchanged])
+            self.assertEqual(self.state_by_binding(t1)["SMSCI_SHP"], "APPLICABILITY_REVIEW_REQUIRED")
+        self.assertIn("do not reuse REQ_IN19_REGIME_REVIEW", APPLICABILITY)
+
+    def test_26_integral_habite_se_contract_keeps_existing_normal_behavior(self):
+        no_alteration = self.decisions(formal=False)
+        self.assertTrue(all(d["decision"] == "APPLICABLE" for d in no_alteration))
+        self.assertEqual(phase4c_t1_unit(no_alteration)[0]["planned_bindings"], self.global_scope)
+        self.assertIn("preserve existing global selection", APPLICABILITY)
+
+    def test_27_empty_worklist_preserves_prior_general_rt003_selection_and_plan(self):
+        decisions = resolve_t1_smsci_incidences((), formal_alteration=False)
+        self.assertEqual(len(decisions), 1)
+        self.assertEqual(decisions[0]["requirement"], "REQ_T1_DRT_SMSCI")
+        self.assertIsNone(decisions[0]["binding_smsci"])
+        self.assertEqual(decisions[0]["decision"], "APPLICABLE")
+        self.assertEqual(
+            decisions[0]["source_reference_status"],
+            "NO_INDIVIDUALIZED_SOURCE_REFERENCE",
+        )
+
+        plan = phase4c_t1_unit(decisions)
+        self.assertEqual(len(plan), 1)
+        self.assertEqual(
+            plan[0]["unit_key"],
+            "(REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)",
+        )
+        self.assertEqual(plan[0]["planned_bindings"], ())
+
+        requirement = re.search(
+            r"REQUIREMENT REQ_T1_DRT_SMSCI\n(.*?)\nEND", REQUIREMENTS, re.S
+        ).group(1)
+        criterion = re.search(
+            r"CRITERION T1_DRT_SMSCI_COVERAGE\n(.*?)\nEND",
+            (KB / "03_table1.txt").read_text(encoding="utf-8"),
+            re.S,
+        ).group(1)
+        self.assertNotRegex(requirement, r"(?m)^SMSCI ")
+        self.assertIn("FOR_EACH WORKLIST.SMSCI_EXECUTION", requirement)
+        self.assertIn("USES REQ_T1_DRT_SMSCI", criterion)
+
+    def test_mutations_review_cannot_become_fail_na_engine_nc_or_esci(self):
+        actual = self.decisions()
+        review = next(d for d in actual if d["binding_smsci"] == "SMSCI_SHP")
+        self.assertEqual(review["decision"], "APPLICABILITY_REVIEW_REQUIRED")
+        self.assertNotIn("FAIL", DECISION_STATES)
+        mutant_fail = dict(review, decision="FAIL")
+        with self.assertRaises(ValueError):
+            validate_decision_ledger(
+                [("REQ_T1_DRT_SMSCI", b) for b in self.global_scope],
+                [mutant_fail if d is review else d for d in actual],
+            )
+        mutant_na = [
+            dict(row, decision="NOT_APPLICABLE") if row is review else row
+            for row in actual
+        ]
+        with self.assertRaisesRegex(ValueError, "lacks cumulative RT-003 proof"):
+            validate_decision_ledger(
+                [("REQ_T1_DRT_SMSCI", b) for b in self.global_scope], mutant_na
+            )
+        self.assertEqual(
+            decide_t4_incidence(
+                "REQ_IN07_COMMISSIONING", "SMSCI_SHP", ("SMSCI_SHP",), True,
+                "PREEXISTING_SYSTEM_DECLARED_UNCHANGED",
+                self.signed_off_scope_proof,
+            ),
+            "APPLICABILITY_REVIEW_REQUIRED",
+        )
+        self.assertEqual(phase4c_t1_unit(actual), ())
+        self.assertTrue(validate_review_routing(actual))
+        review_key = ("REQ_T1_DRT_SMSCI", review["binding_smsci"])
+        for route in ("planned", "engine", "criterion", "results", "nonconformities", "esci"):
+            with self.subTest(route=route):
+                with self.assertRaisesRegex(ValueError, "leaked into"):
+                    validate_review_routing(actual, **{route: {review_key}})
+        self.assertIn("not a Criterion result, MANUAL_REVIEW, UNKNOWN, FAIL, Nonconformity or planned binding", normalized_text(PIPELINE))
+        self.assertIn("não é MANUAL_REVIEW", normalized_text(REPORTS))
+
+    def test_mutations_absent_or_isolated_officio_cannot_prove_no_intervention(self):
+        self.assertEqual(self.state_by_binding(self.decisions())["SMSCI_SHP"], "APPLICABILITY_REVIEW_REQUIRED")
+        self.assertEqual(self.state_by_binding(self.decisions([self.shp_unchanged]))["SMSCI_SHP"], "APPLICABILITY_REVIEW_REQUIRED")
+        broken = {"SMSCI_SHP": dict(self.signed_off_scope_proof)}
+        broken["SMSCI_SHP"]["signed_technical_reports"] = []
+        self.assertFalse(cumulative_exclusion_proven("SMSCI_SHP", broken["SMSCI_SHP"]))
+
+    def test_mutations_affecting_global_scope_t4_or_in19_are_detected(self):
+        changed = {
+            "official_esci_code": "SHP", "relation": "PREEXISTING_SYSTEM_AFFECTED",
+            "source_document": "laudo",
+            "source_location": "p. 2",
+        }
+        decisions = self.decisions([changed])
+        self.assertEqual(self.state_by_binding(decisions)["SMSCI_SHP"], "APPLICABLE")
+        self.assertIn("SMSCI_SHP", phase4c_t1_unit(decisions)[0]["planned_bindings"])
+        self.assertEqual(t1_drt_worklist(self.global_scope, {}, decisions), self.global_scope)
+        self.assertEqual(
+            decide_t4_incidence("REQ_IN08_ESTANQUEIDADE", "SMSCI_GAS",
+                                self.global_scope, True, "PREEXISTING_SYSTEM_DECLARED_UNCHANGED"),
+            "APPLICABLE",
+        )
+        self.assertEqual(in19_requirements_for_regime("UNRESOLVED"), {"REQ_IN19_REGIME_REVIEW"})
+        self.assertIn("REQUEST_DATE", APPLICABILITY)
+
+    def test_decision_ledger_rejects_missing_duplicate_or_unrecognized_incidences(self):
+        decisions = self.decisions()
+        candidate_keys = [("REQ_T1_DRT_SMSCI", binding) for binding in self.global_scope]
+        with self.assertRaises(ValueError):
+            validate_decision_ledger(candidate_keys, decisions[:-1])
+        with self.assertRaises(ValueError):
+            validate_decision_ledger(candidate_keys, decisions + [decisions[0]])
+        invalid = [dict(row) for row in decisions]
+        invalid[0]["decision"] = "UNKNOWN"
+        with self.assertRaises(ValueError):
+            validate_decision_ledger(candidate_keys, invalid)
 
 
 if __name__ == "__main__":

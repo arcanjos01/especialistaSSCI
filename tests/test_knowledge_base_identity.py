@@ -35,7 +35,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.5\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.6\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.5.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.6.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -130,7 +130,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         )
         smsci = re.search(r"REQUIREMENT REQ_T1_DRT_SMSCI\n(.*?)END", index, re.S).group(1)
         self.assertEqual(re.findall(r"UNIT_KEY \(([^)]+)\)", smsci), ["REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE"])
-        self.assertIn("ITERATION_SOURCE WORKLIST.SMSCI", smsci)
+        self.assertIn("ITERATION_SOURCE WORKLIST.SMSCI_EXECUTION", smsci)
         def unit_keys(requirement_id):
             block = re.search(rf"REQUIREMENT {requirement_id}\n(.*?)END", index, re.S).group(1)
             return re.findall(r"UNIT_KEY \(([^)]+)\)", block)

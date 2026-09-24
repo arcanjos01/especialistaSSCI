@@ -878,6 +878,14 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         )
         self.assertIn("REQ_T1_DRT_REQUIRED", applicable)
         self.assertIn("REQ_T1_DRT_SMSCI", applicable)
+        selected = selected_criterion_ids(self.criterion_records, applicable)
+        self.assertIn("T1_DRT_SMSCI_COVERAGE", selected)
+        general_requirements = {
+            requirement for requirement, fields in self.requirement_records.items()
+            if fields["SMSCI"] is None
+            and fields["IN19_DOCUMENTATION_REGIME"] is None
+        }
+        self.assertTrue(general_requirements <= applicable)
 
     def test_t_worklist_is_subset_and_excludes_derived_scope_regression(self):
         scope = productive_resolve(

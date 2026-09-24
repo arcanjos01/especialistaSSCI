@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 2.5.0
+DOCUMENT_VERSION: 2.6.0
 
 FINALIDADE
 
@@ -26,12 +26,19 @@ Escreva em português (pt-BR), com linguagem técnica, clara e objetiva.
 
 STATUS OPERACIONAL
 
-Derive o STATUS diretamente do conjunto canônico de resultados consolidados,
-antes da renderização:
+Derive o STATUS dos resultados consolidados e do conjunto imutável
+APPLICABILITY_REVIEW_REQUIRED produzido na Phase 4B, antes da renderização:
 
 - se FAIL > 0: STATUS: COM PENDÊNCIAS;
-- se FAIL = 0 e MANUAL_REVIEW > 0: STATUS: NECESSITA ANÁLISE HUMANA;
+- se FAIL = 0 e (MANUAL_REVIEW > 0 ou existir incidência
+  APPLICABILITY_REVIEW_REQUIRED): STATUS: NECESSITA ANÁLISE HUMANA;
 - nos demais casos: STATUS: SEM PENDÊNCIAS DOCUMENTAIS.
+
+Uma revisão de aplicabilidade é uma decisão anterior ao Engine e não é
+MANUAL_REVIEW, resultado de Criterion, pendência e-SCI ou Nonconformity. Sua
+presença afeta somente o STATUS e a seção TRATAMENTO HUMANO. Se houver FAIL e
+revisão de aplicabilidade, mantenha STATUS: COM PENDÊNCIAS e liste a revisão
+separadamente no tratamento humano.
 
 Uma inconsistência em contador técnico não pode alterar o STATUS, os resultados
 canônicos ou as pendências operacionais.
@@ -95,8 +102,19 @@ permitido e desejado repetir o mesmo item de checklist com folhas diferentes.
 No fim desta mesma seção, em TRATAMENTO HUMANO, liste sem alterar seus
 estados canônicos:
 
-- resultados MANUAL_REVIEW; e
-- resultados FAIL cuja Nonconformity não possua projeção IRV declarada.
+- resultados MANUAL_REVIEW;
+- resultados FAIL cuja Nonconformity não possua projeção IRV declarada; e
+- incidências APPLICABILITY_REVIEW_REQUIRED, diretamente projetadas do
+  conjunto imutável da Phase 4B.
+
+Para cada incidência de escopo, projete sem alteração HUMAN_TREATMENT_OBLIGATION
+e HUMAN_TREATMENT_REASON congelados pela Base, o nome do SMSCI e a área
+individualizada quando presentes, além das referências de documentos e locais
+já contidas na decisão. Se não houver referência documental individualizada,
+informe esse fato sem completá-lo. Não redija justificativa nova nem reabra
+fontes. Não exiba Requirement, Criterion, estado interno, id de regra, id RDE
+ou id de alerta. Não converta a incidência em resultado, MANUAL_REVIEW, FAIL,
+NOT_APPLICABLE ou Nonconformity.
 
 Uma Nonconformity sem projeção IRV declarada não autoriza inventar item, causa
 ou subcausa do e-SCI. Preserve o FAIL; não o converta em MANUAL_REVIEW e não
@@ -137,7 +155,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.5.0;
+- Base: SSCI-Habite-se 5.6.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
@@ -210,6 +228,13 @@ Produza o relatório operacional completo e, em seguida, acrescente este Anexo
 Técnico.
 
 Nesta seção é permitido utilizar os nomes internos da Base.
+
+DECISÕES DE ESCOPO PARA TRATAMENTO HUMANO
+
+No Anexo Técnico, apresente as incidências APPLICABILITY_REVIEW_REQUIRED da
+Phase 4B em uma lista separada dos resultados de Criterion. Elas não entram em
+VERIFICATIONS_EXECUTED nem nos contadores PASS, FAIL, NOT_APPLICABLE ou
+MANUAL_REVIEW. Preserve separadamente a contagem de resultados MANUAL_REVIEW.
 
 IDENTIDADE DA BASE
 

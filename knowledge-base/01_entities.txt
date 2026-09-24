@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.3
+# VERSION 3.4
 ###############################################################################
 
 ###############################################################################
@@ -21,13 +21,24 @@ ENTITY PPCI
 
 TYPE DOCUMENT
 
+ATTRIBUTE PPCI_IDENTIFIER TEXT
+
 ATTRIBUTE PPCI_SUBMISSION_CLASS ENUM
+
+ATTRIBUTE PPCI_APPROVAL_STATUS ENUM
+
+ATTRIBUTE PREVIOUS_ATTESTADO_PROTOCOL_IDENTIFIER TEXT
 
 DESCRIPTION
 
+PPCI_IDENTIFIER registra o identificador exatamente como apresentado no PPCI.
 PPCI_SUBMISSION_CLASS somente registra se o documento identifica o PPCI
-apresentado como COMPLEMENTARY ou REPLACEMENT. Campo vazio não permite inferir
-complementaridade ou substituição.
+apresentado como COMPLEMENTARY ou REPLACEMENT. PPCI_APPROVAL_STATUS somente
+registra APPROVED ou NOT_APPROVED quando o próprio documento contém marcação
+documental verificável de aprovação. PREVIOUS_ATTESTADO_PROTOCOL_IDENTIFIER
+registra o protocolo do atestado anterior somente quando o PPCI complementar
+faz essa referência de forma explícita. Campos vazios não permitem inferir
+identidade, aprovação ou vínculo.
 
 END
 
@@ -71,6 +82,8 @@ ENTITY DRT
 
 TYPE DOCUMENT
 
+ATTRIBUTE SIGNED BOOLEAN
+
 ATTRIBUTE COUNCIL_STATE TEXT
 
 ATTRIBUTE RESPONSIBILITY_TYPE ENUM
@@ -79,7 +92,8 @@ ATTRIBUTE PROFESSIONAL_REGULARITY ENUM
 
 DESCRIPTION
 
-COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
+SIGNED registra somente assinatura digital ou eletrônica documentalmente
+verificável. COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
 RESPONSIBILITY_TYPE registra a natureza declarada na DRT.
 PROFESSIONAL_REGULARITY registra o resultado documental da verificação de
 regularidade profissional: REGULAR, IRREGULAR ou MANUAL_REVIEW.
@@ -556,6 +570,12 @@ TYPE DOCUMENTARY_EVIDENCE
 
 ATTRIBUTE OFFICIAL_ESCI_CODE TEXT
 
+ATTRIBUTE PPCI_IDENTIFIER TEXT
+
+ATTRIBUTE AREA_IDENTIFIER TEXT
+
+ATTRIBUTE OUTSIDE_INTERVENTION_DESIGN_INSTALLATION_DECLARED BOOLEAN
+
 ATTRIBUTE SMSCI_REFERENCE_TEXT TEXT
 
 ATTRIBUTE INTERVENTION_RELATION ENUM
@@ -567,6 +587,16 @@ ATTRIBUTE SOURCE_LOCATION TEXT
 DESCRIPTION
 
 Declaração documental individualizada que relaciona um SMSCI à intervenção.
+PPCI_IDENTIFIER registra somente a referência explícita ao PPCI complementar
+relacionado. AREA_IDENTIFIER registra um identificador ou rótulo de área
+individualizado e documentalmente localizável no documento de origem; não derive
+identificador de área por interpretação do desenho. OUTSIDE_INTERVENTION_DESIGN_INSTALLATION_DECLARED
+somente recebe TRUE quando o próprio PPCI complementar aprovado declara
+expressamente que o sistema individualizado e a área estão fora do escopo de
+projeto/instalação da intervenção. Ausência, silêncio ou omissão do SMSCI não
+recebe FALSE nem cria declaração. Esses vínculos são necessários para qualquer
+decisão de escopo por SMSCI e não são inferidos a partir da proximidade entre
+documentos.
 INTERVENTION_RELATION somente pode ser EXECUTED_IN_INTERVENTION,
 MODIFIED_OR_RESIZED, PREEXISTING_SYSTEM_AFFECTED ou
 PREEXISTING_SYSTEM_DECLARED_UNCHANGED quando o texto identificar
@@ -583,6 +613,30 @@ Ausência de menção não cria registro; uma declaração genérica sobre siste
 restantes não pode ser expandida para entidades individuais. O registro não
 determina conformidade ou aplicabilidade. source_document continua
 obrigatório pela RDE.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PPCI_ALTERATION_TECHNICAL_REPORT
+
+TYPE DOCUMENT
+
+ATTRIBUTE PPCI_IDENTIFIER TEXT
+
+ATTRIBUTE PREVIOUS_ATTESTADO_PROTOCOL_IDENTIFIER TEXT
+
+ATTRIBUTE SIGNED BOOLEAN
+
+DESCRIPTION
+
+Laudo ou relatório técnico específico que documenta o escopo de uma alteração
+de PPCI. Registrar os identificadores exatamente como constam no documento.
+SIGNED somente recebe TRUE quando houver assinatura digital ou eletrônica
+documentalmente verificável; assinatura ausente, ilegível ou não verificável
+permanece vazia. Este documento pode corroborar o escopo por sistema declarado
+no PPCI complementar, mas isoladamente não prova a exclusão de um SMSCI da
+intervenção. source_document continua obrigatório pela RDE.
 
 END
 

@@ -13,6 +13,28 @@ PIPELINE = (
 BASE = PIPELINE.parent
 
 
+def phase5_engine_input_violations(pipeline_text):
+    """Guard the Phase 5 input boundary against Phase 4B review data."""
+    try:
+        start = pipeline_text.index("# PHASE 5\n# TABLE EXECUTION")
+        end = pipeline_text.index("# PHASE 6\n# RESULT CONSOLIDATION", start)
+        phase5 = pipeline_text[start:end]
+        input_contract = phase5.split("Consume only", 1)[1].split(
+            "For an iterative unit,", 1
+        )[0]
+    except ValueError:
+        return ["Phase 5 Engine input boundary is missing"]
+    forbidden = (
+        "REQUIREMENT_APPLICABILITY_DECISIONS",
+        "APPLICABILITY_REVIEW_REQUIRED",
+    )
+    return [
+        f"Phase 4B review data is in the Engine input: {token}"
+        for token in forbidden
+        if token in input_contract
+    ]
+
+
 class ExecutionIntegrityError(ValueError):
     """Reference-test error; not a normative execution state."""
 
@@ -238,17 +260,43 @@ class MinimalGuardContractTests(unittest.TestCase):
                     {unit["UNIT_KEY"][0] for unit in plan}, set(criteria)
                 )
 
+    def test_engine_input_excludes_full_applicability_review_ledger(self):
+        pipeline = PIPELINE.read_text(encoding="utf-8")
+        self.assertEqual(phase5_engine_input_violations(pipeline), [])
+        self.assertIn(
+            "APPLICABILITY_REVIEW_REQUIRED incidences flow separately from Phase 4B to Phase 7 TRATAMENTO HUMANO",
+            " ".join(pipeline.split()),
+        )
+        mutant = pipeline.replace(
+            "PROCESS.SMSCI, APPLICABLE_REQUIREMENTS and PLANNED_EXECUTION_UNITS",
+            "PROCESS.SMSCI, frozen REQUIREMENT_APPLICABILITY_DECISIONS, APPLICABLE_REQUIREMENTS and PLANNED_EXECUTION_UNITS",
+            1,
+        )
+        self.assertTrue(phase5_engine_input_violations(mutant))
+
+    def test_visual_traceability_orders_phase4a_before_phase4b(self):
+        pipeline = PIPELINE.read_text(encoding="utf-8")
+        ordered = (
+            "Applicability Rule\n\n↓\n\nPROCESS.SMSCI\n\n↓\n\n"
+            "Requirement Applicability Decision (when applicable)"
+        )
+        self.assertEqual(pipeline.count(ordered), 2)
+        self.assertIn(
+            "For general Requirements, do not introduce an Applicability Rule or\n"
+            "PROCESS.SMSCI dependency",
+            pipeline,
+        )
+
     def test_worklist_smsci_contract_remains_global_for_current_release(self):
         applicability = (BASE / "02a_applicability.txt").read_text()
         table1 = (BASE / "03_table1.txt").read_text()
         worklist_block = applicability.split(
-            "\nWORKLIST.SMSCI\n", 1
+            "\nWORKLIST.SMSCI AND WORKLIST.SMSCI_EXECUTION\n", 1
         )[1].split("PHASE 4C", 1)[0]
-        self.assertIn(
-            "REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE", worklist_block
-        )
-        self.assertIn("every and only official", worklist_block)
-        self.assertIn("FOR_EACH WORKLIST.SMSCI", table1)
+        self.assertIn("REQ_T1_DRT_SMSCI", worklist_block)
+        self.assertIn("T1_DRT_SMSCI_COVERAGE", (BASE / "02a_applicability.txt").read_text())
+        self.assertIn("every and only positive OFFICIAL_ESCI_SCOPE", worklist_block)
+        self.assertIn("FOR_EACH WORKLIST.SMSCI_EXECUTION", table1)
         self.assertIn(
             "RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI", table1
         )

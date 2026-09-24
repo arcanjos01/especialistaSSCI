@@ -15,16 +15,19 @@ INPUT AND OUTPUT
 
 Applicability Resolution consumes only complete, immutable Process Memory,
 the canonical entities of 01_entities and the declared rules below. After the
-official source completeness guard succeeds, it releases PROCESS.SMSCI,
-APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA, plus
-IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. When explicit,
-traceable alteration statements exist in Process Memory, preserve
-DECLARED_INTERVENTION_SMSCI_RELATIONS as a separate factual view. This view is
-not an SMSCI, applicability decision, Requirement, Criterion or result, and its
-absence does not add a completeness condition. PROCESS.SMSCI shall never be
-emitted partially. IN19_DOCUMENTATION_REGIME is an internal
-applicability-selection value, never an SMSCI, documentary fact, Requirement,
-Criterion or result.
+official source completeness guard succeeds, Phase 4A releases PROCESS.SMSCI.
+Phase 4B releases the closed REQUIREMENT_APPLICABILITY_DECISIONS ledger and its
+pairwise-exclusive APPLICABLE_INCIDENCES, NOT_APPLICABLE_INCIDENCES and
+APPLICABILITY_REVIEW_REQUIRED sets, plus APPLICABLE_REQUIREMENTS and
+WORKLIST.SMSCI_EXECUTION. Phase 4C selects Criteria and materializes
+PLANNED_EXECUTION_UNITS. IN19_DOCUMENTATION_REGIME is released only when
+SMSCI_IEL is positive. When explicit, traceable alteration statements exist in
+Process Memory, preserve DECLARED_INTERVENTION_SMSCI_RELATIONS as a separate
+factual view. It is not an SMSCI, applicability decision, Requirement,
+Criterion or result; its absence is not by itself an official-source
+completeness failure. PROCESS.SMSCI shall never be emitted partially.
+IN19_DOCUMENTATION_REGIME is an internal applicability-selection value, never
+an SMSCI, documentary fact, Requirement, Criterion or result.
 
 PROCESS.SMSCI is the global official PPCI/e-SCI scope established by the
 selected comprovante. It remains unchanged by alteration documents.
@@ -214,7 +217,7 @@ An explicit PREEXISTING_SYSTEM_DECLARED_UNCHANGED is a documentary statement,
 not a conformity finding and not, by itself, permission to suppress a
 Requirement.
 
-ARTICLE 98: DOCUMENTED SCOPE FOUNDATION AND CURRENT LIMIT
+ARTICLE 98: REQUIREMENT-SPECIFIC ALTERATION SCOPE
 
 IN 1, part 1, art. 98 distinguishes an expansion that does not compromise or
 require redimensioning SMSCI from one that affects or requires updating
@@ -224,26 +227,48 @@ responsibility in that case to the altered area and SMSCI effectively designed
 and installed there; paragraph 2 addresses the affected-system case. This is
 not a blanket exemption for prior systems.
 
-The current documentary schema can preserve an explicit construction
-certificate, PPCI classification, area facts and individual statements in an
-alteration explanation. It does not establish that an explanation or a
-responsible technician's statement is itself approved technical evidence that
-an existing system was actually unaffected. It also does not yet relate an
-approved complementary PPCI's technically verified design, the added area
-and each system's design/installation scope with a deterministic contract.
-Therefore this release records DECLARED_INTERVENTION_SMSCI_RELATIONS as
-documentary facts for traceable human consideration but does not use them
-alone to remove a positive global SMSCI from WORKLIST.SMSCI or
-APPLICABLE_REQUIREMENTS. Prior area approval is never evidence of the
-construction certificate.
+The 01_entities schema records only explicit documentary facts needed for this
+narrow scope decision: PPCI identity, declared submission class, verifiable
+approval mark, explicit prior-atestado protocol, per-system statement, exact
+area identifier, and a signed technical report linked to the same references.
+The 08_execution_pipeline extraction rules preserve each fact and its
+source_document before Process Memory closes. No fact is inferred from an
+explanatory letter, area arithmetic, absence from a list, filename, drawing
+interpretation or interaction response. Documento 09-RDE remains the
+source-neutral structure and immutability contract.
 
-Current Table 1 DRT worklist and Table 4 Requirements retain their declared
-global behavior. In particular, a system explicitly described as unmodified
-in an explanatory letter remains in PROCESS.SMSCI, its DRT iteration and
-Table 4 selection in this release. Do not create a Requirement, Criterion,
-Nonconformity, FAIL, NOT_APPLICABLE or manual-review result from this
-insufficient scope evidence. A future Requirement-specific rule requires
-sufficient authorized technical evidence and its own normative basis.
+A positive INTERVENTION_RELATION on the exact SMSCI binding preserves its
+REQ_T1_DRT_SMSCI RT-003 iteration. PREEXISTING_SYSTEM_DECLARED_UNCHANGED alone
+is only a documentary declaration. It can produce NOT_APPLICABLE for that one
+binding only when the cumulative proof below is complete and all links match:
+
+1. A formal complementary PPCI has one unique PPCI_IDENTIFIER and explicit,
+documentally verifiable PPCI_APPROVAL_STATUS=APPROVED.
+2. Its PREVIOUS_ATTESTADO_PROTOCOL_IDENTIFIER matches exactly one presented
+ATESTADO_DE_CONSTRUCAO PROTOCOL_IDENTIFIER.
+3. The approved complementary PPCI contains the exact official SMSCI code and
+one uniquely locatable AREA_IDENTIFIER for a preexisting system outside the
+intervention's design/installation scope.
+4. A signed PPCI_ALTERATION_TECHNICAL_REPORT references the same complementary
+PPCI and atestado and the same SMSCI/area; it corroborates that the system was
+neither executed nor affected and does not conflict with the approved scope.
+5. Any signed, traceable DRT or technical report for that SMSCI and area must
+not identify execution, modification, redimensioning or impact.
+
+A DRT/laudo, letter or statement alone cannot prove NOT_APPLICABLE. Neither can
+silence, a generic declaration, an absent DRT, document existence or area
+arithmetic. Any missing fact/reference, non-unique identifier, mismatch,
+ambiguous target, unsupported area, contradictory statement or unavailable
+source-document link produces APPLICABILITY_REVIEW_REQUIRED for only the
+affected Requirement incidence. Phase 4A remains unchanged; this review is not
+an ARCHITECTURAL_BLOCKER and never changes PROCESS.SMSCI.
+
+A formal alteration marker is only an explicitly documented service/protocol
+type, PPCI submission class, alteration type or safely verifiable positive
+ADDED_AREA_M2, as declared above. Without a formal marker, preserve the prior
+global Requirement selection. An optional explanation's absence or a user's
+workflow response never creates a fact or proves that an alteration did or did
+not affect a system.
 
 PHASE 4A: COMPLETENESS GUARD
 
@@ -258,10 +283,165 @@ manual review.
 
 PHASE 4B: REQUIREMENT APPLICABILITY RESOLUTION
 
+Construct the candidate incidence domain from declared Requirement metadata,
+complete Phase 4A decisions and, for IN19, the already resolved
+IN19_DOCUMENTATION_REGIME. A non-iterative Requirement has key
+(REQUIREMENT). REQ_T1_DRT_SMSCI has one key (REQUIREMENT, BINDING_SMSCI) for
+each positive official SMSCI in WORKLIST.SMSCI. If that worklist is empty,
+preserve its existing general Requirement selection with exactly one
+Requirement-level (REQUIREMENT) APPLICABLE decision and no BINDING_SMSCI. This
+base decision creates no SMSCI incidence; it preserves the existing compiled
+Criterion unit with an empty ITERATION_DOMAIN. Do not create one decision per
+SMSCI for a non-iterative/Table 4 Requirement.
+
+Record exactly one decision for each candidate key. Every decision contains:
+REQUIREMENT; BINDING_SMSCI when the Requirement is iterative; RULE_ID; exactly
+one DECISION from APPLICABLE, NOT_APPLICABLE,
+APPLICABILITY_REVIEW_REQUIRED; the Process Memory facts consulted; RDE record
+references; source-document references and locations; and the declared Base
+rationale. Each review decision also freezes HUMAN_TREATMENT_OBLIGATION and
+HUMAN_TREATMENT_REASON from the predeclared mapping below, the resolved SMSCI
+name and documented AREA_IDENTIFIER when available. If no individualized
+source reference exists, record that fact explicitly. Copy the reference chain
+from closed Process Memory and RDE; do not reopen a Source Document. The ledger
+is closed, and its three outcome sets are pairwise disjoint; their union equals
+the candidate domain. A missing, duplicate or multiply classified key stops
+before Phase 4C as an execution-integrity error.
+
+APPLICABLE_REQUIREMENTS is the unique Requirement projection of
+APPLICABLE_INCIDENCES, including the Requirement-level base decision for an
+empty RT-003 iteration domain. A mixed iterative Requirement may also have
+review incidences for other bindings, without duplication or rewriting of the
+Requirement. Preserve PROCESS.SMSCI and global WORKLIST.SMSCI unchanged.
+Derive WORKLIST.SMSCI_EXECUTION, in original order, only from bindings whose
+(REQ_T1_DRT_SMSCI, BINDING_SMSCI) decision is APPLICABLE. The empty-domain
+base decision adds no binding to either worklist.
+
+For each positive REQ_T1_DRT_SMSCI binding in an explicitly identified
+alteration: EXECUTED_IN_INTERVENTION, MODIFIED_OR_RESIZED and
+PREEXISTING_SYSTEM_AFFECTED yield APPLICABLE when the complete, individually
+traceable relation exists; the RT-003 binding stays in
+WORKLIST.SMSCI_EXECUTION. PREEXISTING_SYSTEM_DECLARED_UNCHANGED yields
+NOT_APPLICABLE only when all five cumulative proof conditions above are met.
+Silence, a generic statement, a component-only mention, an ambiguous relation,
+an incomplete proof gate or conflicting evidence yields
+APPLICABILITY_REVIEW_REQUIRED for that SMSCI binding. No state of uncertainty
+may be converted to FAIL or NOT_APPLICABLE.
+
+The following Table 4 Requirement candidates have unresolved incidence
+semantics for a formal alteration:
+
+PENDENTE: REQ_IN07_COMMISSIONING, REQ_IN08_MANUAL, REQ_IN09_DRT,
+REQ_IN09_MANUAL, REQ_IN09_CHECKLIST, REQ_IN10_COMMISSIONING,
+REQ_IN12_COMMISSIONING, REQ_IN19_EXECUTION, REQ_IN19_GROUNDING and
+REQ_IN19_FINAL_VERIFICATION.
+
+For these candidates, preserve existing global selection when no formal
+alteration marker exists. During a formal alteration, a complete, individually
+traceable positive execution/modification/affected relation for that
+Requirement's single declared SMSCI yields APPLICABLE. Silence, generic or
+ambiguous text, a declaration that the system is unchanged, missing facts, an
+incomplete proof or conflict yields APPLICABILITY_REVIEW_REQUIRED by
+Requirement. The cumulative proof gate above is specific to REQ_T1_DRT_SMSCI
+and shall not be reused by analogy to produce NOT_APPLICABLE for a Table 4
+document obligation. This Fase 2 matrix authorizes no Requirement-specific
+Table 4 exclusion; NOT_APPLICABLE for a positive global target requires its
+own declared rule and normative basis. Do not create a decision per SMSCI for
+Table 4 and do not filter Table 4 as a block.
+
+PRESERVAR: REQ_T1_CONFORMITY_REPORT,
+REQ_T1_CONFORMITY_REPORT_SIGNED, REQ_IN08_ESTANQUEIDADE,
+REQ_IN09_TEST_REPORT, REQ_IN15_COMMISSIONING, REQ_IN18_CMAR and
+REQ_IN19_LEGACY_DOCUMENTATION. These remain APPLICABLE whenever their existing
+global target/regime rule selects them, without intervention filtering.
+REQ_IN19_APPLICABILITY_REVIEW and REQ_IN19_REGIME_REVIEW retain their own
+separate declared rules. Preserve all other Table 4 semantics. In particular,
+IN19 CURRENT/LEGACY/UNRESOLVED and REQUEST_DATE are resolved first and remain
+intact; do not reuse REQ_IN19_REGIME_REVIEW for intervention scope.
+
+For operational TRATAMENTO HUMANO, each review decision stores the predeclared
+HUMAN_TREATMENT_OBLIGATION and HUMAN_TREATMENT_REASON below, plus its resolved
+SMSCI name, individually identified area when available, and frozen source
+references and locations. Copy these fields from this rule set; do not compose
+or infer user-facing text from internal identifiers, source documents or
+Requirement names.
+
+REQ_T1_DRT_SMSCI
+HUMAN_TREATMENT_OBLIGATION: Comprovação da responsabilidade técnica pela
+execução de sistemas de segurança contra incêndio abrangidos pela intervenção.
+HUMAN_TREATMENT_REASON: A documentação não permite concluir automaticamente se
+este sistema foi executado, modificado ou afetado pela intervenção, nem
+comprovar a hipótese documental estrita para afastar sua iteração.
+
+REQ_IN07_COMMISSIONING
+HUMAN_TREATMENT_OBLIGATION: Laudo e responsabilidade técnica de comissionamento
+do sistema hidráulico preventivo.
+HUMAN_TREATMENT_REASON: A regra do laudo para edificações dotadas do sistema não
+resolve automaticamente sua reapresentação em Habite-se parcial nem autoriza
+exclusão por sistema preexistente.
+
+REQ_IN08_MANUAL
+HUMAN_TREATMENT_OBLIGATION: Manual do proprietário relativo aos aparelhos a gás.
+HUMAN_TREATMENT_REASON: A documentação não define se os aparelhos abrangidos ou
+a entrega anterior do manual satisfazem a obrigação neste Habite-se.
+
+REQ_IN09_DRT
+HUMAN_TREATMENT_OBLIGATION: Responsabilidades técnicas de execução e de
+vistoria ou ensaio do sistema de pressurização.
+HUMAN_TREATMENT_REASON: O Requirement reúne parcelas distintas; a incidência da
+execução deve ser examinada separadamente da vistoria ou ensaio do sistema.
+
+REQ_IN09_MANUAL
+HUMAN_TREATMENT_OBLIGATION: Manual de operação e manutenção do sistema de
+pressurização.
+HUMAN_TREATMENT_REASON: A entrega anterior pode ser relevante, mas o escopo da
+alteração não decide automaticamente se este manual continua exigível.
+
+REQ_IN09_CHECKLIST
+HUMAN_TREATMENT_OBLIGATION: Lista de verificações de manutenção do sistema de
+pressurização fornecida aos proprietários.
+HUMAN_TREATMENT_REASON: A conclusão da instalação e a entrega anterior da lista
+não são resolvidas automaticamente pelo escopo global do sistema.
+
+REQ_IN10_COMMISSIONING
+HUMAN_TREATMENT_OBLIGATION: Relatório e responsabilidade técnica de
+comissionamento do controle mecânico de fumaça.
+HUMAN_TREATMENT_REASON: A seleção global não comprova que o sistema seja
+mecânico nem resolve a incidência do relatório em Habite-se parcial.
+
+REQ_IN12_COMMISSIONING
+HUMAN_TREATMENT_OBLIGATION: Relatório de comissionamento do sistema de detecção
+e alarme de incêndio.
+HUMAN_TREATMENT_REASON: A seleção global do sistema não delimita suas interfaces
+ou o escopo do relatório na alteração; não há exclusão automática para sistema
+preexistente.
+
+REQ_IN19_EXECUTION
+HUMAN_TREATMENT_OBLIGATION: Responsabilidade técnica de execução da instalação
+elétrica de emergência.
+HUMAN_TREATMENT_REASON: O regime documental temporal e a data do comprovante
+não resolvem a incidência desta obrigação na intervenção.
+
+REQ_IN19_GROUNDING
+HUMAN_TREATMENT_OBLIGATION: Responsabilidade técnica de execução do aterramento
+da instalação elétrica de emergência.
+HUMAN_TREATMENT_REASON: O aterramento tem escopo próprio e não herda
+automaticamente a conclusão sobre a instalação elétrica de emergência.
+
+REQ_IN19_FINAL_VERIFICATION
+HUMAN_TREATMENT_OBLIGATION: Responsabilidade técnica de verificação final da
+instalação elétrica de emergência.
+HUMAN_TREATMENT_REASON: A verificação final é distinta da execução e pode ser
+relevante para sistema afetado, sem exclusão automática por ausência de execução
+integral na alteração.
+
 Requirements without SMSCI metadata retain their declared applicability
-semantics. Requirements with SMSCI metadata are applicable only after complete
-Phase 4A when their target is in PROCESS.SMSCI. Iterative Requirements retain
-their declared form; no Requirement is created or rewritten.
+semantics, including their prior global selection when an iterative
+Requirement's declared worklist is empty. A complete Phase 4A negative decision
+makes a requirement with that SMSCI target NOT_APPLICABLE under its declared
+rule. Derived internal scope continues to follow its own existing rule.
+Requirements, Criteria, Nonconformities and SMSCI are never created or rewritten
+by this resolution.
 
 IN19 DOCUMENTATION REGIME RESOLUTION
 
@@ -291,21 +471,25 @@ declared IN19_DOCUMENTATION_REGIME in addition to their SMSCI metadata:
 - LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION;
 - UNRESOLVED selects only REQ_IN19_REGIME_REVIEW.
 
-No IN19 Requirement declared for another regime is applicable. A regime is not
-derived from a Criterion result, including UNKNOWN. The required chain is
-SMSCI_IEL -> IN19_DOCUMENTATION_REGIME -> APPLICABLE_REQUIREMENTS ->
+No IN19 Requirement declared for another regime is applicable. A Criterion
+result, including UNKNOWN, never resolves or reconstructs the regime. The
+selection chain is SMSCI_IEL -> IN19_DOCUMENTATION_REGIME ->
+REQUIREMENT_APPLICABILITY_DECISIONS -> APPLICABLE_REQUIREMENTS ->
 COMPILED_EXECUTION_INDEX -> PLANNED_EXECUTION_UNITS.
 
-WORKLIST.SMSCI
+WORKLIST.SMSCI AND WORKLIST.SMSCI_EXECUTION
 
-WORKLIST.SMSCI is a transient subset of PROCESS.SMSCI. For exactly
-REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE, it contains every and only official
-positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes derived
-internal requirement scopes, including SMSCI_SDAI and
-SMSCI_IN19_APPLICABILITY_REVIEW, so AI/DAI are not duplicated by the SDAI
-derivation and the IN19 applicability review has no iterative DRT unit. This is
-not a general architectural identity. Declared intervention relations do not
-change this worklist in this release.
+WORKLIST.SMSCI is the transient global-positive official target projection for
+REQ_T1_DRT_SMSCI. It contains every and only positive OFFICIAL_ESCI_SCOPE
+target in PROCESS.SMSCI; it excludes derived internal scopes, including
+SMSCI_SDAI and SMSCI_IN19_APPLICABILITY_REVIEW. The latter has no iterative DRT unit.
+It never discovers an SMSCI.
+
+WORKLIST.SMSCI_EXECUTION is the ordered subset of WORKLIST.SMSCI whose
+(REQUIREMENT, BINDING_SMSCI) incidence has the APPLICABLE decision. It is the
+only iteration domain passed to T1_DRT_SMSCI_COVERAGE. The global worklist and
+PROCESS.SMSCI remain unchanged; review incidences are carried separately to
+human treatment and NOT_APPLICABLE incidences are omitted from execution.
 
 PHASE 4C: CRITERION SELECTION
 
@@ -317,8 +501,10 @@ No Criterion is created or selected by alias, document, similarity or text.
 TRACEABILITY
 
 Source Document -> RDE -> Process Memory -> Applicability Rule ->
-PROCESS.SMSCI -> IN19_DOCUMENTATION_REGIME when applicable -> Requirement ->
-Criterion -> Result -> Nonconformity when applicable.
+PROCESS.SMSCI -> IN19_DOCUMENTATION_REGIME when applicable -> Requirement
+Applicability Decision -> Requirement -> Criterion -> Result -> Nonconformity
+when applicable. An APPLICABILITY_REVIEW_REQUIRED decision instead flows to
+TRATAMENTO HUMANO and has no Criterion, execution result or Nonconformity.
 
 For general Requirements, Applicability Rule and PROCESS.SMSCI are not
 artificially required; preserve their existing documentary traceability and
