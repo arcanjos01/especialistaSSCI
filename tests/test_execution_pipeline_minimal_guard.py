@@ -238,11 +238,11 @@ class MinimalGuardContractTests(unittest.TestCase):
                     {unit["UNIT_KEY"][0] for unit in plan}, set(criteria)
                 )
 
-    def test_worklist_smsci_contract_remains_unchanged_for_54a(self):
+    def test_worklist_smsci_contract_remains_global_for_current_release(self):
         applicability = (BASE / "02a_applicability.txt").read_text()
         table1 = (BASE / "03_table1.txt").read_text()
         worklist_block = applicability.split(
-            "WORKLIST.SMSCI", 1
+            "\nWORKLIST.SMSCI\n", 1
         )[1].split("PHASE 4C", 1)[0]
         self.assertIn(
             "REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE", worklist_block

@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.7.0
+# DOCUMENT_VERSION: 4.8.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.4.0
+KNOWLEDGE_BASE_VERSION: 5.5.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
 00_engine.txt: DOCUMENT_VERSION 4.0.0
-01_entities.txt: DOCUMENT_VERSION 3.2.0
+01_entities.txt: DOCUMENT_VERSION 3.3.0
 02_requirements.txt: DOCUMENT_VERSION 3.3.0
-02a_applicability.txt: DOCUMENT_VERSION 1.3.0
+02a_applicability.txt: DOCUMENT_VERSION 1.4.0
 03_table1.txt: DOCUMENT_VERSION 3.2.0
 04_table4.txt: DOCUMENT_VERSION 3.2.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
-06_reports.txt: DOCUMENT_VERSION 2.4.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.7.0
+06_reports.txt: DOCUMENT_VERSION 2.5.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.8.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -194,7 +194,7 @@ They are only documentary evidence.
 For COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, identified only when the presented
 document type is exactly "COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE", extract
 fact-only the documentally verifiable REQUEST_DATE, REQUEST_IDENTIFIER,
-PROCESS_IDENTIFIER and PROTOCOL_IDENTIFIER; the
+PROCESS_IDENTIFIER, PROTOCOL_IDENTIFIER and REQUESTED_SERVICE_TYPE; the
 section SISTEMAS_E_MEDIDAS_DE_SEGURANCA and its directly verifiable
 STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE properties; and each item
 OFFICIAL_ESCI_CODE,
@@ -208,6 +208,24 @@ This uses the schema in 01_entities and does not alter Documento 09-RDE.
 ###############################################################################
 
 Extract documentary attributes required by the active Knowledge Base.
+
+For a submitted PPCI, extract PPCI_SUBMISSION_CLASS only when explicitly
+declared. For COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, extract
+REQUESTED_SERVICE_TYPE only as presented in the document. For PPCI and
+alteration documents, extract only the declared facts and entities in
+01_entities. Identify an explanatory document from its content, not its
+filename. If no explanatory document was presented, do not create a
+document or RDE record for the interaction response or the missing document.
+For PPCI_ALTERATION_SMSCI_STATEMENT, create one fact record only for a
+complete, individually identified SMSCI and an explicitly stated relation.
+Do not create records for silent systems, component mentions that do not
+identify a complete SMSCI, or generic statements expanded to multiple systems.
+For an unresolved component mention, preserve its wording and source location
+only in ALTERATION_DESCRIPTION and SOURCE_LOCATION of
+PPCI_ALTERATION_EXPLANATION.
+For ATESTADO_DE_CONSTRUCAO, extract identifiers and issue date only from the
+presented certificate. The user's workflow response is never documentary
+evidence.
 
 Identify, when documentally verifiable:
 
@@ -329,6 +347,12 @@ comprovante in this phase. Preserve AI and DAI as distinct documentary facts;
 do not normalize either into SMSCI_SDAI. Alias normalization does not create an
 applicability decision.
 
+Normalize explicit PPCI alteration facts and individually stated SMSCI
+relations only from their RDE records under 01_entities. Preserve the relation
+value and the original RDE/Source Document references. Do not create relation
+records for silent systems, promote the user's workflow response to Process
+Memory, or derive global PROCESS.SMSCI from alteration text.
+
 Do not alter, add, remove or reinterpret any RDE record.
 
 Merge equivalent entities only in the derived normalized representation.
@@ -397,6 +421,13 @@ activate that target.
 Every target shall receive an explicit, deterministic and traceable positive
 or negative decision before PROCESS.SMSCI is released.
 
+The official decisions above establish only global PROCESS.SMSCI. Separately
+derive DECLARED_INTERVENTION_SMSCI_RELATIONS only from individually traceable
+alteration statements in immutable Process Memory. These relations do not
+rewrite the 28 official decisions and do not add or remove entities from
+PROCESS.SMSCI. Preserve the separate trace:
+Source Document -> RDE -> Process Memory -> DECLARED_INTERVENTION_SMSCI_RELATION.
+
 If the selected document is absent or not identified, its section is absent,
 incomplete, illegible or unverifiable, its exact code is unknown, a required
 fact is absent, a decision conflicts, or traceability is incomplete:
@@ -430,7 +461,13 @@ Requirements without SMSCI metadata retain their declared applicability
 semantics and shall not be filtered through PROCESS.SMSCI.
 
 Requirements with SMSCI metadata are applicable only when their declared
-target is present in PROCESS.SMSCI.
+target is present in PROCESS.SMSCI. Table 4 retains this global rule; do not
+filter its Requirements as a block through intervention relations.
+
+WORKLIST.SMSCI for REQ_T1_DRT_SMSCI remains the declared global-positive
+projection in this release. The art. 98 documentary scope foundation and the
+limit on using explanatory-letter statements are declared in 02a_applicability;
+no intervention relation alone filters this worklist or Table 4.
 
 For positive SMSCI_IEL, additionally select IN19 Requirements only when their
 declared IN19_DOCUMENTATION_REGIME equals the resolved value: CURRENT selects

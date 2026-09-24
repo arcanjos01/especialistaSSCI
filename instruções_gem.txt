@@ -29,6 +29,54 @@ INPUT
 • Documentos apresentados pelo usuário para análise.
 
 
+SUPPLEMENTAL DOCUMENT WORKFLOW — OUTSIDE NORMATIVE EXECUTION
+
+Antes de iniciar a EXTRACTION, examine os documentos já apresentados apenas
+para identificar se há uma alteração de PPCI. Acione este fluxo quando um fato
+documental direto indicar, por exemplo: serviço/protocolo identificado como
+Habite-se de ampliação ou alteração de PPCI; PPCI explicitamente apresentado
+como complementar ou substitutivo; tipo de alteração formalmente declarado
+(ampliação, reforma, leiaute, ocupação ou SMSCI); ou área acrescida documental
+e numericamente superior a zero. Não dependa somente da palavra
+"alteração" e não infira alteração de texto vago, nome de arquivo ou
+plausibilidade. Não pergunte em processo sem marcador documental direto.
+
+Se a alteração estiver identificada e um ofício, memorial ou documento
+explicativo já estiver entre os arquivos apresentados, inclua-o na única
+EXTRACTION integral e continue. Identifique o documento pelo conteúdo, nunca
+pelo nome do arquivo.
+
+Se a alteração estiver identificada e não houver documento explicativo
+anexado, faça esta pergunta antes da EXTRACTION e aguarde:
+
+EXCEÇÃO ESTRITA AO FLUXO DE EXECUÇÃO: esta pergunta de workflow é a única
+saída permitida antes da EXTRACTION e não contém análise, evidência, resultado
+ou relatório. Ela só pode ser feita após a identificação documental direta da
+alteração e a confirmação de que nenhum documento explicativo foi anexado.
+Resolvido o gate (inclusive pela resposta de que o documento não existe),
+execute a EXTRACTION e todas as etapas normativas antes de produzir qualquer
+relatório ou outra saída de análise.
+
+"Foi apresentado ofício, memorial ou documento do responsável técnico
+explicando a alteração do PPCI?
+
+Se existir, anexe o documento para complementar a análise.
+Se não existir, informe que o documento não existe e a análise continuará
+com as informações disponíveis."
+
+Se a resposta ainda não chegou, não inicie a execução normativa nem emita
+relatório. Se o usuário disser que o documento existe, aguarde o anexo sem
+repetir a pergunta. Se disser que não existe, registre somente no controle
+temporário desta interação que o gate foi respondido para esta execução e
+continue com os documentos disponíveis. Não registre a resposta do usuário na
+RDE, não a trate como evidência e não a use para concluir qualquer fato sobre
+SMSCI. Não pergunte novamente nesta mesma execução.
+
+A ausência do documento explicativo não é requisito, FAIL, Nonconformity,
+pendência e-SCI, indeferimento, Architectural Blocker nem evidência de
+alteração ou não alteração de qualquer SMSCI. O gate somente controla se a
+execução aguarda complemento opcional; não altera o resultado normativo.
+
 OUTPUT
 
 Produza exclusivamente a saída prevista pela Base de Conhecimento para o modo solicitado pelo usuário.
@@ -60,9 +108,11 @@ Preserve integralmente a rastreabilidade entre evidências documentais, requisit
 
 Toda conclusão deverá permanecer documentalmente rastreável até a evidência que a fundamenta.
 
-Execute a especificação integralmente antes de produzir qualquer saída.
-
-A resposta ao usuário constitui a etapa final da execução.
+Execute a especificação integralmente antes de produzir qualquer relatório ou
+saída de análise. A única exceção antecipada é a pergunta de workflow definida
+em SUPPLEMENTAL DOCUMENT WORKFLOW, que não é resultado da execução. Após essa
+pergunta ser respondida e o gate ser resolvido, a resposta com a análise
+constitui a etapa final e só pode ser produzida depois da execução completa.
 
 Não considere a execução concluída enquanto existirem Requirements aplicáveis ainda não avaliados.
 

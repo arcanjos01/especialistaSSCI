@@ -15,12 +15,26 @@ INPUT AND OUTPUT
 
 Applicability Resolution consumes only complete, immutable Process Memory,
 the canonical entities of 01_entities and the declared rules below. After the
-completeness guard succeeds, it releases PROCESS.SMSCI,
+official source completeness guard succeeds, it releases PROCESS.SMSCI,
 APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA, plus
-IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. PROCESS.SMSCI shall
-never be emitted partially. IN19_DOCUMENTATION_REGIME is an internal
+IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. When explicit,
+traceable alteration statements exist in Process Memory, preserve
+DECLARED_INTERVENTION_SMSCI_RELATIONS as a separate factual view. This view is
+not an SMSCI, applicability decision, Requirement, Criterion or result, and its
+absence does not add a completeness condition. PROCESS.SMSCI shall never be
+emitted partially. IN19_DOCUMENTATION_REGIME is an internal
 applicability-selection value, never an SMSCI, documentary fact, Requirement,
 Criterion or result.
+
+PROCESS.SMSCI is the global official PPCI/e-SCI scope established by the
+selected comprovante. It remains unchanged by alteration documents.
+DECLARED_INTERVENTION_SMSCI_RELATIONS is a separate, traceable view built only from
+individualized documentary statements declared under
+PPCI_ALTERATION_SMSCI_STATEMENT in 01_entities. It records how a stated SMSCI
+relates to the intervention; it neither creates an SMSCI nor replaces or
+subtracts from PROCESS.SMSCI. Silence creates no relation record and is not a
+negative decision. A generic statement about "the other systems" is never
+expanded into per-system relations.
 
 ARCHITECTURAL_BLOCKER is a stop condition before the Engine, not an output
 state or Criterion result. It does not authorize NOT_APPLICABLE,
@@ -168,6 +182,69 @@ directly resolved by this productive catalog. M5 remains an explicit knowledge
 debt: absence of a declared derived rule does not produce a negative decision,
 and its dependents are not selectable by this rule.
 
+PPCI ALTERATION DOCUMENT FACTS AND INTERVENTION RELATIONS
+
+The optional PPCI alteration explanation is a supplemental documentary source,
+not a required document. If present, extract only its explicit, traceable facts
+using the entities in 01_entities. The interaction gate in instruções_gem.txt
+is outside normative applicability; a user's response that no explanation
+exists is not RDE, Process Memory evidence or an applicability input.
+
+An alteration marker is available only from an explicit service/protocol type,
+an explicit PPCI submission class, an explicitly declared alteration type, or
+a safely verifiable positive ADDED_AREA_M2. Do not infer the marker from
+filename, area previously approved, an isolated vague use of "alteration" or
+a textual mention that does not describe the requested intervention.
+
+For each explicit PPCI_ALTERATION_SMSCI_STATEMENT, resolve a relation only
+when OFFICIAL_ESCI_CODE is an exact official code or SMSCI_REFERENCE_TEXT
+unambiguously identifies one complete canonical SMSCI by its canonical name
+or a name/alias that denotes the complete system, and the same statement
+explicitly supports one declared INTERVENTION_RELATION. A component alias is
+not a whole-system identifier: CENTRAL_GLP alone does not identify all of
+SMSCI_GAS, and HIDRANTE, HIDRANTES or REDE_DE_HIDRANTES alone do not identify
+all of SMSCI_SHP. If no complete system target is resolved, do not create a
+PPCI_ALTERATION_SMSCI_STATEMENT record; preserve its wording and source
+location only in ALTERATION_DESCRIPTION and SOURCE_LOCATION of
+PPCI_ALTERATION_EXPLANATION. A statement for a resolved target outside
+PROCESS.SMSCI cannot add that target to PROCESS.SMSCI or activate a
+Requirement. Conflicts, ambiguous references, generic declarations and
+unmentioned systems do not yield a per-system positive or negative relation.
+An explicit PREEXISTING_SYSTEM_DECLARED_UNCHANGED is a documentary statement,
+not a conformity finding and not, by itself, permission to suppress a
+Requirement.
+
+ARTICLE 98: DOCUMENTED SCOPE FOUNDATION AND CURRENT LIMIT
+
+IN 1, part 1, art. 98 distinguishes an expansion that does not compromise or
+require redimensioning SMSCI from one that affects or requires updating
+systems. Its caput also requires a complementary PPCI tied to a previously
+granted construction certificate. Paragraph 1, I limits technical
+responsibility in that case to the altered area and SMSCI effectively designed
+and installed there; paragraph 2 addresses the affected-system case. This is
+not a blanket exemption for prior systems.
+
+The current documentary schema can preserve an explicit construction
+certificate, PPCI classification, area facts and individual statements in an
+alteration explanation. It does not establish that an explanation or a
+responsible technician's statement is itself approved technical evidence that
+an existing system was actually unaffected. It also does not yet relate an
+approved complementary PPCI's technically verified design, the added area
+and each system's design/installation scope with a deterministic contract.
+Therefore this release records DECLARED_INTERVENTION_SMSCI_RELATIONS as
+documentary facts for traceable human consideration but does not use them
+alone to remove a positive global SMSCI from WORKLIST.SMSCI or
+APPLICABLE_REQUIREMENTS. Prior area approval is never evidence of the
+construction certificate.
+
+Current Table 1 DRT worklist and Table 4 Requirements retain their declared
+global behavior. In particular, a system explicitly described as unmodified
+in an explanatory letter remains in PROCESS.SMSCI, its DRT iteration and
+Table 4 selection in this release. Do not create a Requirement, Criterion,
+Nonconformity, FAIL, NOT_APPLICABLE or manual-review result from this
+insufficient scope evidence. A future Requirement-specific rule requires
+sufficient authorized technical evidence and its own normative basis.
+
 PHASE 4A: COMPLETENESS GUARD
 
 Resolve exactly the 28 OFFICIAL_ESCI_SCOPE targets through the catalog. Before
@@ -227,7 +304,8 @@ positive OFFICIAL_ESCI_SCOPE target in PROCESS.SMSCI. It excludes derived
 internal requirement scopes, including SMSCI_SDAI and
 SMSCI_IN19_APPLICABILITY_REVIEW, so AI/DAI are not duplicated by the SDAI
 derivation and the IN19 applicability review has no iterative DRT unit. This is
-not a general architectural identity.
+not a general architectural identity. Declared intervention relations do not
+change this worklist in this release.
 
 PHASE 4C: CRITERION SELECTION
 

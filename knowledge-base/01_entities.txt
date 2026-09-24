@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.2
+# VERSION 3.3
 ###############################################################################
 
 ###############################################################################
@@ -20,6 +20,14 @@ END
 ENTITY PPCI
 
 TYPE DOCUMENT
+
+ATTRIBUTE PPCI_SUBMISSION_CLASS ENUM
+
+DESCRIPTION
+
+PPCI_SUBMISSION_CLASS somente registra se o documento identifica o PPCI
+apresentado como COMPLEMENTARY ou REPLACEMENT. Campo vazio não permite inferir
+complementaridade ou substituição.
 
 END
 
@@ -484,6 +492,102 @@ END
 
 -------------------------------------------------------------------------------
 
+ENTITY ATESTADO_DE_CONSTRUCAO
+
+TYPE DOCUMENT
+
+ATTRIBUTE PROCESS_IDENTIFIER TEXT
+
+ATTRIBUTE PROTOCOL_IDENTIFIER TEXT
+
+ATTRIBUTE ISSUE_DATE DATE
+
+DESCRIPTION
+
+Atestado de construção emitido pelo CBMSC. Registrar somente os
+identificadores e a data que constem documentalmente no próprio atestado.
+Área previamente aprovada, PPCI anterior ou outro documento não substituem
+este documento nem comprovam que o atestado foi concedido.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PPCI_ALTERATION_EXPLANATION
+
+TYPE DOCUMENT
+
+ATTRIBUTE ALTERATION_TYPE TEXT
+
+ATTRIBUTE ALTERATION_DESCRIPTION TEXT
+
+ATTRIBUTE AFFECTED_AREAS TEXT
+
+ATTRIBUTE PREVIOUS_AREA_M2 NUMBER
+
+ATTRIBUTE ADDED_AREA_M2 NUMBER
+
+ATTRIBUTE RESULTING_AREA_M2 NUMBER
+
+ATTRIBUTE EXPANSION_EFFECT_ON_SMSCI ENUM
+
+ATTRIBUTE SOURCE_LOCATION TEXT
+
+DESCRIPTION
+
+Ofício, memorial ou documento textual apresentado pelo responsável técnico
+que descreve alteração de PPCI. Registrar apenas o tipo, a descrição, as
+áreas e as declarações expressamente documentados; valores numéricos de área
+somente quando unidade e valor forem verificáveis. EXPANSION_EFFECT_ON_SMSCI
+somente recebe NO_COMPROMISE_OR_RESIZING_DECLARED ou
+COMPROMISE_OR_RESIZING_DECLARED quando a declaração correspondente estiver
+expressa sobre o efeito da ampliação nos SMSCI. Texto genérico sobre os
+"demais sistemas" não preenche este atributo. A declaração é fato sobre o que
+foi declarado, não prova automática de conformidade nem resultado técnico.
+source_document continua obrigatório pela RDE.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PPCI_ALTERATION_SMSCI_STATEMENT
+
+TYPE DOCUMENTARY_EVIDENCE
+
+ATTRIBUTE OFFICIAL_ESCI_CODE TEXT
+
+ATTRIBUTE SMSCI_REFERENCE_TEXT TEXT
+
+ATTRIBUTE INTERVENTION_RELATION ENUM
+
+ATTRIBUTE STATEMENT_TEXT TEXT
+
+ATTRIBUTE SOURCE_LOCATION TEXT
+
+DESCRIPTION
+
+Declaração documental individualizada que relaciona um SMSCI à intervenção.
+INTERVENTION_RELATION somente pode ser EXECUTED_IN_INTERVENTION,
+MODIFIED_OR_RESIZED, PREEXISTING_SYSTEM_AFFECTED ou
+PREEXISTING_SYSTEM_DECLARED_UNCHANGED quando o texto identificar
+inequivocamente o sistema completo e declarar essa relação. Para resolver o
+alvo, use o código oficial exato ou o nome/alias que identifique o SMSCI
+completo; menção a componente, equipamento ou parte do sistema não identifica
+o SMSCI inteiro. Por exemplo, CENTRAL_GLP não identifica toda a
+SMSCI_GAS/Instalação de Gás, e HIDRANTE, HIDRANTES ou REDE_DE_HIDRANTES não
+identificam por si só toda a SMSCI_SHP. Se a declaração mencionar apenas um
+componente e não permitir identificar o SMSCI completo, não crie um registro
+PPCI_ALTERATION_SMSCI_STATEMENT. Preserve o texto e o trecho de origem no
+ALTERATION_DESCRIPTION e SOURCE_LOCATION de PPCI_ALTERATION_EXPLANATION.
+Ausência de menção não cria registro; uma declaração genérica sobre sistemas
+restantes não pode ser expandida para entidades individuais. O registro não
+determina conformidade ou aplicabilidade. source_document continua
+obrigatório pela RDE.
+
+END
+
+-------------------------------------------------------------------------------
+
 ENTITY COMPROVANTE_DE_SOLICITACAO_DE_HABITESE
 
 TYPE DOCUMENT
@@ -496,6 +600,8 @@ ATTRIBUTE PROCESS_IDENTIFIER TEXT
 
 ATTRIBUTE PROTOCOL_IDENTIFIER TEXT
 
+ATTRIBUTE REQUESTED_SERVICE_TYPE TEXT
+
 NAME
 
 COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE
@@ -505,9 +611,10 @@ DESCRIPTION
 Comprovante documental de uma solicitação de Habite-se. REQUEST_DATE é o fato
 documental extraído exclusivamente do campo "Data da Solicitação" do respectivo
 comprovante de origem; não expressa conclusão, início, previsão ou qualquer
-outro marco da obra. Os identificadores registrados são fatos documentais e
-permitem somente sua posterior vinculação à solicitação corrente; não
-determinam aplicabilidade.
+outro marco da obra. REQUESTED_SERVICE_TYPE registra somente a designação do
+serviço tal como apresentada no comprovante. Os identificadores registrados
+são fatos documentais e permitem somente sua posterior vinculação à solicitação
+corrente; não determinam aplicabilidade.
 
 END
 
