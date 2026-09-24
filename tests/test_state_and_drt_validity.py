@@ -30,7 +30,46 @@ class StateAndDRTValidityContractTests(unittest.TestCase):
             "IF ASSERT_RESULT IS NOT FALSE\n       AND ASSERT_RESULT IS NOT MANUAL_REVIEW",
             ENGINE,
         )
-        self.assertIn("FALSE > MANUAL_REVIEW > UNKNOWN > TRUE", ENGINE)
+        self.assertIn(
+            "FALSE > MANUAL_REVIEW > UNKNOWN > NOT_APPLICABLE > TRUE",
+            ENGINE,
+        )
+
+    def test_multiple_validate_preserves_manual_review_over_later_unknown(self):
+        self.assertIn(
+            "ELSE IF ANY VALIDATION RETURNS UNKNOWN\n"
+            "            AND ASSERT_RESULT IS TRUE",
+            ENGINE,
+        )
+        self.assertNotIn(
+            "ELSE IF ANY VALIDATION RETURNS UNKNOWN\n"
+            "            AND ASSERT_RESULT IS NOT FALSE",
+            ENGINE,
+        )
+
+    def test_assert_not_applicable_is_registered_not_pass(self):
+        self.assertIn(
+            "ELSE IF ASSERT RETURNS NOT_APPLICABLE\n"
+            "    AND ASSERT_RESULT IS TRUE",
+            ENGINE,
+        )
+        self.assertIn(
+            "ELSE IF ASSERT_RESULT = NOT_APPLICABLE\n\n"
+            "        REGISTER RESULT NOT_APPLICABLE",
+            ENGINE,
+        )
+
+    def test_payment_without_accepted_drt_cannot_be_recorded_as_pass(self):
+        payment_contract = re.search(
+            r"RESPONSIBILITY_EVIDENCE_PAYMENT_VALIDITY EVALUATES ONLY(.*?)"
+            r"REGISTRATION, PAYMENT AND SIGNATURE",
+            ENGINE,
+            re.S,
+        ).group(1)
+        self.assertIn("NO ACCEPTED DRT EVIDENCE", payment_contract)
+        self.assertIn("NOT_APPLICABLE", payment_contract)
+        self.assertIn("ASSERT RETURNS NOT_APPLICABLE", ENGINE)
+        self.assertIn("REGISTER RESULT NOT_APPLICABLE", ENGINE)
 
     def test_registration_and_payment_are_independent_facts(self):
         for attribute in (
