@@ -47,6 +47,16 @@ class StateAndDRTValidityContractTests(unittest.TestCase):
             ENGINE,
         )
 
+    def test_multiple_validate_preserves_false_over_later_manual_review(self):
+        self.assertIn(
+            "ELSE IF ANY VALIDATION RETURNS MANUAL_REVIEW\n"
+            "            AND ASSERT_RESULT IS NOT FALSE",
+            ENGINE,
+        )
+        false_pos = ENGINE.index("IF ANY VALIDATION RETURNS FALSE")
+        manual_pos = ENGINE.index("ELSE IF ANY VALIDATION RETURNS MANUAL_REVIEW")
+        self.assertLess(false_pos, manual_pos)
+
     def test_assert_not_applicable_is_registered_not_pass(self):
         self.assertIn(
             "ELSE IF ASSERT RETURNS NOT_APPLICABLE\n"
