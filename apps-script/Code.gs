@@ -26,7 +26,7 @@
 
 const APP_CONFIG = {
   APP_NAME: 'CBMSC Habite-se Expert',
-  VERSION: '0.1.0',
+  VERSION: '0.2.0',
 
   FOLDERS: {
     ROOT: {
@@ -414,6 +414,164 @@ function scanInputFolder() {
     lock.releaseLock();
   }
 }
+
+
+/* ============================================================
+ * INDEXAÇÃO DE PROCESSOS NEW
+ * ============================================================
+ */
+
+/**
+ * Transfere processos NEW para uma pasta própria em 01_PROCESSANDO
+ * e altera o estado para INDEXED.
+ *
+ * Idempotência:
+ * - processos que não estão em NEW são ignorados;
+ * - a pasta do processo é reutilizada se já existir;
+ * - se o arquivo já estiver na pasta do processo, não é movido novamente.
+ */
+function indexNewProcesses() {
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+
+    const registry = ensureRegistrySpreadsheet_();
+    const sheet = registry.sheet;
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow <= 1) {
+      return {
+        status: 'OK',
+        indexed: 0,
+        skipped: 0,
+        processes: []
+      };
+    }
+
+    const values = sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        REGISTRY_HEADERS.length
+      )
+      .getValues();
+
+    const processingRoot = DriveApp.getFolderById(
+      APP_CONFIG.FOLDERS.PROCESSING.id
+    );
+
+    const indexed = [];
+    let skipped = 0;
+
+    values.forEach((row, index) => {
+
+      const sheetRow = index + 2;
+      const processId = String(row[0] || '').trim();
+      const sourceFileId = String(row[1] || '').trim();
+      const status = String(row[6] || '').trim();
+
+      if (status !== PROCESS_STATUS.NEW) {
+        skipped++;
+        return;
+      }
+
+      if (!processId || !sourceFileId) {
+        throw new Error(
+          'Registro inválido na linha ' + sheetRow +
+          ': PROCESS_ID ou SOURCE_FILE_ID ausente.'
+        );
+      }
+
+      const processFolder = getOrCreateProcessFolder_(
+        processingRoot,
+        processId
+      );
+
+      const sourceFile = DriveApp.getFileById(sourceFileId);
+
+      if (!fileHasParent_(sourceFile, processFolder.getId())) {
+        sourceFile.moveTo(processFolder);
+      }
+
+      const now = new Date();
+
+      sheet.getRange(sheetRow, 7).setValue(
+        PROCESS_STATUS.INDEXED
+      );
+
+      sheet.getRange(sheetRow, 9).setValue(now);
+
+      indexed.push({
+        processId: processId,
+        fileId: sourceFileId,
+        processFolderId: processFolder.getId(),
+        status: PROCESS_STATUS.INDEXED
+      });
+    });
+
+    SpreadsheetApp.flush();
+
+    const result = {
+      status: 'OK',
+      indexed: indexed.length,
+      skipped: skipped,
+      processes: indexed
+    };
+
+    console.log(
+      JSON.stringify(result, null, 2)
+    );
+
+    return result;
+
+  } finally {
+
+    lock.releaseLock();
+  }
+}
+
+
+function getOrCreateProcessFolder_(
+  processingRoot,
+  processId
+) {
+
+  const folders =
+    processingRoot.getFoldersByName(processId);
+
+  if (folders.hasNext()) {
+    return folders.next();
+  }
+
+  return processingRoot.createFolder(
+    processId
+  );
+}
+
+
+function fileHasParent_(
+  file,
+  folderId
+) {
+
+  const parents =
+    file.getParents();
+
+  while (parents.hasNext()) {
+
+    if (
+      parents.next().getId() === folderId
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 function listProcesses() {
 
