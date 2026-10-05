@@ -1,6 +1,6 @@
 # Documento 10 – Guia de Evolução da Plataforma de Sistemas Especialistas para Análise Documental do CBMSC
 
-**Versão:** 1.2
+**Versão:** 1.3
 **Status:** Documento Arquitetural Permanente
 **Precedência:** Alta
 
@@ -81,16 +81,17 @@ O mecanismo de inferência nunca deverá incorporar conhecimento específico de 
 
 O Modelo de Linguagem (LLM) não constitui a fonte de conhecimento do sistema.
 
-Sua função limita-se a executar o processo de inferência utilizando exclusivamente o conhecimento previamente estruturado.
+O modelo poderá apoiar a EXTRACTION e a interpretação documental não
+normativa expressamente autorizada, utilizando somente os documentos e
+instruções aplicáveis a essa camada. A EXTRACTION pode ser probabilística,
+desde que sua saída seja validada antes de ingressar na execução.
 
-O modelo deverá atuar como:
+Requirements e Criteria são executados pelo Engine determinístico. O modelo
+não executa regras normativas, não produz resultados de conformidade e não
+possui autoridade normativa.
 
-* executor;
-* organizador;
-* correlacionador;
-* sintetizador.
-
-Jamais como autoridade normativa.
+A arquitetura permanece independente de fornecedor ou modelo; substituir
+Gemini, GPT ou outra tecnologia não exige reestruturar a Base de Conhecimento.
 
 ---
 
@@ -241,7 +242,18 @@ Caso contrário, deverá integrar exclusivamente a Base de Conhecimento correspo
 
 Ferramentas de Inteligência Artificial poderão ser substituídas ao longo do tempo.
 
-NotebookLM, Gems, Gemini, GPT ou qualquer outro modelo constituem apenas mecanismos de execução.
+Modelos de linguagem e outras ferramentas de IA podem ser utilizados na
+EXTRACTION e em interpretação documental não normativa expressamente
+autorizada. A EXTRACTION pode permanecer probabilística quando necessário,
+desde que sua saída seja validada antes de ingressar na execução.
+
+Requirements e Criteria são executados pelo Engine determinístico do runtime
+operacional JavaScript/Google Apps Script. Modelos de IA não executam regras
+normativas, não substituem o Engine e não produzem resultados normativos.
+
+A arquitetura permanece independente de fornecedor: substituir Gemini, GPT ou
+outro modelo não exige reestruturar a Base de Conhecimento nem o contrato do
+Processo de Inferência.
 
 A arquitetura da plataforma deverá permanecer independente da tecnologia empregada.
 
@@ -380,6 +392,14 @@ validada. Se a normalização declarada exigir representação derivada, ela pod
 existir somente em memória. Não persistir uma segunda cópia da RDE apenas para
 satisfazer esse contrato.
 
+O adaptador deve expor somente interfaces autorizadas pelo contrato de
+execução: representação canônica, entidades e atributos canônicos,
+TypedReference quando aplicável e proveniência de cada referência à RDE e ao
+registro documental de origem. Predicates não podem percorrer arbitrariamente
+a estrutura bruta da RDE nem contornar o fechamento lógico da Phase 3. O
+adaptador não reabre Source Documents, não reexecuta EXTRACTION e não cria uma
+segunda fonte de verdade.
+
 O resolver deverá seguir exclusivamente este fluxo:
 
 Criterion → predicate_id → argumentos nomeados e tipados → Registry →
@@ -443,6 +463,18 @@ NOT_APPLICABLE deverá ser determinado pela condição de aplicabilidade ou por
 um predicate cujo result_contract declare expressamente esse estado. Nenhum
 estado poderá ser criado por inferência do executor.
 
+Essa permissão é contratual e explícita: o Registry deve declarar
+`NOT_APPLICABLE` no result_contract do predicate. A resolução de applicability
+continua sendo bloqueio e etapa própria antes da execução; a permissão não
+autoriza composição implícita de NOT_APPLICABLE em ALL, OR ou FOR_EACH.
+Qualquer composição envolvendo esse estado deve estar declarada no Criterion
+IR ou falhar como erro estrutural.
+
+Esta decisão é o contrato canônico da arquitetura. A rejeição de
+NOT_APPLICABLE atualmente existente no PredicateContract e nos testes do
+Engine Python é uma LEGACY_REFERENCE divergente; não altera este contrato nem
+autoriza modificar o Python nesta etapa.
+
 O Engine preserva esses estados como EngineResult. O Pipeline aceita somente
 PipelineResult: PASS, FAIL, NOT_APPLICABLE ou MANUAL_REVIEW. A fronteira
 normaliza os estados assim:
@@ -455,12 +487,16 @@ normaliza os estados assim:
 | MANUAL_REVIEW | MANUAL_REVIEW | IDENTITY |
 | UNKNOWN | MANUAL_REVIEW | UNKNOWN_TO_MANUAL_REVIEW |
 
-O trace deverá preservar simultaneamente engine_result, pipeline_result e
-normalization. UNKNOWN_TO_MANUAL_REVIEW é somente uma normalização de fronteira
-para encaminhamento operacional. Ela não torna UNKNOWN semanticamente
-equivalente a MANUAL_REVIEW, não gera FAIL nem Nonconformity, não altera a
-evidência e não reinterpreta ausência documental. Somente EngineResult FALSE
-normalizado como FAIL pode associar a Nonconformity declarada pelo Criterion.
+Todo registro deverá preservar `pipeline_result`. O trace de um Criterion
+EVALUATED preserva também seu `engine_result`, `normalization` e predicate
+trace próprios. Um Criterion PROPAGATED preserva `pipeline_result=MANUAL_REVIEW`
+e link causal suficiente para reconstruir o EngineResult e a normalização da
+origem, sem atribuí-los ao Criterion dependente. UNKNOWN_TO_MANUAL_REVIEW é
+somente uma normalização de fronteira para encaminhamento operacional. Ela não
+torna UNKNOWN semanticamente equivalente a MANUAL_REVIEW, não gera FAIL nem
+Nonconformity, não altera a evidência e não reinterpreta ausência documental.
+Somente EngineResult FALSE normalizado como FAIL pode associar a Nonconformity
+declarada pelo Criterion.
 
 ## 20.6 Composição lógica mínima
 
@@ -520,6 +556,15 @@ O registro de execução deverá permitir identificar:
 O resolver deverá devolver as referências documentais e de Process Memory que
 fundamentaram o resultado. O Engine registra e encadeia essas referências,
 mas não cria justificativa normativa adicional.
+
+O trace distingue a origem do resultado. Criterion efetivamente executado usa
+`result_origin=EVALUATED` e registra EngineResult, PipelineResult,
+normalization, predicate trace e evidências. Criterion dependente cuja
+execução foi omitida por propagação usa `result_origin=PROPAGATED`,
+`evaluation_performed=false`, link para `source_unit` ou `source_criterion` e
+`propagation_cause`; não recebe EngineResult próprio, predicate trace ou
+evidência fabricada. A cadeia causal conserva UNKNOWN →
+UNKNOWN_TO_MANUAL_REVIEW → MANUAL_REVIEW quando aplicável.
 
 ## 20.8 Responsabilidades do Engine
 

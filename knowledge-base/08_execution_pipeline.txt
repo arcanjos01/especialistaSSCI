@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.8.0
+# DOCUMENT_VERSION: 4.9.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.5.0
+KNOWLEDGE_BASE_VERSION: 5.6.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.1.0
+00_engine.txt: DOCUMENT_VERSION 4.2.0
 01_entities.txt: DOCUMENT_VERSION 3.2.0
 02_requirements.txt: DOCUMENT_VERSION 3.3.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.2.0
 04_table4.txt: DOCUMENT_VERSION 3.2.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
-06_reports.txt: DOCUMENT_VERSION 2.5.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.8.0
+06_reports.txt: DOCUMENT_VERSION 2.6.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.9.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
 
 END DOCUMENT_SET.
@@ -344,7 +344,13 @@ artifact. When no transformation is needed, a read-only adapter may expose the
 validated RDE directly. When normalization is needed, it may exist in memory;
 do not persist a second copy of the RDE solely to materialize Process Memory.
 
-The RDE is the only documentary input authorized for the execution view.
+The RDE is the only documentary input authorized for the execution view. The
+view or read-only adapter shall expose only approved execution interfaces,
+canonicalized entities and attributes, TypedReference values when required,
+and provenance back to the RDE and source records. Predicates shall not
+navigate the raw RDE arbitrarily or bypass the closed Phase 3 view. The view
+shall not reopen source documents, invoke extraction, or become a second
+documentary source of truth.
 
 Process Memory shall never:
 
@@ -530,27 +536,39 @@ Execute all APPLICABLE_REQUIREMENTS using Process Memory.
 
 Resolve every VALIDATE declared by each APPLICABLE_REQUIREMENT.
 
-After Requirement validation, execute exactly the Criteria represented by
-PLANNED_EXECUTION_UNITS, in the frozen plan order.
+After Requirement validation, process exactly the Criteria represented by
+PLANNED_EXECUTION_UNITS, in the frozen plan order. Before executing a
+dependent Criterion, determine whether an earlier result requires
+MANUAL_REVIEW propagation. If propagation applies, register the dependent unit
+as PROPAGATED and do not execute its predicate or ASSERT. Otherwise register
+the unit as EVALUATED and execute it.
 
 Execute Table 1.
 
 Complete every applicable Criterion in Table 1 before starting Table 4.
 
-Each selected Criterion shall produce exactly one result.
+Each selected Criterion shall produce exactly one result record. Only an
+EVALUATED record represents an executed Criterion; a PROPAGATED record
+represents the frozen plan unit whose evaluation was intentionally skipped and
+whose causal source is recorded.
 
 Every applicable Requirement shall be evaluated exactly once.
 
-Every execution result shall record the UNIT_KEY of its planned unit.
+Every result record shall record the UNIT_KEY of its planned unit and
+`pipeline_result`. Only EVALUATED records shall contain `engine_result`,
+`normalization`, predicate trace, evidence references and evaluated bindings of
+their own.
+PROPAGATED records shall contain the causal source and propagation cause
+specified below, without fabricating those evaluation fields.
 
-For every iterative Criterion, record the bindings actually evaluated and
-retain the planned ITERATION_DOMAIN. The execution shall verify:
+For every EVALUATED iterative Criterion, record the bindings actually evaluated
+and retain the planned ITERATION_DOMAIN. The execution shall verify:
 
 evaluated_bindings == planned_bindings
 
 before the results are consolidated or projected.
 
-The Engine preserves its internal EngineResult for every Criterion:
+The Engine preserves its internal EngineResult for every EVALUATED Criterion:
 
 TRUE
 
@@ -573,8 +591,12 @@ PipelineResult as follows:
 | MANUAL_REVIEW | MANUAL_REVIEW | IDENTITY |
 | UNKNOWN | MANUAL_REVIEW | UNKNOWN_TO_MANUAL_REVIEW |
 
-Each result trace shall preserve `engine_result`, `pipeline_result` and
-`normalization`. UNKNOWN_TO_MANUAL_REVIEW is an operational routing
+Every result record shall preserve `pipeline_result`. An EVALUATED result
+shall additionally preserve its own `engine_result` and `normalization`, with
+the predicate trace for that evaluation. A PROPAGATED result shall preserve
+`pipeline_result=MANUAL_REVIEW` and a causal link sufficient to reconstruct
+the originating EngineResult and normalization, without assigning those fields
+to the dependent Criterion. UNKNOWN_TO_MANUAL_REVIEW is an operational routing
 normalization only; it does not make UNKNOWN semantically identical to
 MANUAL_REVIEW. It shall not generate FAIL or a Nonconformity, alter evidence,
 or reinterpret documentary absence. Only EngineResult FALSE normalizes to
@@ -595,6 +617,11 @@ trace even when its PipelineResult is normalized.
 
 Criteria shall consume Process Memory only.
 
+Applicability remains resolved before execution. A predicate may return
+NOT_APPLICABLE only when its declared result contract permits it; the Engine
+shall not invent propagation or composition semantics for that state in ALL,
+OR or FOR_EACH. An undeclared combination is an execution integrity error.
+
 Criteria shall never create, update or reinterpret documentary attributes.
 
 ###############################################################################
@@ -604,10 +631,12 @@ Criteria shall never create, update or reinterpret documentary attributes.
 
 Before consolidation or projection, verify the Plan-to-Results invariant:
 
-- every PLANNED_EXECUTION_UNITS UNIT_KEY produced exactly one result;
+- every PLANNED_EXECUTION_UNITS UNIT_KEY produced exactly one result record,
+  evaluated or propagated;
 - no UNIT_KEY produced two or more results;
 - no result exists without a UNIT_KEY in PLANNED_EXECUTION_UNITS;
-- for every iterative Criterion, evaluated_bindings equals planned_bindings.
+- for every EVALUATED iterative Criterion, evaluated_bindings equals
+  planned_bindings; PROPAGATED records have no evaluated bindings.
 
 If any of these checks fails, stop execution with EXECUTION_INTEGRITY_ERROR.
 
@@ -626,8 +655,10 @@ On EXECUTION_INTEGRITY_ERROR:
   architecture;
 - do not trigger Report Generation or IRV/e-SCI projection.
 
-Consolidate all Criterion results, preserving both EngineResult and
-PipelineResult trace fields.
+Consolidate all Criterion results, preserving PipelineResult for every record
+and preserving EngineResult and normalization on EVALUATED records. Propagated
+records retain their causal source link instead of receiving an EngineResult
+or normalization of their own.
 
 This contract defines results per Criterion and does not define an aggregate
 Requirement result. Do not derive or emit a Requirement-level result by
@@ -651,6 +682,23 @@ Operational Alert identifiers shall never appear in user-visible reports.
 MANUAL_REVIEW results shall never generate Nonconformities.
 
 MANUAL_REVIEW shall propagate to every dependent Criterion unless an explicit documentary rule defines otherwise.
+
+Propagation is represented explicitly. Every planned UNIT_KEY produces exactly
+one result record with `result_origin` equal to `EVALUATED` or `PROPAGATED`.
+
+An EVALUATED record represents a Criterion actually executed and shall contain
+`evaluation_performed=true`, `engine_result`, `pipeline_result` and
+`normalization`, plus the predicate trace and evidence references required by
+the Criterion contract.
+
+A PROPAGATED record represents a dependent Criterion that was not executed and
+shall contain `evaluation_performed=false`, `source_unit` or
+`source_criterion`, `propagation_cause` and `pipeline_result=MANUAL_REVIEW`.
+It shall not fabricate an EngineResult for the dependent Criterion, predicate
+bindings, predicate trace or evidence. The source link shall preserve the
+causal chain, including `UNKNOWN -> UNKNOWN_TO_MANUAL_REVIEW -> MANUAL_REVIEW`
+when that is the originating result. Propagation never produces FAIL,
+Nonconformity, facts or altered evidence.
 
 Do not modify previous results.
 
@@ -711,7 +759,11 @@ project exactly "Não necessário." for report rendering.
 Derive candidate technical counters only from the canonical consolidated
 result set before rendering. Validate:
 
-VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+VERIFICATIONS_EXECUTED counts only result records with
+result_origin=EVALUATED:
+PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW.
+PROPAGATED records are counted separately as VERIFICATIONS_PROPAGATED and do
+not enter VERIFICATIONS_EXECUTED.
 
 If the equality is not satisfied, record REPORT_COUNTER_INCONSISTENCY as an
 audit-only diagnostic and omit the invalid technical totals. Never fabricate,

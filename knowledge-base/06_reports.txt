@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 2.5.0
+DOCUMENT_VERSION: 2.6.0
 
 FINALIDADE
 
@@ -137,7 +137,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.5.0;
+- Base: SSCI-Habite-se 5.6.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
@@ -245,7 +245,12 @@ CONTADORES DE AUDITORIA
 Derive todos os valores do conjunto canônico de resultados antes da
 renderização. Valide obrigatoriamente:
 
-VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW
+VERIFICATIONS_EXECUTED counts only results with result_origin=EVALUATED:
+PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW.
+Results with result_origin=PROPAGATED are counted separately as
+VERIFICATIONS_PROPAGATED and do not enter VERIFICATIONS_EXECUTED.
+For compatibility with the canonical counter notation, the evaluated subset
+satisfies: VERIFICATIONS_EXECUTED = PASS + FAIL + NOT_APPLICABLE + MANUAL_REVIEW.
 
 Se a igualdade não for satisfeita:
 
