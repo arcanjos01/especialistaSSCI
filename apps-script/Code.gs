@@ -26,7 +26,7 @@
 
 const APP_CONFIG = {
   APP_NAME: 'CBMSC Habite-se Expert',
-  VERSION: '0.2.0',
+  VERSION: '0.3.0',
 
   FOLDERS: {
     ROOT: {
@@ -524,6 +524,154 @@ function indexNewProcesses() {
     console.log(
       JSON.stringify(result, null, 2)
     );
+
+    return result;
+
+  } finally {
+
+    lock.releaseLock();
+  }
+}
+
+
+/**
+ * Prepara as pastas RDE dos processos INDEXED e os encaminha para
+ * EXTRACTION_PENDING. Esta etapa não lê documentos nem executa extração.
+ */
+function prepareExtractionQueue() {
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+
+    const registry = ensureRegistrySpreadsheet_();
+    const sheet = registry.sheet;
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow <= 1) {
+      return {
+        status: 'OK',
+        prepared: 0,
+        skipped: 0,
+        processes: []
+      };
+    }
+
+    const values = sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        REGISTRY_HEADERS.length
+      )
+      .getValues();
+
+    const processingRoot = DriveApp.getFolderById(
+      APP_CONFIG.FOLDERS.PROCESSING.id
+    );
+
+    const indexedProcesses = [];
+    let skipped = 0;
+
+    values.forEach((row, index) => {
+
+      if (row[6] !== PROCESS_STATUS.INDEXED) {
+        skipped++;
+        return;
+      }
+
+      const processId = String(row[0] || '').trim();
+
+      if (!processId) {
+        throw new Error(
+          'Registro INDEXED inválido na linha ' + (index + 2) +
+          ': PROCESS_ID ausente.'
+        );
+      }
+
+      const processFolders =
+        processingRoot.getFoldersByName(processId);
+
+      if (!processFolders.hasNext()) {
+        throw new Error(
+          'Pasta do processo ausente para PROCESS_ID: ' + processId
+        );
+      }
+
+      const processFolder = processFolders.next();
+
+      if (processFolders.hasNext()) {
+        throw new Error(
+          'Mais de uma pasta do processo encontrada para PROCESS_ID: ' +
+          processId
+        );
+      }
+
+      indexedProcesses.push({
+        rowNumber: index + 2,
+        processId: processId,
+        processFolder: processFolder,
+        createdAt: row[7]
+      });
+    });
+
+    const preparedProcesses = indexedProcesses.map(process => {
+
+      const rdeFolders =
+        process.processFolder.getFoldersByName('RDE');
+
+      let rdeFolder;
+
+      if (rdeFolders.hasNext()) {
+        rdeFolder = rdeFolders.next();
+
+        if (rdeFolders.hasNext()) {
+          throw new Error(
+            'Mais de uma pasta RDE encontrada para PROCESS_ID: ' +
+            process.processId
+          );
+        }
+      } else {
+        rdeFolder = process.processFolder.createFolder('RDE');
+      }
+
+      return {
+        rowNumber: process.rowNumber,
+        processId: process.processId,
+        createdAt: process.createdAt,
+        rdeFolderId: rdeFolder.getId()
+      };
+    });
+
+    const now = new Date();
+
+    preparedProcesses.forEach(process => {
+      sheet
+        .getRange(process.rowNumber, 7, 1, 3)
+        .setValues([[
+          PROCESS_STATUS.EXTRACTION_PENDING,
+          process.createdAt,
+          now
+        ]]);
+    });
+
+    SpreadsheetApp.flush();
+
+    const processes = preparedProcesses.map(process => ({
+      processId: process.processId,
+      rdeFolderId: process.rdeFolderId,
+      status: PROCESS_STATUS.EXTRACTION_PENDING
+    }));
+
+    const result = {
+      status: 'OK',
+      prepared: processes.length,
+      skipped: skipped,
+      processes: processes
+    };
+
+    console.log(JSON.stringify(result, null, 2));
 
     return result;
 
