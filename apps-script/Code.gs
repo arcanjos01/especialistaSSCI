@@ -26,7 +26,7 @@
 
 const APP_CONFIG = {
   APP_NAME: 'CBMSC Habite-se Expert',
-  VERSION: '0.3.0',
+  VERSION: '0.4.0',
 
   FOLDERS: {
     ROOT: {
@@ -670,6 +670,236 @@ function prepareExtractionQueue() {
       skipped: skipped,
       processes: processes
     };
+
+    console.log(JSON.stringify(result, null, 2));
+
+    return result;
+
+  } finally {
+
+    lock.releaseLock();
+  }
+}
+
+
+/**
+ * Gera RDEs vazias com o extrator fake determinístico para processos pendentes.
+ * O conteúdo documental não é interpretado; os bytes são lidos apenas para SHA-256.
+ */
+function extractPendingProcessesFake() {
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+
+    const registry = ensureRegistrySpreadsheet_();
+    const sheet = registry.sheet;
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow <= 1) {
+      return {
+        status: 'OK',
+        extracted: 0,
+        skipped: 0,
+        processes: []
+      };
+    }
+
+    const values = sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        REGISTRY_HEADERS.length
+      )
+      .getValues();
+
+    const processingRoot = DriveApp.getFolderById(
+      APP_CONFIG.FOLDERS.PROCESSING.id
+    );
+
+    const processes = [];
+    const errors = [];
+    let skipped = 0;
+
+    values.forEach((row, index) => {
+
+      if (row[6] !== PROCESS_STATUS.EXTRACTION_PENDING) {
+        skipped++;
+        return;
+      }
+
+      const sheetRow = index + 2;
+      const processId = String(row[0] || '').trim();
+      const sourceFileId = String(row[1] || '').trim();
+
+      try {
+
+        if (!processId) {
+          throw new Error('PROCESS_ID ausente no registro.');
+        }
+
+        if (!sourceFileId) {
+          throw new Error('SOURCE_FILE_ID ausente no registro.');
+        }
+
+        const processFolders =
+          processingRoot.getFoldersByName(processId);
+
+        if (!processFolders.hasNext()) {
+          throw new Error(
+            'Pasta do processo não encontrada: ' + processId
+          );
+        }
+
+        const processFolder = processFolders.next();
+
+        if (processFolders.hasNext()) {
+          throw new Error(
+            'Mais de uma pasta encontrada para PROCESS_ID: ' + processId
+          );
+        }
+
+        const rdeFolders = processFolder.getFoldersByName('RDE');
+
+        if (!rdeFolders.hasNext()) {
+          throw new Error(
+            'Pasta RDE não encontrada para PROCESS_ID: ' + processId
+          );
+        }
+
+        const rdeFolder = rdeFolders.next();
+
+        if (rdeFolders.hasNext()) {
+          throw new Error(
+            'Mais de uma pasta RDE encontrada para PROCESS_ID: ' + processId
+          );
+        }
+
+        // DriveApp.getFileById valida a existência sem abrir o conteúdo.
+        const sourceFile = DriveApp.getFileById(sourceFileId);
+
+        if (sourceFile.getId() !== sourceFileId) {
+          throw new Error(
+            'SOURCE_FILE_ID não corresponde ao arquivo localizado.'
+          );
+        }
+
+        // Os bytes são consumidos somente pelo algoritmo de hash, sem OCR ou parsing.
+        const sourceSha256 = sha256Hex_(
+          sourceFile.getBlob().getBytes()
+        );
+
+        const rdeFileName =
+          'rde-v' + RDE_SCHEMA_VERSION + '.json';
+
+        const rdeFiles = rdeFolder.getFilesByName(rdeFileName);
+        let rdeFile;
+
+        if (rdeFiles.hasNext()) {
+          rdeFile = rdeFiles.next();
+
+          if (rdeFiles.hasNext()) {
+            throw new Error(
+              'Mais de um arquivo ' + rdeFileName +
+              ' encontrado para PROCESS_ID: ' + processId
+            );
+          }
+        } else {
+          const rde = buildFakeRde_({
+            processId: processId,
+            sourceFileId: sourceFileId,
+            sourceFileName: sourceFile.getName(),
+            sourceMimeType: sourceFile.getMimeType(),
+            sourceUrl: sourceFile.getUrl(),
+            sourceSha256: sourceSha256,
+            createdAt: new Date().toISOString()
+          });
+
+          rdeFile = rdeFolder.createFile(
+            rdeFileName,
+            JSON.stringify(rde, null, 2),
+            'application/json'
+          );
+        }
+
+        if (rdeFile.getMimeType() !== 'application/json') {
+          throw new Error(
+            'MIME type do arquivo RDE deve ser application/json.'
+          );
+        }
+
+        const savedContent = rdeFile
+          .getBlob()
+          .getDataAsString('UTF-8');
+
+        parseAndValidateRdeJson_(savedContent, {
+          processId: processId,
+          sourceFileId: sourceFileId,
+          sourceSha256: sourceSha256
+        });
+
+        // Atualiza STATUS, UPDATED_AT e RDE_VERSION juntos, preservando
+        // as demais colunas do intervalo G:M e deixando ERROR intacto.
+        const registryFields = row.slice(6, 13);
+        registryFields[0] = PROCESS_STATUS.EXTRACTED;
+        registryFields[2] = new Date();
+        registryFields[6] = RDE_SCHEMA_VERSION;
+
+        sheet
+          .getRange(sheetRow, 7, 1, 7)
+          .setValues([registryFields]);
+
+        processes.push({
+          processId: processId,
+          rdeFileId: rdeFile.getId(),
+          rdeVersion: RDE_SCHEMA_VERSION,
+          status: PROCESS_STATUS.EXTRACTED
+        });
+
+      } catch (error) {
+
+        const message = error && error.message
+          ? error.message
+          : String(error);
+
+        const errorRecord = {
+          processId: processId,
+          message: message
+        };
+
+        errors.push(errorRecord);
+
+        try {
+          // Mantém o status e todas as outras colunas como estavam.
+          const registryFields = row.slice(6, 14);
+          registryFields[2] = new Date();
+          registryFields[7] = message;
+
+          sheet
+            .getRange(sheetRow, 7, 1, 8)
+            .setValues([registryFields]);
+        } catch (registryError) {
+          errorRecord.message +=
+            ' Falha ao registrar ERROR/UPDATED_AT: ' +
+            (registryError.message || String(registryError));
+        }
+      }
+    });
+
+    SpreadsheetApp.flush();
+
+    const result = {
+      status: 'OK',
+      extracted: processes.length,
+      skipped: skipped,
+      processes: processes
+    };
+
+    if (errors.length) {
+      result.errors = errors;
+    }
 
     console.log(JSON.stringify(result, null, 2));
 
