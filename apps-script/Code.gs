@@ -24,9 +24,11 @@
  * - nenhum PASS/FAIL é produzido.
  */
 
+// Débito técnico: separar APP_VERSION, EXTRACTOR_VERSION, RDE_VERSION,
+// ENGINE_VERSION e KNOWLEDGE_BASE_VERSION sem alterar o schema nesta etapa.
 const APP_CONFIG = {
   APP_NAME: 'CBMSC Habite-se Expert',
-  VERSION: '0.4.0',
+  VERSION: '0.5.0',
 
   FOLDERS: {
     ROOT: {
@@ -909,6 +911,234 @@ function extractPendingProcessesFake() {
 
     lock.releaseLock();
   }
+}
+
+
+/** Valida estrutura, rastreabilidade e hash das RDEs com status EXTRACTED. */
+function validateExtractedProcesses() {
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+
+    const registry = ensureRegistrySpreadsheet_();
+    const sheet = registry.sheet;
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow <= 1) {
+      return {
+        status: 'OK',
+        validated: 0,
+        skipped: 0,
+        processes: [],
+        errors: []
+      };
+    }
+
+    const values = sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        REGISTRY_HEADERS.length
+      )
+      .getValues();
+
+    const processingRoot = DriveApp.getFolderById(
+      APP_CONFIG.FOLDERS.PROCESSING.id
+    );
+
+    const processes = [];
+    const errors = [];
+    let skipped = 0;
+
+    values.forEach((row, index) => {
+
+      if (row[6] !== PROCESS_STATUS.EXTRACTED) {
+        skipped++;
+        return;
+      }
+
+      const sheetRow = index + 2;
+      const processId = String(row[0] || '').trim();
+      const sourceFileId = String(row[1] || '').trim();
+
+      try {
+
+        if (!processId) {
+          throw makeRdeValidationError_(
+            'RDE_PROCESS_ID_MISSING',
+            'PROCESS_ID ausente no registro.'
+          );
+        }
+
+        if (!sourceFileId) {
+          throw makeRdeValidationError_(
+            'RDE_SOURCE_FILE_ID_MISSING',
+            'SOURCE_FILE_ID ausente no registro.'
+          );
+        }
+
+        if (row[12] !== RDE_SCHEMA_VERSION) {
+          throw makeRdeValidationError_(
+            'RDE_VERSION_MISMATCH',
+            'RDE_VERSION do registro deve ser ' + RDE_SCHEMA_VERSION + '.'
+          );
+        }
+
+        const processFolder = getUniqueValidationFolder_(
+          processingRoot,
+          processId,
+          processId
+        );
+
+        const rdeFolder = getUniqueValidationFolder_(
+          processFolder,
+          'RDE',
+          processId
+        );
+
+        const rdeFileName =
+          'rde-v' + RDE_SCHEMA_VERSION + '.json';
+        const rdeFiles = rdeFolder.getFilesByName(rdeFileName);
+
+        if (!rdeFiles.hasNext()) {
+          throw makeRdeValidationError_(
+            'RDE_FILE_NOT_FOUND',
+            'Arquivo ' + rdeFileName + ' não encontrado.'
+          );
+        }
+
+        const rdeFile = rdeFiles.next();
+
+        if (rdeFiles.hasNext()) {
+          throw makeRdeValidationError_(
+            'RDE_DUPLICATE_FILE',
+            'Mais de um arquivo ' + rdeFileName + ' encontrado.'
+          );
+        }
+
+        const rdeContent = rdeFile
+          .getBlob()
+          .getDataAsString('UTF-8');
+
+        const rde = parseAndValidateOperationalRdeJson_(rdeContent, {
+          processId: processId,
+          sourceFileId: sourceFileId
+        });
+
+        let sourceFile;
+
+        try {
+          sourceFile = DriveApp.getFileById(sourceFileId);
+        } catch (sourceError) {
+          throw makeRdeValidationError_(
+            'RDE_SOURCE_FILE_NOT_FOUND',
+            'Documento-fonte não encontrado pelo SOURCE_FILE_ID.'
+          );
+        }
+
+        const actualSourceHash = sha256Hex_(
+          sourceFile.getBlob().getBytes()
+        );
+
+        validateSourceHash_(rde.source.sha256, actualSourceHash);
+
+        // A validação terminou; atualiza status, data e limpa ERROR juntos.
+        const registryFields = row.slice(6, 14);
+        registryFields[0] = PROCESS_STATUS.VALIDATED;
+        registryFields[2] = new Date();
+        registryFields[7] = '';
+
+        sheet
+          .getRange(sheetRow, 7, 1, 8)
+          .setValues([registryFields]);
+
+        processes.push({
+          processId: processId,
+          rdeFileId: rdeFile.getId(),
+          rdeVersion: RDE_SCHEMA_VERSION,
+          status: PROCESS_STATUS.VALIDATED
+        });
+
+      } catch (error) {
+
+        const code = error && error.code
+          ? error.code
+          : 'RDE_VALIDATION_ERROR';
+        const message = error && error.message
+          ? error.message
+          : String(error);
+
+        const errorRecord = {
+          processId: processId,
+          code: code,
+          message: message
+        };
+
+        errors.push(errorRecord);
+
+        try {
+          // Mantém EXTRACTED e as demais colunas; só registra erro e data.
+          const registryFields = row.slice(6, 14);
+          registryFields[2] = new Date();
+          registryFields[7] = code + ': ' + message;
+
+          sheet
+            .getRange(sheetRow, 7, 1, 8)
+            .setValues([registryFields]);
+        } catch (registryError) {
+          errorRecord.message +=
+            ' Falha ao registrar ERROR/UPDATED_AT: ' +
+            (registryError.message || String(registryError));
+        }
+      }
+    });
+
+    SpreadsheetApp.flush();
+
+    const result = {
+      status: 'OK',
+      validated: processes.length,
+      skipped: skipped,
+      processes: processes,
+      errors: errors
+    };
+
+    console.log(JSON.stringify(result, null, 2));
+
+    return result;
+
+  } finally {
+
+    lock.releaseLock();
+  }
+}
+
+
+function getUniqueValidationFolder_(parentFolder, folderName, processId) {
+
+  const folders = parentFolder.getFoldersByName(folderName);
+
+  if (!folders.hasNext()) {
+    throw makeRdeValidationError_(
+      'RDE_FOLDER_NOT_FOUND',
+      'Pasta "' + folderName + '" não encontrada para PROCESS_ID: ' + processId
+    );
+  }
+
+  const folder = folders.next();
+
+  if (folders.hasNext()) {
+    throw makeRdeValidationError_(
+      'RDE_DUPLICATE_FOLDER',
+      'Mais de uma pasta "' + folderName + '" encontrada para PROCESS_ID: ' +
+      processId
+    );
+  }
+
+  return folder;
 }
 
 

@@ -23,7 +23,10 @@ vm.runInContext(source + `
     buildFakeRde_,
     validateRde_,
     parseAndValidateRdeJson_,
-    sha256Hex_
+    sha256Hex_,
+    validateRdeStructure_,
+    parseAndValidateOperationalRdeJson_,
+    validateSourceHash_
   };
 `, context);
 
@@ -104,6 +107,91 @@ assert.throws(
     extraction: { ...rde.extraction, created_at: 'not-a-timestamp' }
   }, expected),
   /Objeto extraction inválido/
+);
+
+const operationalRde = JSON.parse(existingJson);
+operationalRde.extraction.provider = 'FutureProvider';
+operationalRde.facts = { observed_label: 'Amostra documental' };
+operationalRde.evidence = [{ source: 'page-1' }];
+operationalRde.extraction_warnings = ['Aviso de extração'];
+const operationalSnapshot = JSON.stringify(operationalRde);
+const operationalExpected = {
+  processId: input.processId,
+  sourceFileId: input.sourceFileId
+};
+
+assert.equal(
+  core.validateRdeStructure_(operationalRde, operationalExpected),
+  operationalRde
+);
+assert.equal(JSON.stringify(operationalRde), operationalSnapshot);
+assert.equal(
+  core.parseAndValidateOperationalRdeJson_(
+    JSON.stringify(operationalRde),
+    operationalExpected
+  ).process_id,
+  input.processId
+);
+
+function expectValidationCode(rdeValue, code) {
+  assert.throws(
+    () => core.validateRdeStructure_(rdeValue, operationalExpected),
+    error => error.code === code
+  );
+}
+
+function cloneOperationalRde() {
+  return JSON.parse(operationalSnapshot);
+}
+
+let invalid = cloneOperationalRde();
+invalid.schema_version = '9.9.9';
+expectValidationCode(invalid, 'RDE_SCHEMA_VERSION_MISMATCH');
+
+invalid = cloneOperationalRde();
+invalid.process_id = 'HAB-OTHER';
+expectValidationCode(invalid, 'RDE_PROCESS_ID_MISMATCH');
+
+invalid = cloneOperationalRde();
+invalid.source.file_id = 'other-file';
+expectValidationCode(invalid, 'RDE_SOURCE_FILE_ID_MISMATCH');
+
+invalid = cloneOperationalRde();
+invalid.source.sha256 = 'A'.repeat(64);
+expectValidationCode(invalid, 'RDE_SOURCE_HASH_INVALID');
+
+assert.throws(
+  () => core.validateSourceHash_('a'.repeat(64), 'b'.repeat(64)),
+  error => error.code === 'RDE_SOURCE_HASH_MISMATCH'
+);
+
+invalid = cloneOperationalRde();
+delete invalid.extraction;
+expectValidationCode(invalid, 'RDE_MISSING_REQUIRED_FIELD');
+
+invalid = cloneOperationalRde();
+invalid.extraction.created_at = '2026-02-31T12:00:00Z';
+expectValidationCode(invalid, 'RDE_INVALID_ISO8601');
+
+invalid = cloneOperationalRde();
+invalid.facts = [];
+expectValidationCode(invalid, 'RDE_INVALID_FIELD_TYPE');
+
+invalid = cloneOperationalRde();
+invalid.evidence = {};
+expectValidationCode(invalid, 'RDE_INVALID_FIELD_TYPE');
+
+invalid = cloneOperationalRde();
+invalid.extraction_warnings = null;
+expectValidationCode(invalid, 'RDE_INVALID_FIELD_TYPE');
+
+invalid = cloneOperationalRde();
+delete invalid.document.document_type;
+expectValidationCode(invalid, 'RDE_MISSING_REQUIRED_FIELD');
+
+assert.throws(
+  () => core.parseAndValidateOperationalRdeJson_('{inválido', operationalExpected),
+  error => error.code === 'RDE_INVALID_JSON'
 );
 
 console.log('RDE core tests passed');
