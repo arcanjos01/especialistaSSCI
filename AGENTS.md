@@ -23,6 +23,15 @@ Priorizar conceitualmente, nesta ordem:
 
 Não tratar todos os documentos como uma única hierarquia. Cada fonte possui autoridade dentro de seu escopo.
 
+Hierarquia operacional de autoridade:
+
+1. normas oficiais — fonte primária do conteúdo normativo;
+2. Base de Conhecimento — formalização do conteúdo normativo utilizado pelo sistema;
+3. contratos arquiteturais — definem representação, execução, sequência e invariantes;
+4. código/runtime — implementa os contratos e não pode criar semântica normativa própria.
+
+Nem Apps Script, nem JavaScript, nem Python, nem Gemini/LLM, nem MCP, nem qualquer ferramenta de desenvolvimento podem criar, completar ou alterar semântica normativa que não esteja autorizada pelas fontes acima.
+
 Normas oficiais
 
 São a fonte primária do conteúdo normativo.
@@ -63,7 +72,7 @@ Anexo A
 
 É a fonte oficial do catálogo de Responsabilidades Técnicas e de seus atributos catalográficos.
 
-demais documentos de arquitetura
+Demais documentos de arquitetura
 
 Devem ser considerados conforme o escopo e a vigência definidos neles.
 
@@ -87,9 +96,9 @@ corrigir somente após decisão ou fundamento autorizado.
 
 A arquitetura deve manter separadas estas categorias:
 
-DOCUMENTO≠EVIDÊNCIA DOCUMENTAL≠OBRIGAÇÃO NORMATIVA≠REQUIREMENT≠CRITERION≠RESULTADO≠NONCONFORMITY
+DOCUMENTO ≠ EVIDÊNCIA DOCUMENTAL ≠ OBRIGAÇÃO NORMATIVA ≠ REQUIREMENT ≠ CRITERION ≠ RESULTADO ≠ NONCONFORMITY
 
-A unidade lógica fundamental do modelo normativo é a Obrigação Normativa,conforme o Documento 11.
+A unidade lógica fundamental do modelo normativo é a Obrigação Normativa, conforme o Documento 11.
 
 Responsabilidade Técnica é uma categoria de atendimento de obrigação normativa; DRT é evidência documental aceita para comprovação de uma Responsabilidade Técnica.
 
@@ -125,7 +134,9 @@ extrair atributos previstos;
 
 preservar origem e rastreabilidade;
 
-registrar estados documentais conforme a arquitetura.
+registrar estados documentais conforme a arquitetura;
+
+utilizar Gemini/LLM ou outro mecanismo de interpretação documental quando isso produzir benefício operacional.
 
 Não pode
 
@@ -143,7 +154,7 @@ criar conclusões técnicas;
 
 interpretar requisitos para produzir resultados;
 
-usar conhecimento externo;
+usar conhecimento externo para completar lacunas documentais;
 
 completar informação ausente por inferência.
 
@@ -163,17 +174,29 @@ ausência de conteúdo normativo ou de resultado.
 
 Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09-RDE é a fonte dessa definição.
 
-7. RDE × PROCESS MEMORY
+7. RDE E CONTEXTO DE EXECUÇÃO
 
-Não assumir que RDE e Process Memory são o mesmo artefato.
+A RDE é a representação documental canônica produzida pela EXTRACTION.
 
-RDE: representação documental definida pelo Documento 09-RDE.
+O runtime operacional deve preferir o fluxo mais simples:
 
-Process Memory: representação utilizada pelas fases de execução conforme definida no 08_execution_pipeline.
+RDE VALIDADA → ENGINE
 
-A transformação entre essas representações deve preservar os fatos e suarastreabilidade e não pode criar conhecimento normativo.
+Não criar Process Memory como camada obrigatória quando a RDE validada já contiver toda a representação necessária à execução.
 
-Se o Documento 09-RDE e o 08_execution_pipeline apresentarem semânticas incompatíveis sobre essa fronteira, isso é uma inconsistência arquitetural aser reportada, não algo a ser resolvido por inferência do agente.
+Process Memory pode existir somente quando houver necessidade concreta, demonstrável e não normativa de organizar contexto operacional para a execução. Nesse caso:
+
+deve ser derivada exclusivamente da RDE e de metadados operacionais autorizados;
+
+deve preservar fatos e rastreabilidade;
+
+não pode criar, remover, reinterpretar ou corrigir fatos;
+
+não pode introduzir conhecimento normativo;
+
+não pode tornar-se fonte de verdade paralela à RDE.
+
+Referências anteriores que tratem Process Memory como etapa obrigatória devem ser consideradas legado arquitetural durante a migração e reconciliadas com esta decisão antes da promoção do runtime operacional.
 
 8. IMUTABILIDADE E NÃO RETROCESSO
 
@@ -189,7 +212,7 @@ não reinterpretar fatos;
 
 não retornar ao documento original para obter uma informação que deveria ter sido extraída na fase anterior.
 
-As fases posteriores devem consumir a representação de evidências disponível para execução.
+As fases posteriores devem consumir a RDE validada ou, quando justificadamente existente, representação operacional derivada sem alteração semântica.
 
 Se uma informação necessária não estiver disponível:
 
@@ -205,11 +228,21 @@ registrar insuficiência ou conflito quando a arquitetura não definir o comport
 
 9. ENGINE E EXECUTION PIPELINE
 
-O agente deve respeitar integralmente os contratos do 00_engine e do 08_execution_pipeline quando alterar ou utilizar componentes que os implementem. Esses documentos definem contratos técnicos; não determinam, por si sós, que o Engine Python seja o executor operacional atual.
+O agente deve respeitar integralmente os contratos do 00_engine e do 08_execution_pipeline quando alterar ou utilizar componentes que os implementem.
 
-Atualmente, o ambiente operacional é o Gemini/Gem. O Engine Python desenvolvido nas ondas anteriores é infraestrutura de referência, experimentação e validação arquitetural. Não tratá-lo como componente operacional obrigatório nem criar integração externa somente por sofisticação. Isso somente muda mediante decisão explícita e benefício operacional demonstrado.
+A direção operacional aprovada é:
 
-Não duplicar no AGENTS.md a definição completa das funções, estados ou regras desses documentos.
+- runtime operacional em JavaScript/Google Apps Script;
+- Engine determinístico para execução de Requirements e Criteria;
+- Gemini/LLM restrito à EXTRACTION e tarefas documentais compatíveis com essa camada;
+- Engine Python mantido somente como infraestrutura de referência, experimentação, testes e validação arquitetural;
+- substituição completa do Gemini/Gem como ambiente operacional final após a migração e promoção do novo pipeline.
+
+Não portar automaticamente o Engine Python para JavaScript. Reutilizar seus contratos, testes, semântica e ideias somente quando compatíveis com as fontes canônicas e com benefício operacional demonstrável.
+
+O núcleo do Engine deve permanecer agnóstico ao modelo, fornecedor, interface de IA e armazenamento.
+
+Não duplicar no AGENTS.md a definição completa das funções, estados ou regras do 00_engine e do 08_execution_pipeline.
 
 Princípios que devem ser preservados:
 
@@ -229,7 +262,11 @@ não fazer inferência normativa não declarada;
 
 não alterar resultados já consolidados;
 
-não modificar a Base durante a execução.
+não modificar a Base durante a execução;
+
+não ler PDF ou documento-fonte durante EXECUTION;
+
+não depender de chamadas de IA para executar regra normativa declarada.
 
 O 08_execution_pipeline define a ordem de execução. O agente não deve:
 
@@ -243,7 +280,7 @@ retornar a uma fase anterior para alterar evidências;
 
 alterar o resultado de uma fase já concluída.
 
-Se houver diferença entre a semântica do Engine e do Pipeline, registrar a inconsistência antes de alterar qualquer um deles.
+Se houver diferença entre a semântica do Engine, do Pipeline ou das decisões de migração aprovadas, registrar ARCHITECTURAL_CONFLICT antes de alterar a semântica afetada.
 
 10. REQUIREMENTS, CRITERIA E NONCONFORMITIES
 
@@ -299,7 +336,7 @@ utilizar o identificador oficial;
 
 verificar as dependências;
 
-se não existir, tratar a inclusão no catálogo como alteração própria,sujeita a fundamento e autorização.
+se não existir, tratar a inclusão no catálogo como alteração própria, sujeita a fundamento e autorização.
 
 A DRT deve ser tratada como evidência documental, não como unidade normativa.
 
@@ -307,7 +344,22 @@ A DRT deve ser tratada como evidência documental, não como unidade normativa.
 
 Não criar estados durante a execução.
 
-A semântica dos estados deve ser obtida do 00_engine,08_execution_pipeline e Criteria aplicáveis.
+O fluxo operacional reconhecido durante a migração é:
+
+NEW
+→ INDEXED
+→ EXTRACTION_PENDING
+→ EXTRACTED
+→ VALIDATED
+→ ANALYZED
+→ REPORT_GENERATED
+→ DONE
+
+ERROR é estado operacional de falha e não resultado normativo.
+
+Estados do workflow não devem ser confundidos com estados de resultado do Engine.
+
+A semântica dos resultados do Engine deve ser obtida do 00_engine, do 08_execution_pipeline e dos Criteria aplicáveis.
 
 Em particular, não assumir que:
 
@@ -315,17 +367,19 @@ UNKNOWN = MANUAL_REVIEW
 
 ou que ausência de evidência equivale automaticamente a FAIL.
 
-Quando houver divergência entre documentos sobre estados ou sua conversão,reportar a inconsistência antes de corrigi-la.
+Quando houver divergência entre documentos sobre estados ou sua conversão, reportar a inconsistência antes de corrigi-la.
 
 13. RASTREABILIDADE
 
 Preservar a cadeia:
 
-SOURCE DOCUMENT→ DOCUMENTARY EVIDENCE→ REPRESENTAÇÃO DOCUMENTAL→ PROCESS MEMORY, quando aplicável→ REQUIREMENT→ CRITERION→ EXECUTION RESULT→ NONCONFORMITY, quando aplicável
+SOURCE DOCUMENT → DOCUMENTARY EVIDENCE → RDE → REQUIREMENT → CRITERION → EXECUTION RESULT → NONCONFORMITY, quando aplicável
+
+Se existir Process Memory por necessidade justificada, inseri-la na cadeia apenas como representação operacional derivada, sem substituir a RDE como fonte documental canônica.
 
 A implementação deve permitir reconstruir por que um resultado foi produzido.
 
-Nenhum relatório deve introduzir informação que não possa ser rastreadaaos resultados consolidados e às evidências correspondentes.
+Nenhum relatório deve introduzir informação que não possa ser rastreada aos resultados consolidados e às evidências correspondentes.
 
 14. RELATÓRIOS
 
@@ -345,7 +399,7 @@ criar Nonconformities;
 
 alterar resultados.
 
-Se um relatório exigir uma informação que não esteja disponível nos resultados consolidados, isso deve ser tratado como problema de arquitetura,não resolvido por nova inferência no relatório.
+Se um relatório exigir uma informação que não esteja disponível nos resultados consolidados, isso deve ser tratado como problema de arquitetura, não resolvido por nova inferência no relatório.
 
 15. EVOLUÇÃO DA PLATAFORMA
 
@@ -361,7 +415,11 @@ baixo acoplamento;
 
 componentes genéricos quando realmente reutilizáveis;
 
-alterações locais quando o comportamento for específico de um domínio.
+alterações locais quando o comportamento for específico de um domínio;
+
+adaptação incremental do runtime Apps Script;
+
+substituição de componentes legados somente quando a nova solução estiver validada e promover benefício claro.
 
 Não incorporar ao núcleo permanente uma regra específica de domínio sem justificativa arquitetural.
 
@@ -395,6 +453,10 @@ Documento 11;
 
 Anexo A;
 
+runtime Apps Script;
+
+Engine Python de referência, quando houver equivalência ou teste relevante;
+
 Demais documentos efetivamente dependentes.
 
 Não presumir nomes ou caminhos de arquivos. Confirmar a estrutura real do repositório.
@@ -427,7 +489,11 @@ FAIL sem Nonconformity quando exigida;
 
 Nonconformity sem FAIL;
 
-possibilidade de reabrir documentos após a extração.
+possibilidade de reabrir documentos após a extração;
+
+dependência indevida de Gemini/LLM na execução normativa;
+
+divergência semântica entre Engine Python de referência e runtime JavaScript.
 
 17. POLÍTICA DE ALTERAÇÃO
 
@@ -483,11 +549,15 @@ papel do Documento 09-RDE sobre a RDE;
 
 papel do 00_engine sobre o executor;
 
-papel do 08_execution_pipeline sobre a sequência.
+papel do 08_execution_pipeline sobre a sequência;
+
+execução normativa determinística no runtime JavaScript/Apps Script;
+
+uso de Gemini/LLM somente em funções compatíveis com EXTRACTION ou interpretação documental não normativa.
 
 Se uma alteração quebrar uma dessas invariantes, tratá-la como alteração arquitetural e não como simples manutenção.
 
-LLMs são probabilísticos. O objetivo é reduzir variabilidade e erro onde isso produzir benefício real. Regras que possam ser formalizadas vantajosamente podem receber tratamento estruturado; tarefas de interpretação documental, reconhecimento ou julgamento contextual podem continuar utilizando o LLM. A separação EXTRACTION/EXECUTION não exige determinismo absoluto do LLM.
+LLMs são probabilísticos. Na arquitetura alvo, sua função principal é EXTRACTION e interpretação documental. Requirements e Criteria devem ser executados pelo Engine determinístico. A separação EXTRACTION/EXECUTION não exige determinismo absoluto do LLM, mas exige que sua saída seja validada antes de ingressar na execução normativa.
 
 19. TESTES
 
@@ -515,7 +585,15 @@ testar evidência não verificável;
 
 testar MANUAL_REVIEW e NOT_APPLICABLE quando aplicáveis;
 
-verificar que nenhuma regra não relacionada foi alterada.
+verificar que nenhuma regra não relacionada foi alterada;
+
+testar idempotência das transições operacionais quando aplicável;
+
+testar que a RDE não é modificada após validação;
+
+testar que o Engine não lê documento-fonte nem chama IA;
+
+comparar o runtime JavaScript com fixtures/contratos de referência relevantes do Engine Python quando isso ajudar a detectar regressões semânticas.
 
 Um teste isolado passando não prova consistência arquitetural.
 
@@ -541,6 +619,8 @@ não misturar alterações independentes;
 
 usar mensagens objetivas.
 
+Credenciais e arquivos locais de autenticação, incluindo .clasp.json e .clasprc.json, não devem ser versionados.
+
 21. REGRA FINAL
 
 Quando houver dúvida:
@@ -561,14 +641,179 @@ escolher a menor alteração, quando autorizada;
 
 solicitar decisão humana quando a questão for normativa ou arquitetural.
 
-O objetivo do AGENTS.md é controlar o comportamento do agente e protegera arquitetura. Ele não deve duplicar a Base de Conhecimento nem substituiros documentos técnicos que são suas fontes de verdade.
+O objetivo do AGENTS.md é controlar o comportamento do agente e proteger a arquitetura. Ele não deve duplicar a Base de Conhecimento nem substituir os documentos técnicos que são suas fontes de verdade.
 
-22. AMBIENTE OPERACIONAL E RESPONSABILIDADES ATUAIS
+22. AMBIENTE OPERACIONAL E MIGRAÇÃO ATUAL
 
-O ambiente operacional atual da solução é um Google Gemini Gem utilizado para análise documental de processos de Habite-se. Sua facilidade de replicação e utilização é uma característica importante enquanto produzir benefício operacional. A arquitetura deve permanecer aberta a mudanças futuras se houver benefício demonstrado, sem assumir que o Gemini será substituído por um executor externo.
+A plataforma está em migração para substituir completamente o Google Gemini Gem como ambiente operacional.
 
-Componentes experimentais ou de validação não são automaticamente componentes obrigatórios da arquitetura operacional. O Engine Python permanece, no estado atual, infraestrutura de referência, experimentação e validação; não deve orientar o abandono do Gem nem receber novas camadas sem benefício operacional claro. O Engine deve permanecer agnóstico ao modelo, fornecedor, Gem, API ou interface de IA.
+Arquitetura operacional alvo:
 
-A separação de responsabilidades deve permanecer clara: documentos são lidos pela EXTRACTION, que produz a RDE; a Base formaliza o conhecimento normativo em Requirements e Criteria; as regras podem ser aplicadas pelo executor disponível conforme o contrato; os resultados da análise devem ser rastreáveis; a decisão final permanece com o vistoriador. Essa separação não exige tornar o Gemini completamente determinístico.
+Google Drive
+→ Google Apps Script
+→ EXTRACTION
+→ RDE
+→ VALIDATION
+→ ENGINE DETERMINÍSTICO
+→ REPORT
+→ decisão humana do vistoriador
 
-O Codex é utilizado para desenvolvimento, auditoria e evolução do repositório, não sendo o ambiente operacional da solução.
+Responsabilidades:
+
+Google Drive
+
+Armazena documentos e artefatos operacionais. Não é fonte normativa.
+
+Google Apps Script / JavaScript
+
+É o runtime operacional alvo. Orquestra estados, persistência, validação, execução determinística e geração dos artefatos operacionais.
+
+Gemini/LLM
+
+É componente de EXTRACTION/interpretação documental. Não executa Requirements ou Criteria, não produz decisão normativa e não substitui o Engine.
+
+Engine determinístico JavaScript
+
+É o executor operacional alvo de Requirements e Criteria declarados na Base.
+
+Engine Python
+
+Permanece somente como referência, infraestrutura de testes, experimentação e validação arquitetural. Não é runtime operacional obrigatório e não deve receber novas integrações operacionais sem decisão explícita.
+
+Gemini/Gem legado
+
+Pode permanecer temporariamente disponível apenas durante a migração e comparação. Não é o destino arquitetural e deve ser retirado do fluxo operacional quando o novo pipeline estiver validado e promovido.
+
+Codex
+
+É utilizado para desenvolvimento, auditoria e evolução do repositório. Não é ambiente operacional da solução.
+
+A decisão final continua sendo do vistoriador.
+
+23. ECONOMIA DE CONTEXTO NO CODEX
+
+Antes de abrir arquivos extensos:
+
+usar fd para localizar arquivos;
+
+usar rg para localizar símbolos, IDs, conceitos e referências;
+
+usar ast-grep para buscas estruturais em código quando aplicável;
+
+usar jq para JSON;
+
+preferir leitura de trechos relevantes em vez de carregar arquivos completos;
+
+expandir o contexto somente quando o trecho encontrado não for suficiente para uma decisão segura;
+
+não carregar normas completas quando a busca localizada e o contexto adjacente forem suficientes.
+
+Exceções:
+
+contratos arquiteturais podem exigir leitura integral quando a alteração puder afetar sua semântica;
+
+mudanças normativas ou arquiteturais exigem contexto suficiente para verificar dependências e conflitos;
+
+economia de tokens nunca justifica reduzir rastreabilidade, omitir dependências ou ignorar fonte autorizada.
+
+Antes de implementar nova abstração, procurar primeiro implementação, contrato, teste ou padrão equivalente já existente no repositório.
+
+24. MCP E FERRAMENTAS DE CONTEXTO
+
+MCPs read-only podem ser utilizados para reduzir custo de contexto e fornecer acesso dirigido a:
+
+estado do projeto;
+
+contratos;
+
+Requirements;
+
+Criteria;
+
+rastreabilidade;
+
+planos de teste;
+
+metadados operacionais.
+
+Um MCP:
+
+não é fonte normativa;
+
+não substitui os arquivos canônicos;
+
+não pode criar ou alterar Requirements, Criteria, Nonconformities ou fatos;
+
+não deve ocultar a origem do dado retornado;
+
+deve preferencialmente ser read-only quando seu objetivo for consulta e economia de contexto.
+
+Não criar MCP por sofisticação. Criar ou ampliar ferramentas somente quando houver benefício concreto de redução de contexto, repetição ou risco operacional.
+
+25. GOVERNANÇA DE IMPLEMENTAÇÃO E REVISÃO
+
+O modelo operacional de desenvolvimento é:
+
+Luna pode implementar alterações de código, testes, refatorações e adaptações seguindo contratos já aprovados.
+
+Mudança arquitetural inclui, entre outros:
+
+alterar semântica do 00_engine;
+
+alterar sequência ou fronteiras do 08_execution_pipeline;
+
+alterar contrato da RDE;
+
+alterar modelo de Obrigação Normativa;
+
+alterar semântica de Requirement, Criterion, Nonconformity ou estados;
+
+alterar separação EXTRACTION × EXECUTION;
+
+introduzir ou remover camada obrigatória do pipeline;
+
+alterar autoridade das fontes;
+
+alterar papel operacional de IA, Engine ou runtime.
+
+Mudanças arquiteturais podem ser implementadas por Luna quando explicitamente autorizadas, mas não devem ser promovidas como arquitetura consolidada sem revisão independente por Sol.
+
+A revisão Sol deve verificar:
+
+compatibilidade com fontes canônicas;
+
+preservação das invariantes;
+
+ausência de regra implícita;
+
+efeitos colaterais;
+
+rastreabilidade;
+
+compatibilidade entre documentação, código e testes;
+
+necessidade real da complexidade introduzida.
+
+Aprovação técnica de Sol não substitui decisão humana quando a questão for normativa.
+
+26. REGRA DE MIGRAÇÃO
+
+Durante a migração:
+
+preferir evolução incremental;
+
+manter cada transição de estado testável e idempotente;
+
+não introduzir IA antes de estabilizar os contratos de persistência e validação correspondentes;
+
+não promover etapa seguinte antes de validar a anterior;
+
+manter o documento-fonte preservado;
+
+manter a RDE imutável após sua consolidação;
+
+não misturar regra normativa com orquestração do Apps Script;
+
+não manter duas arquiteturas operacionais permanentes para a mesma responsabilidade.
+
+Quando o novo pipeline atingir equivalência funcional e confiabilidade suficientes para uso operacional, remover dependências do Gem legado em vez de mantê-lo como segundo executor permanente.
