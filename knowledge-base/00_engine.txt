@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.0
+# VERSION 4.1
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -296,6 +296,10 @@ MANUAL_REVIEW
 ###############################################################################
 # EXECUTION MODEL
 ###############################################################################
+
+The results registered below are internal EngineResult values. They are not
+the external PipelineResult. The boundary mapping, including the traceable
+normalization of UNKNOWN, is defined by 08_execution_pipeline.txt.
 
 FOR EACH CRITERION
 

@@ -1,6 +1,6 @@
 # Documento 10 – Guia de Evolução da Plataforma de Sistemas Especialistas para Análise Documental do CBMSC
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Status:** Documento Arquitetural Permanente
 **Precedência:** Alta
 
@@ -280,13 +280,13 @@ Predicate Registry estático
 ↓
 Domain Predicate Resolver
 ↓
-Process Memory imutável
+immutable execution view (contrato Process Memory)
 ↓
-TRUE / FALSE / UNKNOWN / NOT_APPLICABLE / MANUAL_REVIEW
+EngineResult: TRUE / FALSE / UNKNOWN / NOT_APPLICABLE / MANUAL_REVIEW
 ↓
 Engine
 ↓
-normalização para o contrato do Pipeline
+normalização rastreável para PipelineResult
 
 O Registry não é um sistema de plugins, não faz carregamento dinâmico, não
 define uma API externa e não constitui uma arquitetura distribuída. Ele é um
@@ -373,6 +373,13 @@ Conhecimento e de seus resolvers ou adaptadores de domínio. Para a Base
 atual, essa camada contém a interpretação dos predicates específicos,
 incluindo suas relações catalográficas e documentais.
 
+Process Memory designa o contrato de uma view de execução imutável, não um
+artefato materializado ou persistido obrigatório. Se não houver transformação
+necessária, a view poderá ser um adaptador read-only diretamente sobre a RDE
+validada. Se a normalização declarada exigir representação derivada, ela poderá
+existir somente em memória. Não persistir uma segunda cópia da RDE apenas para
+satisfazer esse contrato.
+
 O resolver deverá seguir exclusivamente este fluxo:
 
 Criterion → predicate_id → argumentos nomeados e tipados → Registry →
@@ -419,7 +426,9 @@ O resultado de um predicate ou Criterion no Engine poderá ser:
   se aplica;
 * MANUAL_REVIEW — revisão operacional explicitamente requerida pelo contrato.
 
-UNKNOWN não é FAIL e não é MANUAL_REVIEW automaticamente.
+UNKNOWN não é EngineResult FAIL nem EngineResult MANUAL_REVIEW. Sua
+normalização operacional para PipelineResult MANUAL_REVIEW é explícita e
+restrita à fronteira definida abaixo.
 
 MANUAL_REVIEW como resultado é um estado operacional de execução. A declaração
 MANUAL_REVIEW no Criterion é a consequência ou orientação declarada que pode
@@ -434,14 +443,24 @@ NOT_APPLICABLE deverá ser determinado pela condição de aplicabilidade ou por
 um predicate cujo result_contract declare expressamente esse estado. Nenhum
 estado poderá ser criado por inferência do executor.
 
-O Engine preserva esses estados internamente. A normalização para o contrato
-do Pipeline deverá manter a distinção entre eles e as consequências
-operacionais. A conversão externa de UNKNOWN não é definida nesta seção,
-porque o Pipeline vigente não aceita UNKNOWN como resultado final.
+O Engine preserva esses estados como EngineResult. O Pipeline aceita somente
+PipelineResult: PASS, FAIL, NOT_APPLICABLE ou MANUAL_REVIEW. A fronteira
+normaliza os estados assim:
 
-**[DECISÃO PENDENTE]** — definir, no contrato conjunto Engine/Pipeline, como
-UNKNOWN será transportado ou apresentado externamente. É proibido convertê-lo
-automaticamente em FAIL ou MANUAL_REVIEW enquanto essa decisão não existir.
+| EngineResult | PipelineResult | trace.normalization |
+| --- | --- | --- |
+| TRUE | PASS | IDENTITY |
+| FALSE | FAIL | IDENTITY |
+| NOT_APPLICABLE | NOT_APPLICABLE | IDENTITY |
+| MANUAL_REVIEW | MANUAL_REVIEW | IDENTITY |
+| UNKNOWN | MANUAL_REVIEW | UNKNOWN_TO_MANUAL_REVIEW |
+
+O trace deverá preservar simultaneamente engine_result, pipeline_result e
+normalization. UNKNOWN_TO_MANUAL_REVIEW é somente uma normalização de fronteira
+para encaminhamento operacional. Ela não torna UNKNOWN semanticamente
+equivalente a MANUAL_REVIEW, não gera FAIL nem Nonconformity, não altera a
+evidência e não reinterpreta ausência documental. Somente EngineResult FALSE
+normalizado como FAIL pode associar a Nonconformity declarada pelo Criterion.
 
 ## 20.6 Composição lógica mínima
 
@@ -554,8 +573,8 @@ Exigirão adaptação futura, sem migração nesta onda:
   cuja modelagem final de entidades e escopos depende da evolução autorizada
   da Base;
 * a relação entre VALIDATE dos Requirements e as precondições do Criterion IR;
-* a distinção operacional entre resultado do Engine e resultado aceito pelo
-  Pipeline.
+* a agregação de Criteria em um resultado de Requirement, que não está definida
+  neste contrato e não poderá ser inventada pelo Engine.
 
 Nenhum dos 34 Criteria é estruturalmente impossível de representar. Isso não
 significa que todos estejam semanticamente compatíveis com o contrato atual:
@@ -601,6 +620,19 @@ aplicáveis.
 Migrar os demais Criteria individualmente, validando referências, argumentos,
 rastreabilidade e ausência de alteração normativa a cada etapa.
 
+## 20.11 Runtime operacional e implementação de referência
+
+O runtime operacional alvo desta migração é JavaScript no Google Apps Script.
+O Engine Python permanece como implementação de referência, testes,
+experimentação e validação de equivalência semântica; não é runtime
+operacional obrigatório. A implementação JavaScript deverá portar este
+contrato, sem obrigação de reproduzir a estrutura interna do código Python.
+
+Durante a migração, o Gem legado poderá permanecer disponível para comparação,
+mas não é o destino do Engine. O Engine determinístico Apps Script deverá
+executar somente Requirements e Criteria declarados e manter-se independente de
+modelo, fornecedor de IA e armazenamento.
+
 ---
 
 ## Anexo A – Princípios Arquiteturais Permanentes
@@ -619,5 +651,3 @@ Toda evolução da plataforma deverá respeitar os seguintes princípios:
 10. Independência tecnológica.
 11. Escalabilidade para novos processos administrativos.
 12. Manutenção simplificada mediante modularização do conhecimento.
-
-

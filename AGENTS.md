@@ -176,27 +176,22 @@ Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09-RDE é a
 
 7. RDE E CONTEXTO DE EXECUÇÃO
 
-A RDE é a representação documental canônica produzida pela EXTRACTION.
+A RDE é a representação documental canônica produzida pela EXTRACTION. A
+execução consome uma immutable execution view (contrato Process Memory), não
+uma cópia persistida obrigatória:
 
-O runtime operacional deve preferir o fluxo mais simples:
+RDE VALIDADA → immutable execution view / Process Memory adapter → applicability → frozen execution plan → ENGINE
 
-RDE VALIDADA → ENGINE
+Quando não houver transformação necessária, a view pode ser um adaptador
+read-only diretamente sobre a RDE. Uma representação normalizada em memória é
+permitida quando necessária, desde que preserve fatos e rastreabilidade. Não
+persistir uma segunda cópia da RDE apenas para materializar Process Memory.
 
-Não criar Process Memory como camada obrigatória quando a RDE validada já contiver toda a representação necessária à execução.
-
-Process Memory pode existir somente quando houver necessidade concreta, demonstrável e não normativa de organizar contexto operacional para a execução. Nesse caso:
-
-deve ser derivada exclusivamente da RDE e de metadados operacionais autorizados;
-
-deve preservar fatos e rastreabilidade;
-
-não pode criar, remover, reinterpretar ou corrigir fatos;
-
-não pode introduzir conhecimento normativo;
-
-não pode tornar-se fonte de verdade paralela à RDE.
-
-Referências anteriores que tratem Process Memory como etapa obrigatória devem ser consideradas legado arquitetural durante a migração e reconciliadas com esta decisão antes da promoção do runtime operacional.
+A view deve ser derivada exclusivamente da RDE validada e de metadados
+operacionais autorizados; não pode criar, remover, reinterpretar ou corrigir
+fatos, introduzir conhecimento normativo ou tornar-se fonte de verdade
+paralela à RDE. A view deve estar completa e imutável antes de applicability e
+execução.
 
 8. IMUTABILIDADE E NÃO RETROCESSO
 
@@ -365,7 +360,11 @@ Em particular, não assumir que:
 
 UNKNOWN = MANUAL_REVIEW
 
-ou que ausência de evidência equivale automaticamente a FAIL.
+como identidade semântica, ou que ausência de evidência equivale
+automaticamente a FAIL. Na fronteira Engine/Pipeline, UNKNOWN é normalizado
+para PipelineResult MANUAL_REVIEW apenas para encaminhamento operacional; o
+trace preserva EngineResult UNKNOWN e identifica essa normalização. Isso não
+gera FAIL ou Nonconformity nem altera ou reinterpreta evidência.
 
 Quando houver divergência entre documentos sobre estados ou sua conversão, reportar a inconsistência antes de corrigi-la.
 
@@ -375,7 +374,9 @@ Preservar a cadeia:
 
 SOURCE DOCUMENT → DOCUMENTARY EVIDENCE → RDE → REQUIREMENT → CRITERION → EXECUTION RESULT → NONCONFORMITY, quando aplicável
 
-Se existir Process Memory por necessidade justificada, inseri-la na cadeia apenas como representação operacional derivada, sem substituir a RDE como fonte documental canônica.
+Inserir entre RDE e applicability a immutable execution view (contrato Process
+Memory), que pode ser um adaptador read-only sobre a RDE validada. Ela é uma
+view lógica de execução, não cópia persistida ou fonte documental paralela.
 
 A implementação deve permitir reconstruir por que um resultado foi produzido.
 
