@@ -17,3 +17,7 @@ historico/
 
 # Casos reais usados apenas em auditorias locais
 audit-cases/
+
+# Configuração/autenticação local do clasp
+.clasp.json
+.clasprc.json
