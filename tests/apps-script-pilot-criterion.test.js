@@ -111,6 +111,7 @@ assert.equal(positiveMaterialized.binding.matchedCount, 1);
 assert.deepEqual(JSON.parse(JSON.stringify(positiveMaterialized.binding.sourceDocument)),
   { kind: 'DOCUMENT', identifier: 'DOC_MANUAL' });
 const positiveResult = api.executePlannedCriterion(contract, positive.plan, PILOT_UNIT, positive.view);
+assert.equal(positiveResult.unitKey, PILOT_UNIT);
 assert.equal(positiveResult.engineResult, api.EngineResult.TRUE);
 assert.equal(positiveResult.pipelineResult, 'PASS');
 assert.equal(positiveResult.resultOrigin, 'EVALUATED');
@@ -124,6 +125,7 @@ assert.equal(positiveResult.traceability.unitKey, PILOT_UNIT);
 
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
+assert.equal(negativeResult.unitKey, PILOT_UNIT);
 assert.equal(negativeResult.engineResult, api.EngineResult.FALSE);
 assert.equal(negativeResult.pipelineResult, 'FAIL');
 assert.equal(negativeResult.nonconformityOnFalse, 'NC_T4_003');

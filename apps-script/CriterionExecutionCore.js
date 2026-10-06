@@ -168,7 +168,10 @@ function executePlannedCriterion(contract, plan, unitKey, view) {
     criterionExecutionRequire_(!Object.prototype.hasOwnProperty.call(result, 'nonconformityOnFalse'),
       'non-FALSE result cannot materialize a Nonconformity');
   }
-  return result;
+  return immutableCopy({
+    unitKey: materialized.unit.unitKey,
+    ...result
+  });
 }
 
 if (typeof module !== 'undefined' && module.exports) {
