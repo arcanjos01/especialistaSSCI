@@ -144,6 +144,13 @@ assert.throws(() => api.executePlannedCriterion(
   contract, notApplicable.plan, PILOT_UNIT, notApplicable.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
+const tamperedPlan = JSON.parse(JSON.stringify(negative.plan));
+const tamperedUnit = tamperedPlan.PLANNED_EXECUTION_UNITS.find(unit => unit.unitKey === PILOT_UNIT);
+tamperedUnit.nonconformityReferences.criterionFail = [];
+assert.throws(() => api.executePlannedCriterion(
+  contract, tamperedPlan, PILOT_UNIT, negative.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+
 const tamperedContract = JSON.parse(JSON.stringify(contract));
 const tamperedCriterion = tamperedContract.criteria.find(item => item.criterionId === 'T4_IN08_MANUAL');
 tamperedCriterion.assertIr.arguments[0].value = 'TEST_ONLY_UNKNOWN_ENTITY';

@@ -89,10 +89,23 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
     unit.requirement && typeof unit.requirement.id === 'string',
   'planned unit has invalid Requirement/Criterion identity');
   const metadata = criterionExecutionFindCriterion_(contract, unit.criterion.id);
+  const requirementMatches = Array.isArray(contract.requirements)
+    ? contract.requirements.filter(item => item && item.requirementId === unit.requirement.id)
+    : [];
+  criterionExecutionRequire_(requirementMatches.length === 1,
+    'compiled Requirement must exist exactly once: ' + unit.requirement.id);
+  const requirementMetadata = requirementMatches[0];
   criterionExecutionRequire_(metadata.requirementId === unit.requirement.id,
     'planned unit disagrees with compiled Requirement/Criterion association');
-  criterionExecutionRequire_(metadata.table === unit.criterionTable,
-    'planned unit disagrees with Criterion TABLE');
+  criterionExecutionRequire_(metadata.table === unit.criterionTable &&
+    requirementMetadata.table === unit.requirementTable,
+    'planned unit disagrees with Requirement/Criterion TABLE');
+  criterionExecutionRequire_(unit.context ===
+    (metadata.context === undefined ? null : metadata.context),
+  'planned unit CONTEXT differs from compiled Criterion');
+  criterionExecutionRequire_(unit.appliesTo ===
+    (metadata.appliesTo === undefined ? null : metadata.appliesTo),
+  'planned unit APPLIES_TO differs from compiled Criterion');
   criterionExecutionRequire_(unit.iterationSource === null &&
     Array.isArray(unit.plannedBindings) && unit.plannedBindings.length === 0,
   'Phase 4 pilot does not execute iterative Criteria');
@@ -107,7 +120,16 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   const materialized = criterionExecutionMaterializeAssert_(contract, view, metadata.assertIr);
   const criterionFail = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;
-  criterionExecutionRequire_(Array.isArray(criterionFail) && criterionFail.length <= 1,
+  const requirementNonconformities = unit.nonconformityReferences &&
+    unit.nonconformityReferences.requirement;
+  criterionExecutionRequire_(Array.isArray(criterionFail) &&
+    JSON.stringify(criterionFail) === JSON.stringify(metadata.failNonconformities || []),
+  'planned FAIL Nonconformities differ from compiled Criterion');
+  criterionExecutionRequire_(Array.isArray(requirementNonconformities) &&
+    JSON.stringify(requirementNonconformities) ===
+      JSON.stringify(requirementMetadata.nonconformities || []),
+  'planned Requirement Nonconformities differ from compiled Requirement');
+  criterionExecutionRequire_(criterionFail.length <= 1,
     'Criterion IR core supports at most one FAIL Nonconformity');
   const nonconformityOnFalse = criterionFail.length === 1 ? criterionFail[0] : null;
   if (nonconformityOnFalse !== null) {
