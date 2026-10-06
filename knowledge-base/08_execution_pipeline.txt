@@ -26,7 +26,7 @@ DOCUMENT_SET:
 05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
 06_reports.txt: DOCUMENT_VERSION 2.6.0
 08_execution_pipeline.txt: DOCUMENT_VERSION 4.9.0
-09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.0.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.1.0
 
 END DOCUMENT_SET.
 

@@ -2,6 +2,8 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
+RDE_SCHEMA_VERSION: 0.2.0
+
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
 
@@ -100,15 +102,83 @@ As etapas posteriores não poderão:
 
 ENTITY REPRESENTATION
 
-Toda entidade deverá obedecer obrigatoriamente ao formato abaixo.
+Toda RDE 0.2.0 deverá possuir uma coleção `records` ordenada. A ordem é
+preservada e determinística dentro da RDE finalizada; ela não é identidade e
+nunca poderá ser usada como identidade durante EXECUTION.
 
-ENTITY:
+Cada registro deverá obedecer ao envelope estrutural abaixo, nesta ordem:
 
-attribute: attribute: attribute:
+record_id:
+
+entity_id:
+
+parent_record_id:
 
 source_document:
 
-END ENTITY
+attributes:
+
+provenance: (opcional)
+
+`record_id` é obrigatório, opaco, único dentro da RDE e atribuído durante
+EXTRACTION/RDE construction. Formatos como `R000001`, `R000002` são aceitos;
+seu número não possui significado documental ou normativo. O identificador
+permanece estável após o fechamento da mesma RDE, mas não precisa se repetir em
+uma nova extração independente. Não derivá-lo de identificadores documentais,
+nome de arquivo, data, texto, hash de conteúdo ou posição consultada durante
+EXECUTION.
+
+`entity_id` é obrigatório e corresponde exatamente a uma `ENTITY` declarada
+em `01_entities.txt`. Não é atributo documental e não pode ser criado durante
+EXECUTION.
+
+`parent_record_id` é obrigatório. É `null` para um registro raiz `DOCUMENT`;
+em `DOCUMENT_SECTION` aponta para o registro `DOCUMENT` pai; em
+`DOCUMENTARY_EVIDENCE`, aponta para o registro `DOCUMENT_SECTION` pai quando
+essa relação estiver declarada na RDE. Toda relação não nula é explícita,
+resolvida dentro de `records`, não cíclica e nunca reconstruída por inferência.
+
+`source_document` é obrigatório e contém o `record_id` do registro `DOCUMENT`
+que constitui a origem lógica. No próprio registro `DOCUMENT`, aponta para seu
+próprio `record_id`; em seções e itens, aponta para o documento de origem
+correspondente. Deve resolver para um registro `TYPE DOCUMENT`.
+
+`attributes` contém somente atributos declarados para a entidade em
+`01_entities.txt`. Campos inexistentes permanecem ausentes/vazios conforme o
+contrato da entidade. Campos estruturais do envelope nunca são duplicados como
+atributos documentais. Quando presente, cada valor deverá respeitar o tipo
+declarado para o atributo; o runtime rejeita incompatibilidades sem coerção.
+Para atributos `ENUM`, esta validação confere somente o tipo textual, sem criar
+ou validar valores de domínio.
+
+`provenance`, quando presente, contém somente dados de localização ou origem
+que estejam realmente disponíveis, como página, identificador documental,
+anexo ou localização. Não cria identidade nem completa campos ausentes.
+
+O validador estrutural da RDE deverá verificar IDs únicos, entidades e
+atributos declarados, referências de pai e documento sem dangling, tipo
+`DOCUMENT` da origem, ausência de ciclos e compatibilidade hierárquica dos
+tipos quando a relação estiver declarada. O catálogo estrutural é obrigatório
+quando `records` não estiver vazio; sem registros, a coleção pode ser validada
+sem o catálogo. Falhas são erros estruturais da RDE, nunca resultados
+normativos; nenhuma validação executa Requirement ou Criterion.
+
+RDE 0.1.0 já persistida permanece histórica e imutável. Não migrar nem
+reescrever seus fatos ou relações. Etapas que dependem do envelope exigem
+RDE_SCHEMA_VERSION 0.2.0; 0.1.0 não contém nem simula as relações estruturais
+desta versão.
+
+Toda entidade deverá obedecer ao envelope acima e à representação de atributos
+abaixo.
+
+ENTITY record:
+
+attribute: attribute: attribute:
+
+END ENTITY record
+
+Uma mesma entidade deverá possuir sempre a mesma estrutura lógica de
+`attributes`, independentemente do documento.
 
 A ordem dos atributos deverá permanecer invariável.
 
@@ -145,5 +215,33 @@ Representação Documental Estruturada (RDE)
 
 Nenhum conteúdo adicional deverá ser produzido.
 
-A etapa EXECUTION utilizará exclusivamente a RDE como fonte de
-evidências.
+A etapa EXECUTION utilizará exclusivamente a RDE validada como fonte de
+evidências e relações estruturais.
+
+RDE 0.2.0 → IMMUTABLE EXECUTION VIEW
+
+Cada registro RDE gera exatamente um TypedReference documental primário:
+
+- `TypedReference.kind` deriva do `TYPE` canônico da entidade indicada por
+  `entity_id` em `01_entities.txt`;
+- `TypedReference.identifier` é exatamente `record_id`.
+
+Exemplo: um item com `entity_id` de tipo `DOCUMENTARY_EVIDENCE` e
+`record_id = R000003` gera `TypedReference(kind=DOCUMENTARY_EVIDENCE,
+identifier=R000003)`. Identificadores documentais e códigos de sistema
+continuam atributos/fatos; não substituem a identidade estrutural.
+
+A immutable execution view preserva `contains`, `read` e `provenance`, e
+expõe as relações explícitas por `entityId(ref)`, `parent(ref)`,
+`sourceDocument(ref)`, `referencesByEntity(entity_id)` e
+`children(parent_ref, entity_id opcional)`. As coleções retornadas são
+imutáveis e preservam a ordem canônica de `records`.
+
+`read(ref)` retorna somente `attributes` documentais. `record_id`, `entity_id`,
+`parent_record_id` e `source_document` são metadados estruturais disponíveis
+somente pelas respectivas interfaces estruturais. A view não expõe a RDE crua
+nem navegação arbitrária por caminhos.
+
+Esta projeção não normaliza `OFFICIAL_ESCI_CODE`, não resolve applicability e
+não cria `PROCESS.SMSCI`. A normalização de códigos permanece conforme
+`02a_applicability` e `08_execution_pipeline`.

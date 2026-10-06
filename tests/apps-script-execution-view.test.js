@@ -26,12 +26,13 @@ globalThis.testApi = {
   PredicateCall,
   CriterionIR,
   evaluateCriterion,
-  ImmutableExecutionView
+  ImmutableExecutionView,
+  projectRdeToExecutionView_
 };`, context);
 
 const api = context.testApi;
 const fixtureRde = {
-  schema_version: '0.1.0',
+  schema_version: '0.2.0',
   process_id: 'TEST_ONLY_PROCESS',
   source: {
     file_id: 'TEST_ONLY_FILE',
@@ -45,115 +46,105 @@ const fixtureRde = {
     extractor_version: 'TEST_ONLY',
     created_at: '2026-10-06T12:00:00.000Z'
   },
-  document: { document_type: 'TEST_ONLY' },
-  facts: {
-    test_entity: {
-      value: { label: 'TEST_ONLY entity-1', nested: { enabled: true } },
-      source_document: 'TEST_ONLY_SOURCE.pdf'
-    },
-    values: {
-      null_value: { value: null, source_document: 'TEST_ONLY_SOURCE.pdf' },
-      false_value: { value: false, source_document: 'TEST_ONLY_SOURCE.pdf' },
-      zero_value: { value: 0, source_document: 'TEST_ONLY_SOURCE.pdf' },
-      empty_string: { value: '', source_document: 'TEST_ONLY_SOURCE.pdf' },
-      empty_array: { value: [], source_document: 'TEST_ONLY_SOURCE.pdf' },
-      empty_object: { value: {}, source_document: 'TEST_ONLY_SOURCE.pdf' },
-      nested_array: {
-        value: [{ label: 'TEST_ONLY nested', values: [0, false, ''] }],
-        source_document: 'TEST_ONLY_SOURCE.pdf'
-      },
-      provenance_missing: { value: 'TEST_ONLY provenance unavailable' }
-    }
-  },
-  evidence: [{ marker: 'TEST_ONLY_EVIDENCE', source_document: 'TEST_ONLY_SOURCE.pdf' }],
+  records: [],
   extraction_warnings: []
 };
+const entityCatalog = {
+  TEST_DOCUMENT: {
+    TYPE: 'DOCUMENT', ATTRIBUTES: ['REQUEST_IDENTIFIER', 'PROTOCOL_IDENTIFIER'],
+    ATTRIBUTE_TYPES: { REQUEST_IDENTIFIER: 'TEXT', PROTOCOL_IDENTIFIER: 'TEXT' }
+  },
+  TEST_SECTION: { TYPE: 'DOCUMENT_SECTION', ATTRIBUTES: ['LEGIBLE'], ATTRIBUTE_TYPES: { LEGIBLE: 'BOOLEAN' } },
+  TEST_ENTITY: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['label'], ATTRIBUTE_TYPES: { label: 'TEXT' } },
+  TEST_VALUE: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['value'], ATTRIBUTE_TYPES: { value: 'TEXT' } },
+  TEST_EVIDENCE: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['marker'], ATTRIBUTE_TYPES: { marker: 'TEXT' } }
+};
+function rdeRecord(recordId, entityId, parentId, sourceDocument, attributes, provenance) {
+  const record = {
+    record_id: recordId, entity_id: entityId, parent_record_id: parentId,
+    source_document: sourceDocument, attributes
+  };
+  if (provenance !== undefined) record.provenance = provenance;
+  return record;
+}
+fixtureRde.records = [
+  rdeRecord('R000001', 'TEST_DOCUMENT', null, 'R000001',
+    { REQUEST_IDENTIFIER: 'REQUEST-A', PROTOCOL_IDENTIFIER: 'PROTOCOL-A' },
+    { source_location: 'TEST_ONLY root' }),
+  rdeRecord('R000002', 'TEST_SECTION', 'R000001', 'R000001', { LEGIBLE: false }),
+  rdeRecord('R000003', 'TEST_ENTITY', 'R000002', 'R000001',
+    { label: 'TEST_ONLY entity-1' },
+    { record: { marker: 'TEST_ONLY_EVIDENCE' } }),
+  rdeRecord('R000004', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-4' }),
+  rdeRecord('R000005', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-5' }),
+  rdeRecord('R000006', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-6' }),
+  rdeRecord('R000007', 'TEST_VALUE', 'R000002', 'R000001', { value: '' }),
+  rdeRecord('R000008', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-8' }),
+  rdeRecord('R000009', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-9' }),
+  rdeRecord('R000010', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-10' }),
+  rdeRecord('R000011', 'TEST_VALUE', 'R000002', 'R000001',
+    { value: 'TEST_ONLY provenance unavailable' }),
+  rdeRecord('R000012', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-12' }, null),
+  rdeRecord('R000013', 'TEST_VALUE', 'R000002', 'R000001', { value: 'TEST_ONLY value-13' }),
+  rdeRecord('R000014', 'TEST_EVIDENCE', 'R000002', 'R000001',
+    { marker: 'TEST_ONLY_EVIDENCE' }, { source_location: 'TEST_ONLY evidence' }),
+  rdeRecord('R000015', 'TEST_DOCUMENT', null, 'R000015', {})
+];
 const originalRdeJson = JSON.stringify(fixtureRde);
 const validatedRde = api.validateRdeStructure_(fixtureRde, {
   processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
-});
+}, entityCatalog);
 assert.equal(validatedRde, fixtureRde);
 assert.equal(JSON.stringify(fixtureRde), originalRdeJson);
 
-// This explicit TEST_ONLY projection is test scaffolding, not a mapping rule for RDE facts.
 const refs = {
-  entity: new api.TypedReference('TEST_ENTITY', 'entity-1'),
-  nullValue: new api.TypedReference('TEST_VALUE', 'null'),
-  falseValue: new api.TypedReference('TEST_VALUE', 'false'),
-  zeroValue: new api.TypedReference('TEST_VALUE', 'zero'),
-  emptyString: new api.TypedReference('TEST_VALUE', 'empty-string'),
-  emptyArray: new api.TypedReference('TEST_VALUE', 'empty-array'),
-  emptyObject: new api.TypedReference('TEST_VALUE', 'empty-object'),
-  nestedArray: new api.TypedReference('TEST_VALUE', 'nested-array'),
-  provenanceMissing: new api.TypedReference('TEST_VALUE', 'provenance-missing'),
-  provenanceNull: new api.TypedReference('TEST_VALUE', 'provenance-null'),
-  sameValueOtherReference: new api.TypedReference('TEST_VALUE_ALIAS', 'null-copy'),
-  evidence: new api.TypedReference('TEST_EVIDENCE', 'evidence-1'),
-  missing: new api.TypedReference('TEST_VALUE', 'missing')
+  document: new api.TypedReference('DOCUMENT', 'R000001'),
+  noIdentifiers: new api.TypedReference('DOCUMENT', 'R000015'),
+  section: new api.TypedReference('DOCUMENT_SECTION', 'R000002'),
+  entity: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000003'),
+  textValue4: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000004'),
+  textValue5: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000005'),
+  textValue6: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000006'),
+  emptyString: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000007'),
+  textValue8: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000008'),
+  textValue9: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000009'),
+  textValue10: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000010'),
+  textValue11: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000011'),
+  textValue12: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000012'),
+  textValue13: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000013'),
+  evidence: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000014'),
+  missing: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R999999')
 };
-
-function testOnlyProjection(rde) {
-  const source = rde.source.file_name;
-  const evidenceRecord = rde.evidence[0];
-  return [
-    { reference: refs.entity, value: rde.facts.test_entity.value,
-      provenance: { source_document: rde.facts.test_entity.source_document,
-        evidence_record: evidenceRecord } },
-    ...Object.entries({
-      nullValue: 'null_value', falseValue: 'false_value', zeroValue: 'zero_value',
-      emptyString: 'empty_string', emptyArray: 'empty_array', emptyObject: 'empty_object',
-      nestedArray: 'nested_array'
-    }).map(([refName, factName]) => ({
-      reference: refs[refName], value: rde.facts.values[factName].value,
-      provenance: { source_document: rde.facts.values[factName].source_document }
-    })),
-    { reference: refs.provenanceMissing,
-      value: rde.facts.values.provenance_missing.value },
-    { reference: refs.provenanceNull, value: rde.facts.values.null_value.value,
-      provenance: null },
-    { reference: refs.sameValueOtherReference,
-      value: rde.facts.values.null_value.value,
-      provenance: { source_document: rde.facts.values.null_value.source_document } },
-    { reference: refs.evidence, value: evidenceRecord.marker,
-      provenance: { source_document: evidenceRecord.source_document,
-        record: evidenceRecord } },
-    { reference: new api.TypedReference('TEST_VALUE', 'rde-source-file'), value: source }
-  ];
-}
-
-const projection = testOnlyProjection(validatedRde);
-const originalProjectionJson = JSON.stringify(projection);
-const view = new api.ImmutableExecutionView(projection);
-assert.equal(JSON.stringify(projection), originalProjectionJson);
+const view = api.projectRdeToExecutionView_(validatedRde, entityCatalog);
+assert.equal(view.read(refs.section).LEGIBLE, false);
 assert.equal(JSON.stringify(validatedRde), originalRdeJson);
+assert.throws(() => api.projectRdeToExecutionView_(
+  { ...validatedRde, schema_version: '0.1.0' }, entityCatalog
+), /validated RDE 0.2.0/);
 assert.equal(Object.isFrozen(view), true);
 assert.equal(Object.keys(view).length, 0);
 for (const forbidden of [
-  'getRawRde', 'raw', 'document', 'sourceDocument', 'arbitraryPath', 'evalPath'
+  'getRawRde', 'getRde', 'raw', 'document', 'path', 'queryPath', 'eval', 'searchText'
 ]) assert.equal(view[forbidden], undefined);
 
 assert.equal(view.contains(refs.entity), true);
-assert.equal(view.contains(new api.TypedReference('TEST_ENTITY', 'entity-1')), true);
+assert.equal(view.contains(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R000003')), true);
 assert.equal(view.contains(refs.missing), false);
-assert.equal(view.read(refs.nullValue), null);
-assert.equal(view.read(refs.falseValue), false);
-assert.equal(view.read(refs.zeroValue), 0);
-assert.equal(view.read(refs.emptyString), '');
-assert.deepEqual(JSON.parse(JSON.stringify(view.read(refs.emptyArray))), []);
-assert.deepEqual(JSON.parse(JSON.stringify(view.read(refs.emptyObject))), {});
-assert.equal(view.contains(refs.emptyArray), true);
-assert.equal(view.contains(refs.emptyObject), true);
-const nestedArray = view.read(refs.nestedArray);
-assert.equal(Object.isFrozen(nestedArray), true);
-assert.equal(Object.isFrozen(nestedArray[0]), true);
-assert.equal(Object.isFrozen(nestedArray[0].values), true);
-assert.equal(Reflect.set(nestedArray[0], 'label', 'MUTATED'), false);
-assert.equal(view.contains(refs.nullValue), true);
-assert.equal(view.contains(refs.falseValue), true);
-assert.equal(view.contains(refs.zeroValue), true);
+assert.equal(view.read(refs.textValue4).value, 'TEST_ONLY value-4');
+assert.equal(view.read(refs.textValue5).value, 'TEST_ONLY value-5');
+assert.equal(view.read(refs.textValue6).value, 'TEST_ONLY value-6');
+assert.equal(view.read(refs.emptyString).value, '');
+assert.equal(view.read(refs.textValue8).value, 'TEST_ONLY value-8');
+assert.equal(view.read(refs.textValue9).value, 'TEST_ONLY value-9');
+assert.equal(view.contains(refs.textValue8), true);
+assert.equal(view.contains(refs.textValue9), true);
+assert.equal(view.read(refs.textValue10).value, 'TEST_ONLY value-10');
+assert.equal(view.contains(refs.textValue4), true);
+assert.equal(view.contains(refs.textValue5), true);
+assert.equal(view.contains(refs.textValue6), true);
 assert.equal(view.contains(refs.emptyString), true);
 assert.equal(view.contains(refs.missing), false);
-for (const presentRef of [refs.nullValue, refs.falseValue, refs.zeroValue, refs.emptyString]) {
+for (const presentRef of [refs.textValue4, refs.textValue5, refs.textValue6, refs.emptyString]) {
   assert.notEqual(view.contains(refs.missing), view.contains(presentRef));
 }
 assert.throws(() => view.read(refs.missing), /reference not found/);
@@ -162,90 +153,152 @@ assert.throws(() => view.provenance(refs.missing), /reference not found/);
 const originalReturned = view.read(refs.entity);
 assert.notEqual(originalReturned, view.read(refs.entity));
 assert.equal(Object.isFrozen(originalReturned), true);
-assert.equal(Object.isFrozen(originalReturned.nested), true);
 assert.equal(Reflect.set(originalReturned, 'label', 'MUTATED'), false);
-assert.equal(Reflect.set(originalReturned.nested, 'enabled', false), false);
-const originalArray = view.read(refs.emptyArray);
-assert.equal(Object.isFrozen(originalArray), true);
-assert.equal(Reflect.set(originalArray, '0', 'MUTATED'), false);
 
 const provenance = view.provenance(refs.entity);
 assert.deepEqual(JSON.parse(JSON.stringify(provenance)), {
-  source_document: 'TEST_ONLY_SOURCE.pdf',
-  evidence_record: { marker: 'TEST_ONLY_EVIDENCE', source_document: 'TEST_ONLY_SOURCE.pdf' }
+  record: { marker: 'TEST_ONLY_EVIDENCE' }
 });
 assert.equal(Object.isFrozen(provenance), true);
-assert.equal(Object.isFrozen(provenance.evidence_record), true);
-assert.equal(view.provenance(refs.provenanceMissing), undefined);
-assert.equal(view.provenance(refs.provenanceNull), null);
-assert.equal(view.contains(refs.provenanceMissing), true);
-assert.equal(view.contains(refs.provenanceNull), true);
-assert.equal(view.read(refs.sameValueOtherReference), null);
-assert.equal(view.contains(refs.sameValueOtherReference), true);
+assert.equal(Object.isFrozen(provenance.record), true);
+assert.equal(view.provenance(refs.textValue11), undefined);
+assert.equal(view.provenance(refs.textValue12), null);
+assert.equal(view.contains(refs.textValue11), true);
+assert.equal(view.contains(refs.textValue12), true);
+assert.equal(view.read(refs.textValue13).value, 'TEST_ONLY value-13');
+assert.equal(view.contains(refs.textValue13), true);
 assert.notEqual(
-  JSON.stringify([refs.nullValue.kind, refs.nullValue.identifier]),
-  JSON.stringify([refs.sameValueOtherReference.kind, refs.sameValueOtherReference.identifier])
+  JSON.stringify([refs.textValue4.kind, refs.textValue4.identifier]),
+  JSON.stringify([refs.textValue13.kind, refs.textValue13.identifier])
 );
-assert.equal(view.provenance(refs.nullValue).source_document, 'TEST_ONLY_SOURCE.pdf');
+assert.equal(view.provenance(refs.textValue4), undefined);
+assert.equal(view.entityId(refs.entity), 'TEST_ENTITY');
+assert.deepEqual(JSON.parse(JSON.stringify(view.parent(refs.entity))),
+  { kind: 'DOCUMENT_SECTION', identifier: 'R000002' });
+assert.deepEqual(JSON.parse(JSON.stringify(view.sourceDocument(refs.entity))),
+  { kind: 'DOCUMENT', identifier: 'R000001' });
+assert.equal(view.parent(refs.document), null);
+assert.deepEqual(JSON.parse(JSON.stringify(view.sourceDocument(refs.document))),
+  { kind: 'DOCUMENT', identifier: 'R000001' });
+assert.equal(view.contains(refs.noIdentifiers), true);
+assert.deepEqual(JSON.parse(JSON.stringify(view.read(refs.noIdentifiers))), {});
+assert.equal(view.sourceDocument(refs.noIdentifiers).identifier, 'R000015');
+assert.deepEqual(JSON.parse(JSON.stringify(view.referencesByEntity('TEST_DOCUMENT').map(
+  ref => ref.identifier
+))), ['R000001', 'R000015']);
+assert.deepEqual(Object.keys(view.read(refs.entity)).sort(), ['label']);
+assert.deepEqual(JSON.parse(JSON.stringify(view.referencesByEntity('TEST_VALUE').map(ref => ref.identifier))), [
+  'R000004', 'R000005', 'R000006', 'R000007', 'R000008', 'R000009',
+  'R000010', 'R000011', 'R000012', 'R000013'
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(view.children(refs.document).map(ref => ref.identifier))), ['R000002']);
+assert.deepEqual(JSON.parse(JSON.stringify(view.children(refs.section, 'TEST_VALUE').map(ref => ref.identifier))), [
+  'R000004', 'R000005', 'R000006', 'R000007', 'R000008', 'R000009',
+  'R000010', 'R000011', 'R000012', 'R000013'
+]);
+assert.equal(Object.isFrozen(view.referencesByEntity('TEST_VALUE')), true);
 
-const orderedEntries = testOnlyProjection(validatedRde);
-const reversedView = new api.ImmutableExecutionView(orderedEntries.slice().reverse());
-const equivalentView = new api.ImmutableExecutionView(testOnlyProjection(validatedRde));
+const equivalentView = api.projectRdeToExecutionView_(validatedRde, entityCatalog);
 const logicalSnapshot = candidate => Object.keys(refs).sort().map(name => {
   const reference = refs[name];
   if (!candidate.contains(reference)) return [name, false];
-  return [name, true, candidate.read(reference), candidate.provenance(reference)];
+  return [name, true, candidate.entityId(reference), candidate.read(reference), candidate.provenance(reference)];
 });
-assert.deepEqual(JSON.parse(JSON.stringify(logicalSnapshot(reversedView))),
+assert.deepEqual(JSON.parse(JSON.stringify(logicalSnapshot(view))),
   JSON.parse(JSON.stringify(logicalSnapshot(equivalentView))));
 
-// Mutating the original RDE and projection after construction cannot alter the view.
-validatedRde.facts.test_entity.value.nested.enabled = false;
-validatedRde.facts.values.false_value.value = true;
-validatedRde.evidence[0].marker = 'MUTATED_EVIDENCE';
-projection[0].value.label = 'MUTATED_PROJECTION';
-assert.equal(view.read(refs.entity).nested.enabled, true);
+// Mutating the original RDE after construction cannot alter the view.
+validatedRde.records[0].attributes.REQUEST_IDENTIFIER = 'REQUEST-B';
+validatedRde.records[0].attributes.PROTOCOL_IDENTIFIER = 'PROTOCOL-B';
+validatedRde.records[2].attributes.label = 'MUTATED';
+validatedRde.records[13].provenance.source_location = 'MUTATED';
+validatedRde.records[13].attributes.marker = 'MUTATED_EVIDENCE';
 assert.equal(view.read(refs.entity).label, 'TEST_ONLY entity-1');
-assert.equal(view.read(refs.falseValue), false);
-assert.equal(view.provenance(refs.evidence).record.marker, 'TEST_ONLY_EVIDENCE');
-assert.equal(view.provenance(refs.entity).evidence_record.marker, 'TEST_ONLY_EVIDENCE');
+assert.equal(view.read(refs.textValue5).value, 'TEST_ONLY value-5');
+assert.equal(view.provenance(refs.evidence).source_location, 'TEST_ONLY evidence');
+assert.equal(view.provenance(refs.entity).record.marker, 'TEST_ONLY_EVIDENCE');
+assert.equal(view.referencesByEntity('TEST_DOCUMENT')[0].identifier, 'R000001');
+assert.equal(view.contains(refs.noIdentifiers), true);
+assert.equal(refs.noIdentifiers.identifier, 'R000015');
 
+const directDocumentEntry = {
+  reference: refs.document, entityId: 'TEST_DOCUMENT', parent: null,
+  sourceDocument: refs.document, value: { REQUEST_IDENTIFIER: 'DIRECT' }
+};
+const directItemEntry = (reference, value, provenance, parent = null) => {
+  const item = {
+    reference, entityId: 'TEST_VALUE', parent,
+    sourceDocument: refs.document, value
+  };
+  if (provenance !== undefined) item.provenance = provenance;
+  return item;
+};
+const nestedInput = { value: { nested: { enabled: true }, items: ['TEST_ONLY'] } };
+const nestedReference = new api.TypedReference('DOCUMENTARY_EVIDENCE', 'DIRECT_NESTED');
+const nestedView = new api.ImmutableExecutionView([
+  directDocumentEntry,
+  directItemEntry(nestedReference, nestedInput)
+]);
+nestedInput.value.nested.enabled = false;
+const nestedValue = nestedView.read(nestedReference);
+assert.equal(nestedValue.value.nested.enabled, true);
+assert.equal(Object.isFrozen(nestedValue.value.nested), true);
+assert.equal(Object.isFrozen(nestedValue.value.items), true);
+assert.equal(Reflect.set(nestedValue.value.nested, 'enabled', false), false);
+assert.equal(Reflect.set(nestedValue.value.items, '0', 'MUTATED'), false);
 assert.throws(() => new api.ImmutableExecutionView([
-  { reference: refs.entity, value: 1 },
-  { reference: new api.TypedReference('TEST_ENTITY', 'entity-1'), value: 2 }
+  directDocumentEntry,
+  { ...directDocumentEntry, value: { REQUEST_IDENTIFIER: 'DUPLICATE' } }
 ]), /duplicate reference/);
 assert.throws(() => new api.ImmutableExecutionView([
-  { reference: { kind: 'TEST_ENTITY', identifier: 'fake' }, value: 1 }
+  { ...directDocumentEntry, reference: { kind: 'DOCUMENT', identifier: 'fake' } }
 ]), /TypedReference/);
-assert.throws(() => view.contains({ kind: 'TEST_ENTITY', identifier: 'entity-1' }), /TypedReference/);
+assert.throws(() => view.contains({ kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000003' }), /TypedReference/);
 assert.throws(() => new api.TypedReference('', 'malformed'), /reference kind/);
 const cyclic = [];
 cyclic.push(cyclic);
 assert.throws(() => new api.ImmutableExecutionView([
-  { reference: new api.TypedReference('TEST_VALUE', 'cycle'), value: cyclic }
+  directDocumentEntry,
+  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'cycle'), { value: cyclic })
 ]), /cyclic projection values/);
 const cyclicObject = { nested: {} };
 cyclicObject.nested.parent = cyclicObject;
 assert.throws(() => new api.ImmutableExecutionView([
-  { reference: new api.TypedReference('TEST_VALUE', 'object-cycle'), value: cyclicObject }
+  directDocumentEntry,
+  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'object-cycle'), cyclicObject)
 ]), /cyclic projection values/);
 assert.throws(() => new api.ImmutableExecutionView([
-  { reference: new api.TypedReference('TEST_VALUE', 'provenance-cycle'),
-    value: 'TEST_ONLY', provenance: cyclicObject }
+  directDocumentEntry,
+  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'provenance-cycle'),
+    { value: 'TEST_ONLY' }, cyclicObject)
 ]), /cyclic projection values/);
+assert.throws(() => new api.ImmutableExecutionView([
+  directDocumentEntry,
+  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'dangling-parent'),
+    { value: 1 }, undefined, new api.TypedReference('DOCUMENT_SECTION', 'missing'))
+]), /missing from the view/);
+const cycleA = new api.TypedReference('CONCEPT', 'R000020');
+const cycleB = new api.TypedReference('CONCEPT', 'R000021');
+assert.throws(() => new api.ImmutableExecutionView([
+  directDocumentEntry,
+  { reference: cycleA, entityId: 'TEST_NODE', parent: cycleB,
+    sourceDocument: refs.document, value: {} },
+  { reference: cycleB, entityId: 'TEST_NODE', parent: cycleA,
+    sourceDocument: refs.document, value: {} }
+]), /cyclic parent relation/);
 
 let resolverView;
 const resolver = {
   resolve(_arguments, processMemory) {
     resolverView = processMemory;
-    const present = processMemory.contains(refs.falseValue);
-    const value = processMemory.read(refs.falseValue);
-    const origin = processMemory.provenance(refs.falseValue);
+    const present = processMemory.contains(refs.textValue5);
+    const value = processMemory.read(refs.textValue5).value;
+    const origin = processMemory.sourceDocument(refs.textValue5);
     const evidencePresent = processMemory.contains(refs.evidence);
     return {
-      result: present && value === false && evidencePresent && origin.source_document === 'TEST_ONLY_SOURCE.pdf'
+      result: present && value === 'TEST_ONLY value-5' && evidencePresent && origin.kind === 'DOCUMENT'
         ? api.EngineResult.TRUE : api.EngineResult.FALSE,
-      memoryReferences: [refs.falseValue, refs.evidence]
+      memoryReferences: [refs.textValue5, refs.evidence]
     };
   }
 };
@@ -260,7 +313,7 @@ const registry = new api.PredicateRegistry([new api.PredicateContract({
 const criterion = new api.CriterionIR({
   criterionId: 'TEST_ONLY_CRITERION',
   requirementId: 'TEST_ONLY_REQUIREMENT',
-  expression: new api.PredicateCall('TEST_ONLY_VIEW_LOOKUP', { target: refs.falseValue }),
+  expression: new api.PredicateCall('TEST_ONLY_VIEW_LOOKUP', { target: refs.textValue5 }),
   expectedResult: api.EngineResult.TRUE,
   traceability: { declarationSource: 'TEST_ONLY' }
 });
@@ -271,8 +324,8 @@ assert.equal(firstEvaluation.engineResult, api.EngineResult.TRUE);
 assert.equal(firstEvaluation.pipelineResult, 'PASS');
 assert.equal(firstEvaluation.trace[0].predicateId, 'TEST_ONLY_VIEW_LOOKUP');
 assert.deepEqual(JSON.parse(JSON.stringify(firstEvaluation.trace[0].memoryReferences)), [
-  { kind: 'TEST_VALUE', identifier: 'false' },
-  { kind: 'TEST_EVIDENCE', identifier: 'evidence-1' }
+  { kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000005' },
+  { kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000014' }
 ]);
 assert.deepEqual(JSON.parse(JSON.stringify(firstEvaluation)), JSON.parse(JSON.stringify(secondEvaluation)));
 assert.equal(Object.isFrozen(firstEvaluation.trace[0].memoryReferences), true);

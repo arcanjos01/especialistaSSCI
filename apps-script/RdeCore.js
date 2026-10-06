@@ -1,5 +1,5 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.1.0';
+const RDE_SCHEMA_VERSION = '0.2.0';
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
 const RDE_FAKE_WARNING =
@@ -22,11 +22,7 @@ function buildFakeRde_(input) {
       extractor_version: RDE_EXTRACTOR_VERSION,
       created_at: input.createdAt
     },
-    document: {
-      document_type: 'OUTRO'
-    },
-    facts: {},
-    evidence: [],
+    records: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -45,21 +41,23 @@ function hasExactKeys_(value, expectedKeys) {
 
 /** Valida a estrutura fake e a identidade do processo/arquivo sem mutações. */
 function validateRde_(rde, expected) {
-  if (!hasExactKeys_(rde, [
-    'schema_version',
-    'process_id',
-    'source',
-    'extraction',
-    'document',
-    'facts',
-    'evidence',
-    'extraction_warnings'
-  ])) {
+  if (!rde || typeof rde !== 'object' || Array.isArray(rde)) {
     throw new Error('RDE deve ser um objeto JSON.');
   }
 
   if (rde.schema_version !== RDE_SCHEMA_VERSION) {
     throw new Error('RDE_SCHEMA_VERSION incompatível.');
+  }
+
+  if (!hasExactKeys_(rde, [
+    'schema_version',
+    'process_id',
+    'source',
+    'extraction',
+    'records',
+    'extraction_warnings'
+  ])) {
+    throw new Error('RDE deve ser um objeto JSON.');
   }
 
   if (rde.process_id !== expected.processId) {
@@ -111,22 +109,8 @@ function validateRde_(rde, expected) {
     throw new Error('Objeto extraction inválido na RDE fake.');
   }
 
-  if (
-    !hasExactKeys_(rde.document, ['document_type']) ||
-    rde.document.document_type !== 'OUTRO'
-  ) {
-    throw new Error('document.document_type deve ser OUTRO nesta etapa.');
-  }
-
-  if (
-    !hasExactKeys_(rde.facts, []) ||
-    Object.keys(rde.facts).length !== 0
-  ) {
-    throw new Error('facts deve ser um objeto vazio no extrator fake.');
-  }
-
-  if (!Array.isArray(rde.evidence) || rde.evidence.length !== 0) {
-    throw new Error('evidence deve ser um array vazio no extrator fake.');
+  if (!Array.isArray(rde.records) || rde.records.length !== 0) {
+    throw new Error('records deve ser uma coleção vazia no extrator fake.');
   }
 
   if (
@@ -229,14 +213,240 @@ function requireRdeString_(object, field, path) {
   return object[field];
 }
 
-/** Valida apenas estrutura e identidade; não interpreta facts nem evidence. */
-function validateRdeStructure_(rde, expected) {
+function isPlainRdeObject_(value) {
+  if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === null || Object.getPrototypeOf(prototype) === null;
+}
+
+function rdeEntityDefinition_(entityCatalog, entityId) {
+  if (!entityCatalog || !Object.prototype.hasOwnProperty.call(entityCatalog, entityId)) {
+    return null;
+  }
+  const definition = entityCatalog[entityId];
+  if (!isPlainRdeObject_(definition) || typeof definition.TYPE !== 'string' ||
+      !definition.TYPE || !Array.isArray(definition.ATTRIBUTES) ||
+      definition.ATTRIBUTES.some(attribute => typeof attribute !== 'string' || !attribute) ||
+      !isPlainRdeObject_(definition.ATTRIBUTE_TYPES) ||
+      Object.keys(definition.ATTRIBUTE_TYPES).sort().join('\u0000') !==
+        definition.ATTRIBUTES.slice().sort().join('\u0000') ||
+      Object.values(definition.ATTRIBUTE_TYPES).some(type =>
+        !['BOOLEAN', 'DATE', 'ENUM', 'TEXT'].includes(type)
+      )) {
+    throw makeRdeValidationError_(
+      'RDE_ENTITY_CATALOG_INVALID', 'Definição estrutural inválida para ' + entityId + '.'
+    );
+  }
+  return definition;
+}
+
+function validateRdeRecordEnvelope_(records, entityCatalog) {
+  if (!Array.isArray(records)) {
+    throw makeRdeValidationError_('RDE_INVALID_FIELD_TYPE', 'records deve ser um array.');
+  }
+  if (records.length && !entityCatalog) {
+    throw makeRdeValidationError_(
+      'RDE_ENTITY_CATALOG_REQUIRED',
+      'entityCatalog é obrigatório para validar relações e atributos de records.'
+    );
+  }
+  if (records.length && !isPlainRdeObject_(entityCatalog)) {
+    throw makeRdeValidationError_(
+      'RDE_ENTITY_CATALOG_INVALID', 'entityCatalog deve ser um objeto simples indexado por entity_id.'
+    );
+  }
+
+  const recordsById = Object.create(null);
+  const definitionsById = Object.create(null);
+  records.forEach((record, index) => {
+    const requiredKeys = [
+      'record_id', 'entity_id', 'parent_record_id', 'source_document', 'attributes'
+    ];
+    if (!isPlainRdeObject_(record)) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_INVALID', 'records[' + index + '] deve ser um objeto.'
+      );
+    }
+    const keys = Object.keys(record).sort();
+    const allowed = requiredKeys.concat(['provenance']).sort();
+    if (requiredKeys.some(key => !Object.prototype.hasOwnProperty.call(record, key)) ||
+        keys.some(key => !allowed.includes(key))) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_ENVELOPE_INVALID',
+        'records[' + index + '] deve obedecer ao envelope RDE 0.2.0.'
+      );
+    }
+    ['record_id', 'entity_id', 'source_document'].forEach(field => {
+      if (typeof record[field] !== 'string' || !record[field]) {
+        throw makeRdeValidationError_(
+          'RDE_RECORD_FIELD_INVALID', 'records[' + index + '].' + field + ' deve ser string não vazia.'
+        );
+      }
+    });
+    if (record.parent_record_id !== null &&
+        (typeof record.parent_record_id !== 'string' || !record.parent_record_id)) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_FIELD_INVALID',
+        'records[' + index + '].parent_record_id deve ser string não vazia ou null.'
+      );
+    }
+    if (Object.prototype.hasOwnProperty.call(recordsById, record.record_id)) {
+      throw makeRdeValidationError_(
+        'RDE_DUPLICATE_RECORD_ID', 'record_id duplicado: ' + record.record_id
+      );
+    }
+    if (!isPlainRdeObject_(record.attributes)) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_ATTRIBUTES_INVALID', 'records[' + index + '].attributes deve ser objeto.'
+      );
+    }
+    ['record_id', 'entity_id', 'parent_record_id', 'source_document', 'provenance']
+      .forEach(field => {
+        if (Object.prototype.hasOwnProperty.call(record.attributes, field)) {
+          throw makeRdeValidationError_(
+            'RDE_STRUCTURAL_METADATA_AS_ATTRIBUTE',
+            'Metadado estrutural não pode ser atributo documental: ' + field
+          );
+        }
+      });
+    const definition = rdeEntityDefinition_(entityCatalog, record.entity_id);
+    if (entityCatalog && !definition) {
+      throw makeRdeValidationError_(
+        'RDE_UNKNOWN_ENTITY_ID', 'entity_id não declarado: ' + record.entity_id
+      );
+    }
+    if (definition) {
+      const undeclared = Object.keys(record.attributes).filter(
+        attribute => !definition.ATTRIBUTES.includes(attribute)
+      );
+      if (undeclared.length) {
+        throw makeRdeValidationError_(
+          'RDE_UNDECLARED_ENTITY_ATTRIBUTE',
+          'Atributo não declarado para ' + record.entity_id + ': ' + undeclared.sort().join(', ')
+        );
+      }
+      Object.keys(record.attributes).sort().forEach(attribute => {
+        const value = record.attributes[attribute];
+        const declaredType = definition.ATTRIBUTE_TYPES[attribute];
+        const typeMatches = declaredType === 'BOOLEAN'
+          ? typeof value === 'boolean'
+          : ['DATE', 'ENUM', 'TEXT'].includes(declaredType) && typeof value === 'string';
+        if (!typeMatches) {
+          throw makeRdeValidationError_(
+            'RDE_ATTRIBUTE_VALUE_TYPE_INVALID',
+            'Tipo incompatível para ' + record.entity_id + '.' + attribute + ' (' + declaredType + ').'
+          );
+        }
+      });
+    }
+    if (Object.prototype.hasOwnProperty.call(record, 'provenance') &&
+        record.provenance !== null && !isPlainRdeObject_(record.provenance)) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_PROVENANCE_INVALID', 'provenance deve ser objeto quando informado.'
+      );
+    }
+    recordsById[record.record_id] = record;
+    definitionsById[record.record_id] = definition;
+  });
+
+  records.forEach(record => {
+    const source = recordsById[record.source_document];
+    if (!source) {
+      throw makeRdeValidationError_(
+        'RDE_SOURCE_DOCUMENT_DANGLING', 'source_document não existe: ' + record.source_document
+      );
+    }
+    const sourceDefinition = definitionsById[record.source_document];
+    if (sourceDefinition && sourceDefinition.TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_(
+        'RDE_SOURCE_DOCUMENT_NOT_DOCUMENT', 'source_document deve apontar para TYPE DOCUMENT.'
+      );
+    }
+    const definition = definitionsById[record.record_id];
+    if (definition && definition.TYPE === 'DOCUMENT') {
+      if (record.parent_record_id !== null) {
+        throw makeRdeValidationError_(
+          'RDE_DOCUMENT_PARENT_INVALID', 'DOCUMENT deve ter parent_record_id null.'
+        );
+      }
+      if (record.source_document !== record.record_id) {
+        throw makeRdeValidationError_(
+          'RDE_DOCUMENT_SOURCE_INVALID', 'DOCUMENT deve apontar source_document para si próprio.'
+        );
+      }
+    }
+    if (record.parent_record_id !== null) {
+      const parent = recordsById[record.parent_record_id];
+      if (!parent) {
+        throw makeRdeValidationError_(
+          'RDE_PARENT_RECORD_DANGLING', 'parent_record_id não existe: ' + record.parent_record_id
+        );
+      }
+      const parentDefinition = definitionsById[record.parent_record_id];
+      if (definition && parentDefinition && definition.TYPE === 'DOCUMENT_SECTION' &&
+          parentDefinition.TYPE !== 'DOCUMENT') {
+        throw makeRdeValidationError_(
+          'RDE_PARENT_TYPE_INVALID', 'DOCUMENT_SECTION deve ter DOCUMENT como pai.'
+        );
+      }
+      if (definition && parentDefinition && definition.TYPE === 'DOCUMENT_SECTION' &&
+          record.source_document !== parent.record_id) {
+        throw makeRdeValidationError_(
+          'RDE_SOURCE_PARENT_MISMATCH',
+          'DOCUMENT_SECTION deve apontar source_document para seu DOCUMENT pai.'
+        );
+      }
+      if (definition && parentDefinition && definition.TYPE === 'DOCUMENTARY_EVIDENCE' &&
+          parentDefinition.TYPE !== 'DOCUMENT_SECTION') {
+        throw makeRdeValidationError_(
+          'RDE_PARENT_TYPE_INVALID', 'DOCUMENTARY_EVIDENCE deve ter DOCUMENT_SECTION como pai.'
+        );
+      }
+      if (definition && parentDefinition && definition.TYPE === 'DOCUMENTARY_EVIDENCE' &&
+          record.source_document !== parent.source_document) {
+        throw makeRdeValidationError_(
+          'RDE_SOURCE_PARENT_MISMATCH',
+          'DOCUMENTARY_EVIDENCE deve preservar source_document de sua seção pai.'
+        );
+      }
+    } else if (definition && definition.TYPE === 'DOCUMENT_SECTION') {
+      throw makeRdeValidationError_(
+        'RDE_PARENT_REQUIRED', 'DOCUMENT_SECTION deve apontar para seu DOCUMENT pai.'
+      );
+    }
+  });
+
+  const stateById = Object.create(null);
+  function visit(recordId) {
+    if (stateById[recordId] === 1) {
+      throw makeRdeValidationError_('RDE_PARENT_CYCLE', 'Relação parent_record_id cíclica.');
+    }
+    if (stateById[recordId] === 2) return;
+    stateById[recordId] = 1;
+    const parentId = recordsById[recordId].parent_record_id;
+    if (parentId !== null) visit(parentId);
+    stateById[recordId] = 2;
+  }
+  records.forEach(record => visit(record.record_id));
+  return true;
+}
+
+/** Valida estrutura RDE 0.2.0 sem executar Requirements ou Criteria. */
+function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
   if (rde.schema_version !== RDE_SCHEMA_VERSION) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
       'schema_version deve ser ' + RDE_SCHEMA_VERSION + '.'
+    );
+  }
+
+  if (!hasExactKeys_(rde, [
+    'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
+  ])) {
+    throw makeRdeValidationError_(
+      'RDE_ENVELOPE_INVALID', 'O envelope raiz deve obedecer ao schema RDE 0.2.0.'
     );
   }
 
@@ -292,16 +502,7 @@ function validateRdeStructure_(rde, expected) {
     );
   }
 
-  requireRdeObject_(rde.document, 'document');
-  requireRdeString_(rde.document, 'document_type', 'document.document_type');
-  requireRdeObject_(rde.facts, 'facts');
-
-  if (!Array.isArray(rde.evidence)) {
-    throw makeRdeValidationError_(
-      'RDE_INVALID_FIELD_TYPE',
-      'evidence deve ser um array.'
-    );
-  }
+  validateRdeRecordEnvelope_(rde.records, entityCatalog);
 
   if (!Array.isArray(rde.extraction_warnings)) {
     throw makeRdeValidationError_(
