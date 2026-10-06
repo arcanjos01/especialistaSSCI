@@ -269,6 +269,11 @@ class ImmutableExecutionView {
   }
 }
 
+/** Returns true only for instances branded by the immutable view constructor. */
+function isImmutableExecutionView(view) {
+  return EXECUTION_VIEW_RECORDS.has(view);
+}
+
 /** Create the closed documentary projection from a validated RDE 0.2.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
   if (!rde || rde.schema_version !== '0.2.0' || !Array.isArray(rde.records)) {

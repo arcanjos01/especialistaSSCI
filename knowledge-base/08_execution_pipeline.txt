@@ -193,8 +193,8 @@ They are only documentary evidence.
 
 For COMPROVANTE_DE_SOLICITACAO_DE_HABITESE, identified only when the presented
 document type is exactly "COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE", extract
-fact-only the documentally verifiable REQUEST_DATE, REQUEST_IDENTIFIER,
-PROCESS_IDENTIFIER and PROTOCOL_IDENTIFIER; the
+fact-only the documentally verifiable REQUEST_DATE, PROTOCOL_IDENTIFIER and
+RE_IDENTIFIER when present; the
 section SISTEMAS_E_MEDIDAS_DE_SEGURANCA and its directly verifiable
 STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE properties; and each item
 OFFICIAL_ESCI_CODE,
@@ -380,9 +380,15 @@ END PHASE 3.
 Apply 02a_applicability only after the Process Memory execution view is
 complete and immutable.
 
-Select exactly one current comprovante by the deterministic identifier contract
-declared in 02a_applicability. All comparable request, process and protocol
-identifiers shall agree. Do not select by filename, date or attachment order.
+Select exactly one current comprovante by comparing its PROTOCOL_IDENTIFIER and
+canonical civil REQUEST_DATE with the immutable CurrentSubmissionContext
+provided by operational intake, as declared in 02a_applicability. A different
+request date under the same protocol denotes another presentation. RE_IDENTIFIER
+is only a consistency check when available on both sides. processId and
+REQUEST_IDENTIFIER do not participate. Do not select by filename, generated or
+created timestamp, hash, record_id, attachment count or order. The context is
+operational metadata outside the RDE and must be complete, traceable and frozen
+before this phase.
 
 Derive productive targets only from canonical entities declared with
 APPLICABILITY_TARGET_CLASS OFFICIAL_ESCI_SCOPE in 01_entities. Resolve their

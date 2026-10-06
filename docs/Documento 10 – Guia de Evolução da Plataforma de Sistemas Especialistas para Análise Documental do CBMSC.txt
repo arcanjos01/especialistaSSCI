@@ -400,6 +400,14 @@ a estrutura bruta da RDE nem contornar o fechamento lógico da Phase 3. O
 adaptador não reabre Source Documents, não reexecuta EXTRACTION e não cria uma
 segunda fonte de verdade.
 
+Quando uma decisão pré-execução depender de qual solicitação corrente está em
+análise, essa identidade deve vir de um CurrentSubmissionContext operacional
+explícito, imutável e rastreável à origem do intake. Esse contexto não integra a
+RDE nem é evidência documental; a comparação entre seus valores e os fatos da
+RDE pertence à etapa de applicability. Identificadores técnicos do pipeline
+não podem substituir identificadores documentais, e a proveniência operacional
+permanece distinta da proveniência documental.
+
 O resolver deverá seguir exclusivamente este fluxo:
 
 Criterion → predicate_id → argumentos nomeados e tipados → Registry →

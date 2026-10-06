@@ -36,35 +36,51 @@ The exclusive productive source is exactly one document with:
 - the section SISTEMAS_E_MEDIDAS_DE_SEGURANCA; and
 - a complete, legible and verifiable structural representation of that section.
 
-Select exactly one comprovante for the current request using only documentary
-REQUEST_IDENTIFIER, PROCESS_IDENTIFIER and PROTOCOL_IDENTIFIER facts already
-present in immutable Process Memory. PROCESS_IDENTIFIER identifies only the
-process or building shared between returns and shall never select the current
-comprovante by itself. A candidate shall have a comparable and equal
-PROTOCOL_IDENTIFIER or REQUEST_IDENTIFIER that documentally identifies the
-current request unambiguously, with no different value for any other strong
-identifier available on both sides. Conflicting strong identifiers are an
-ARCHITECTURAL_BLOCKER. When PROCESS_IDENTIFIER is available on both sides of a
-strongly matched document, its values shall also be equal; otherwise that
-document is not a candidate. A document matching only by PROCESS_IDENTIFIER is
-not a candidate and does not compete with exactly one strong candidate. If no
-strong candidate remains or more than one strong candidate remains, selection
-is indeterminate and shall block. A previous return that shares a process
-identifier but is documentally identified by different request and protocol
-identifiers is not the current candidate. Filename, newest date and
-attachment order shall never select a
-document. No unique matching document, contradictory identifiers within the
-selected record, an absent document, an absent section, an incomplete section,
-an illegible section, an unverifiable section, an unknown code or incomplete
-traceability is an ARCHITECTURAL_BLOCKER before the Engine and before partial
-PROCESS.SMSCI.
+Select exactly one comprovante for the current request using the immutable
+CurrentSubmissionContext supplied by operational intake. That context is
+separate from the RDE and contains processId, protocolIdentifier, requestDate,
+optional reIdentifier and operational provenance. Its protocol and civil
+request date must be present, valid and immutable before matching. processId is
+a technical pipeline identifier and does not participate in document matching.
+
+A candidate from ImmutableExecutionView matches only when its exact
+PROTOCOL_IDENTIFIER equals CurrentSubmissionContext.protocolIdentifier and its
+canonical civil REQUEST_DATE (YYYY-MM-DD) equals
+CurrentSubmissionContext.requestDate. PROTOCOL_IDENTIFIER alone identifies the
+Habite-se chain, not a particular presentation; a different REQUEST_DATE under
+the same protocol is another presentation/re-presentation and is not a
+candidate. REQUEST_IDENTIFIER is legacy/optional documentary metadata and is
+not a productive matching input. Do not invent it or map REQUEST_DATE to it.
+
+When CurrentSubmissionContext.reIdentifier and candidate RE_IDENTIFIER are
+both present, their values must be equal; a mismatch excludes that candidate.
+Absence on either side does not infer or supply the other value. RE_IDENTIFIER
+is only a consistency check and never identifies a presentation. After protocol,
+date and this consistency check, zero or more than one candidates is an
+ARCHITECTURAL_BLOCKER; exactly one candidate is selected. Duplicate candidates
+are not resolved by document content, filename, generated/created timestamp,
+hash, record_id, attachment count or position/order. In particular, identifiers
+inside RDE records are compared only with CurrentSubmissionContext; RDE metadata
+and operational registry identifiers do not substitute for that context.
+
+The intake provenance is operational metadata, not documentary evidence. At a
+minimum it records sourceKind and sourceReference. Until a productive e-SCI
+import or operator-confirmed intake supplies this immutable context, production
+applicability cannot select the current comprovante.
+
+No unique candidate after protocol/date/RE comparison, an absent document,
+absent section, incomplete section, illegible section, unverifiable section,
+unknown code or incomplete traceability is an ARCHITECTURAL_BLOCKER before the
+Engine and before partial PROCESS.SMSCI.
 
 The minimal RDE schema already declared in 01_entities is sufficient for this
-source: the comprovante REQUEST_DATE and identifiers; section facts
-STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE; and item facts
-OFFICIAL_ESCI_CODE, PRESENTED_SYSTEM_MEASURE_DESCRIPTION,
-RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION. source_document remains required by
-Documento 09-RDE; this document does not alter that specification.
+source: the comprovante REQUEST_DATE, PROTOCOL_IDENTIFIER and optional
+RE_IDENTIFIER; section facts STRUCTURALLY_COMPLETE, LEGIBLE and VERIFIABLE;
+and item facts OFFICIAL_ESCI_CODE, PRESENTED_SYSTEM_MEASURE_DESCRIPTION,
+RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION. CurrentSubmissionContext remains
+operational metadata outside the RDE. REQUEST_IDENTIFIER is legacy/optional
+and is not required by this extraction contract. source_document remains
+required by Documento 09-RDE; this document does not alter that specification.
 
 RULE CONTRACT
 

@@ -25,10 +25,16 @@ OFFICIAL_MAP = {
     "SHP": "SMSCI_SHP", "SAP": "SMSCI_SAP", "SPDE": "SMSCI_PRESSURIZATION",
 }
 
-STRONG_REQUEST_IDENTIFIERS = frozenset({
-    "REQUEST_IDENTIFIER", "PROTOCOL_IDENTIFIER",
-})
 IN19_VIGENCY = date(2024, 4, 24)
+
+
+def canonical_civil_date(value):
+    if not isinstance(value, str):
+        return False
+    try:
+        return date.fromisoformat(value).isoformat() == value
+    except ValueError:
+        return False
 
 
 class ArchitecturalBlocker(RuntimeError):
@@ -60,24 +66,32 @@ def legacy_documentation_result(execution_drt_exists):
 
 def productive_resolution(documents, current_identifiers):
     """Test model of the exact-source catalog and its explicit decisions."""
+    protocol_identifier = current_identifiers.get("protocolIdentifier")
+    request_date = current_identifiers.get("requestDate")
+    if (
+        not isinstance(protocol_identifier, str)
+        or not protocol_identifier.strip()
+        or not canonical_civil_date(request_date)
+    ):
+        raise ArchitecturalBlocker("current submission context")
+
     candidates = []
     for document in documents:
         if document.get("type") != "COMPROVANTE_DE_SOLICITACAO_DE_HABITESE":
             continue
         identifiers = document.get("identifiers", {})
-        comparable = set(identifiers) & set(current_identifiers)
-        strong_comparable = comparable & STRONG_REQUEST_IDENTIFIERS
-        matching_strong = {
-            key for key in strong_comparable
-            if identifiers[key] == current_identifiers[key]
-        }
-        conflicting_strong = strong_comparable - matching_strong
-        if matching_strong and conflicting_strong:
-            raise ArchitecturalBlocker("strong identifier conflict")
-        if matching_strong and all(
-            identifiers[key] == current_identifiers[key] for key in comparable
+        if (
+            identifiers.get("PROTOCOL_IDENTIFIER")
+            != protocol_identifier
+            or not canonical_civil_date(document.get("request_date"))
+            or document.get("request_date") != request_date
         ):
-            candidates.append(document)
+            continue
+        current_re = current_identifiers.get("reIdentifier")
+        candidate_re = identifiers.get("RE_IDENTIFIER")
+        if current_re is not None and candidate_re is not None and current_re != candidate_re:
+            continue
+        candidates.append(document)
     if len(candidates) != 1:
         raise ArchitecturalBlocker("document selection")
     document = candidates[0]
@@ -223,21 +237,25 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
 
     def current_identifiers(self):
         return {
-            "REQUEST_IDENTIFIER": "REQ-1",
-            "PROCESS_IDENTIFIER": "PROC-1",
-            "PROTOCOL_IDENTIFIER": "PROTO-1",
+            "processId": "TEST_ONLY_PROCESS",
+            "protocolIdentifier": "PROTO-1",
+            "requestDate": "2026-08-03",
+            "reIdentifier": "TEST_ONLY_RE",
         }
 
     def current_document(self, codes=(), **extra):
         document = {
             "type": "COMPROVANTE_DE_SOLICITACAO_DE_HABITESE",
-            "identifiers": self.current_identifiers(),
+            "identifiers": {
+                "PROTOCOL_IDENTIFIER": self.current_identifiers()["protocolIdentifier"],
+                "RE_IDENTIFIER": self.current_identifiers()["reIdentifier"],
+            },
             "section_present": True,
             "structurally_complete": True,
             "legible": True,
             "verifiable": True,
             "official_codes": tuple(codes),
-            "request_date": "2026-08-03",
+            "request_date": self.current_identifiers()["requestDate"],
             "request_date_verifiable": True,
             "trace": {
                 "process_memory_fact": "PM.COMPROVANTE.REQ-1.SMSCI",
@@ -375,13 +393,9 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         documents = [self.current_document(), self.current_document()]
         with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
             productive_resolve(documents, self.current_identifiers())
-        old_return = self.current_document(
-            identifiers={
-                "REQUEST_IDENTIFIER": "REQ-OLD",
-                "PROCESS_IDENTIFIER": "PROC-1",
-                "PROTOCOL_IDENTIFIER": "PROTO-OLD",
-            }
-        )
+        old_return = self.current_document(identifiers={
+            "PROTOCOL_IDENTIFIER": "PROTO-OLD", "RE_IDENTIFIER": "TEST_ONLY_RE"
+        })
         scope = productive_resolve(
             [old_return, self.current_document(("PPE",))],
             self.current_identifiers(),
@@ -391,13 +405,15 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             frozenset({"SMSCI_PPE", "SMSCI_IN19_APPLICABILITY_REVIEW"}),
         )
         self.assertIn("Select exactly one comprovante", self.applicability)
-        self.assertIn("Filename, newest date and\nattachment order", self.applicability)
+        self.assertIn("CurrentSubmissionContext", self.applicability)
+        self.assertIn("record_id, attachment count or position/order", self.applicability)
 
     def test_l1_process_identifier_alone_cannot_select_current_request(self):
         current = {
-            "REQUEST_IDENTIFIER": "REQ-2",
-            "PROCESS_IDENTIFIER": "PROC-1",
-            "PROTOCOL_IDENTIFIER": "H0002",
+            "processId": "PROC-1",
+            "protocolIdentifier": "H0002",
+            "requestDate": "2026-08-03",
+            "reIdentifier": None,
         }
         only_document = self.current_document(
             identifiers={"PROCESS_IDENTIFIER": "PROC-1"}
@@ -405,30 +421,62 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
             productive_resolve([only_document], current)
 
-    def test_l1b_conflicting_strong_identifiers_block(self):
-        conflicting = self.current_document(
-            identifiers={
-                "REQUEST_IDENTIFIER": "REQ-1",
-                "PROCESS_IDENTIFIER": "PROC-1",
-                "PROTOCOL_IDENTIFIER": "PROTO-OLD",
-            }
-        )
-        with self.assertRaisesRegex(
-            ArchitecturalBlocker, "strong identifier conflict"
+    def test_l1a_missing_or_invalid_protocol_and_date_block(self):
+        candidate = self.current_document()
+        for context in (
+            {**self.current_identifiers(), "protocolIdentifier": None},
+            {**self.current_identifiers(), "requestDate": None},
+            {**self.current_identifiers(), "requestDate": "2024-02-30"},
+            {**self.current_identifiers(), "requestDate": "0000-01-01"},
+            {**self.current_identifiers(), "requestDate": "24/04/2024"},
         ):
-            productive_resolve([conflicting], self.current_identifiers())
+            with self.subTest(context=context):
+                with self.assertRaisesRegex(ArchitecturalBlocker, "current submission context"):
+                    productive_resolution([candidate], context)
+        same_missing_protocol = self.current_document(identifiers={
+            "PROTOCOL_IDENTIFIER": None, "RE_IDENTIFIER": "TEST_ONLY_RE"
+        })
+        with self.assertRaisesRegex(ArchitecturalBlocker, "current submission context"):
+            productive_resolution([same_missing_protocol], {
+                **self.current_identifiers(), "protocolIdentifier": None
+            })
+        for invalid_date in (None, "24/04/2024", "2024-02-30", "0000-01-01"):
+            same_invalid_date = self.current_document(request_date=invalid_date)
+            with self.assertRaisesRegex(ArchitecturalBlocker, "current submission context"):
+                productive_resolution([same_invalid_date], {
+                    **self.current_identifiers(), "requestDate": invalid_date
+                })
+        for document_date in (None, "2024-02-30", "24/04/2024", "0000-01-01"):
+            with self.subTest(document_date=document_date):
+                invalid_candidate = self.current_document(request_date=document_date)
+                with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
+                    productive_resolution([invalid_candidate], self.current_identifiers())
+
+    def test_l1b_request_identifier_does_not_select_or_conflict(self):
+        candidate = self.current_document(("PPE",), identifiers={
+            "REQUEST_IDENTIFIER": "TEST_ONLY_LEGACY",
+            "PROTOCOL_IDENTIFIER": "PROTO-1",
+            "RE_IDENTIFIER": "TEST_ONLY_RE",
+        })
+        self.assertIn("SMSCI_PPE", productive_resolve(
+            [candidate], self.current_identifiers()
+        ))
 
     def test_l1c_generic_historical_document_does_not_compete(self):
         current = {
-            "REQUEST_IDENTIFIER": "REQ-2",
-            "PROCESS_IDENTIFIER": "PROC-1",
-            "PROTOCOL_IDENTIFIER": "H0002",
+            "processId": "PROC-1",
+            "protocolIdentifier": "H0002",
+            "requestDate": "2026-08-03",
+            "reIdentifier": None,
         }
         current_document = self.current_document(
-            ("PPE",), identifiers=current
+            ("PPE",), identifiers={
+                "PROTOCOL_IDENTIFIER": "H0002",
+                "RE_IDENTIFIER": "TEST_ONLY_RE",
+            }
         )
         historical_generic = self.current_document(
-            identifiers={"PROCESS_IDENTIFIER": "PROC-1"}
+            identifiers={"RE_IDENTIFIER": "TEST_ONLY_RE"}
         )
         scope = productive_resolve(
             [current_document, historical_generic], current
@@ -438,19 +486,12 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             frozenset({"SMSCI_PPE", "SMSCI_IN19_APPLICABILITY_REVIEW"}),
         )
 
-    def test_l1d_strong_match_with_different_process_does_not_select(self):
-        current = {
-            "REQUEST_IDENTIFIER": "REQ-2",
-            "PROCESS_IDENTIFIER": "PROC-1",
-            "PROTOCOL_IDENTIFIER": "H0002",
-        }
-        inconsistent = self.current_document(
-            identifiers={
-                "REQUEST_IDENTIFIER": "REQ-2",
-                "PROCESS_IDENTIFIER": "PROC-OLD",
-                "PROTOCOL_IDENTIFIER": "H0002",
-            }
-        )
+    def test_l1d_re_mismatch_excludes_candidate(self):
+        current = self.current_identifiers()
+        inconsistent = self.current_document(identifiers={
+            "PROTOCOL_IDENTIFIER": "PROTO-1",
+            "RE_IDENTIFIER": "TEST_ONLY_OTHER_RE",
+        })
         with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
             productive_resolve([inconsistent], current)
 
@@ -544,7 +585,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             with self.subTest(request_date=request_date):
                 resolution = productive_resolution(
                     [self.current_document(("IEL",), request_date=request_date)],
-                    self.current_identifiers(),
+                    {**self.current_identifiers(), "requestDate": request_date},
                 )
                 applicable = applicable_requirement_ids(
                     self.requirement_records,
@@ -597,34 +638,30 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             criterion,
         )
 
-    def test_in19_54a_e_unresolved_selects_only_regime_review(self):
-        cases = (
+    def test_in19_54a_e_unresolved_requires_a_selected_candidate(self):
+        unverified = self.current_document(
+            ("IEL",), request_date_verifiable=False
+        )
+        resolution = productive_resolution([unverified], self.current_identifiers())
+        applicable = applicable_requirement_ids(
+            self.requirement_records,
+            resolution["process_smsci"],
+            resolution["in19_documentation_regime"],
+        )
+        self.assertEqual(resolution["in19_documentation_regime"], "UNRESOLVED")
+        self.assertEqual(
+            {item for item in applicable if item.startswith("REQ_IN19_")},
+            {"REQ_IN19_REGIME_REVIEW"},
+        )
+        for missing_or_invalid in (
             {"request_date": None},
             {"request_date": "24/04/2024"},
             {"request_date": "2024-02-30"},
-            {"request_date_verifiable": False},
-        )
-        for attributes in cases:
-            with self.subTest(attributes=attributes):
-                resolution = productive_resolution(
-                    [self.current_document(("IEL",), **attributes)],
-                    self.current_identifiers(),
-                )
-                applicable = applicable_requirement_ids(
-                    self.requirement_records,
-                    resolution["process_smsci"],
-                    resolution["in19_documentation_regime"],
-                )
-                self.assertEqual(
-                    resolution["in19_documentation_regime"], "UNRESOLVED"
-                )
-                self.assertEqual(
-                    {
-                        item for item in applicable
-                        if item.startswith("REQ_IN19_")
-                    },
-                    {"REQ_IN19_REGIME_REVIEW"},
-                )
+        ):
+            with self.subTest(attributes=missing_or_invalid):
+                candidate = self.current_document(("IEL",), **missing_or_invalid)
+                with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
+                    productive_resolution([candidate], self.current_identifiers())
         criterion = self.table4.split(
             "CRITERION T4_IN19_REGIME_REVIEW", 1
         )[1].split("END", 1)[0]
@@ -639,7 +676,6 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         cases = {
             "CURRENT": "2024-04-25",
             "LEGACY": "2024-04-24",
-            "UNRESOLVED": None,
         }
         expected = {
             "CURRENT": {
@@ -648,13 +684,12 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                 "REQ_IN19_FINAL_VERIFICATION",
             },
             "LEGACY": {"REQ_IN19_LEGACY_DOCUMENTATION"},
-            "UNRESOLVED": {"REQ_IN19_REGIME_REVIEW"},
         }
         for regime, request_date in cases.items():
             with self.subTest(regime=regime):
                 resolution = productive_resolution(
                     [self.current_document(("IEL",), request_date=request_date)],
-                    self.current_identifiers(),
+                    {**self.current_identifiers(), "requestDate": request_date},
                 )
                 applicable = applicable_requirement_ids(
                     self.requirement_records,
@@ -669,6 +704,13 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                     },
                     expected[regime],
                 )
+        self.assertEqual(
+            in19_documentation_regime(
+                {"request_date": None, "request_date_verifiable": False},
+                {"SMSCI_IEL": "POSITIVE"},
+            ),
+            "UNRESOLVED",
+        )
 
     def test_in19_54a_g_incomplete_section_blocks_before_regime(self):
         with self.assertRaisesRegex(ArchitecturalBlocker, "section"):
@@ -676,7 +718,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                 [
                     self.current_document(
                         ("IEL",), structurally_complete=False,
-                        request_date=None,
+                        request_date=self.current_identifiers()["requestDate"],
                     )
                 ],
                 self.current_identifiers(),
@@ -726,22 +768,22 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         self.assertNotIn("SMSCI_IN19_APPLICABILITY_REVIEW", self.reports)
 
     def test_in19_54a_k_only_request_date_is_authorized(self):
-        unresolved = productive_resolution(
-            [
-                self.current_document(
-                    ("IEL",),
-                    request_date=None,
-                    ppci_date="2019-01-01",
-                    art_date="2019-01-01",
-                    construction_attestation_date="2019-01-01",
-                    situation="NOVA",
-                )
-            ],
-            self.current_identifiers(),
+        missing_date = self.current_document(
+            ("IEL",),
+            request_date=None,
+            ppci_date="2019-01-01",
+            art_date="2019-01-01",
+            construction_attestation_date="2019-01-01",
+            situation="NOVA",
         )
         self.assertEqual(
-            unresolved["in19_documentation_regime"], "UNRESOLVED"
+            in19_documentation_regime(
+                missing_date, {"SMSCI_IEL": "POSITIVE"}
+            ),
+            "UNRESOLVED",
         )
+        with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
+            productive_resolution([missing_date], self.current_identifiers())
         self.assertIn("ATTRIBUTE REQUEST_DATE DATE", self.entities_text)
         for prohibited in (
             "PPCI, ART/RRT/TRT",
@@ -768,11 +810,19 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                 request_date=f"{year}-{month}-{day}",
             )
 
+        def submission_for(document):
+            return {
+                **self.current_identifiers(),
+                "requestDate": document["request_date"],
+            }
+
         etc = productive_resolution(
-            [extracted_fixture("ETC-10")], self.current_identifiers()
+            [extracted_fixture("ETC-10")],
+            submission_for(extracted_fixture("ETC-10")),
         )
         renata = productive_resolution(
-            [extracted_fixture("Renata")], self.current_identifiers()
+            [extracted_fixture("Renata")],
+            submission_for(extracted_fixture("Renata")),
         )
         etc_applicable = applicable_requirement_ids(
             self.requirement_records,

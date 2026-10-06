@@ -492,7 +492,7 @@ ATTRIBUTE REQUEST_DATE DATE
 
 ATTRIBUTE REQUEST_IDENTIFIER TEXT
 
-ATTRIBUTE PROCESS_IDENTIFIER TEXT
+ATTRIBUTE RE_IDENTIFIER TEXT
 
 ATTRIBUTE PROTOCOL_IDENTIFIER TEXT
 
@@ -502,12 +502,14 @@ COMPROVANTE DE SOLICITAÇÃO DE HABITE-SE
 
 DESCRIPTION
 
-Comprovante documental de uma solicitação de Habite-se. REQUEST_DATE é o fato
-documental extraído exclusivamente do campo "Data da Solicitação" do respectivo
-comprovante de origem; não expressa conclusão, início, previsão ou qualquer
-outro marco da obra. Os identificadores registrados são fatos documentais e
-permitem somente sua posterior vinculação à solicitação corrente; não
-determinam aplicabilidade.
+Comprovante documental de uma apresentação de solicitação de Habite-se.
+REQUEST_DATE é a data civil documental extraída exclusivamente do campo "Data
+da Solicitação" do comprovante de origem. PROTOCOL_IDENTIFIER identifica a
+cadeia/processo de Habite-se; REQUEST_DATE distingue apresentações e
+reapresentações dentro dessa cadeia. RE_IDENTIFIER identifica o endereço ou a
+edificação e serve somente como verificação de consistência. REQUEST_IDENTIFIER
+é legado/opcional, não é produzido por inferência e não participa da seleção
+produtiva da apresentação corrente nem determina applicability.
 
 END
 
