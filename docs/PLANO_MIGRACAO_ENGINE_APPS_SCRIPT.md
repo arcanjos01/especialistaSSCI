@@ -58,6 +58,7 @@ Concluído:
 - [x] INDEXED → EXTRACTION_PENDING.
 - [x] fake deterministic extraction.
 - [x] RDE 0.1.0 persistida e imutável.
+- [x] Fase 2.5 — contrato de identidade e projeção de registros RDE 0.2.0.
 - [x] validação estrutural e SHA-256 da RDE.
 - [x] processo de teste atingiu VALIDATED.
 - [x] arquitetura de migração registrada no AGENTS.md.
@@ -176,9 +177,34 @@ Checkpoint da execução:
 - Testes: `node tests/apps-script-execution-view.test.js` PASS; `node tests/apps-script-engine-core.test.js` PASS; `node tests/apps-script-rde-core.test.js` PASS; `python -m unittest discover -s tests -p 'test*.py'` PASS (120 testes); `git diff --check` PASS.
 - Decisões: a view recebe projeções explícitas com `TypedReference`, valor e provenance opcional; expõe somente `contains`, `read` e `provenance`; a ausência no índice lança erro técnico; provenance não fornecida retorna `undefined`, e `null` explícito permanece `null`. A view não retém a RDE nem duplica sua validação.
 - Limitações: RDE 0.1.0 mantém `facts` e `evidence` genéricos. A fixture `TEST_ONLY` usa projeção explícita para testar a infraestrutura; não há mapeamento produtivo desses campos para referências canônicas nem canonicalização CBMSC nesta fase.
-- Próxima fase autorizada: **Fase 3 — Applicability e frozen execution plan**. A Fase 3 não foi iniciada.
+- Próxima fase prevista à época: **Fase 3 — Applicability e frozen execution plan**, condicionada à resolução do contrato estrutural da RDE na Fase 2.5. A Fase 3 não foi iniciada.
+
+## 5.5 Fase 2.5 — RDE Record Identity & Projection Contract
+
+Status: **CONCLUÍDA**.
+
+Objetivo: formalizar identidade estrutural própria por registro RDE e sua
+projeção fechada para a immutable execution view, preservando a RDE 0.1.0
+persistida como histórico imutável.
+
+Checkpoint da execução:
+
+- Commit funcional: `968b8cf` (`feat(rde): add stable record identity contract`).
+- Commit checkpoint: registrado no histórico Git após este commit.
+- Schema RDE novo: `0.2.0`; coleções ordenadas de envelopes `record_id`, `entity_id`, `parent_record_id`, `source_document`, `attributes` e `provenance` opcional.
+- Execution View: referência primária 1:1 por registro (`kind` derivado de `TYPE`, `identifier` igual a `record_id`); APIs estruturais `entityId`, `parent`, `sourceDocument`, `referencesByEntity` e `children`; `read` expõe somente atributos.
+- Revisão independente: `SOL_REVIEW=PASS` no ciclo 3, após correções objetivas das notas do ciclo 2.
+- Testes: `node tests/apps-script-engine-core.test.js` PASS; `node tests/apps-script-execution-view.test.js` PASS; `node tests/apps-script-rde-core.test.js` PASS; `python -m unittest discover -s tests -p 'test*.py'` PASS (120 testes); sintaxe Node e `git diff --check` PASS.
+- Decisões: record identity é opaca, estrutural e não derivada de fatos/proveniência; pai e documento de origem são relações explícitas; valores de atributos precisam respeitar tipos declarados sem coerção ou validação de domínio ENUM; nenhum Requirement, Criterion, applicability ou resultado normativo é executado.
+- RDE 0.1.0: permanece imutável e é rejeitada pelo runtime que exige o envelope 0.2.0; nenhum caminho simula as relações ausentes.
+- Limitação: o parser operacional ainda não recebe catálogo de entidades; registros produtivos preenchidos dependem dessa integração futura. O fake determinístico vazio permanece compatível. A microfase não duplicou a Base no runtime.
+- Débitos preservados: não há migração de RDE 0.1.0; integrar futuramente catálogo canônico ao parser antes do uso produtivo de registros preenchidos; applicability e regras normativas permanecem fora desta microfase.
+- Gate: a Fase 3 permaneceu bloqueada até a conclusão e revisão desta microfase; com `SOL_REVIEW=PASS`, está agora autorizada.
+- Próxima fase autorizada: **Fase 3 — Applicability e frozen execution plan**. Ainda não iniciada.
 
 ## 6. Fase 3 — Applicability e frozen execution plan
+
+Status: **AUTORIZADA; NÃO INICIADA**.
 
 Objetivo: portar para JavaScript o planejamento determinístico anterior ao Engine.
 
