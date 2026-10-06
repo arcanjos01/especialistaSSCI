@@ -364,7 +364,7 @@ Próxima fase autorizada: **Fase 4 — Primeiro Criterion piloto**. Não iniciad
 
 ## 7. Fase 4 — Primeiro Criterion piloto
 
-Status: **IMPLEMENTADA — AGUARDANDO GATES FINAIS**.
+Status: **IMPLEMENTADA — AGUARDANDO REVISÃO SOL INDEPENDENTE**.
 
 Objetivo: executar um Criterion real da Base no runtime JavaScript sem ainda promover processos reais automaticamente.
 
@@ -424,19 +424,27 @@ Checkpoint de implementação:
   de `UNIT_KEY` no registro de resultado.
 - Commits da implementação:
   `1e63262f844f6f8085915e811620d0c5c66ad3f1`,
-  `bfcd9eba254003f5aea6d1434d2a9c1383cd6595` e
-  `dc61adbd8e012a7f292af561df5e64ba573e10a6`.
+  `bfcd9eba254003f5aea6d1434d2a9c1383cd6595`,
+  `dc61adbd8e012a7f292af561df5e64ba573e10a6` e
+  `6f68179f3273715b41581d06481df169fcd8ef97`.
+- O último hardening exige contrato compilado e plano profundamente congelados
+  antes da execução do Criterion.
+- Validação nativa executada em GitHub Actions sobre
+  `6f68179f3273715b41581d06481df169fcd8ef97`: 135 testes Python PASS; todos
+  os 6 testes `apps-script-*.test.js` PASS; `node --check` para todos os
+  módulos Apps Script PASS; regeneração byte-identical do
+  `CompiledRuntimeContract.js` PASS; `git diff --check` desde o baseline da
+  Fase 3 PASS.
+- O workflow temporário usado exclusivamente para executar esses gates foi
+  removido após a validação; não integra o runtime nem altera a arquitetura.
 - Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
   relatório, EXTRACTION real por LLM e OpenAI Decisions.
 
-Gates ainda pendentes para declarar a Fase 4 **CONCLUÍDA**:
+Gate ainda pendente para declarar a Fase 4 **CONCLUÍDA**:
 
-- executar a suíte nativa completa do repositório em checkout/CI, incluindo
-  todos os testes JS e `python -m unittest discover -s tests -p 'test*.py'`;
-- executar os gates nativos `node --check` e `git diff --check`;
 - revisão Sol arquitetural **independente** com `SOL_REVIEW=PASS`.
 
-Enquanto esses gates não forem satisfeitos, a Fase 5 não está autorizada.
+Enquanto esse gate não for satisfeito, a Fase 5 não está autorizada.
 
 ## 8. Fase 5 — Integração VALIDATED → ANALYZED
 
