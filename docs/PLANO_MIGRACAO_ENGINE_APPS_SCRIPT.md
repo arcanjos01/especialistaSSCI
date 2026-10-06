@@ -1,0 +1,406 @@
+# Plano de Migração — Engine determinístico JavaScript / Apps Script
+
+Status: ATIVO
+Branch de trabalho: feature/apps-script-engine-core
+Baseline arquitetural aprovado: 92e79c89e3a37ca0470b8fa42e8805842155dd53
+
+## 1. Objetivo
+
+Substituir completamente o Gem como ambiente operacional do Habite-se por um pipeline institucional baseado em Google Drive + Google Apps Script, mantendo LLM apenas na EXTRACTION/interpretação documental e executando Requirements/Criteria por Engine determinístico em JavaScript.
+
+Fluxo-alvo externo:
+
+~~~
+Drive
+→ Apps Script
+→ EXTRACTION
+→ RDE
+→ VALIDATION
+→ ANALYSIS / ENGINE
+→ REPORT
+→ decisão humana do vistoriador
+~~~
+
+Fluxo interno da execução normativa:
+
+~~~
+RDE validada
+→ immutable execution view (Process Memory contract)
+→ applicability
+→ frozen execution plan
+→ Criterion IR
+→ EngineResult
+→ normalização PipelineResult
+→ consolidação
+→ projeção operacional
+→ relatório
+~~~
+
+Este plano não substitui AGENTS.md, 00_engine, 08_execution_pipeline, Documento 09, Documento 10 ou Documento 11. Em conflito, prevalecem as fontes canônicas conforme o escopo definido no AGENTS.md.
+
+## 2. Governança
+
+- Luna implementa, testa e corrige.
+- Sol faz revisão arquitetural independente das etapas que alterem contratos, fronteiras ou semântica.
+- Mudança normativa exige decisão humana; não pode ser resolvida por inferência.
+- Não promover etapa com ARCHITECTURAL_CONFLICT.
+- Não fazer merge/deploy automático sem etapa de revisão correspondente.
+- Commits pequenos e coerentes.
+- Manter .codex-local-evidence/ fora do versionamento.
+- Não versionar .clasp.json ou .clasprc.json.
+
+## 3. Estado atual confirmado
+
+Concluído:
+
+- [x] Drive operacional e registry de processos.
+- [x] NEW → INDEXED.
+- [x] INDEXED → EXTRACTION_PENDING.
+- [x] fake deterministic extraction.
+- [x] RDE 0.1.0 persistida e imutável.
+- [x] validação estrutural e SHA-256 da RDE.
+- [x] processo de teste atingiu VALIDATED.
+- [x] arquitetura de migração registrada no AGENTS.md.
+- [x] Criterion IR mantido como contrato canônico.
+- [x] Process Memory redefinido como immutable execution view, sem persistência obrigatória.
+- [x] fronteira EngineResult → PipelineResult reconciliada.
+- [x] UNKNOWN → MANUAL_REVIEW definido apenas como normalização operacional rastreável.
+- [x] EVALUATED versus PROPAGATED definido para rastreabilidade.
+- [x] NOT_APPLICABLE em predicate permitido quando declarado no result contract.
+- [x] Apps Script/JavaScript definido como runtime operacional alvo.
+- [x] Python mantido apenas como referência/testes.
+- [x] revisão Sol arquitetural concluída com PASS.
+- [x] baseline promovido à main: 92e79c8.
+
+Ainda não concluído:
+
+- [ ] Engine JavaScript.
+- [ ] adapter RDE → immutable execution view.
+- [ ] materialização do plano de execução em JavaScript.
+- [ ] integração VALIDATED → ANALYZED.
+- [ ] execução de Criterion real no novo runtime.
+- [ ] real EXTRACTION por LLM.
+- [ ] geração operacional de relatório pelo novo pipeline.
+- [ ] validação end-to-end e retirada do Gem legado.
+
+## 4. Fase 1 — Núcleo determinístico JavaScript
+
+Objetivo: portar o contrato do Engine, não o código Python.
+
+Implementar em módulos pequenos e testáveis:
+
+- EngineResult: TRUE, FALSE, UNKNOWN, NOT_APPLICABLE, MANUAL_REVIEW.
+- PipelineResult: PASS, FAIL, NOT_APPLICABLE, MANUAL_REVIEW.
+- TypedReference.
+- ArgumentSpec / ArgumentSchema.
+- PredicateContract.
+- PredicateRegistry estático.
+- ResolverContext.
+- Criterion IR.
+- Trace.
+- Expression: PredicateCall, EXISTS, ALL, OR, FOR_EACH.
+- composição determinística conforme Documento 10.
+- validação de result contract.
+- normalização EngineResult → PipelineResult.
+- distinção EVALUATED / PROPAGATED.
+
+Restrições:
+
+- nenhuma regra específica de CBMSC no núcleo;
+- nenhuma leitura de Drive/PDF;
+- nenhuma chamada de IA;
+- nenhuma alteração de RDE;
+- nenhuma criação de Requirement/Criterion/Nonconformity;
+- nenhum avanço de status de processo;
+- nenhuma execução da Base real nesta fase.
+
+Saída esperada:
+
+- testes Node determinísticos;
+- fixtures sintéticas;
+- equivalência semântica documentada com o Engine Python onde ele continuar compatível;
+- divergências Python classificadas como LEGACY_REFERENCE, não copiadas automaticamente.
+
+Gate de saída:
+
+- todos os testes JS passam;
+- suíte Python existente continua passando;
+- git diff --check passa;
+- Sol revisa o núcleo e retorna SOL_REVIEW=PASS.
+
+## 5. Fase 2 — Immutable execution view
+
+Objetivo: disponibilizar ao Engine uma view read-only da RDE validada.
+
+Implementar:
+
+- adapter de RDE validada para o contrato de execution view;
+- acesso somente por interfaces autorizadas;
+- canonicalização necessária;
+- TypedReference;
+- proveniência até source/evidence;
+- proteção contra mutação;
+- distinção entre campo ausente, null, false, zero e string vazia quando relevante ao contrato.
+
+Restrições:
+
+- não persistir uma segunda cópia da RDE apenas para criar Process Memory;
+- predicates não podem navegar arbitrariamente pela estrutura crua da RDE;
+- não reabrir documentos-fonte;
+- não completar fatos ausentes.
+
+Gate de saída:
+
+- testes de imutabilidade;
+- testes de provenance;
+- testes de ausência/null/false/0;
+- Sol PASS se houver mudança de contrato.
+
+## 6. Fase 3 — Applicability e frozen execution plan
+
+Objetivo: portar para JavaScript o planejamento determinístico anterior ao Engine.
+
+Implementar conforme os contratos existentes:
+
+- applicability declarativa;
+- PROCESS.SMSCI quando aplicável;
+- APPLICABLE_REQUIREMENTS;
+- COMPILED_EXECUTION_INDEX;
+- PLANNED_EXECUTION_UNITS;
+- ordem congelada;
+- ITERATION_DOMAIN;
+- Plan-to-Results invariants.
+
+Não implementar:
+
+- nova forma de applicability;
+- agregação inventada de Requirement;
+- seleção por plausibilidade;
+- atalhos que pulem Phase 3/4.
+
+Gate de saída:
+
+- plano determinístico para fixtures sintéticas;
+- repetição produz sequência idêntica;
+- erro de integridade não é convertido em resultado normativo;
+- testes específicos de ordem, duplicidade, ausência e binding.
+
+## 7. Fase 4 — Primeiro Criterion piloto
+
+Objetivo: executar um Criterion real da Base no runtime JavaScript sem ainda promover processos reais automaticamente.
+
+Seleção do piloto deve privilegiar:
+
+- regra simples;
+- boa cobertura documental;
+- predicate já formalizado;
+- baixo risco semântico;
+- rastreabilidade completa;
+- nenhuma dependência de decisão arquitetural pendente.
+
+Antes de selecionar:
+
+- auditar Requirement → Criterion → predicate → Nonconformity;
+- confirmar applicability;
+- confirmar evidência necessária;
+- confirmar que o Anexo A não é afetado.
+
+Executar o mesmo conjunto de fixtures no Python de referência quando comparável.
+
+Gate de saída:
+
+- resultado equivalente dentro do contrato;
+- trace completo;
+- nenhum acesso fora da execution view;
+- Sol PASS.
+
+## 8. Fase 5 — Integração VALIDATED → ANALYZED
+
+Objetivo: conectar o Engine ao workflow Apps Script.
+
+Implementar somente após as fases 1–4:
+
+- leitura da RDE validada;
+- construção da execution view;
+- applicability;
+- frozen plan;
+- execução;
+- normalização;
+- consolidação;
+- persistência do artefato de análise, se o contrato exigir;
+- transição atômica VALIDATED → ANALYZED.
+
+Requisitos:
+
+- idempotência;
+- não reprocessar ANALYZED;
+- erro não pode corromper RDE;
+- erro não pode fabricar resultado;
+- status só muda após validação completa da saída;
+- manter ERROR separado de resultado normativo.
+
+Primeiro teste: somente processo controlado/fixture. Não usar a fake RDE vazia para produzir conclusão normativa.
+
+## 9. Fase 6 — Cobertura progressiva da Base
+
+Objetivo: migrar Criteria reais individualmente.
+
+Para cada Criterion:
+
+1. verificar contrato canônico;
+2. verificar predicate(s);
+3. verificar argumentos tipados;
+4. verificar applicability;
+5. verificar Nonconformity associada;
+6. criar fixtures positivas, negativas e insuficientes;
+7. testar TRUE/FALSE/UNKNOWN/MANUAL_REVIEW/NOT_APPLICABLE quando aplicável;
+8. verificar trace;
+9. comparar com referência quando útil;
+10. promover somente após testes.
+
+Não fazer migração em massa sem evidência de estabilidade.
+
+## 10. Fase 7 — EXTRACTION real por LLM
+
+Objetivo: substituir o extractor fake mantendo a fronteira arquitetural.
+
+A IA pode:
+
+- ler documentos;
+- identificar tipos;
+- extrair fatos explícitos;
+- preencher atributos previstos;
+- preservar origem/página/trecho;
+- registrar incerteza documental.
+
+A IA não pode:
+
+- executar Requirement/Criterion;
+- produzir conformidade;
+- produzir Nonconformity;
+- completar dado ausente;
+- usar conhecimento externo para inferir fatos;
+- decidir applicability normativa.
+
+Requisitos antes de uso institucional:
+
+- política de privacidade e tratamento de dados aprovada;
+- structured output;
+- validação de schema;
+- provenance;
+- tratamento explícito de conflitos;
+- testes com documentos reais anonimizados/controlados;
+- estratégia para assinatura: indicação documental separada de validação criptográfica.
+
+## 11. Fase 8 — Relatório operacional
+
+Objetivo: gerar relatório somente a partir de resultados consolidados.
+
+Implementar:
+
+- STATUS;
+- pendências e-SCI;
+- tratamento humano;
+- identificação disponível;
+- documentos analisados;
+- resumo das verificações;
+- observações;
+- rodapé e versão da Base.
+
+Proibido:
+
+- reabrir PDF;
+- criar evidência;
+- executar Criterion;
+- modificar resultado;
+- inventar causa/subcausa;
+- converter FAIL em MANUAL_REVIEW.
+
+Gate de saída:
+
+- projeção determinística;
+- contadores consistentes;
+- testes de FAIL sem projeção IRV;
+- testes de MANUAL_REVIEW;
+- testes de UNKNOWN normalizado;
+- nenhum identificador interno indevido no relatório operacional.
+
+## 12. Fase 9 — End-to-end e promoção operacional
+
+Cenários mínimos:
+
+- processo conforme;
+- processo com FAIL;
+- processo com MANUAL_REVIEW;
+- processo com UNKNOWN normalizado;
+- processo com NOT_APPLICABLE;
+- documento ausente;
+- documento ilegível/inconclusivo;
+- conflito documental;
+- falha de integridade;
+- reexecução idempotente.
+
+Validar:
+
+~~~
+NEW
+→ INDEXED
+→ EXTRACTION_PENDING
+→ EXTRACTED
+→ VALIDATED
+→ ANALYZED
+→ REPORT_GENERATED
+→ DONE
+~~~
+
+Somente depois:
+
+- revisão Sol completa;
+- homologação humana;
+- comparação com processos analisados manualmente;
+- decisão explícita de promoção;
+- retirada do Gem como executor operacional legado.
+
+## 13. Estratégia de commits
+
+Preferir commits por capacidade:
+
+- feat(engine): add JavaScript criterion IR core
+- feat(engine): add immutable execution view adapter
+- feat(engine): materialize deterministic execution plan
+- feat(engine): execute pilot criterion
+- feat(apps-script): analyze validated processes
+- feat(extraction): add real RDE extraction provider
+- feat(report): generate operational analysis report
+
+Não usar esses nomes obrigatoriamente se o conteúdo real pedir divisão menor.
+
+## 14. Regra de checkpoint
+
+Ao final de cada fase, atualizar este arquivo apenas com:
+
+- status da fase;
+- commit promovido;
+- testes principais;
+- decisão Sol;
+- pendências abertas;
+- próxima fase autorizada.
+
+Não transformar este plano em changelog detalhado.
+
+## 15. Próxima ação autorizada
+
+Próxima etapa:
+
+Fase 1 — Núcleo determinístico JavaScript.
+
+Escopo imediato:
+
+- implementação isolada;
+- fixtures sintéticas;
+- sem Drive;
+- sem Apps Script orchestration;
+- sem mudança de status;
+- sem Base normativa real;
+- Luna implementa em ciclos;
+- Sol revisa antes de promover.
