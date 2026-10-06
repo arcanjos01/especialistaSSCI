@@ -202,6 +202,67 @@ Checkpoint da execução:
 - Gate: a Fase 3 permaneceu bloqueada até a conclusão e revisão desta microfase; com `SOL_REVIEW=PASS`, está agora autorizada.
 - Próxima fase autorizada: **Fase 3 — Applicability e frozen execution plan**. Ainda não iniciada.
 
+## 5.6 Fase 2.6 — Current Submission Context Contract
+
+Status: **CONCLUÍDA**.
+
+Decisão arquitetural confirmada para o fluxo de Habite-se do e-SCI:
+
+- `PROTOCOL_IDENTIFIER` identifica a cadeia/processo e pode permanecer estável
+  entre indeferimento e reapresentação;
+- `REQUEST_DATE` identifica a data civil de cada apresentação;
+- a chave operacional da apresentação é `PROTOCOL_IDENTIFIER + REQUEST_DATE`;
+- `RE_IDENTIFIER`, quando disponível nos dois lados, é somente verificação de
+  consistência;
+- `REQUEST_IDENTIFIER` não participa do matching produtivo;
+- `processId` identifica somente o processo técnico interno e não participa do
+  matching documental.
+
+O `CurrentSubmissionContext` é metadata operacional de intake, imutável e com
+proveniência `sourceKind`/`sourceReference`; não integra a RDE nem é evidência.
+O matcher consome a ImmutableExecutionView e o contexto, compara protocolo e
+data civil canônica, aplica a consistência opcional do RE e bloqueia zero ou
+múltiplos candidatos. O matcher não executa applicability nem produz
+`PROCESS.SMSCI`.
+
+Implementação: `apps-script/CurrentSubmissionContextCore.js`, marca de
+autenticidade da view em `apps-script/ExecutionViewCore.js` e
+`tests/apps-script-current-submission-context.test.js`. O fixture Python de
+referência foi alinhado ao protocolo + data e mantém `REQUEST_IDENTIFIER`
+somente como campo legado sem efeito de seleção.
+
+Checkpoint da execução:
+
+- Commit funcional: `d50cfbf64620a3c90885f13321947434987783fb`
+  (`feat(engine): add current submission context contract`).
+- Revisão independente: `SOL_REVIEW=PASS` no ciclo 4.
+- Testes: `node tests/apps-script-engine-core.test.js` PASS;
+  `node tests/apps-script-execution-view.test.js` PASS;
+  `node tests/apps-script-rde-core.test.js` PASS;
+  `node tests/apps-script-current-submission-context.test.js` PASS;
+  `python -m unittest discover -s tests -p 'test*.py'` PASS (121 testes);
+  `node --check apps-script/CurrentSubmissionContextCore.js` PASS;
+  `git diff --check` PASS.
+- Decisões: submission identity é `PROTOCOL_IDENTIFIER + REQUEST_DATE`;
+  `RE_IDENTIFIER` é consistency check; `processId` e `REQUEST_IDENTIFIER` não
+  selecionam. Contexto e provenance operacional ficam fora da RDE. A entidade
+  usa `RE_IDENTIFIER`; o campo `REQUEST_IDENTIFIER` permanece legado/opcional
+  por compatibilidade, mas deixou de ser extraído como requisito ou usado no
+  matching. RDE 0.2.0 foi preservada.
+- Limitações: a fonte produtiva do contexto ainda depende de e-SCI import ou
+  captura operacional confirmada. O registry não foi alterado.
+- Ciclos Luna→Sol: 4; SOL_REVIEW final: PASS.
+- Arquitetural conflict: 0. Não houve mudança normativa nem alteração de
+  Requirement, Criterion, Nonconformity ou Anexo A.
+
+Dívida para integração: fornecer `PROTOCOL_IDENTIFIER`, `REQUEST_DATE`,
+`RE_IDENTIFIER` quando disponível e `REQUEST_CONTEXT_SOURCE` por e-SCI ou
+captura operacional confirmada antes de `VALIDATED → ANALYZED`. Esta microfase
+não altera fisicamente o registry e não deriva contexto de filename.
+
+Fase 3 permanece autorizada e não iniciada; nenhuma applicability ou
+PROCESS.SMSCI foi executada nesta microfase.
+
 ## 6. Fase 3 — Applicability e frozen execution plan
 
 Status: **AUTORIZADA; NÃO INICIADA**.
