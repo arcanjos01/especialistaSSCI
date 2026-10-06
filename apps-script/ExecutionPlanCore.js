@@ -8,6 +8,15 @@ class ExecutionIntegrityError extends Error {
   }
 }
 
+const EXECUTION_PLAN_PROVENANCE = new WeakMap();
+
+function isCanonicalFrozenExecutionPlan(plan, contract) {
+  const provenance = EXECUTION_PLAN_PROVENANCE.get(plan);
+  return !!provenance && provenance.contract === contract &&
+    Object.isFrozen(plan) && Array.isArray(plan.PLANNED_EXECUTION_UNITS) &&
+    Object.isFrozen(plan.PLANNED_EXECUTION_UNITS);
+}
+
 function planFreeze_(value, seen) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   const active = seen || [];
@@ -368,7 +377,9 @@ function materializeFrozenExecutionPlan(contract, resolution) {
     ITERATION_DOMAINS: materialized.units.filter(unit => unit.iterationDomain !== null)
       .map(unit => ({ unitKey: unit.unitKey, source: unit.iterationSource, values: unit.iterationDomain.slice() })),
   };
-  return planFreeze_(plan);
+  const frozenPlan = planFreeze_(plan);
+  EXECUTION_PLAN_PROVENANCE.set(frozenPlan, Object.freeze({ contract }));
+  return frozenPlan;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -376,5 +387,6 @@ if (typeof module !== 'undefined' && module.exports) {
     ExecutionIntegrityError,
     materializeFrozenExecutionPlan,
     validateExecutionPlanIntegrity,
+    isCanonicalFrozenExecutionPlan,
   };
 }

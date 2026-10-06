@@ -136,6 +136,32 @@ END
             },
         )
 
+    def test_inline_assert_rejects_residual_expression(self):
+        source = """
+CRITERION TEST_INLINE_RESIDUAL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT EXISTS(TEST_DOCUMENT)
+EXISTS(ANOTHER_DOCUMENT)
+FAIL NC_TEST
+END
+"""
+        with self.assertRaisesRegex(ValueError, "conteúdo residual ASSERT"):
+            self.builder._parse_criterion_metadata(source)
+
+    def test_inline_manual_review_rejects_residual_expression(self):
+        source = """
+CRITERION TEST_INLINE_REVIEW_RESIDUAL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT MANUAL_REVIEW
+EXISTS(TEST_DOCUMENT)
+MANUAL_REVIEW "TEST_ONLY"
+END
+"""
+        with self.assertRaisesRegex(ValueError, "conteúdo residual ASSERT"):
+            self.builder._parse_criterion_metadata(source)
+
     def test_structured_index_reuses_canonical_compiler_unit_keys_and_order(self):
         requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
         criteria_texts = tuple(

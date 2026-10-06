@@ -223,6 +223,18 @@ def _parse_assert_call(source: str, identifier: str) -> dict[str, object]:
     }
 
 
+def _reject_assert_residual_lines(lines: list[str], identifier: str) -> None:
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped == "END" or re.match(r"^(?:FAIL|MANUAL_REVIEW)\b", stripped):
+            return
+        raise ValueError(
+            f"conteúdo residual ASSERT não reconhecido em {identifier}: {stripped}"
+        )
+
+
 def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
     declaration = re.search(r"^ASSERT(?:[ \t]+(.*?))?\s*$", block, re.M)
     if not declaration:
@@ -251,17 +263,22 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
         }
 
     if inline == "MANUAL_REVIEW":
+        _reject_assert_residual_lines(remainder.splitlines(), identifier)
         return {"type": "LITERAL", "value": "MANUAL_REVIEW"}
 
     if inline:
         source = inline
+        remainder_lines = remainder.splitlines()
+        consumed_lines = 0
         if source.count("(") > source.count(")"):
-            for line in remainder.splitlines():
+            for index, line in enumerate(remainder_lines):
                 source += "\n" + line
+                consumed_lines = index + 1
                 if source.count("(") == source.count(")"):
                     break
         if source.count("(") != source.count(")"):
             raise ValueError(f"parênteses ASSERT desbalanceados em {identifier}")
+        _reject_assert_residual_lines(remainder_lines[consumed_lines:], identifier)
         return _parse_assert_call(source, identifier)
 
     expression_lines: list[str] = []

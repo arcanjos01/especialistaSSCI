@@ -2,11 +2,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const contract = require('../apps-script/CompiledRuntimeContract.js');
-
 const context = {};
 vm.createContext(context);
 for (const relativePath of [
+  '../apps-script/CompiledRuntimeContract.js',
   '../apps-script/EngineCore.js',
   '../apps-script/RdeCore.js',
   '../apps-script/ExecutionViewCore.js',
@@ -19,6 +18,7 @@ for (const relativePath of [
 }
 vm.runInContext(
   'globalThis.api = {' +
+  'COMPILED_RUNTIME_CONTRACT,' +
   'EngineResult,' +
   'projectRdeToExecutionView_,' +
   'createCurrentSubmissionContext,' +
@@ -31,6 +31,7 @@ vm.runInContext(
   context
 );
 const api = context.api;
+const contract = api.COMPILED_RUNTIME_CONTRACT;
 
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
 
@@ -98,7 +99,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(pilotMetadata.assertIr)), {
   arguments: [{ type: 'SYMBOL', value: 'GAS_OWNER_MANUAL' }]
 });
 assert.equal(pilotMetadata.sourceFile, '04_table4.txt');
-assert.deepEqual(pilotMetadata.failNonconformities, ['NC_T4_003']);
+assert.deepEqual(JSON.parse(JSON.stringify(pilotMetadata.failNonconformities)), ['NC_T4_003']);
 
 const positive = prepare({ includeGas: true, includeManual: true });
 assert.equal(positive.plan.PLANNED_EXECUTION_UNITS.some(unit => unit.unitKey === PILOT_UNIT), true);
@@ -146,16 +147,23 @@ assert.throws(() => api.executePlannedCriterion(
   contract, notApplicable.plan, PILOT_UNIT, notApplicable.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
-const tamperedPlan = JSON.parse(JSON.stringify(negative.plan));
-const tamperedUnit = tamperedPlan.PLANNED_EXECUTION_UNITS.find(unit => unit.unitKey === PILOT_UNIT);
-tamperedUnit.nonconformityReferences.criterionFail = [];
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach(key => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+
+const forgedPlan = deepFreeze(JSON.parse(JSON.stringify(negative.plan)));
+assert.equal(Object.isFrozen(forgedPlan.PLANNED_EXECUTION_UNITS), true);
 assert.throws(() => api.executePlannedCriterion(
-  contract, tamperedPlan, PILOT_UNIT, negative.view
+  contract, forgedPlan, PILOT_UNIT, negative.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 const tamperedContract = JSON.parse(JSON.stringify(contract));
 const tamperedCriterion = tamperedContract.criteria.find(item => item.criterionId === 'T4_IN08_MANUAL');
-tamperedCriterion.assertIr.arguments[0].value = 'TEST_ONLY_UNKNOWN_ENTITY';
+tamperedCriterion.assertIr.arguments[0].value = 'MANUAL';
+deepFreeze(tamperedContract);
+assert.equal(Object.isFrozen(tamperedContract.criteria), true);
 assert.throws(() => api.executePlannedCriterion(
   tamperedContract, positive.plan, PILOT_UNIT, positive.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
