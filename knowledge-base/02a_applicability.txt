@@ -37,11 +37,15 @@ The exclusive productive source is exactly one document with:
 - a complete, legible and verifiable structural representation of that section.
 
 Select exactly one comprovante for the current request using the immutable
-CurrentSubmissionContext supplied by operational intake. That context is
-separate from the RDE and contains processId, protocolIdentifier, requestDate,
-optional reIdentifier and operational provenance. Its protocol and civil
-request date must be present, valid and immutable before matching. processId is
-a technical pipeline identifier and does not participate in document matching.
+CurrentSubmissionContext supplied transiently with the case by operational
+intake. That request-scoped context is separate from the RDE and contains
+protocolIdentifier, requestDate, optional reIdentifier and operational
+provenance. Its protocol and civil request date must be present, valid and
+immutable before matching. An optional processId is only a technical execution
+correlation identifier; it is not an administrative process identifier and
+does not participate in document matching. The specialist does not retrieve
+this context from prior executions or maintain an administrative process
+registry.
 
 A candidate from ImmutableExecutionView matches only when its exact
 PROTOCOL_IDENTIFIER equals CurrentSubmissionContext.protocolIdentifier and its
@@ -207,20 +211,19 @@ IN19 DOCUMENTATION REGIME RESOLUTION
 Only after the explicit positive SMSCI_IEL decision, resolve exactly one
 internal IN19_DOCUMENTATION_REGIME before selecting any IN19 Requirement:
 
-- REQUEST_DATE documentally extracted from the selected comprovante, in a
-  complete, legible, verifiable and safely comparable DATE representation, is
-  less than or equal to 2024-04-24: LEGACY;
-- the same REQUEST_DATE greater than 2024-04-24: CURRENT;
-- absent, incomplete, illegible, unverifiable or not safely comparable
-  REQUEST_DATE: UNRESOLVED.
+- the already-selected comprovante's canonical REQUEST_DATE is less than or
+  equal to 2024-04-24: LEGACY;
+- that same canonical REQUEST_DATE is greater than 2024-04-24: CURRENT.
 
-The only authorized automatic input is the selected comprovante REQUEST_DATE.
-Do not use PPCI, ART/RRT/TRT, atestado, previsão, início, conclusion date,
-textual mention of obra nova or any other document or date. This resolution
-does not change the selected document, PROCESS.SMSCI, WORKLIST.SMSCI or the
-official SMSCI_IEL decision. When SMSCI_IEL is negative, do not resolve an
-IN19_DOCUMENTATION_REGIME and preserve the declared IN19 applicability-review
-path.
+Only a comprovante with a canonical REQUEST_DATE exactly matching the required
+CurrentSubmissionContext date can be selected. A missing, invalid, unverifiable
+or non-comparable request date therefore blocks before this regime resolution;
+none of those cases produces UNRESOLVED or reaches an IN19 Requirement. The only
+authorized automatic input is the selected comprovante REQUEST_DATE. Do not use
+PPCI, ART/RRT/TRT, atestado, previsão, início, conclusion date, textual mention of obra nova
+or any other document or date. When SMSCI_IEL is negative, do not
+resolve an IN19_DOCUMENTATION_REGIME and preserve the declared IN19
+applicability-review path.
 
 For a positive SMSCI_IEL decision, select IN19 Requirements only by their
 declared IN19_DOCUMENTATION_REGIME in addition to their SMSCI metadata:
@@ -228,10 +231,13 @@ declared IN19_DOCUMENTATION_REGIME in addition to their SMSCI metadata:
 - CURRENT selects only REQ_IN19_EXECUTION, REQ_IN19_GROUNDING and
   REQ_IN19_FINAL_VERIFICATION;
 - LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION;
-- UNRESOLVED selects only REQ_IN19_REGIME_REVIEW.
+- the existing UNRESOLVED value and REQ_IN19_REGIME_REVIEW /
+  T4_IN19_REGIME_REVIEW remain LEGACY_REFERENCE / NOT_PRODUCTIVELY_REACHABLE
+  in this strict-matching architecture. They are not selected or planned.
 
 No IN19 Requirement declared for another regime is applicable. A regime is not
-derived from a Criterion result, including UNKNOWN. The required chain is
+derived from a Criterion result, including UNKNOWN. No productive regime other
+than LEGACY or CURRENT is emitted for positive SMSCI_IEL. The required chain is
 SMSCI_IEL -> IN19_DOCUMENTATION_REGIME -> APPLICABLE_REQUIREMENTS ->
 COMPILED_EXECUTION_INDEX -> PLANNED_EXECUTION_UNITS.
 

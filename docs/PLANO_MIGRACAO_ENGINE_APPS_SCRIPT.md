@@ -53,7 +53,8 @@ Este plano não substitui AGENTS.md, 00_engine, 08_execution_pipeline, Documento
 
 Concluído:
 
-- [x] Drive operacional e registry de processos.
+- [x] Drive operacional e registry técnico de workflow/fila/idempotência do
+  protótipo; não é cadastro de processos do e-SCI nem fonte do protocolo.
 - [x] NEW → INDEXED.
 - [x] INDEXED → EXTRACTION_PENDING.
 - [x] fake deterministic extraction.
@@ -215,14 +216,29 @@ Decisão arquitetural confirmada para o fluxo de Habite-se do e-SCI:
 - `RE_IDENTIFIER`, quando disponível nos dois lados, é somente verificação de
   consistência;
 - `REQUEST_IDENTIFIER` não participa do matching produtivo;
-- `processId` identifica somente o processo técnico interno e não participa do
-  matching documental.
+- `processId`, quando fornecido, identifica somente correlação/execução técnica;
+  é opcional no contrato conceitual produtivo e não participa do matching.
 
-O `CurrentSubmissionContext` é metadata operacional de intake, imutável e com
-proveniência `sourceKind`/`sourceReference`; não integra a RDE nem é evidência.
-O matcher consome a ImmutableExecutionView e o contexto, compara protocolo e
-data civil canônica, aplica a consistência opcional do RE e bloqueia zero ou
-múltiplos candidatos. O matcher não executa applicability nem produz
+O Especialista e-SCI é stateless quanto aos processos administrativos: o
+e-SCI/SCI institucional é o system of record. Cada invocação fornece o caso e
+um `CurrentSubmissionContext` transitório, imutável e com proveniência
+`sourceKind`/`sourceReference`; o contexto não integra a RDE nem é evidência.
+O especialista não mantém cadastro/histórico de protocolos nem consulta
+execuções anteriores. Cada execução analisa um snapshot fechado de contexto,
+documentos/RDE e Base versionada; uma reapresentação é uma nova execução.
+
+A fronteira alvo é `e-SCI invocation / case intake → CurrentSubmissionContext
+→ immutable input da execução`. A integração poderá fornecer contexto junto
+com documentos, sem definir aqui API ou formato definitivo. O registry do
+protótipo permanece apenas infraestrutura técnica de workflow/fila/idempotência:
+não é cadastro de processos, histórico administrativo, fonte canônica do
+protocolo ou memória do especialista, e seu schema não será ampliado nesta
+etapa.
+
+O matcher consome a ImmutableExecutionView e o contexto daquela invocação,
+compara protocolo e data civil canônica, aplica a consistência opcional do RE
+e bloqueia zero ou múltiplos candidatos. Não usa `processId` nem consulta
+resultado de execução anterior; não executa applicability nem produz
 `PROCESS.SMSCI`.
 
 Implementação: `apps-script/CurrentSubmissionContextCore.js`, marca de
@@ -249,16 +265,17 @@ Checkpoint da execução:
   usa `RE_IDENTIFIER`; o campo `REQUEST_IDENTIFIER` permanece legado/opcional
   por compatibilidade, mas deixou de ser extraído como requisito ou usado no
   matching. RDE 0.2.0 foi preservada.
-- Limitações: a fonte produtiva do contexto ainda depende de e-SCI import ou
-  captura operacional confirmada. O registry não foi alterado.
+- Limitações: a integração futura ainda deverá entregar o contexto transitório
+  junto ao caso, por invocation/intake do e-SCI ou captura operacional
+  confirmada. O registry permanece técnico e não foi ampliado.
 - Ciclos Luna→Sol: 4; SOL_REVIEW final: PASS.
 - Arquitetural conflict: 0. Não houve mudança normativa nem alteração de
   Requirement, Criterion, Nonconformity ou Anexo A.
 
-Dívida para integração: fornecer `PROTOCOL_IDENTIFIER`, `REQUEST_DATE`,
-`RE_IDENTIFIER` quando disponível e `REQUEST_CONTEXT_SOURCE` por e-SCI ou
-captura operacional confirmada antes de `VALIDATED → ANALYZED`. Esta microfase
-não altera fisicamente o registry e não deriva contexto de filename.
+Dívida para integração: receber `PROTOCOL_IDENTIFIER`, `REQUEST_DATE`,
+`RE_IDENTIFIER` quando disponível e provenance operacional junto ao caso em
+cada invocation/intake do e-SCI, antes de `VALIDATED → ANALYZED`. Não persistir
+esses valores como cadastro no registry e não derivar contexto de filename.
 
 Fase 3 permanece autorizada e não iniciada; nenhuma applicability ou
 PROCESS.SMSCI foi executada nesta microfase.

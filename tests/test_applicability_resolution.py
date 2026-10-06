@@ -45,17 +45,10 @@ def in19_documentation_regime(document, decisions):
     """Resolve only the declared pre-execution IN19 selection value."""
     if decisions["SMSCI_IEL"] != "POSITIVE":
         return None
-    if document.get("request_date_verifiable") is not True:
-        return "UNRESOLVED"
     request_date = document.get("request_date")
-    if not isinstance(request_date, str):
-        return "UNRESOLVED"
-    try:
-        parsed = date.fromisoformat(request_date)
-    except ValueError:
-        return "UNRESOLVED"
-    if request_date != parsed.isoformat():
-        return "UNRESOLVED"
+    if not canonical_civil_date(request_date):
+        raise ArchitecturalBlocker("document selection")
+    parsed = date.fromisoformat(request_date)
     return "LEGACY" if parsed <= IN19_VIGENCY else "CURRENT"
 
 
@@ -190,7 +183,10 @@ def applicable_requirement_ids(metadata, process_smsci, in19_regime=None):
         if (fields["SMSCI"] is None or fields["SMSCI"] in process_smsci)
         and (
             fields["IN19_DOCUMENTATION_REGIME"] is None
-            or fields["IN19_DOCUMENTATION_REGIME"] == in19_regime
+            or (
+                fields["IN19_DOCUMENTATION_REGIME"] in ("CURRENT", "LEGACY")
+                and fields["IN19_DOCUMENTATION_REGIME"] == in19_regime
+            )
         )
     }
 
@@ -256,7 +252,6 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             "verifiable": True,
             "official_codes": tuple(codes),
             "request_date": self.current_identifiers()["requestDate"],
-            "request_date_verifiable": True,
             "trace": {
                 "process_memory_fact": "PM.COMPROVANTE.REQ-1.SMSCI",
                 "rde_record": "RDE.COMPROVANTE.REQ-1.SMSCI",
@@ -579,6 +574,10 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         )
         self.assertNotIn("REQ_IN19_LEGACY_DOCUMENTATION", applicable)
         self.assertNotIn("REQ_IN19_REGIME_REVIEW", applicable)
+        self.assertNotIn(
+            "T4_IN19_REGIME_REVIEW",
+            selected_criterion_ids(self.criterion_records, applicable),
+        )
 
     def test_in19_54a_c_legacy_boundary_selects_only_legacy(self):
         for request_date in ("2024-04-23", "2024-04-24"):
@@ -609,6 +608,39 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                     "REQ_IN19_REGIME_REVIEW",
                 ):
                     self.assertNotIn(requirement, applicable)
+                self.assertNotIn(
+                    "T4_IN19_REGIME_REVIEW",
+                    selected_criterion_ids(self.criterion_records, applicable),
+                )
+
+    def test_in19_54a_c1_current_boundary_is_2024_04_25(self):
+        request_date = "2024-04-25"
+        resolution = productive_resolution(
+            [self.current_document(("IEL",), request_date=request_date)],
+            {**self.current_identifiers(), "requestDate": request_date},
+        )
+        applicable = applicable_requirement_ids(
+            self.requirement_records,
+            resolution["process_smsci"],
+            resolution["in19_documentation_regime"],
+        )
+        self.assertEqual(resolution["in19_documentation_regime"], "CURRENT")
+        self.assertIn("REQ_IN19_EXECUTION", applicable)
+        self.assertNotIn("REQ_IN19_REGIME_REVIEW", applicable)
+        self.assertNotIn(
+            "T4_IN19_REGIME_REVIEW",
+            selected_criterion_ids(self.criterion_records, applicable),
+        )
+        self.assertEqual(
+            self.requirement_records["REQ_IN19_REGIME_REVIEW"][
+                "IN19_DOCUMENTATION_REGIME"
+            ],
+            "UNRESOLVED",
+        )
+        unresolved_reference = applicable_requirement_ids(
+            self.requirement_records, resolution["process_smsci"], "UNRESOLVED"
+        )
+        self.assertNotIn("REQ_IN19_REGIME_REVIEW", unresolved_reference)
 
     def test_in19_54a_d_legacy_execution_passes_other_paths_review(self):
         self.assertEqual(legacy_documentation_result(True), "PASS")
@@ -638,21 +670,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             criterion,
         )
 
-    def test_in19_54a_e_unresolved_requires_a_selected_candidate(self):
-        unverified = self.current_document(
-            ("IEL",), request_date_verifiable=False
-        )
-        resolution = productive_resolution([unverified], self.current_identifiers())
-        applicable = applicable_requirement_ids(
-            self.requirement_records,
-            resolution["process_smsci"],
-            resolution["in19_documentation_regime"],
-        )
-        self.assertEqual(resolution["in19_documentation_regime"], "UNRESOLVED")
-        self.assertEqual(
-            {item for item in applicable if item.startswith("REQ_IN19_")},
-            {"REQ_IN19_REGIME_REVIEW"},
-        )
+    def test_in19_54a_e_missing_or_invalid_date_blocks_before_regime(self):
         for missing_or_invalid in (
             {"request_date": None},
             {"request_date": "24/04/2024"},
@@ -665,6 +683,7 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
         criterion = self.table4.split(
             "CRITERION T4_IN19_REGIME_REVIEW", 1
         )[1].split("END", 1)[0]
+        self.assertIn("NOT_PRODUCTIVELY_REACHABLE", self.applicability)
         self.assertIn("ASSERT MANUAL_REVIEW", criterion)
         self.assertNotIn("FAIL", criterion)
         self.assertIn(
@@ -704,14 +723,6 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
                     },
                     expected[regime],
                 )
-        self.assertEqual(
-            in19_documentation_regime(
-                {"request_date": None, "request_date_verifiable": False},
-                {"SMSCI_IEL": "POSITIVE"},
-            ),
-            "UNRESOLVED",
-        )
-
     def test_in19_54a_g_incomplete_section_blocks_before_regime(self):
         with self.assertRaisesRegex(ArchitecturalBlocker, "section"):
             productive_resolution(
@@ -775,12 +786,6 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             art_date="2019-01-01",
             construction_attestation_date="2019-01-01",
             situation="NOVA",
-        )
-        self.assertEqual(
-            in19_documentation_regime(
-                missing_date, {"SMSCI_IEL": "POSITIVE"}
-            ),
-            "UNRESOLVED",
         )
         with self.assertRaisesRegex(ArchitecturalBlocker, "document selection"):
             productive_resolution([missing_date], self.current_identifiers())

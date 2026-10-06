@@ -1,4 +1,5 @@
 import copy
+import importlib.util
 import pathlib
 import re
 import unittest
@@ -106,10 +107,6 @@ class MinimalGuardContractTests(unittest.TestCase):
                 "PROCESS.SMSCI": "SMSCI_IEL",
                 "IN19_DOCUMENTATION_REGIME": "LEGACY",
             },
-            "REQ_IN19_REGIME_REVIEW": {
-                "PROCESS.SMSCI": "SMSCI_IEL",
-                "IN19_DOCUMENTATION_REGIME": "UNRESOLVED",
-            },
             "REQ_IN19_APPLICABILITY_REVIEW": {
                 "PROCESS.SMSCI": "SMSCI_IN19_APPLICABILITY_REVIEW"
             },
@@ -123,7 +120,6 @@ class MinimalGuardContractTests(unittest.TestCase):
             "REQ_IN19_LEGACY_DOCUMENTATION": (
                 "T4_IN19_LEGACY_DOCUMENTATION",
             ),
-            "REQ_IN19_REGIME_REVIEW": ("T4_IN19_REGIME_REVIEW",),
             "REQ_IN19_APPLICABILITY_REVIEW": (
                 "T4_IN19_APPLICABILITY_REVIEW",
             ),
@@ -197,13 +193,35 @@ class MinimalGuardContractTests(unittest.TestCase):
         )
         self.assertNotIn("ITERATION_DOMAIN", unit)
 
-    def test_in19_regime_units_enter_closed_plan_and_reconcile(self):
+    def test_in19_regime_review_remains_legacy_reference_and_is_not_planned(self):
+        builder_path = BASE.parent / "tools" / "build_knowledge_base_release.py"
+        spec = importlib.util.spec_from_file_location(
+            "test_minimal_guard_release_builder", builder_path
+        )
+        builder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(builder)
+        requirements = (BASE / "02_requirements.txt").read_text(encoding="utf-8")
+        table1 = (BASE / "03_table1.txt").read_text(encoding="utf-8")
+        table4 = (BASE / "04_table4.txt").read_text(encoding="utf-8")
+        compiled_index = builder.compile_execution_index(requirements, table1, table4)
+        legacy_unit = "UNIT_KEY (REQ_IN19_REGIME_REVIEW, T4_IN19_REGIME_REVIEW)"
+        self.assertIn(legacy_unit, compiled_index)
+
         keys = {unit["UNIT_KEY"] for unit in self.plan}
         self.assertIn(
             ("REQ_IN19_LEGACY_DOCUMENTATION", "T4_IN19_LEGACY_DOCUMENTATION"),
             keys,
         )
         self.assertIn(
+            "REQUIREMENT REQ_IN19_REGIME_REVIEW",
+            (BASE / "02_requirements.txt").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "CRITERION T4_IN19_REGIME_REVIEW",
+            (BASE / "04_table4.txt").read_text(encoding="utf-8"),
+        )
+        self.assertIn("NOT_PRODUCTIVELY_REACHABLE", PIPELINE.read_text())
+        self.assertNotIn(
             ("REQ_IN19_REGIME_REVIEW", "T4_IN19_REGIME_REVIEW"), keys
         )
         validate_plan(self.applicability, self.criteria, self.plan)
@@ -221,9 +239,6 @@ class MinimalGuardContractTests(unittest.TestCase):
                 "REQ_IN19_LEGACY_DOCUMENTATION": (
                     "T4_IN19_LEGACY_DOCUMENTATION",
                 ),
-            },
-            "UNRESOLVED": {
-                "REQ_IN19_REGIME_REVIEW": ("T4_IN19_REGIME_REVIEW",),
             },
         }
         for regime, criteria in branches.items():

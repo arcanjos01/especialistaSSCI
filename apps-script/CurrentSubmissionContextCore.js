@@ -1,4 +1,7 @@
-/** Immutable operational context for selecting the current Habite-se request. */
+/**
+ * Immutable, request-scoped intake context for the current Habite-se submission.
+ * processId is optional technical correlation metadata and never selects a document.
+ */
 
 class CurrentSubmissionContextContractError extends Error {
   constructor(message) {
@@ -48,12 +51,14 @@ function createCurrentSubmissionContext(input) {
   }
   const allowed = ['processId', 'protocolIdentifier', 'requestDate', 'reIdentifier', 'provenance'];
   if (Object.keys(input).some(key => !allowed.includes(key)) ||
-      !['processId', 'protocolIdentifier', 'requestDate', 'provenance']
+      !['protocolIdentifier', 'requestDate', 'provenance']
         .every(key => Object.prototype.hasOwnProperty.call(input, key))) {
     throw new CurrentSubmissionContextContractError('context has missing or unknown fields');
   }
 
-  const processId = requireSubmissionString(input.processId, 'processId');
+  const processId = input.processId == null
+    ? null
+    : requireSubmissionString(input.processId, 'processId');
   const protocolIdentifier = requireSubmissionString(
     input.protocolIdentifier, 'protocolIdentifier'
   );

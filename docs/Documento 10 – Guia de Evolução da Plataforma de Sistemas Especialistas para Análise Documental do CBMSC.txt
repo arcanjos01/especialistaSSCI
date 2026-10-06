@@ -408,6 +408,25 @@ RDE pertence à etapa de applicability. Identificadores técnicos do pipeline
 não podem substituir identificadores documentais, e a proveniência operacional
 permanece distinta da proveniência documental.
 
+O especialista é stateless em relação aos processos administrativos e não é o
+system of record: o e-SCI/SCI institucional mantém o registro e o controle dos
+processos. Cada invocation recebe do sistema chamador um snapshot fechado do
+caso e seu CurrentSubmissionContext transitório, junto aos documentos/RDE e à
+versão da Base usados naquela execução. O contexto não é recuperado de histórico
+próprio nem precisa persistir entre execuções. Uma reapresentação, mesmo sob o
+mesmo protocolo, é uma nova execução cuja identidade corrente é
+PROTOCOL_IDENTIFIER + REQUEST_DATE; applicability não consulta execuções
+anteriores. Provenance do intake serve à auditoria da execução e não implica
+persistência própria.
+
+Um registry mantido pelo protótipo pode apoiar apenas workflow, fila e
+idempotência. Ele não é cadastro de processos, histórico administrativo, fonte
+canônica de protocolo/reapresentação ou memória do especialista. Não ampliar seu
+schema para persistir CurrentSubmissionContext como cadastro do processo. Um
+processId eventualmente fornecido é somente identificador técnico de
+correlação/execução, opcional no contrato conceitual produtivo e sem participação
+no matching documental.
+
 O resolver deverá seguir exclusivamente este fluxo:
 
 Criterion → predicate_id → argumentos nomeados e tipados → Registry →

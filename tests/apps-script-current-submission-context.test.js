@@ -114,7 +114,7 @@ for (const invalid of [
   assertBlocker(() => operationalContext(invalid));
 }
 assert.equal(api.createCurrentSubmissionContext({
-  processId: 'TEST_ONLY_PROCESS', protocolIdentifier: protocol,
+  protocolIdentifier: protocol,
   requestDate: '2024-02-29',
   provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_REF' }
 }).requestDate, '2024-02-29');
@@ -217,5 +217,35 @@ const presentationB = {
 };
 assert.equal(selectId([presentationA, presentationB], submissionFixture),
   'TEST_ONLY_PRESENTATION_B');
+
+// Independent invocations do not share submission state or consult prior results.
+const invocationA = api.createCurrentSubmissionContext({
+  protocolIdentifier: 'TEST_ONLY_REPEATED_PROTOCOL',
+  requestDate: '2026-01-10',
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_INTAKE_A' }
+});
+const invocationB = api.createCurrentSubmissionContext({
+  protocolIdentifier: 'TEST_ONLY_REPEATED_PROTOCOL',
+  requestDate: '2026-01-28',
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_INTAKE_B' }
+});
+const independentSubmissions = [
+  matching('TEST_ONLY_SUBMISSION_A', {
+    PROTOCOL_IDENTIFIER: invocationA.protocolIdentifier,
+    REQUEST_DATE: invocationA.requestDate
+  }),
+  matching('TEST_ONLY_SUBMISSION_B', {
+    PROTOCOL_IDENTIFIER: invocationB.protocolIdentifier,
+    REQUEST_DATE: invocationB.requestDate
+  })
+];
+assert.equal(selectId(independentSubmissions, invocationA), 'TEST_ONLY_SUBMISSION_A');
+assert.equal(selectId(independentSubmissions, invocationB), 'TEST_ONLY_SUBMISSION_B');
+assert.equal(selectId(independentSubmissions.slice().reverse(), invocationB),
+  'TEST_ONLY_SUBMISSION_B');
+assert.equal(selectId(independentSubmissions, {
+  ...invocationB,
+  processId: 'TEST_ONLY_DIFFERENT_CORRELATION_ID'
+}), 'TEST_ONLY_SUBMISSION_B');
 
 console.log('apps-script-current-submission-context: PASS');

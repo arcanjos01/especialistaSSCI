@@ -439,8 +439,10 @@ resolved PROCESS.SMSCI and existing Requirement metadata.
 After an explicit positive SMSCI_IEL decision, resolve exactly one internal
 IN19_DOCUMENTATION_REGIME from only the REQUEST_DATE extracted from the
 selected comprovante: REQUEST_DATE <= 2024-04-24 is LEGACY; REQUEST_DATE >
-2024-04-24 is CURRENT; absent, unverified or not safely comparable REQUEST_DATE
-is UNRESOLVED. Do not use PPCI, ART/RRT/TRT, atestado, previsão, início,
+2024-04-24 is CURRENT. The selected comprovante can only have a canonical
+REQUEST_DATE equal to CurrentSubmissionContext.requestDate; missing, invalid,
+unverifiable or non-comparable dates block during Phase 4A selection and never
+reach this resolution. Do not use PPCI, ART/RRT/TRT, atestado, previsão, início,
 conclusion date or textual mention of obra nova. SMSCI_IEL negative preserves
 the declared IN19 applicability-review path and does not resolve a regime.
 
@@ -453,8 +455,10 @@ target is present in PROCESS.SMSCI.
 For positive SMSCI_IEL, additionally select IN19 Requirements only when their
 declared IN19_DOCUMENTATION_REGIME equals the resolved value: CURRENT selects
 only REQ_IN19_EXECUTION, REQ_IN19_GROUNDING and REQ_IN19_FINAL_VERIFICATION;
-LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION; UNRESOLVED selects only
-REQ_IN19_REGIME_REVIEW. A Criterion result, including UNKNOWN, shall never
+LEGACY selects only REQ_IN19_LEGACY_DOCUMENTATION. UNRESOLVED,
+REQ_IN19_REGIME_REVIEW and T4_IN19_REGIME_REVIEW are
+LEGACY_REFERENCE / NOT_PRODUCTIVELY_REACHABLE under strict matching; they shall
+not be selected or planned. A Criterion result, including UNKNOWN, shall never
 resolve or reconstruct the regime.
 
 Iterative Requirements retain their declared form.
