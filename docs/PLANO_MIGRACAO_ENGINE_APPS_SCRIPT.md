@@ -62,6 +62,7 @@ Concluído:
 - [x] processo de teste atingiu VALIDATED.
 - [x] arquitetura de migração registrada no AGENTS.md.
 - [x] Criterion IR mantido como contrato canônico.
+- [x] Fase 1 — núcleo determinístico JavaScript.
 - [x] Process Memory redefinido como immutable execution view, sem persistência obrigatória.
 - [x] fronteira EngineResult → PipelineResult reconciliada.
 - [x] UNKNOWN → MANUAL_REVIEW definido apenas como normalização operacional rastreável.
@@ -74,7 +75,6 @@ Concluído:
 
 Ainda não concluído:
 
-- [ ] Engine JavaScript.
 - [ ] adapter RDE → immutable execution view.
 - [ ] materialização do plano de execução em JavaScript.
 - [ ] integração VALIDATED → ANALYZED.
@@ -84,6 +84,8 @@ Ainda não concluído:
 - [ ] validação end-to-end e retirada do Gem legado.
 
 ## 4. Fase 1 — Núcleo determinístico JavaScript
+
+Status: **CONCLUÍDA**.
 
 Objetivo: portar o contrato do Engine, não o código Python.
 
@@ -127,6 +129,15 @@ Gate de saída:
 - suíte Python existente continua passando;
 - git diff --check passa;
 - Sol revisa o núcleo e retorna SOL_REVIEW=PASS.
+
+Checkpoint da execução:
+
+- Commit funcional: `480dc2264f215b9104557139f4e0b5aec9a604e1` (`feat(engine): add JavaScript criterion IR core`).
+- Revisão independente: `SOL_REVIEW=PASS`.
+- Testes: `node tests/apps-script-engine-core.test.js` PASS; `node tests/apps-script-rde-core.test.js` PASS; `python -m unittest discover -s tests -p 'test*.py'` PASS (120 testes); `git diff --check` PASS.
+- Benchmark sintético (sanity check): 100 Criteria = 1.496 ms; 500 = 8.685 ms; 1000 = 17.365 ms.
+- Pendências: implementar a immutable execution view e etapas seguintes; predicates e resolvers de domínio continuam fora desta fase. `FOR_EACH` recebe expressões previamente vinculadas; a expansão do domínio permanece fora do núcleo.
+- Próxima fase autorizada: **Fase 2 — Immutable execution view**. Nenhuma fase posterior foi iniciada.
 
 ## 5. Fase 2 — Immutable execution view
 
