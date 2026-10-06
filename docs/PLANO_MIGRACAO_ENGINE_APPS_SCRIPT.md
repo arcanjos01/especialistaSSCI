@@ -364,6 +364,8 @@ Próxima fase autorizada: **Fase 4 — Primeiro Criterion piloto**. Não iniciad
 
 ## 7. Fase 4 — Primeiro Criterion piloto
 
+Status: **IMPLEMENTADA — AGUARDANDO GATES FINAIS**.
+
 Objetivo: executar um Criterion real da Base no runtime JavaScript sem ainda promover processos reais automaticamente.
 
 Seleção do piloto deve privilegiar:
@@ -390,6 +392,51 @@ Gate de saída:
 - trace completo;
 - nenhum acesso fora da execution view;
 - Sol PASS.
+
+Checkpoint de implementação:
+
+- Baseline de entrada: `a84237843f52483813601b95fc5edef283a3b619`.
+- Criterion piloto selecionado: `T4_IN08_MANUAL`, associado a
+  `REQ_IN08_MANUAL`, com `ASSERT EXISTS(GAS_OWNER_MANUAL)` e
+  `FAIL NC_T4_003`.
+- A seleção substituiu a hipótese inicial de `T1_DRT_REQUIRED` porque o
+  primeiro Criterion possui cadeia executável fechada no contrato canônico,
+  sem exigir criação de binding ou predicate de responsabilidade técnica ainda
+  não materializado no runtime.
+- O compilador de release passou a derivar estruturalmente `ASSERT` para
+  Criterion IR no `CompiledRuntimeContract.js`; o compilador não atribui
+  semântica nova às expressões.
+- `apps-script/CriterionExecutionCore.js` materializa exclusivamente uma
+  unidade já presente no frozen plan e, nesta fase, aceita somente o operador
+  canônico direto `EXISTS`. Não há IDs normativos específicos hardcoded no
+  módulo.
+- O resultado preserva `UNIT_KEY`, identidade Requirement/Criterion,
+  EngineResult, PipelineResult, trace, fonte declarativa e evidência ou
+  `DOCUMENT_ABSENCE`. `FALSE` associa somente a Nonconformity declarada.
+- Fixtures usadas são exclusivamente `TEST_ONLY` em RDE 0.2.0. Nenhum
+  processo administrativo real foi utilizado.
+- Casos executados nesta sessão contra os módulos da branch: presença do
+  manual → `TRUE/PASS`; ausência → `FALSE/FAIL + NC_T4_003`; Requirement
+  não aplicável → unidade não planejada e execução bloqueada; adulteração da
+  referência de Nonconformity → `CRITERION_EXECUTION_INTEGRITY_ERROR`.
+- Durante revisão no mesmo ciclo foram encontrados e corrigidos dois gaps:
+  validação insuficiente das referências de Nonconformity do plano e ausência
+  de `UNIT_KEY` no registro de resultado.
+- Commits da implementação:
+  `1e63262f844f6f8085915e811620d0c5c66ad3f1`,
+  `bfcd9eba254003f5aea6d1434d2a9c1383cd6595` e
+  `dc61adbd8e012a7f292af561df5e64ba573e10a6`.
+- Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
+  relatório, EXTRACTION real por LLM e OpenAI Decisions.
+
+Gates ainda pendentes para declarar a Fase 4 **CONCLUÍDA**:
+
+- executar a suíte nativa completa do repositório em checkout/CI, incluindo
+  todos os testes JS e `python -m unittest discover -s tests -p 'test*.py'`;
+- executar os gates nativos `node --check` e `git diff --check`;
+- revisão Sol arquitetural **independente** com `SOL_REVIEW=PASS`.
+
+Enquanto esses gates não forem satisfeitos, a Fase 5 não está autorizada.
 
 ## 8. Fase 5 — Integração VALIDATED → ANALYZED
 
