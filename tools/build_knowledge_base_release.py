@@ -158,6 +158,139 @@ def _field_list(block: str, field: str) -> list[str]:
     return re.findall(rf"^{re.escape(field)}\s+(.+?)\s*$", block, re.M)
 
 
+def _parse_assert_argument(token: str, identifier: str) -> dict[str, object]:
+    token = token.strip()
+    if not token:
+        raise ValueError(f"argumento ASSERT vazio em {identifier}")
+    if token.startswith('"') and token.endswith('"'):
+        try:
+            return {"type": "LITERAL", "value": json.loads(token)}
+        except json.JSONDecodeError as error:
+            raise ValueError(f"literal ASSERT inválido em {identifier}") from error
+    if re.fullmatch(r"-?\d+", token):
+        return {"type": "LITERAL", "value": int(token)}
+    if re.fullmatch(r"-?\d+\.\d+", token):
+        return {"type": "LITERAL", "value": float(token)}
+    if re.fullmatch(r"[A-Z][A-Z0-9_.]*", token):
+        return {"type": "SYMBOL", "value": token}
+    raise ValueError(f"argumento ASSERT não suportado em {identifier}: {token}")
+
+
+def _split_assert_arguments(source: str, identifier: str) -> list[str]:
+    arguments: list[str] = []
+    current: list[str] = []
+    quoted = False
+    escaped = False
+    for char in source:
+        if quoted:
+            current.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                quoted = False
+            continue
+        if char == '"':
+            quoted = True
+            current.append(char)
+        elif char == ",":
+            arguments.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    if quoted:
+        raise ValueError(f"literal ASSERT não terminado em {identifier}")
+    tail = "".join(current).strip()
+    if tail:
+        arguments.append(tail)
+    return arguments
+
+
+def _parse_assert_call(source: str, identifier: str) -> dict[str, object]:
+    match = re.fullmatch(
+        r"\s*([A-Z][A-Z0-9_]*)\s*\((.*)\)\s*", source, re.S
+    )
+    if not match:
+        raise ValueError(f"chamada ASSERT inválida em {identifier}")
+    return {
+        "type": "CALL",
+        "name": match.group(1),
+        "arguments": [
+            _parse_assert_argument(argument, identifier)
+            for argument in _split_assert_arguments(match.group(2), identifier)
+        ],
+    }
+
+
+def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
+    declaration = re.search(r"^ASSERT(?:[ \t]+(.*?))?\s*$", block, re.M)
+    if not declaration:
+        raise ValueError(f"ASSERT ausente em {identifier}")
+    inline = (declaration.group(1) or "").strip()
+    remainder = block[declaration.end():]
+
+    if inline == "ALL":
+        end = re.search(r"^\s*END\s*$", remainder, re.M)
+        if not end:
+            raise ValueError(f"ASSERT ALL sem END em {identifier}")
+        body = remainder[:end.start()]
+        calls = list(re.finditer(r"[A-Z][A-Z0-9_]*\s*\([^()]*\)", body, re.S))
+        if not calls:
+            raise ValueError(f"ASSERT ALL vazio em {identifier}")
+        residue = body
+        for match in reversed(calls):
+            residue = residue[:match.start()] + residue[match.end():]
+        if residue.strip():
+            raise ValueError(f"conteúdo ASSERT ALL não reconhecido em {identifier}")
+        return {
+            "type": "ALL",
+            "expressions": [
+                _parse_assert_call(match.group(0), identifier) for match in calls
+            ],
+        }
+
+    if inline == "MANUAL_REVIEW":
+        return {"type": "LITERAL", "value": "MANUAL_REVIEW"}
+
+    if inline:
+        source = inline
+        if source.count("(") > source.count(")"):
+            for line in remainder.splitlines():
+                source += "\n" + line
+                if source.count("(") == source.count(")"):
+                    break
+        if source.count("(") != source.count(")"):
+            raise ValueError(f"parênteses ASSERT desbalanceados em {identifier}")
+        return _parse_assert_call(source, identifier)
+
+    expression_lines: list[str] = []
+    for line in remainder.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped == "END" or re.match(r"^(?:FAIL|MANUAL_REVIEW)\b", stripped):
+            break
+        expression_lines.append(stripped)
+    if not expression_lines:
+        raise ValueError(f"ASSERT vazio em {identifier}")
+    if "OR MANUAL_REVIEW" in expression_lines:
+        if expression_lines.count("OR MANUAL_REVIEW") != 1 or \
+                expression_lines[-1] != "OR MANUAL_REVIEW":
+            raise ValueError(f"OR MANUAL_REVIEW ambíguo em {identifier}")
+        call = _parse_assert_call(
+            "\n".join(expression_lines[:-1]), identifier
+        )
+        return {
+            "type": "OR",
+            "expressions": [
+                call,
+                {"type": "LITERAL", "value": "MANUAL_REVIEW"},
+            ],
+        }
+    return _parse_assert_call("\n".join(expression_lines), identifier)
+
+
 def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
     """Compile only the entity fields consumed by RDE projection/applicability."""
     catalog: dict[str, dict[str, object]] = {}
@@ -215,10 +348,15 @@ def _parse_requirement_metadata(text: str) -> list[dict[str, object]]:
     return requirements
 
 
-def _parse_criterion_metadata(*criteria_texts: str) -> list[dict[str, object]]:
+def _parse_criterion_metadata(
+    *criteria_texts: str,
+    source_names: tuple[str, ...] | None = None,
+) -> list[dict[str, object]]:
+    if source_names is not None and len(source_names) != len(criteria_texts):
+        raise ValueError("source_names deve corresponder às fontes de Criteria")
     criteria = []
     seen = set()
-    for text in criteria_texts:
+    for source_index, text in enumerate(criteria_texts):
         for identifier, block in _blocks(text, "CRITERION"):
             if identifier in seen:
                 raise ValueError(f"CRITERION duplicado: {identifier}")
@@ -238,9 +376,11 @@ def _parse_criterion_metadata(*criteria_texts: str) -> list[dict[str, object]]:
                 value = _single_field(block, source, identifier)
                 if value is not None:
                     item[target] = value
+            item["assertIr"] = _parse_assert_ir(block, identifier)
+            if source_names is not None:
+                item["sourceFile"] = source_names[source_index]
             criteria.append(item)
     return criteria
-
 
 def _parse_official_code_map(text: str) -> list[dict[str, str]]:
     heading = re.search(r"^OFFICIAL_ESCI_CODE -> CANONICAL_ENTITY\s*$", text, re.M)
@@ -294,7 +434,10 @@ def compile_runtime_contract() -> dict[str, object]:
     criteria_texts = tuple(path.read_text(encoding="utf-8") for path in CRITERIA_SOURCES)
     entities = parse_entity_catalog(ENTITIES.read_text(encoding="utf-8"))
     requirements = _parse_requirement_metadata(requirement_text)
-    criteria = _parse_criterion_metadata(*criteria_texts)
+    criteria = _parse_criterion_metadata(
+        *criteria_texts,
+        source_names=tuple(path.name for path in CRITERIA_SOURCES),
+    )
     nonconformities = _parse_nonconformities(NONCONFORMITIES.read_text(encoding="utf-8"))
     official_map = _parse_official_code_map(APPLICABILITY.read_text(encoding="utf-8"))
     execution_index_text = compile_execution_index(requirement_text, *criteria_texts)

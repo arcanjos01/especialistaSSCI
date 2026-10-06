@@ -79,6 +79,63 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(len(requirements), 30)
         self.assertEqual(len(criteria), 36)
 
+    def test_pilot_criterion_assert_ir_is_exactly_source_derived(self):
+        pilot = next(
+            item for item in self.contract["criteria"]
+            if item["criterionId"] == "T4_IN08_MANUAL"
+        )
+        self.assertEqual(pilot["sourceFile"], "04_table4.txt")
+        self.assertEqual(
+            pilot["assertIr"],
+            {
+                "type": "CALL",
+                "name": "EXISTS",
+                "arguments": [{"type": "SYMBOL", "value": "GAS_OWNER_MANUAL"}],
+            },
+        )
+        self.assertEqual(pilot["failNonconformities"], ["NC_T4_003"])
+
+    def test_assert_ir_parser_preserves_grouping_and_manual_review_literal(self):
+        source = """
+CRITERION TEST_ALL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT ALL
+EXISTS(TEST_DOCUMENT)
+DRT_COVERS(TEST_DOCUMENT,SMSCI_TEST)
+END
+FAIL NC_TEST
+END
+CRITERION TEST_REVIEW
+TABLE 4
+REQUIREMENT REQ_REVIEW
+ASSERT
+EXISTS(TEST_DOCUMENT)
+OR MANUAL_REVIEW
+MANUAL_REVIEW "TEST_ONLY"
+END
+"""
+        parsed = self.builder._parse_criterion_metadata(source)
+        self.assertEqual(parsed[0]["assertIr"]["type"], "ALL")
+        self.assertEqual(
+            [item["name"] for item in parsed[0]["assertIr"]["expressions"]],
+            ["EXISTS", "DRT_COVERS"],
+        )
+        self.assertEqual(
+            parsed[1]["assertIr"],
+            {
+                "type": "OR",
+                "expressions": [
+                    {
+                        "type": "CALL",
+                        "name": "EXISTS",
+                        "arguments": [{"type": "SYMBOL", "value": "TEST_DOCUMENT"}],
+                    },
+                    {"type": "LITERAL", "value": "MANUAL_REVIEW"},
+                ],
+            },
+        )
+
     def test_structured_index_reuses_canonical_compiler_unit_keys_and_order(self):
         requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
         criteria_texts = tuple(
