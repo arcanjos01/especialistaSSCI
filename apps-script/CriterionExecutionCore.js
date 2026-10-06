@@ -17,8 +17,10 @@ function criterionExecutionReferenceSnapshot_(reference) {
 }
 
 function criterionExecutionFindUnit_(plan, unitKey) {
-  criterionExecutionRequire_(plan && Array.isArray(plan.PLANNED_EXECUTION_UNITS),
-    'frozen execution plan is required');
+  criterionExecutionRequire_(plan && Object.isFrozen(plan) &&
+    Array.isArray(plan.PLANNED_EXECUTION_UNITS) &&
+    Object.isFrozen(plan.PLANNED_EXECUTION_UNITS),
+  'frozen execution plan is required');
   criterionExecutionRequire_(typeof unitKey === 'string' && unitKey,
     'unitKey must be a non-empty string');
   const matches = plan.PLANNED_EXECUTION_UNITS.filter(unit => unit && unit.unitKey === unitKey);
@@ -28,8 +30,11 @@ function criterionExecutionFindUnit_(plan, unitKey) {
 }
 
 function criterionExecutionFindCriterion_(contract, criterionId) {
-  criterionExecutionRequire_(contract && contract.contractVersion === 1 && Array.isArray(contract.criteria),
-    'compiled runtime contract is invalid');
+  criterionExecutionRequire_(contract && Object.isFrozen(contract) &&
+    contract.contractVersion === 1 && Array.isArray(contract.criteria) &&
+    Object.isFrozen(contract.criteria) && Array.isArray(contract.requirements) &&
+    Object.isFrozen(contract.requirements),
+  'compiled runtime contract is invalid');
   const matches = contract.criteria.filter(item => item && item.criterionId === criterionId);
   criterionExecutionRequire_(matches.length === 1,
     'compiled Criterion must exist exactly once: ' + criterionId);
