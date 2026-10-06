@@ -336,9 +336,13 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         positions = [REPORTS.index(section) for section in sections]
         self.assertEqual(positions, sorted(positions))
 
-    def test_n_known_debts_remain_unresolved(self):
-        self.assertIn("NC_T1_003_SIGNED", REQUIREMENTS)
+    def test_n_conformity_report_signature_reference_is_consistent(self):
+        criterion = TABLE1.split("CRITERION T1_CONFORMITY_REPORT_SIGNED", 1)[1].split("END", 1)[0]
+        requirement = REQUIREMENTS.split("REQUIREMENT REQ_T1_CONFORMITY_REPORT_SIGNED", 1)[1].split("END", 1)[0]
+        self.assertNotIn("NC_T1_003_SIGNED", requirement)
         self.assertNotIn("NC_T1_003_SIGNED", CATALOG)
+        self.assertNotIn("FAIL", criterion)
+        self.assertIn("MANUAL_REVIEW", criterion)
         self.assertIn("NC_T4_018", CATALOG)
         self.assertNotIn("NC_T4_018", ACTIONABLE)
 
