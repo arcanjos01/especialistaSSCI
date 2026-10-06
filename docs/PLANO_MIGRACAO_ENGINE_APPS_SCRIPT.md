@@ -282,34 +282,85 @@ PROCESS.SMSCI foi executada nesta microfase.
 
 ## 6. Fase 3 — Applicability e frozen execution plan
 
-Status: **AUTORIZADA; NÃO INICIADA**.
+Status: **CONCLUÍDA**.
 
-Objetivo: portar para JavaScript o planejamento determinístico anterior ao Engine.
+Commit funcional: `9f577646cf00f91c94fc3ea0f7cca8f96fba44d4`
+(`feat(engine): add applicability and frozen execution plan`).
 
-Implementar conforme os contratos existentes:
+Módulos e artefato:
 
-- applicability declarativa;
-- PROCESS.SMSCI quando aplicável;
-- APPLICABLE_REQUIREMENTS;
-- COMPILED_EXECUTION_INDEX;
-- PLANNED_EXECUTION_UNITS;
-- ordem congelada;
-- ITERATION_DOMAIN;
-- Plan-to-Results invariants.
+- `apps-script/CompiledRuntimeContract.js`: artefato derivado, marcado
+  `GENERATED_DERIVED_ARTIFACT` / `DO_NOT_EDIT_AS_NORMATIVE_SOURCE`, regenerável
+  com `python tools/build_knowledge_base_release.py --write-runtime-contract`.
+- `apps-script/CbmscApplicabilityCore.js`: applicability específica CBMSC,
+  consumindo somente `ImmutableExecutionView`, `CurrentSubmissionContext` e o
+  contrato compilado.
+- `apps-script/ExecutionPlanCore.js`: resolução de Requirements, Worklist,
+  unidades planejadas, integridade e congelamento do plano.
+- `tools/build_knowledge_base_release.py`: estende o compilador canônico para
+  derivar os metadados runtime e o índice estruturado sem substituir a
+  compilação existente de `UNIT_KEY`.
 
-Não implementar:
+Contrato derivado: identifica a versão da Base e as versões dos documentos
+canônicos; inclui 84 entidades, 28 códigos oficiais, 30 Requirements, 36
+Criteria, referências de Nonconformity e os 30 blocos na ordem do
+`COMPILED_EXECUTION_INDEX`. O build e o teste comparam a regeneração por bytes;
+drift, associação inválida, referência órfã ou inconsistência de tabela falham.
+`ENTITY_CATALOG` alimenta validação da RDE, projeção da Execution View e
+applicability. O mapa oficial é fechado contra `02a_applicability.txt` e
+`01_entities.txt`.
 
-- nova forma de applicability;
-- agregação inventada de Requirement;
-- seleção por plausibilidade;
-- atalhos que pulem Phase 3/4.
+Decisões e invariantes implementados:
 
-Gate de saída:
+- A entrada operacional inclui `CurrentSubmissionContext` transitório da
+  invocação. O comprovante é selecionado exclusivamente por
+  `PROTOCOL_IDENTIFIER + REQUEST_DATE` civil canônica; `RE_IDENTIFIER` é apenas
+  verificação de consistência. A seleção não consulta estado anterior e não
+  usa `REQUEST_IDENTIFIER`, `processId`, filename, ordem ou timestamps.
+- A seção de segurança precisa ser única, completa, legível e verificável.
+  Seus itens estruturais usam somente `OFFICIAL_ESCI_CODE`. As 28 decisões
+  oficiais são completas e atômicas; ausência, ambiguidade ou código
+  desconhecido bloqueiam sem emitir conjunto parcial.
+- `SMSCI_SDAI` e `SMSCI_IN19_APPLICABILITY_REVIEW` são decisões derivadas
+  separadas e rastreadas. As seis regras/dependências M5 seguem sem regra e sem
+  decisão inferida.
+- Com `SMSCI_IEL` positivo, a data da apresentação já validada seleciona
+  somente `LEGACY` até 2024-04-24 ou `CURRENT` após essa data. `UNRESOLVED`,
+  `REQ_IN19_REGIME_REVIEW` e `T4_IN19_REGIME_REVIEW` permanecem na Base como
+  `LEGACY_REFERENCE / NOT_PRODUCTIVELY_REACHABLE`; a rota produtiva de
+  `SMSCI_IN19_APPLICABILITY_REVIEW` quando IEL é negativo permanece ativa.
+- Requirements gerais são preservados; Requirements com SMSCI e regime IN19
+  seguem a aplicabilidade declarada e a ordem canônica. `WORKLIST.SMSCI` é
+  limitada a `REQ_T1_DRT_SMSCI / T1_DRT_SMSCI_COVERAGE`, inclui somente
+  positivos oficiais e exclui scopes derivados.
+- O índice estruturado reutiliza a geração canônica: `UNIT_KEY` permanece
+  literalmente `(requirement_id, criterion_id)`. `T1_DRT_SMSCI_COVERAGE`
+  permanece uma unidade com bindings para o domínio congelado. O plano termina
+  antes de executar qualquer Criterion e não contém resultados, evidência ou
+  Nonconformities disparadas.
+- Integridade também exige que `APPLIES_TO` coincida com o SMSCI do Requirement
+  associado e que `Nonconformity.TABLE` coincida com `Criterion.TABLE`.
+  Nenhuma exceção ou allowlist de referência órfã foi introduzida.
 
-- plano determinístico para fixtures sintéticas;
-- repetição produz sequência idêntica;
-- erro de integridade não é convertido em resultado normativo;
-- testes específicos de ordem, duplicidade, ausência e binding.
+Testes: os quatro testes Apps Script existentes, o novo teste integrado
+`tests/apps-script-applicability-plan.test.js`, `tests/test_compiled_runtime_contract.py`,
+`python -m unittest discover -s tests -p 'test*.py'` (133 testes), geração do
+artefato runtime, verificações `node --check` e `git diff --check` passaram.
+
+Revisão independente: `SOL_REVIEW=PASS`. Ciclos Luna→Sol da Fase 3: 2; o
+primeiro review identificou os dois gaps de integridade acima, ambos corrigidos
+e cobertos antes do novo PASS. Commit funcional enviado apenas para
+`origin/feature/apps-script-engine-core`.
+
+Limitações e dívidas preservadas: a integração ainda precisa fornecer o
+`CurrentSubmissionContext` transitório em cada intake antes de
+`VALIDATED → ANALYZED`; o registry permanece infraestrutura técnica e não
+armazena cadastro ou histórico de processos. Dívidas de aplicabilidade M5
+permanecem sem conclusão. Critérios de regime IN19 marcados como referências
+legadas não são removidos da Base nesta fase. Não houve execução de Criterion,
+mudança normativa, mudança de Anexo A ou conflito arquitetural pendente.
+
+Próxima fase autorizada: **Fase 4 — Primeiro Criterion piloto**. Não iniciada.
 
 ## 7. Fase 4 — Primeiro Criterion piloto
 
