@@ -63,6 +63,7 @@ Concluído:
 - [x] arquitetura de migração registrada no AGENTS.md.
 - [x] Criterion IR mantido como contrato canônico.
 - [x] Fase 1 — núcleo determinístico JavaScript.
+- [x] Fase 2 — immutable execution view genérica.
 - [x] Process Memory redefinido como immutable execution view, sem persistência obrigatória.
 - [x] fronteira EngineResult → PipelineResult reconciliada.
 - [x] UNKNOWN → MANUAL_REVIEW definido apenas como normalização operacional rastreável.
@@ -75,7 +76,6 @@ Concluído:
 
 Ainda não concluído:
 
-- [ ] adapter RDE → immutable execution view.
 - [ ] materialização do plano de execução em JavaScript.
 - [ ] integração VALIDATED → ANALYZED.
 - [ ] execução de Criterion real no novo runtime.
@@ -141,6 +141,8 @@ Checkpoint da execução:
 
 ## 5. Fase 2 — Immutable execution view
 
+Status: **CONCLUÍDA**.
+
 Objetivo: disponibilizar ao Engine uma view read-only da RDE validada.
 
 Implementar:
@@ -166,6 +168,15 @@ Gate de saída:
 - testes de provenance;
 - testes de ausência/null/false/0;
 - Sol PASS se houver mudança de contrato.
+
+Checkpoint da execução:
+
+- Commit funcional: `49c37d5d27ac46188ba930f06d351db90342a05c` (`feat(engine): add immutable execution view`).
+- Revisão independente: `SOL_REVIEW=PASS`.
+- Testes: `node tests/apps-script-execution-view.test.js` PASS; `node tests/apps-script-engine-core.test.js` PASS; `node tests/apps-script-rde-core.test.js` PASS; `python -m unittest discover -s tests -p 'test*.py'` PASS (120 testes); `git diff --check` PASS.
+- Decisões: a view recebe projeções explícitas com `TypedReference`, valor e provenance opcional; expõe somente `contains`, `read` e `provenance`; a ausência no índice lança erro técnico; provenance não fornecida retorna `undefined`, e `null` explícito permanece `null`. A view não retém a RDE nem duplica sua validação.
+- Limitações: RDE 0.1.0 mantém `facts` e `evidence` genéricos. A fixture `TEST_ONLY` usa projeção explícita para testar a infraestrutura; não há mapeamento produtivo desses campos para referências canônicas nem canonicalização CBMSC nesta fase.
+- Próxima fase autorizada: **Fase 3 — Applicability e frozen execution plan**. A Fase 3 não foi iniciada.
 
 ## 6. Fase 3 — Applicability e frozen execution plan
 
