@@ -1,0 +1,48 @@
+name: Phase 4 Review Fix Validation 3
+
+on:
+  push:
+    branches:
+      - feature/apps-script-engine-core
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Python test suite
+        run: python -m unittest discover -s tests -p 'test*.py'
+      - name: JavaScript test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test_file in tests/apps-script-*.test.js; do
+            echo "RUN $test_file"
+            node "$test_file"
+          done
+      - name: JavaScript syntax gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          for source_file in apps-script/*.js; do
+            echo "CHECK $source_file"
+            node --check "$source_file"
+          done
+      - name: Runtime contract regeneration gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp apps-script/CompiledRuntimeContract.js /tmp/CompiledRuntimeContract.js
+          python tools/build_knowledge_base_release.py --write-runtime-contract
+          cmp /tmp/CompiledRuntimeContract.js apps-script/CompiledRuntimeContract.js
+      - name: Phase diff check
+        run: git diff --check a84237843f52483813601b95fc5edef283a3b619...HEAD
