@@ -1,14 +1,23 @@
-ANEXO A – Catálogo Oficial das Responsabilidades Técnicas
+ANEXO A – Catálogo Oficial Interno das Responsabilidades Técnicas
 
-# versão 2.1
+# versão 2.2
 
-Status: Documento Normativo da Base de Conhecimento
+Status: Documento Normativo Interno da Base de Conhecimento
 
 1. Finalidade
 
-O presente Anexo constitui o Catálogo Oficial das Responsabilidades
+O presente Anexo constitui o Catálogo Oficial Interno das Responsabilidades
 Técnicas da Plataforma de Sistemas Especialistas para Análise Documental
 do Corpo de Bombeiros Militar de Santa Catarina (CBMSC).
+
+Os identificadores `RT-*` (por exemplo, RT-001, RT-002) são identificadores
+canônicos internos da Plataforma. Não são códigos oficiais atribuídos pelo
+CBMSC em Instruções Normativas, IRV ou Diretrizes Técnicas.
+
+A semântica e os atributos de cada entrada devem ser sustentados pelas fontes
+normativas indicadas em `NORMATIVE_SOURCES`. O identificador interno, o nome
+de uma entidade, Requirement, Criterion ou runtime não constitui fonte para
+criar ou completar semântica normativa.
 
 Este catálogo padroniza a identificação, classificação e validação das
 Responsabilidades Técnicas utilizadas pela Base de Conhecimento.
@@ -47,7 +56,7 @@ Conhecimento.
 
 O Catálogo Oficial constitui a única fonte autorizada para definir:
 
--   identificadores oficiais (RT-001, RT-002…);
+-   identificadores canônicos internos da Plataforma (RT-001, RT-002…);
 -   descrição da responsabilidade;
 -   finalidade técnica;
 -   natureza da responsabilidade;
@@ -70,6 +79,8 @@ o modelo abaixo.
 
 IDENTIFIER
 
+INTERNAL_IDENTIFIER
+
 DESCRIPTION
 
 PURPOSE
@@ -82,11 +93,19 @@ QUALIFIED_PROFESSIONALS
 
 COMPATIBLE_ACTIVITIES
 
+CONDITIONAL_SUBSTITUTE_ACTIVITY (quando houver fonte expressa)
+
 ACCEPTED_DOCUMENTARY_EVIDENCE
 
 ASSOCIATED_TECHNICAL_PRODUCTS
 
 GENERAL_VALIDATION_CRITERIA
+
+NORMATIVE_SOURCES
+
+    Indicar explicitamente qual fonte fundamenta cada atributo relevante,
+    inclusive quando o atributo decorre de decisão interna ou permanece
+    UNRESOLVED.
 
 OBSERVATIONS
 
@@ -95,7 +114,11 @@ OBSERVATIONS
 5. Definição dos Campos
 
 IDENTIFIER
-    Código único da Responsabilidade Técnica (RT-001, RT-002…).
+    Identificador canônico interno único da Plataforma (RT-001, RT-002…).
+    Não afirmar que este identificador é código normativo oficial CBMSC.
+
+INTERNAL_IDENTIFIER
+    Deve ser `true` para os identificadores internos canônicos RT-*.
 
 DESCRIPTION
     Nome oficial da responsabilidade.
@@ -117,8 +140,13 @@ QUALIFIED_PROFESSIONALS
     responsabilidade.
 
 COMPATIBLE_ACTIVITIES
-    Atividades técnicas compatíveis constantes das respectivas ART, RRT
-    ou TRT.
+    Atividades técnicas compatíveis constantes dos instrumentos de DRT e
+    sustentadas pelas fontes normativas citadas.
+
+CONDITIONAL_SUBSTITUTE_ACTIVITY
+    Atividade substitutiva somente quando expressamente prevista em fonte,
+    com todos os seus pressupostos e evidências. Não equivale à atividade
+    principal quando a fonte estabelece composição condicional.
 
 ACCEPTED_DOCUMENTARY_EVIDENCE
     Tipos de documentos aceitos para comprovar a responsabilidade (ART,
@@ -134,7 +162,13 @@ GENERAL_VALIDATION_CRITERIA
     Critérios gerais que deverão ser observados pela Base de
     Conhecimento ao validar a responsabilidade.
 
+NORMATIVE_SOURCES
+    Fontes e artigos/itens que sustentam os atributos da entrada. Indicar
+    fonte por campo quando escopos diferentes exigirem fontes diferentes.
+
 OBSERVATIONS
+    Registrar `UNRESOLVED_ATTRIBUTE <campo>` quando faltar fonte suficiente.
+    O bloqueio fica restrito ao atributo indicado e não autoriza inferência.
     Informações complementares.
 
 ------------------------------------------------------------------------
@@ -181,3 +215,341 @@ Nenhum componente da Base de Conhecimento poderá criar Responsabilidades
 Técnicas fora deste documento.
 
 
+
+
+------------------------------------------------------------------------
+
+9. Entradas do Catálogo — Base SSCI-HABITESE
+
+As entradas abaixo formalizam responsabilidades usadas pela Base atual.
+Os nomes internos de SMSCI servem à rastreabilidade da Base e não são códigos
+normativos CBMSC. Quando uma relação atual Requirement→RT ainda não puder ser
+validada pelas fontes, ela permanece explicitamente `UNRESOLVED_ATTRIBUTE`.
+
+### RT-002
+
+IDENTIFIER: RT-002
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade de execução geral dos SMSCI previstos no PPCI,
+representada internamente como escopo agregado da documentação de execução.
+PURPOSE: Documentar a responsabilidade pela execução dos SMSCI do PPCI. Uma
+DRT pode abranger os sistemas e medidas, ressalvados os que exigem RT específico.
+NATURE: EXECUÇÃO.
+APPLICABLE_SMSCI: Todos os SMSCI previstos no PPCI, ressalvadas as exigências
+de RT específico da IN técnica aplicável.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. A habilitação
+concreta depende da legislação profissional e do conselho competente; este
+catálogo não enumera profissões sem fonte autorizadora.
+COMPATIBLE_ACTIVITIES: EXECUÇÃO, conforme atividade/serviço declarado na DRT.
+CONDITIONAL_SUBSTITUTE_ACTIVITY: REGULARIZAÇÃO pode substituir a DRT de
+execução somente quando um ou mais SMSCI tenham sido executados por outro
+profissional ou sem acompanhamento profissional, seja viável regularizá-los,
+e haja DRT de regularização e laudo de vistoria correspondente atestando o
+adequado funcionamento dos SMSCI em relação aos quesitos normativos. Não é
+atividade intercambiável com execução isoladamente (IN 01, art. 108, § 6º).
+ACCEPTED_DOCUMENTARY_EVIDENCE: DRT de execução; ou, somente na condição acima,
+DRT de regularização acompanhada do laudo de vistoria correspondente. Verificar
+registro/emissão no conselho, assinatura digital do RT ou certificação digital
+do conselho e os dados documentais exigidos pela IRV.
+ASSOCIATED_TECHNICAL_PRODUCTS: Relatório de Conformidade dos SMSCI (Anexo I
+IN 01), produzido pelo RT responsável pela execução. O produto não se confunde
+com a RT.
+GENERAL_VALIDATION_CRITERIA: Conferir registro/emissão e assinatura/certificação;
+nome do RI e RT, endereço e área; atividade/serviço declarado; SMSCI assumidos
+na DRT versus PPCI; exceções de RT específico; e, para regularização, todos os
+pressupostos e documentos do art. 108, § 6º. Ambiguidade não demonstra cobertura.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; IDs internos, não códigos normativos CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
+  IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- CONDITIONAL_SUBSTITUTE_ACTIVITY/ACCEPTED_DOCUMENTARY_EVIDENCE:
+  IN 01 Parte 1, art. 108, § 6º; autenticidade/identidade documental na
+  IRV Habite-se, Anexo A/Tabela 1.
+- ASSOCIATED_TECHNICAL_PRODUCTS: IN 01 Parte 1, arts. 65 e 108, IV, e
+  Anexo I; separação produto/RT no Documento 11, §§ 4–8.
+- GENERAL_VALIDATION_CRITERIA: IN 01 Parte 1, art. 108, III e § 6º;
+  IRV Habite-se, Anexo A/Tabela 1.
+- OBSERVATIONS (distrato/sucessão): DTZ OP 26-CMDOG, art. 74, II(b);
+  convenção RT-002/RT-003: decisão humana e formalização interna, não norma.
+OBSERVATIONS: RT-002 é escopo agregado de modelagem interna, não uma categoria
+profissional externa. A mesma DRT pode também servir ao escopo interno RT-003.
+O relatório de conformidade se liga à execução por fonte expressa (IN 01,
+art. 65 e Anexo I). Uma sucessão pode envolver DRT de distrato com serviços
+efetivamente realizados e DRT do RT que assumiu/finalizou a obra (DTZ 26,
+art. 74, II(b)); não presumir 1 processo→1 DRT.
+
+### RT-003
+
+IDENTIFIER: RT-003
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade de execução de SMSCI em escopo individualizado
+para rastreabilidade de cobertura documental por sistema.
+PURPOSE: Relacionar o(s) SMSCI documentalmente assumido(s) pelo RT aos sistemas
+previstos no PPCI sem presumir qual profissional assumiu sistema não indicado.
+NATURE: EXECUÇÃO de SMSCI.
+APPLICABLE_SMSCI: Sistemas declarados no PPCI e na DRT, ou abrangidos por DRT
+genérica válida, respeitada a exceção normativa de RT específico. Referências
+internas atualmente produtivas incluem SMSCI_GAS, SMSCI_PRESSURIZATION e
+SMSCI_IEL; a applicability e IN técnica definem a seleção efetiva.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
+profissões sem fundamento legal/profissional autorizado.
+COMPATIBLE_ACTIVITIES: EXECUÇÃO dos SMSCI declarados.
+CONDITIONAL_SUBSTITUTE_ACTIVITY: REGULARIZAÇÃO somente na via substitutiva e
+composta do art. 108, § 6º, da IN 01: pressupostos de execução sem/por outro
+profissional, viabilidade de regularização, DRT de regularização e laudo de
+vistoria correspondente. Não é um OR simples com execução.
+ACCEPTED_DOCUMENTARY_EVIDENCE: DRT que declara serviços/SMSCI assumidos; DRT
+genérica quando admitida; ou pacote DRT de regularização + laudo nos limites
+acima. Uma mesma DRT pode cobrir vários SMSCI.
+ASSOCIATED_TECHNICAL_PRODUCTS: Relatório de Conformidade dos SMSCI para os
+sistemas cuja execução está sob responsabilidade do RT. Manuais citados por
+Requirements atuais não são atribuídos a esta RT sem fonte: `UNRESOLVED_ATTRIBUTE
+ASSOCIATED_TECHNICAL_PRODUCTS` para essa associação.
+GENERAL_VALIDATION_CRITERIA: Conferir dados, serviço e SMSCI declarados contra
+o PPCI; aceitar cobertura genérica somente nos limites da IN 01, art. 108, III,
+e IRV Tabela 1; preservar exigência de RT específico; considerar DRT de mais de
+um profissional quando documentalmente demonstradas; não inferir cobertura por
+filename, ordem, proximidade ou associação ambígua.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; IDs internos, não códigos normativos CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
+  IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- CONDITIONAL_SUBSTITUTE_ACTIVITY/ACCEPTED_DOCUMENTARY_EVIDENCE:
+  IN 01 Parte 1, art. 108, § 6º; IRV Habite-se, Anexo A/Tabela 1.
+- ASSOCIATED_TECHNICAL_PRODUCTS (Relatório de Conformidade): IN 01 Parte 1,
+  arts. 65 e 108, IV, e Anexo I; Documento 11, §§ 4–8.
+- GENERAL_VALIDATION_CRITERIA: IRV Habite-se, Anexo A/Tabela 1; IN 01,
+  art. 108, III e § 6º; DTZ OP 26-CMDOG, art. 74, II(b), para sucessão.
+- OBSERVATIONS (manuais): IN 08, art. 80, e IN 09, art. 122, exigem os
+  documentos; não determinam que sejam produtos de RT-003. Separação conceitual:
+  Documento 11, §§ 4–8.
+OBSERVATIONS: RT-002 e RT-003 compartilham a natureza normativa de execução e
+podem compartilhar a mesma DRT. A distinção é uma convenção interna de escopo
+agregado versus rastreio por SMSCI; não cria obrigação nem exige uma DRT por
+sistema. A lista de SMSCI específicos que exigem RT próprio deve vir da IN
+técnica pertinente. `HAS_DRT_ACTIVITY` relata a atividade documental e não
+conclui, sozinho, cobertura ou satisfação.
+
+### RT-005
+
+IDENTIFIER: RT-005
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade interna de vistoria/inspeção de SMSCI no escopo
+expressamente descrito pela fonte aplicável.
+PURPOSE: Documentar a responsabilidade por vistoria/ensaio do sistema de
+pressurização, gradiente de pressão, alarme e detecção nos itens normativos.
+NATURE: VISTORIA/INSPEÇÃO.
+APPLICABLE_SMSCI: Sistemas de pressurização e gradiente de pressão, alarme e
+detecção no escopo da IN 09, art. 122, I.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
+categorias sem fonte.
+COMPATIBLE_ACTIVITIES: VISTORIA/INSPEÇÃO nos itens do art. 122, II; a DRT deve
+conter código ou descrição específica para escadas pressurizadas e gradiente
+de pressão nos termos do art. 122, I.
+ACCEPTED_DOCUMENTARY_EVIDENCE: DRT de vistoria/ensaio correspondente e laudo
+que a acompanha conforme IN 09, art. 122, I–II; ART/RRT/TRT conforme instrumento
+do conselho competente.
+ASSOCIATED_TECHNICAL_PRODUCTS: Laudo de vistoria/ensaio do sistema de
+pressurização/gradiente e sistemas relacionados indicados no art. 122, I–II.
+GENERAL_VALIDATION_CRITERIA: Conferir escopo da DRT e laudo; código/descrição
+específica exigidos; conteúdo dos itens a–h do art. 122, II, quando aplicáveis.
+A Base não exigirá uma DRT adicional apenas por existir o ID interno RT-005.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; IDs internos, não códigos normativos CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
+  ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS/
+  GENERAL_VALIDATION_CRITERIA: IN 09, art. 122, I–II; IN 01 Parte 1,
+  art. 108, § 4º.
+- OBSERVATIONS (distinção RT-005/RT-006 e produtos): IN 09, art. 122,
+  I–II; separação RT/produto/DRT no Documento 11, §§ 4–8; fronteira
+  dos IDs internos conforme decisão F6-DEC-001.
+OBSERVATIONS: A IN 09 descreve DRT de vistoria/ensaio e o laudo correspondente,
+com escopo relacionado. A Base decompõe isso entre RT-005 (vistoria/inspeção)
+e RT-006 (ensaio/produto). `UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT006`:
+a distinção funcional interna não está integralmente individualizada pela
+norma. O mesmo conjunto documental pode servir aos dois escopos internos; não
+exigir registro duplicado ou limite máximo de DRTs.
+
+### RT-006
+
+IDENTIFIER: RT-006
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade interna de ensaio técnico nos sistemas para os
+quais a fonte exige DRT e produto correspondentes.
+PURPOSE: Documentar ensaio de estanqueidade de gás e vistoria/ensaio de
+pressurização no escopo das respectivas INs.
+NATURE: ENSAIO; para pressurização a IN 09 emprega a expressão combinada
+“vistoria/ensaio”.
+APPLICABLE_SMSCI: SMSCI_GAS (estanqueidade) e sistema de pressurização/gradiente
+e sistemas relacionados da IN 09, art. 122, I.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. A categoria
+profissional específica não está enumerada neste catálogo.
+COMPATIBLE_ACTIVITIES: Ensaio de estanqueidade da instalação de gás; vistoria/
+ensaio de pressurização nos itens da IN 09, art. 122, I–II. Códigos de atividade
+profissional não explicitados pela fonte permanecem `UNRESOLVED_ATTRIBUTE
+COMPATIBLE_ACTIVITIES` nesse detalhe.
+ACCEPTED_DOCUMENTARY_EVIDENCE: Laudo de estanqueidade com DRT correspondente;
+laudo de vistoria/ensaio de pressurização acompanhado da DRT de vistoria/ensaio
+correspondente. Uma DRT pode evidenciar os escopos internos RT-005/006 sem
+exigir duplicação; isso não define cardinalidade máxima de DRTs no processo.
+ASSOCIATED_TECHNICAL_PRODUCTS: Laudo de estanqueidade da instalação de gás;
+laudo de vistoria/ensaio do sistema de pressurização/gradiente e sistemas
+relacionados no art. 122. O produto/documento permanece distinto da DRT.
+GENERAL_VALIDATION_CRITERIA: Conferir produto, sistema e DRT correspondente;
+aplicar prazo de cinco anos somente ao laudo de estanqueidade previsto na IN 08,
+art. 95/IRV; conferir os itens da IN 09, art. 122 para pressurização. Não inferir
+cobertura por atividade genérica.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; IDs internos, não códigos normativos CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
+  ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS:
+  IN 08, art. 95; IRV Habite-se, Tabela 4, item IN08; IN 09, art. 122,
+  I–II; IN 01 Parte 1, art. 108, § 4º.
+- GENERAL_VALIDATION_CRITERIA (validade da estanqueidade): IN 08, art. 95;
+  IRV Habite-se, Tabela 4, item IN08. (pressurização): IN 09, art. 122, I–II.
+- OBSERVATIONS (compartilhamento sem DRT duplicada): IN 09, art. 122,
+  I–II; separação responsabilidade/produto/DRT no Documento 11, §§ 4–8.
+OBSERVATIONS: O uso do ID interno em dois sistemas representa agregação interna
+de atividades de ensaio, não nomenclatura oficial CBMSC. Em IN 09, a DRT de
+vistoria/ensaio correspondente pode servir às componentes internas RT-005/006;
+`UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005` restringe essa relação,
+sem reduzir a exigência normativa. O prazo de cinco anos pertence ao laudo de
+gás, não à RT em geral.
+
+### RT-007
+
+IDENTIFIER: RT-007
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade interna de verificação final da instalação
+elétrica de baixa tensão no escopo de habite-se.
+PURPOSE: Documentar a verificação final da instalação elétrica de baixa tensão
+exigida para habite-se.
+NATURE: VERIFICAÇÃO FINAL.
+APPLICABLE_SMSCI: Instalação elétrica de baixa tensão, no escopo da IN 19,
+art. 18, III.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
+profissões sem fonte autorizadora.
+COMPATIBLE_ACTIVITIES: Verificação final de instalação elétrica de baixa
+tensão conforme IN 19, art. 18, III.
+ACCEPTED_DOCUMENTARY_EVIDENCE: DRT de verificação final da instalação elétrica.
+ASSOCIATED_TECHNICAL_PRODUCTS: `UNRESOLVED_ATTRIBUTE ASSOCIATED_TECHNICAL_PRODUCTS`;
+a IN 19, art. 18, III, exige a DRT como evidência, não define Produto Técnico
+próprio dessa responsabilidade.
+GENERAL_VALIDATION_CRITERIA: Conferir DRT de atividade de verificação final e
+aplicar alternativas do parágrafo único do art. 18 somente quando seus
+pressupostos temporais/documentais forem satisfeitos.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; IDs internos, não códigos normativos CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
+  ACCEPTED_DOCUMENTARY_EVIDENCE/GENERAL_VALIDATION_CRITERIA:
+  IN 19, art. 18, III e parágrafo único.
+- ASSOCIATED_TECHNICAL_PRODUCTS: IN 19, art. 18, III não define Produto
+  Técnico da RT; `UNRESOLVED_ATTRIBUTE` conforme Documento 11, §§ 4–8.
+- OBSERVATIONS (mappings atuais/conformidade/CMAR): IN 01, art. 65 e Anexo I;
+  IN 18, art. 14, I–II; ausência de identidade explícita entre declarante e
+  titular DRT em IN 18, art. 14; separação conceitual no Documento 11, §§ 4–8.
+OBSERVATIONS: A Base também liga RT-007 ao Relatório de Conformidade e à
+declaração CMAR, mas as fontes consultadas sustentam o relatório de conformidade
+como atribuição do RT pela execução (IN 01, art. 65 e Anexo I) e exigem declaração
+do RT e DRT de instalação/execução para CMAR (IN 18, art. 14, I–II). Nenhuma
+fonte liga esses dois usos a RT-007 de verificação final. `UNRESOLVED_ATTRIBUTE
+CURRENT_REQUIREMENT_MAPPINGS` para esses vínculos até reconciliação da Base.
+Para CMAR, não presumir que declarante e titular da DRT sejam a mesma pessoa;
+a fonte não estabelece essa identidade.
+
+### RT-014
+
+IDENTIFIER: RT-014
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade interna de comissionamento do SMSCI nos casos
+em que a IN específica exige essa atividade.
+PURPOSE: Documentar comissionamento, relatório e DRT correspondentes segundo
+a norma específica do sistema.
+NATURE: COMISSIONAMENTO.
+APPLICABLE_SMSCI: SHP, controle de fumaça mecânico, SDAI e SPK, nos escopos
+em que as fontes específicas exigem comissionamento. Os identificadores SMSCI_*
+da Base são referências internas, não códigos normativos.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Observar condições
+específicas: para SPK, IN 15, art. 30, atribui o comissionamento ao RT de
+execução/manutenção; para controle mecânico de fumaça, independência definida
+na IRV Habite-se, Tabela 4, item IN10. Não enumerar profissões sem fonte.
+COMPATIBLE_ACTIVITIES: Comissionamento SHP conforme IN 07, Anexo C e IRV
+Tabela 4, item IN07; comissionamento do controle de fumaça mecânico conforme
+IN 10, art. 41 e Anexo B, com independência da IRV Tabela 4, item IN10;
+comissionamento do SDAI conforme IN 12, art. 47; comissionamento do SPK pelo
+RT de execução/manutenção conforme IN 15, art. 30.
+ACCEPTED_DOCUMENTARY_EVIDENCE: Relatório de comissionamento correspondente
+com a DRT respectiva, conforme a norma aplicável. A ligação documento↔DRT deve
+ser documentalmente demonstrável; não inferir pelo nome, ordem ou parent.
+ASSOCIATED_TECHNICAL_PRODUCTS: Relatório de comissionamento SHP; relatório
+do comissionamento do controle de fumaça mecânico; relatório de comissionamento
+SDAI; relatório de comissionamento SPK.
+GENERAL_VALIDATION_CRITERIA: Conferir SMSCI, IN específica, agente/atividade,
+conteúdo/assinatura do relatório e DRT correspondente; aplicar independência
+somente ao controle mecânico de fumaça (IRV Tabela 4, item IN10); aplicar RT de
+execução/manutenção ao comissionamento SPK (IN 15, art. 30). Não generalizar
+condições específicas a todos os sistemas.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; ID interno, não código normativo CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
+  ASSOCIATED_TECHNICAL_PRODUCTS: IN 07, art. 106 e Anexo C; IN 10,
+  art. 41 e Anexo B; IN 12, art. 47; IN 15, arts. 30 e 32; IRV Habite-se,
+  Tabela 4, itens IN07/10/12/15.
+- QUALIFIED_PROFESSIONALS/ACCEPTED_DOCUMENTARY_EVIDENCE/
+  GENERAL_VALIDATION_CRITERIA: IN 01 Parte 1, art. 108, § 4º; IRV Tabela 4;
+  IN 15, art. 30, para RT execução/manutenção do SPK; IRV Tabela 4, item IN10,
+  para independência no controle mecânico de fumaça.
+- OBSERVATIONS (produto/RT): Documento 11, §§ 4–8.
+OBSERVATIONS: RT-014 é uma categoria interna reutilizada para comissionamento.
+As condições variam por sistema; independência não se generaliza; executor/
+manutenção para SPK não se converte em condição geral de RT-014. DRT é evidência,
+não produto técnico.
+
+### RT-015
+
+IDENTIFIER: RT-015
+INTERNAL_IDENTIFIER: true
+DESCRIPTION: Responsabilidade interna de manutenção nos escopos em que a
+fonte exige DRT de manutenção.
+PURPOSE: Documentar a atividade de manutenção e o laudo de manutenção anual
+exigido para vistoria de funcionamento nos sistemas definidos pela IN 09,
+art. 123, I.
+NATURE: MANUTENÇÃO.
+APPLICABLE_SMSCI: Sistemas de pressurização, gradiente de pressão, alarme e
+detecção de incêndio no escopo do art. 123, I, da IN 09.
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
+profissões sem fonte autorizadora.
+COMPATIBLE_ACTIVITIES: Manutenção dos sistemas e escopo expressos na IN 09,
+art. 123, I.
+ACCEPTED_DOCUMENTARY_EVIDENCE: DRT de manutenção e laudo de manutenção anual
+apresentado na vistoria de funcionamento (IN 09, art. 123, I).
+ASSOCIATED_TECHNICAL_PRODUCTS: Laudo de manutenção anual apresentado na
+vistoria de funcionamento para os sistemas do art. 123, I. A lista de verificações
+do art. 122, IV, não é atribuída a esta RT sem fonte: `UNRESOLVED_ATTRIBUTE
+ASSOCIATED_TECHNICAL_PRODUCTS` para essa relação.
+GENERAL_VALIDATION_CRITERIA: No escopo de funcionamento, verificar DRT de
+manutenção e laudo de manutenção anual nos limites do art. 123, I. Separadamente,
+verificar checklist do art. 122, IV; não exigir DRT própria do checklist por
+causa do nome RT-015 ou do Requirement atual.
+NORMATIVE_SOURCES:
+- IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
+  Git; ID interno, não código normativo CBMSC.
+- DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
+  ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS/
+  GENERAL_VALIDATION_CRITERIA (manutenção): IN 09, art. 123, I.
+- OBSERVATIONS (checklist e atribuição do instalador): IN 09, art. 122,
+  III–IV; IN 01 Parte 1, art. 108, § 4º, somente para escopo de laudos/ensaios/
+  inspeções/mensurações; Documento 11, §§ 4–8.
+OBSERVATIONS: O uso atual de RT-015 no Requirement do checklist de habite-se
+(art. 122, IV) não demonstra relação normativa com a manutenção do art. 123, I.
+`UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPING` e
+`UNRESOLVED_ATTRIBUTE DRT_REQUIREMENT_FOR_CHECKLIST`: a lacuna limita somente
+a associação do checklist. O art. 122, IV, atribui fornecimento da lista aos
+responsáveis pela instalação; não confundir essa lista com o laudo de manutenção
+anual do art. 123, I.
