@@ -80,13 +80,130 @@ function criterionExecutionBindExists_(contract, view, argument) {
   });
 }
 
+function criterionExecutionDocumentTrace_(view, reference, expectedSourceDocument) {
+  criterionExecutionRequire_(reference && typeof reference.kind === 'string' &&
+    typeof reference.identifier === 'string', 'applicability trace reference is invalid');
+  const typedReference = new TypedReference(reference.kind, reference.identifier);
+  criterionExecutionRequire_(view.contains(typedReference),
+    'applicability trace reference does not belong to the execution view');
+  const sourceDocument = view.sourceDocument(typedReference);
+  criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
+    sourceDocument.kind === 'DOCUMENT' &&
+    sourceDocument.identifier === expectedSourceDocument.identifier,
+  'applicability trace reference has a different source document');
+  return Object.freeze({
+    reference: criterionExecutionReferenceSnapshot_(typedReference),
+    sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
+    provenance: view.provenance(typedReference) === undefined
+      ? null : immutableCopy(view.provenance(typedReference))
+  });
+}
+
+function criterionExecutionLiteralContext_(plan, view, unit) {
+  const selected = plan.selectedComprovante;
+  criterionExecutionRequire_(selected && selected.kind === 'DOCUMENT' &&
+    typeof selected.identifier === 'string' && selected.identifier,
+  'literal ASSERT requires the authenticated selected comprovante');
+  const selectedReference = new TypedReference(selected.kind, selected.identifier);
+  criterionExecutionRequire_(view.contains(selectedReference),
+    'selected comprovante does not belong to the execution view');
+  const selectedDocumentTrace = criterionExecutionDocumentTrace_(
+    view, selected, selected
+  );
+  const references = [selectedReference];
+  const derivations = (plan.derivedDecisions || []).filter(item =>
+    item && item.target === unit.appliesTo
+  );
+  criterionExecutionRequire_(derivations.length <= 1,
+    'planned APPLIES_TO has ambiguous derived applicability trace');
+  let applicabilityDerivation = null;
+  if (derivations.length === 1) {
+    const derived = derivations[0];
+    criterionExecutionRequire_(derived.selectedDocument && derived.section &&
+      derived.selectedDocument.reference && derived.section.reference &&
+      derived.selectedDocument.reference.kind === 'DOCUMENT' &&
+      derived.selectedDocument.reference.identifier === selected.identifier &&
+      derived.section.reference.kind === 'DOCUMENT_SECTION' &&
+      Array.isArray(derived.sourceDecisions) && derived.sourceDecisions.length > 0,
+    'derived applicability trace is incomplete for literal ASSERT');
+    const sectionReference = new TypedReference(
+      derived.section.reference.kind, derived.section.reference.identifier
+    );
+    const sectionTrace = criterionExecutionDocumentTrace_(
+      view, derived.section.reference, selected
+    );
+    references.push(sectionReference);
+    const sourceDecisionTraces = derived.sourceDecisions.map(target => {
+      const matches = (plan.officialDecisions || []).filter(item =>
+        item && item.target === target
+      );
+      criterionExecutionRequire_(matches.length === 1,
+        'derived applicability source decision must exist exactly once');
+      const decision = matches[0];
+      criterionExecutionRequire_(decision.selectedDocument && decision.section &&
+        decision.selectedDocument.reference && decision.section.reference &&
+        decision.selectedDocument.reference.kind === 'DOCUMENT' &&
+        decision.selectedDocument.reference.identifier === selected.identifier,
+      'derived applicability source decision has invalid source binding');
+      const decisionSectionTrace = criterionExecutionDocumentTrace_(
+        view, decision.section.reference, selected
+      );
+      references.push(new TypedReference(
+        decision.section.reference.kind, decision.section.reference.identifier
+      ));
+      criterionExecutionRequire_(Array.isArray(decision.itemTraces),
+        'derived applicability source item trace is invalid');
+      const itemTraces = decision.itemTraces.map(trace => {
+        criterionExecutionRequire_(trace && trace.reference,
+          'derived applicability source item reference is missing');
+        const itemTrace = criterionExecutionDocumentTrace_(view, trace.reference, selected);
+        references.push(new TypedReference(trace.reference.kind, trace.reference.identifier));
+        return itemTrace;
+      });
+      return immutableCopy({
+        target: decision.target,
+        decision: decision.decision,
+        source: decision.source,
+        rule: decision.rule,
+        section: decisionSectionTrace,
+        itemTraces
+      });
+    });
+    applicabilityDerivation = immutableCopy({
+      target: derived.target,
+      decision: derived.decision,
+      rule: derived.rule,
+      sourceDecisions: derived.sourceDecisions,
+      selectedDocument: selectedDocumentTrace,
+      section: sectionTrace,
+      sourceDecisionTraces
+    });
+  }
+  const seen = new Set();
+  const uniqueReferences = references.filter(reference => {
+    const key = reference.kind + ':' + reference.identifier;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return Object.freeze({
+    references: Object.freeze(uniqueReferences),
+    binding: immutableCopy({
+      type: 'LITERAL',
+      value: EngineResult.MANUAL_REVIEW,
+      selectedDocument: selectedDocumentTrace,
+      applicabilityDerivation
+    })
+  });
+}
+
 function criterionExecutionRequireKeys_(value, expected, label) {
   criterionExecutionRequire_(value && typeof value === 'object' && !Array.isArray(value) &&
     JSON.stringify(Object.keys(value).sort()) === JSON.stringify(expected.slice().sort()),
   label + ' has unsupported or residual fields');
 }
 
-function criterionExecutionMaterializeAssert_(contract, view, assertIr) {
+function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assertIr) {
   criterionExecutionRequire_(assertIr && typeof assertIr === 'object' &&
     !Array.isArray(assertIr), 'ASSERT IR node must be an object');
   if (assertIr.type === 'CALL') {
@@ -103,9 +220,10 @@ function criterionExecutionMaterializeAssert_(contract, view, assertIr) {
     criterionExecutionRequireKeys_(assertIr, ['type', 'value'], 'LITERAL');
     criterionExecutionRequire_(assertIr.value === 'MANUAL_REVIEW',
       'executor supports only the declared MANUAL_REVIEW literal');
+    const context = criterionExecutionLiteralContext_(plan, view, unit);
     return Object.freeze({
-      expression: new AssertLiteral(EngineResult.MANUAL_REVIEW),
-      binding: Object.freeze({ type: 'LITERAL', value: EngineResult.MANUAL_REVIEW })
+      expression: new AssertLiteral(EngineResult.MANUAL_REVIEW, context.references),
+      binding: context.binding
     });
   }
   if (assertIr.type === 'OR') {
@@ -113,7 +231,7 @@ function criterionExecutionMaterializeAssert_(contract, view, assertIr) {
     criterionExecutionRequire_(Array.isArray(assertIr.expressions) &&
       assertIr.expressions.length === 2, 'OR must declare exactly two expressions');
     const children = assertIr.expressions.map(child =>
-      criterionExecutionMaterializeAssert_(contract, view, child));
+      criterionExecutionMaterializeAssert_(contract, plan, view, unit, child));
     return Object.freeze({
       expression: new Or(children.map(child => child.expression)),
       binding: Object.freeze({ type: 'OR', expressions: Object.freeze(children.map(child => child.binding)) })
@@ -161,7 +279,9 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
       plan.PROCESS_SMSCI.includes(metadata.appliesTo),
     'planned Criterion APPLIES_TO is not present in PROCESS.SMSCI');
   }
-  const materialized = criterionExecutionMaterializeAssert_(contract, view, metadata.assertIr);
+  const materialized = criterionExecutionMaterializeAssert_(
+    contract, plan, view, unit, metadata.assertIr
+  );
   const criterionFail = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;
   const requirementNonconformities = unit.nonconformityReferences &&

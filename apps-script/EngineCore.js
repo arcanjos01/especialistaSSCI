@@ -237,13 +237,20 @@ class Exists {
 }
 
 // The canonical Base currently declares only MANUAL_REVIEW as an ASSERT
-// literal. It has no documentary references; CriterionIR retains its source.
+// literal. Its process document references are bound by planned execution.
 class AssertLiteral {
-  constructor(value) {
+  constructor(value, documentaryReferences) {
     if (value !== EngineResult.MANUAL_REVIEW) {
       throw new ArgumentContractError('ASSERT literal supports only MANUAL_REVIEW');
     }
+    if (!Array.isArray(documentaryReferences) || documentaryReferences.length === 0 ||
+        documentaryReferences.some(reference => !(reference instanceof TypedReference)) ||
+        !documentaryReferences.some(reference =>
+          reference.kind === 'DOCUMENT' || reference.kind === 'DOCUMENT_ABSENCE')) {
+      throw new ArgumentContractError('ASSERT literal requires a source document or document absence');
+    }
     this.value = value;
+    this.documentaryReferences = Object.freeze(documentaryReferences.slice());
     Object.freeze(this);
   }
 }
@@ -354,6 +361,13 @@ function evaluateExpression(expression, registry, memory, context) {
     })]) });
   }
   if (expression instanceof AssertLiteral) {
+    const invalidReference = expression.documentaryReferences.some(reference =>
+      (reference.kind === 'DOCUMENT' && !memory.contains(reference)) ||
+      (reference.kind === 'DOCUMENT_ABSENCE' && memory.contains(reference))
+    );
+    if (invalidReference) {
+      throw new ResultContractError('ASSERT literal has an invalid documentary reference');
+    }
     return Object.freeze({ result: expression.value, trace: Object.freeze([Object.freeze({
       requirementId: context.requirementId,
       criterionId: context.criterionId,
@@ -361,7 +375,7 @@ function evaluateExpression(expression, registry, memory, context) {
       arguments: Object.freeze({ value: expression.value }),
       result: expression.value,
       argumentReferences: Object.freeze([]),
-      memoryReferences: Object.freeze([])
+      memoryReferences: expression.documentaryReferences
     })]) });
   }
   if (expression instanceof All || expression instanceof ForEach || expression instanceof Or) {

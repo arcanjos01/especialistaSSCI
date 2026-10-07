@@ -170,6 +170,34 @@ END
         with self.assertRaisesRegex(ValueError, "conteúdo residual ASSERT"):
             self.builder._parse_criterion_metadata(source)
 
+    def test_manual_review_literal_rejects_residual_directive_and_expression(self):
+        sources = (
+            '''
+CRITERION TEST_LITERAL_RESIDUAL_AFTER_REVIEW
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT MANUAL_REVIEW
+MANUAL_REVIEW "TEST_ONLY" GARBAGE
+EXISTS(OTHER_DOCUMENT)
+END
+''',
+            '''
+CRITERION TEST_OR_RESIDUAL_AFTER_REVIEW
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT
+EXISTS(TEST_DOCUMENT)
+OR MANUAL_REVIEW
+MANUAL_REVIEW "TEST_ONLY"
+EXISTS(OTHER_DOCUMENT)
+END
+''',
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(ValueError, "residual|não reconhecido"):
+                    self.builder._parse_criterion_metadata(source)
+
     def test_structured_index_reuses_canonical_compiler_unit_keys_and_order(self):
         requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
         criteria_texts = tuple(

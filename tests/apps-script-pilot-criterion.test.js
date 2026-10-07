@@ -204,10 +204,22 @@ assert.equal(reviewResult.trace[0].predicateId, 'ASSERT_LITERAL');
 assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].arguments)),
   { value: 'MANUAL_REVIEW' });
 assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].argumentReferences)), []);
-assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].memoryReferences)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' },
+  { kind: 'DOCUMENT_SECTION', identifier: 'SECTION_CURRENT' }
+]);
 assert.equal(reviewResult.trace[0].criterionId, 'T4_IN19_APPLICABILITY_REVIEW');
 assert.equal(reviewResult.trace[0].requirementId, 'REQ_IN19_APPLICABILITY_REVIEW');
+assert.equal(reviewResult.traceability.documentaryBinding.applicabilityDerivation.target,
+  'SMSCI_IN19_APPLICABILITY_REVIEW');
+assert.equal(reviewResult.traceability.documentaryBinding.applicabilityDerivation.sourceDecisionTraces[0].target,
+  'SMSCI_IEL');
+assert.equal(reviewResult.traceability.documentaryBinding.applicabilityDerivation.sourceDecisionTraces[0].decision,
+  'NEGATIVE');
 assert.equal(reviewResult.nonconformityOnFalse, undefined);
+assert.throws(() => api.executePlannedCriterion(
+  contract, applicabilityReview.plan, reviewUnit, positive.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 const legacyUnit = 'UNIT_KEY (REQ_IN19_LEGACY_DOCUMENTATION, T4_IN19_LEGACY_DOCUMENTATION)';
 const legacyManual = prepare({
@@ -228,6 +240,9 @@ assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace[0].memoryRef
   { kind: 'DOCUMENT_ABSENCE', identifier: 'LOW_VOLTAGE_EXECUTION_DRT' }
 ]);
 assert.equal(legacyManualResult.trace[1].result, 'MANUAL_REVIEW');
+assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace[1].memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
+]);
 assert.equal(legacyManualResult.nonconformityOnFalse, undefined);
 
 const legacyDocumented = prepare({

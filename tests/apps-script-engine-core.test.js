@@ -154,19 +154,32 @@ const call = result => new E.PredicateCall('R_' + result, { subject: ref });
 const evaluate = expr => E.evaluateExpression(expr, reg, memory([ref]), ctx).result;
 assert.equal(evaluate(new E.Exists(ref)), ER.TRUE);
 assert.throws(() => new E.AssertLiteral(ER.FALSE), /only MANUAL_REVIEW/);
-const literalReview = E.evaluateCriterion(criterion(new E.AssertLiteral(ER.MANUAL_REVIEW)), reg, memory());
+assert.throws(() => new E.AssertLiteral(ER.MANUAL_REVIEW, []), /requires a source document/);
+const literalDocument = new E.TypedReference('DOCUMENT', 'literal-source');
+const literalReview = E.evaluateCriterion(criterion(
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
+), reg, memory([literalDocument]));
+assert.throws(() => E.evaluateCriterion(criterion(
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
+), reg, memory()), /invalid documentary reference/);
 assert.equal(literalReview.engineResult, ER.MANUAL_REVIEW);
 assert.equal(literalReview.pipelineResult, PR.MANUAL_REVIEW);
 assert.equal(literalReview.normalization, 'IDENTITY');
 assert.deepEqual(JSON.parse(JSON.stringify(literalReview.trace[0])), {
   requirementId: 'TEST_REQUIREMENT', criterionId: 'TEST_CRITERION',
   predicateId: 'ASSERT_LITERAL', arguments: { value: 'MANUAL_REVIEW' },
-  result: 'MANUAL_REVIEW', argumentReferences: [], memoryReferences: []
+  result: 'MANUAL_REVIEW', argumentReferences: [],
+  memoryReferences: [{ kind: 'DOCUMENT', identifier: 'literal-source' }]
 });
-assert.equal(evaluate(new E.Or([new E.Exists(ref), new E.AssertLiteral(ER.MANUAL_REVIEW)])), ER.TRUE);
-assert.equal(evaluate(new E.Or([
+const evaluateWithDocument = expr => E.evaluateExpression(
+  expr, reg, memory([ref, literalDocument]), ctx
+).result;
+assert.equal(evaluateWithDocument(new E.Or([
+  new E.Exists(ref), new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
+])), ER.TRUE);
+assert.equal(evaluateWithDocument(new E.Or([
   new E.Exists(new E.TypedReference('TEST_ENTITY', 'missing')),
-  new E.AssertLiteral(ER.MANUAL_REVIEW)
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
 ])), ER.MANUAL_REVIEW);
 assert.equal(E.evaluateExpression(new E.Exists(new E.TypedReference('TEST_ENTITY', 'missing')),
   reg, memory([ref]), ctx).result, ER.FALSE);

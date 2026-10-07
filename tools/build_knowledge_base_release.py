@@ -224,15 +224,40 @@ def _parse_assert_call(source: str, identifier: str) -> dict[str, object]:
 
 
 def _reject_assert_residual_lines(lines: list[str], identifier: str) -> None:
+    ended = False
+    seen_fail = False
+    seen_manual_review = False
+    manual_review_text_pending = False
     for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped == "END" or re.match(r"^(?:FAIL|MANUAL_REVIEW)\b", stripped):
-            return
+        if manual_review_text_pending:
+            if re.fullmatch(r'"(?:[^"\\]|\\.)*"', stripped):
+                manual_review_text_pending = False
+                continue
+            raise ValueError(f"texto MANUAL_REVIEW inválido em {identifier}: {stripped}")
+        if stripped == "END":
+            ended = True
+            break
+        if re.fullmatch(r"FAIL\s+[A-Z][A-Z0-9_]*", stripped):
+            if seen_fail:
+                raise ValueError(f"FAIL duplicado após ASSERT em {identifier}")
+            seen_fail = True
+            continue
+        if re.fullmatch(r'MANUAL_REVIEW(?:\s+"(?:[^"\\]|\\.)*")?', stripped):
+            if seen_manual_review:
+                raise ValueError(f"MANUAL_REVIEW duplicado após ASSERT em {identifier}")
+            seen_manual_review = True
+            manual_review_text_pending = stripped == 'MANUAL_REVIEW'
+            continue
         raise ValueError(
             f"conteúdo residual ASSERT não reconhecido em {identifier}: {stripped}"
         )
+    if not ended:
+        raise ValueError(f"END ausente após ASSERT em {identifier}")
+    if manual_review_text_pending:
+        raise ValueError(f"texto MANUAL_REVIEW ausente em {identifier}")
 
 
 def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
@@ -282,11 +307,14 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
         return _parse_assert_call(source, identifier)
 
     expression_lines: list[str] = []
-    for line in remainder.splitlines():
+    remainder_lines = remainder.splitlines()
+    trailing_lines: list[str] = []
+    for index, line in enumerate(remainder_lines):
         stripped = line.strip()
         if not stripped:
             continue
         if stripped == "END" or re.match(r"^(?:FAIL|MANUAL_REVIEW)\b", stripped):
+            trailing_lines = remainder_lines[index:]
             break
         expression_lines.append(stripped)
     if not expression_lines:
@@ -295,6 +323,7 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
         if expression_lines.count("OR MANUAL_REVIEW") != 1 or \
                 expression_lines[-1] != "OR MANUAL_REVIEW":
             raise ValueError(f"OR MANUAL_REVIEW ambíguo em {identifier}")
+        _reject_assert_residual_lines(trailing_lines, identifier)
         call = _parse_assert_call(
             "\n".join(expression_lines[:-1]), identifier
         )
