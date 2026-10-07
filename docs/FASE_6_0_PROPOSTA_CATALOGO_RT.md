@@ -119,7 +119,7 @@ ACCEPTED_DOCUMENTARY_EVIDENCE=`DRT de vistoria/ensaio correspondente e laudo que
 
 ASSOCIATED_TECHNICAL_PRODUCTS=`Laudo de vistoria/ensaio do sistema de pressurização/gradiente de pressão e sistemas relacionados indicados no art. 122, I.` — `EXPLICIT_SOURCE` (IN 09 art. 122, I–II). O mesmo produto e a DRT de vistoria/ensaio podem servir à decomposição interna RT-005/RT-006; não exigir DRT duplicada. A delimitação de escopo entre os dois IDs permanece registrada em OBSERVATIONS.
 
-GENERAL_VALIDATION_CRITERIA=`Verificar DRT de vistoria/ensaio e laudo; código/descrição de escadas pressurizadas/gradiente; presença no laudo dos itens a–h aplicáveis nos termos do texto normativo; não assumir que a Base pode exigir uma DRT independente adicional à prevista no art. 122.` — `EXPLICIT_SOURCE` (IN 09 art. 122).
+GENERAL_VALIDATION_CRITERIA=`Verificar DRT de vistoria/ensaio e laudo; código/descrição de escadas pressurizadas/gradiente; inspecionar os itens a–g do art. 122, II, e as portas corta-fogo do item h; verificar seus mecanismos automáticos de fechamento somente se previstos; não exigir DRT independente adicional apenas pelo ID interno.` — `EXPLICIT_SOURCE` (IN 09 art. 122, I–II).
 
 NORMATIVE_SOURCES=`IN 09, art. 122, I–II; IN 01 Parte 1, art. 108, § 4º; Documento 11, §§ 4–8.` — `EXPLICIT_SOURCE`.
 
@@ -143,15 +143,15 @@ QUALIFIED_PROFESSIONALS=`NORMATIVELY_AUTHORIZED_PROFESSIONAL` — `DERIVED_BY_DI
 
 COMPATIBLE_ACTIVITIES=`Ensaio de estanqueidade da instalação de gás combustível; vistoria/ensaio do sistema de pressurização conforme escopo e itens da IN 09.` — `EXPLICIT_SOURCE` para as atividades e fontes acima. Código literal de atividade profissional além do expressamente requerido no art. 122 fica `UNRESOLVED`.
 
-ACCEPTED_DOCUMENTARY_EVIDENCE=`Laudo de estanqueidade acompanhado da DRT respectiva; laudo de vistoria/ensaio da pressurização acompanhado da DRT de vistoria/ensaio correspondente ao escopo no art. 122.` — `EXPLICIT_SOURCE` (IRV Tabela 4, item IN08; IN 08 art. 95; IN 01 art. 108 § 4º; IN 09 art. 122, I–II).
+ACCEPTED_DOCUMENTARY_EVIDENCE=`Laudo ou ensaio de estanqueidade acompanhado do respectivo DRT; laudo de vistoria/ensaio da pressurização acompanhado da DRT de vistoria/ensaio correspondente ao escopo no art. 122.` — `EXPLICIT_SOURCE` (IN 08 art. 95 admite laudo ou ensaio; IRV Tabela 4, item IN08; IN 01 art. 108 § 4º; IN 09 art. 122, I–II).
 
-ASSOCIATED_TECHNICAL_PRODUCTS=`Laudo de estanqueidade da instalação de gás; laudo de vistoria/ensaio do sistema de pressurização/gradiente e sistemas relacionados.` — produtos `EXPLICIT_SOURCE` (IRV Tabela 4, item IN08; IN 08 art. 95; IN 09 art. 122, I–II). A DRT e laudo de pressurização são compartilháveis com o escopo interno RT-005; não declarar associação exclusiva a RT-006.
+ASSOCIATED_TECHNICAL_PRODUCTS=`Laudo ou ensaio de estanqueidade da instalação de gás; laudo de vistoria/ensaio do sistema de pressurização/gradiente e sistemas relacionados.` — produtos `EXPLICIT_SOURCE` (IRV Tabela 4, item IN08; IN 08 art. 95; IN 09 art. 122, I–II). A DRT e laudo de pressurização são compartilháveis com o escopo interno RT-005; não declarar associação exclusiva a RT-006.
 
-GENERAL_VALIDATION_CRITERIA=`Verificar DRT que acompanha o produto; identificar o produto/sistema; aplicar validade temporal de cinco anos somente ao laudo de estanqueidade conforme IN 08/IRV; para pressurização aplicar itens e conteúdo exigidos no art. 122 da IN 09; não inferir cobertura por atividade genérica.` — `EXPLICIT_SOURCE`.
+GENERAL_VALIDATION_CRITERIA=`Verificar DRT que acompanha o produto; identificar o produto/sistema; aplicar validade de até cinco anos somente ao laudo ou ensaio de estanqueidade conforme IN 08/IRV; para pressurização aplicar itens e conteúdo exigidos no art. 122 da IN 09; não inferir cobertura por atividade genérica.` — `EXPLICIT_SOURCE`.
 
 NORMATIVE_SOURCES=`IN 01 Parte 1, art. 108, § 4º; IN 08, art. 95; IRV Habite-se, Tabela 4 (item IN08); IN 09, art. 122, I–II; Documento 11, §§ 4–8.` — `EXPLICIT_SOURCE`.
 
-OBSERVATIONS=`O uso atual de um mesmo ID para estanqueidade de gás e vistoria/ensaio de pressurização representa generalização interna de “ensaio”, não nomenclatura das normas. Em IN 09 a DRT de vistoria/ensaio e o laudo são a composição documental correspondente, que pode atender aos escopos internos RT-005/RT-006; `UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005` limita a semântica da decomposição, não a exigência documental. Cinco anos aplica-se somente ao laudo de estanqueidade.` — classificação `DERIVED_BY_DIRECT_FORMALIZATION`; limite `UNRESOLVED`.
+OBSERVATIONS=`O uso atual de um mesmo ID para estanqueidade de gás e vistoria/ensaio de pressurização representa generalização interna de “ensaio”, não nomenclatura das normas. Em IN 09 a DRT de vistoria/ensaio e o laudo são a composição documental correspondente, que pode atender aos escopos internos RT-005/RT-006; `UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005` limita a semântica da decomposição, não a exigência documental. A validade de até cinco anos aplica-se ao laudo ou ensaio de estanqueidade.` — classificação `DERIVED_BY_DIRECT_FORMALIZATION`; limite `UNRESOLVED`.
 
 ### RT-007
 
@@ -207,7 +207,7 @@ GENERAL_VALIDATION_CRITERIA=`Confirmar SMSCI e IN específica; atividade e agent
 
 NORMATIVE_SOURCES=`IN 01 Parte 1, art. 108, § 4º; IN 07, Anexo C; IN 10, art. 41 e Anexo B; IN 12, art. 47; IN 15, arts. 30 e 32; IRV Habite-se, Tabela 4 (itens IN07/10/12/15; páginas impressas 7–9) e Tabela 9 para critérios técnicos do sistema de fumaça; Documento 11, §§ 4–8.` — `EXPLICIT_SOURCE`.
 
-OBSERVATIONS=`RT-014 é uma categoria interna reutilizada para comissionamento. As condições expressas variam por sistema: executor/manutenção para SPK; independência somente para fumaça mecânica; requisitos próprios nas demais INs. Não transformar essas condições em predicado global sem discriminar o SMSCI.` — `DERIVED_BY_DIRECT_FORMALIZATION`.
+OBSERVATIONS=`RT-014 é uma categoria interna reutilizada para comissionamento. As condições expressas variam por sistema: execução/manutenção para SHP e SPK; independência somente para fumaça mecânica; requisitos próprios nas demais INs. Não transformar essas condições em predicado global sem discriminar o SMSCI.` — `DERIVED_BY_DIRECT_FORMALIZATION`.
 
 ### RT-015
 

@@ -65,6 +65,21 @@ class RtCatalogContractTests(unittest.TestCase):
         self.assertIn("UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT006", normalized["RT-005"])
         self.assertIn("UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005", normalized["RT-006"])
 
+    def test_in09_inspection_items_preserve_only_express_condition(self):
+        entry = " ".join(self.entries["RT-005"].split())
+        self.assertIn("itens a–g", entry)
+        self.assertIn("mecanismos automáticos de fechamento somente se previstos", entry)
+        self.assertNotIn("itens a–h do art. 122, II, quando aplicáveis", entry)
+
+    def test_gas_evidence_accepts_report_or_test(self):
+        entry = " ".join(self.entries["RT-006"].split())
+        self.assertIn("Laudo ou ensaio de estanqueidade", entry)
+
+    def test_shp_commissioning_agent_is_system_specific(self):
+        entry = " ".join(self.entries["RT-014"].split())
+        self.assertIn("execução/manutenção ao SHP (IRV Tabela 4, item IN07)", entry)
+        self.assertIn("execução/manutenção conforme IN 15, art. 30", entry)
+
 
 if __name__ == "__main__":
     unittest.main()

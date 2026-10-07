@@ -263,6 +263,9 @@ NORMATIVE_SOURCES:
   Git; IDs internos, não códigos normativos CBMSC.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
   IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- QUALIFIED_PROFESSIONALS: placeholder genérico adotado conforme a delimitação
+  da decisão F6-DEC-001; as fontes acima não são usadas para inventar uma lista
+  profissional por RT, e a habilitação concreta segue legislação e conselho.
 - CONDITIONAL_SUBSTITUTE_ACTIVITY/ACCEPTED_DOCUMENTARY_EVIDENCE:
   IN 01 Parte 1, art. 108, § 6º; autenticidade/identidade documental na
   IRV Habite-se, Anexo A/Tabela 1.
@@ -316,6 +319,8 @@ NORMATIVE_SOURCES:
   Git; IDs internos, não códigos normativos CBMSC.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
   IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; as fontes
+  consultadas não enumeram categorias profissionais específicas por RT.
 - CONDITIONAL_SUBSTITUTE_ACTIVITY/ACCEPTED_DOCUMENTARY_EVIDENCE:
   IN 01 Parte 1, art. 108, § 6º; IRV Habite-se, Anexo A/Tabela 1.
 - ASSOCIATED_TECHNICAL_PRODUCTS (Relatório de Conformidade): IN 01 Parte 1,
@@ -354,7 +359,9 @@ do conselho competente.
 ASSOCIATED_TECHNICAL_PRODUCTS: Laudo de vistoria/ensaio do sistema de
 pressurização/gradiente e sistemas relacionados indicados no art. 122, I–II.
 GENERAL_VALIDATION_CRITERIA: Conferir escopo da DRT e laudo; código/descrição
-específica exigidos; conteúdo dos itens a–h do art. 122, II, quando aplicáveis.
+específica exigidos; inspecionar os itens a–g do art. 122, II, e as portas
+corta-fogo do item h; verificar seus mecanismos automáticos de fechamento
+somente se previstos. Não exigir DRT independente apenas pelo ID interno.
 A Base não exigirá uma DRT adicional apenas por existir o ID interno RT-005.
 NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
@@ -363,6 +370,8 @@ NORMATIVE_SOURCES:
   ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS/
   GENERAL_VALIDATION_CRITERIA: IN 09, art. 122, I–II; IN 01 Parte 1,
   art. 108, § 4º.
+- QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; as fontes
+  consultadas não enumeram categorias profissionais específicas por RT.
 - OBSERVATIONS (distinção RT-005/RT-006 e produtos): IN 09, art. 122,
   I–II; separação RT/produto/DRT no Documento 11, §§ 4–8; fronteira
   dos IDs internos conforme decisão F6-DEC-001.
@@ -391,17 +400,19 @@ COMPATIBLE_ACTIVITIES: Ensaio de estanqueidade da instalação de gás; vistoria
 ensaio de pressurização nos itens da IN 09, art. 122, I–II. Códigos de atividade
 profissional não explicitados pela fonte permanecem `UNRESOLVED_ATTRIBUTE
 COMPATIBLE_ACTIVITIES` nesse detalhe.
-ACCEPTED_DOCUMENTARY_EVIDENCE: Laudo de estanqueidade com DRT correspondente;
+ACCEPTED_DOCUMENTARY_EVIDENCE: Laudo ou ensaio de estanqueidade com o
+respectivo DRT, conforme IN 08, art. 95;
 laudo de vistoria/ensaio de pressurização acompanhado da DRT de vistoria/ensaio
 correspondente. Uma DRT pode evidenciar os escopos internos RT-005/006 sem
 exigir duplicação; isso não define cardinalidade máxima de DRTs no processo.
-ASSOCIATED_TECHNICAL_PRODUCTS: Laudo de estanqueidade da instalação de gás;
+ASSOCIATED_TECHNICAL_PRODUCTS: Laudo ou ensaio de estanqueidade da instalação
+de gás;
 laudo de vistoria/ensaio do sistema de pressurização/gradiente e sistemas
 relacionados no art. 122. O produto/documento permanece distinto da DRT.
 GENERAL_VALIDATION_CRITERIA: Conferir produto, sistema e DRT correspondente;
-aplicar prazo de cinco anos somente ao laudo de estanqueidade previsto na IN 08,
-art. 95/IRV; conferir os itens da IN 09, art. 122 para pressurização. Não inferir
-cobertura por atividade genérica.
+aplicar validade de até cinco anos somente ao laudo ou ensaio de estanqueidade
+previsto na IN 08, art. 95/IRV; conferir os itens da IN 09, art. 122 para
+pressurização. Não inferir cobertura por atividade genérica.
 NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
   Git; IDs internos, não códigos normativos CBMSC.
@@ -409,6 +420,8 @@ NORMATIVE_SOURCES:
   ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS:
   IN 08, art. 95; IRV Habite-se, Tabela 4, item IN08; IN 09, art. 122,
   I–II; IN 01 Parte 1, art. 108, § 4º.
+- QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; as fontes
+  consultadas não enumeram categorias profissionais específicas por RT.
 - GENERAL_VALIDATION_CRITERIA (validade da estanqueidade): IN 08, art. 95;
   IRV Habite-se, Tabela 4, item IN08. (pressurização): IN 09, art. 122, I–II.
 - OBSERVATIONS (compartilhamento sem DRT duplicada): IN 09, art. 122,
@@ -417,8 +430,8 @@ OBSERVATIONS: O uso do ID interno em dois sistemas representa agregação intern
 de atividades de ensaio, não nomenclatura oficial CBMSC. Em IN 09, a DRT de
 vistoria/ensaio correspondente pode servir às componentes internas RT-005/006;
 `UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005` restringe essa relação,
-sem reduzir a exigência normativa. O prazo de cinco anos pertence ao laudo de
-gás, não à RT em geral.
+sem reduzir a exigência normativa. A validade de até cinco anos aplica-se ao
+laudo ou ensaio de estanqueidade de gás, não à RT em geral.
 
 ### RT-007
 
@@ -445,6 +458,8 @@ pressupostos temporais/documentais forem satisfeitos.
 NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
   Git; IDs internos, não códigos normativos CBMSC.
+- QUALIFIED_PROFESSIONALS: IN 19, art. 18, III, não enumera categoria
+  profissional neste contrato; placeholder genérico conforme F6-DEC-001.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
   ACCEPTED_DOCUMENTARY_EVIDENCE/GENERAL_VALIDATION_CRITERIA:
   IN 19, art. 18, III e parágrafo único.
@@ -474,12 +489,14 @@ NATURE: COMISSIONAMENTO.
 APPLICABLE_SMSCI: SHP, controle de fumaça mecânico, SDAI e SPK, nos escopos
 em que as fontes específicas exigem comissionamento. Os identificadores SMSCI_*
 da Base são referências internas, não códigos normativos.
-QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Observar condições
-específicas: para SPK, IN 15, art. 30, atribui o comissionamento ao RT de
-execução/manutenção; para controle mecânico de fumaça, independência definida
-na IRV Habite-se, Tabela 4, item IN10. Não enumerar profissões sem fonte.
-COMPATIBLE_ACTIVITIES: Comissionamento SHP conforme IN 07, Anexo C e IRV
-Tabela 4, item IN07; comissionamento do controle de fumaça mecânico conforme
+QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
+profissões sem fonte. As condições de agente são específicas por sistema:
+execução/manutenção para SHP conforme IRV Tabela 4, item IN07; para SPK,
+execução/manutenção conforme IN 15, art. 30; independência para fumaça
+mecânica conforme IRV Tabela 4, item IN10.
+COMPATIBLE_ACTIVITIES: Comissionamento SHP realizado pelo RT de
+execução/manutenção, conforme IRV Tabela 4, item IN07, e IN 07, Anexo C;
+comissionamento do controle de fumaça mecânico conforme
 IN 10, art. 41 e Anexo B, com independência da IRV Tabela 4, item IN10;
 comissionamento do SDAI conforme IN 12, art. 47; comissionamento do SPK pelo
 RT de execução/manutenção conforme IN 15, art. 30.
@@ -490,10 +507,10 @@ ASSOCIATED_TECHNICAL_PRODUCTS: Relatório de comissionamento SHP; relatório
 do comissionamento do controle de fumaça mecânico; relatório de comissionamento
 SDAI; relatório de comissionamento SPK.
 GENERAL_VALIDATION_CRITERIA: Conferir SMSCI, IN específica, agente/atividade,
-conteúdo/assinatura do relatório e DRT correspondente; aplicar independência
-somente ao controle mecânico de fumaça (IRV Tabela 4, item IN10); aplicar RT de
-execução/manutenção ao comissionamento SPK (IN 15, art. 30). Não generalizar
-condições específicas a todos os sistemas.
+conteúdo/assinatura do relatório e DRT correspondente; aplicar RT de
+execução/manutenção ao SHP (IRV Tabela 4, item IN07) e ao SPK (IN 15, art. 30);
+aplicar independência somente ao controle mecânico de fumaça (IRV Tabela 4,
+item IN10). Não generalizar condições específicas a todos os sistemas.
 NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
   Git; ID interno, não código normativo CBMSC.
@@ -501,15 +518,18 @@ NORMATIVE_SOURCES:
   ASSOCIATED_TECHNICAL_PRODUCTS: IN 07, art. 106 e Anexo C; IN 10,
   art. 41 e Anexo B; IN 12, art. 47; IN 15, arts. 30 e 32; IRV Habite-se,
   Tabela 4, itens IN07/10/12/15.
+- QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; as fontes
+  não enumeram categorias profissionais por RT; IRV Tabela 4, item IN07, define
+  execução/manutenção como agente do comissionamento SHP.
 - QUALIFIED_PROFESSIONALS/ACCEPTED_DOCUMENTARY_EVIDENCE/
   GENERAL_VALIDATION_CRITERIA: IN 01 Parte 1, art. 108, § 4º; IRV Tabela 4;
   IN 15, art. 30, para RT execução/manutenção do SPK; IRV Tabela 4, item IN10,
   para independência no controle mecânico de fumaça.
 - OBSERVATIONS (produto/RT): Documento 11, §§ 4–8.
 OBSERVATIONS: RT-014 é uma categoria interna reutilizada para comissionamento.
-As condições variam por sistema; independência não se generaliza; executor/
-manutenção para SPK não se converte em condição geral de RT-014. DRT é evidência,
-não produto técnico.
+As condições variam por sistema: execução/manutenção para SHP e SPK;
+independência somente para fumaça mecânica. Nenhuma condição se generaliza a
+todos os sistemas. DRT é evidência, não produto técnico.
 
 ### RT-015
 
@@ -540,6 +560,8 @@ causa do nome RT-015 ou do Requirement atual.
 NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
   Git; ID interno, não código normativo CBMSC.
+- QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; IN 09,
+  art. 123, I, não enumera categoria profissional por RT.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
   ACCEPTED_DOCUMENTARY_EVIDENCE/ASSOCIATED_TECHNICAL_PRODUCTS/
   GENERAL_VALIDATION_CRITERIA (manutenção): IN 09, art. 123, I.
