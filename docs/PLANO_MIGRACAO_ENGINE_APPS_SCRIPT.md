@@ -515,34 +515,39 @@ Checkpoint de implementação:
 
 Gate de saída da Fase 4: **SATISFEITO**.
 
-Próxima fase autorizada: **Fase 5 — Integração VALIDATED → ANALYZED**.
+Próxima etapa autorizada: preparação read-only da Fase 5, conforme seção 8.
 
-## 8. Fase 5 — Integração VALIDATED → ANALYZED
+## 8. Fase 5 — Preparação da integração VALIDATED → ANALYZED
 
-Objetivo: conectar o Engine ao workflow Apps Script.
+Status: **PREPARAÇÃO CONCLUÍDA; transição para ANALYZED PENDENTE**.
 
-Implementar somente após as fases 1–4:
+Por decisão humana, esta etapa integra somente a preparação read-only. O
+runtime ainda não executa Criteria nem consolida resultados: o plano completo
+inclui unidades fora da cobertura do executor piloto. Não declarar ANALYZED
+nem persistir resultado parcial.
 
-- leitura da RDE validada;
-- construção da execution view;
-- applicability;
-- frozen plan;
-- execução;
-- normalização;
-- consolidação;
-- persistência do artefato de análise, se o contrato exigir;
-- transição atômica VALIDATED → ANALYZED.
+Checkpoint:
 
-Requisitos:
+- Commit funcional: `ad9a1f43cdc4bc31caeb342547a57c00372df25d`.
+- O wrapper usa o lock do workflow, consulta somente registry existente e lê
+  somente o JSON da RDE validada; não grava registry, RDE ou artefato.
+- A preparação valida a identidade da RDE, constrói ImmutableExecutionView,
+  CurrentSubmissionContext, applicability autenticada e frozen plan; informa
+  UNIT_KEYs materializáveis e unidades fora da capacidade explícita do executor.
+- Erros de integridade são propagados. Cobertura incompleta mantém o processo
+  em VALIDATED; ANALYZED não é permitido nesta etapa.
+- Testes: 138 Python PASS; todos os 7 testes Apps Script PASS; sintaxe Node
+  para módulos JS e Code.gs PASS; CompiledRuntimeContract regenerado
+  byte-identical; `git diff --check` PASS.
+- Revisão independente Sol 6.1: `SOL_REVIEW=PASS` no SHA funcional acima.
+  F5-001=CLOSED; achados abertos: 0. F4-001 a F4-006 preservados.
+- Limitação: `REQ_T1_DRT_REQUIRED` e outras unidades planejadas permanecem fora
+  da cobertura do executor piloto. Não houve execução, consolidação,
+  persistência de resultados nem transição de status.
 
-- idempotência;
-- não reprocessar ANALYZED;
-- erro não pode corromper RDE;
-- erro não pode fabricar resultado;
-- status só muda após validação completa da saída;
-- manter ERROR separado de resultado normativo.
-
-Primeiro teste: somente processo controlado/fixture. Não usar a fake RDE vazia para produzir conclusão normativa.
+Fase 6 não iniciada nem autorizada por este checkpoint. A transição
+VALIDATED → ANALYZED permanece pendente de cobertura completa e consolidação
+compatíveis com o 08_execution_pipeline.
 
 ## 9. Fase 6 — Cobertura progressiva da Base
 
@@ -693,19 +698,7 @@ Não transformar este plano em changelog detalhado.
 
 ## 15. Próxima ação autorizada
 
-Próxima etapa:
-
-**Fase 5 — Integração VALIDATED → ANALYZED**.
-
-Escopo imediato:
-
-- conectar somente o caminho já aprovado: RDE validada → ImmutableExecutionView
-  → applicability → frozen execution plan → execução do Criterion piloto;
-- preservar idempotência e atomicidade da transição;
-- não promover automaticamente processo real antes dos testes controlados;
-- não iniciar execução em massa de Criteria;
-- não iniciar relatório operacional;
-- não iniciar EXTRACTION real por LLM;
-- OpenAI Decisions permanece fora do escopo;
-- Luna implementa em ciclos;
-- Sol revisa antes de promoção.
+Preparação da Fase 5 concluída. `VALIDATED → ANALYZED` continua pendente;
+nenhuma fase posterior está autorizada por este checkpoint. Não iniciar Fase 6,
+execução de processos reais, relatório operacional, EXTRACTION real por LLM ou
+OpenAI Decisions.
