@@ -19,6 +19,7 @@ for (const relativePath of [
 vm.runInContext(
   'globalThis.api = {' +
   'COMPILED_RUNTIME_CONTRACT,' +
+  'TypedReference,' +
   'EngineResult,' +
   'projectRdeToExecutionView_,' +
   'createCurrentSubmissionContext,' +
@@ -244,6 +245,16 @@ assert.deepEqual(
   )),
   { kind: 'DOCUMENT', identifier: 'DOC_PRESSURIZATION_MANUAL' }
 );
+const pressurizationManualReference = new api.TypedReference(
+  'MANUAL', 'PRESSURIZATION_MANUAL_CLASSIFICATION'
+);
+const pressurizationManualProvenance =
+  pressurizationManual.view.provenance(pressurizationManualReference);
+assert.deepEqual(JSON.parse(JSON.stringify(pressurizationManualProvenance)), {
+  sourceKind: 'TEST_ONLY',
+  sourceReference: 'TEST_ONLY_PRESSURIZATION_MANUAL_CLASSIFICATION'
+});
+assert.equal(Object.isFrozen(pressurizationManualProvenance), true);
 
 const missingPressurizationManual = prepare({
   includeGas: false,
@@ -288,6 +299,21 @@ assert.equal(
 assert.throws(() => api.executePlannedCriterion(
   contract, pressurizationNotApplicable.plan, PRESSURIZATION_MANUAL_UNIT,
   pressurizationNotApplicable.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+const presentManualNotApplicable = prepare({
+  includeGas: false,
+  includePressurization: false,
+  includePressurizationManual: true
+});
+assert.equal(
+  presentManualNotApplicable.plan.PLANNED_EXECUTION_UNITS.some(
+    unit => unit.unitKey === PRESSURIZATION_MANUAL_UNIT
+  ),
+  false
+);
+assert.throws(() => api.executePlannedCriterion(
+  contract, presentManualNotApplicable.plan, PRESSURIZATION_MANUAL_UNIT,
+  presentManualNotApplicable.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 const repeat = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);

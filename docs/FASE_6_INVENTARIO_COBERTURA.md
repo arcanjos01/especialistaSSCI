@@ -116,10 +116,14 @@ A fixture sintética inclui o item oficial `SPDE`, comprova que a unidade
 avalia o documento presente como TRUE/PASS com trace da entidade/proveniência;
 sem o documento ou com outro tipo de manual, o resultado declarado é
 FALSE/FAIL com `NC_T4_006`; sem o SMSCI aplicável, a unidade não é planejada
-nem executada. Essa verificação fecha a lacuna de entidade para essa unidade
-específica, mas não demonstra a cobertura integral do Requirement de DRT nem
-das outras unidades do plano.
-O candidate permanece sujeito à revisão independente da onda 2.
+nem executada, mesmo quando o manual estiver presente. A view conserva
+`provenance` e a fixture agora o verifica como imutável. Essa verificação
+fecha a lacuna de entidade para essa unidade específica, mas não demonstra a
+cobertura integral dos requisitos de DRT ou das outras unidades do plano.
+Sol 6.1 revisou o primeiro candidate da onda 2 com `SOL_REVIEW=PASS` e apontou
+`F6-W2-001` (LOW): faltavam asserts versionados para proveniência e manual
+presente sem `SPDE`. Ambos foram adicionados; o follow-up candidate aguarda
+nova revisão Sol 6.1.
 
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
