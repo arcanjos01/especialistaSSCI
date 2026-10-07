@@ -153,7 +153,7 @@ devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
 RDE válida. A onda factual de assinatura abaixo não executa os Criteria de DRT
 ou produto↔DRT e não amplia a contagem de cobertura integral.
 
-## Onda funcional — assinatura do Relatório de Conformidade (candidate)
+## Onda funcional — assinatura do Relatório de Conformidade
 
 Revisão independente anterior à alteração retornou
 `SOL_CONTRACT_REVIEW=PASS`, com recomendação `NARROW`: o Requirement existente
@@ -183,7 +183,7 @@ executáveis os ASSERTs de outros Requirements que compartilhem VALIDATE.
 Nenhuma regra, Requirement, Criterion, Nonconformity ou applicability foi
 criada/alterada; ANALYZED não foi iniciado.
 
-| Estado antes da revisão independente deste candidate | Quantidade |
+| Estado após a revisão independente do candidate funcional | Quantidade |
 |---|---:|
 | Criteria compilados | 36 |
 | Produtivamente alcançáveis | 31 |
@@ -194,8 +194,29 @@ criada/alterada; ANALYZED não foi iniciado.
 
 Contagens não somam cobertura por entidade nem por predicate: o Criterion de
 assinatura permanece fora dos seis integralmente cobertos enquanto não houver
-contrato suficiente para multiplicidade. Revisão Sol desta onda ainda
-pendente para o candidate funcional.
+contrato suficiente para multiplicidade.
+
+A primeira revisão funcional do candidate `237ccc19395bfcb271f94c3525ed0ff6597ce99d`
+retornou `SOL_REVIEW=FAIL` com `F6-SIG-001` (MEDIUM): o guard entre o produto
+do VALIDATE e do ASSERT comparava `.kind`/`.identifier` inexistentes em strings
+e aceitava referências distintas. O commit `4ea8a1ae6439534f614d528c99e7443c4c2f9b2e`
+compara os nomes canônicos diretamente e inclui regressão adversarial em VM
+com ambos os produtos presentes e assinados; a execução agora para com erro de
+integridade antes de qualquer resultado. Novo Sol 6.1 revisou o candidate
+agregado desde `471a7f8d1db5626eca708d53c7c6212597fcb48f` e retornou
+`SOL_REVIEW=PASS`, sem novos achados. `F6-SIG-001=CLOSED`.
+
+Também foi encerrado `F6-SIG-R1-001` (LOW), que pedia integração do predicate
+com catálogo compilado e verificação de atributo, ausência, sourceDocument,
+provenance e imutabilidade; Sol confirmou que os fixtures desta onda satisfazem
+esses asserts.
+
+Gates no candidate `4ea8a1a`: 150 testes Python; todos os sete testes
+`tests/apps-script-*.test.js`; `node --check` em módulos e testes JS e em
+`Code.gs`; `git diff --check`; duas regenerações do contrato compilado com
+SHA-256 idêntico `bed974c8570d77707acb922f2db4ff771b4a6292e587bfd6856ee6343824914d`.
+Esse PASS fecha somente o recorte da onda; a multiplicidade continua sem
+contrato e Fase 6 continua incompleta.
 
 ## Resultado agregado no baseline pré-onda 1
 
