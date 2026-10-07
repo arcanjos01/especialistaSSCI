@@ -1232,6 +1232,118 @@ function listProcesses() {
   return processes;
 }
 
+/**
+ * Read-only preparation diagnostic for one VALIDATED process.
+ * It never executes Criteria, writes artifacts, or advances the workflow status.
+ */
+function prepareValidatedProcessExecutionReadiness(
+  processId,
+  currentSubmissionContext
+) {
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    return prepareValidatedExecutionReadiness(
+      processId,
+      currentSubmissionContext,
+      {
+        withLock: function (callback) {
+          return callback();
+        },
+        readProcess: function (requestedProcessId) {
+          const sheet = getExistingRegistrySheet_();
+          const lastRow = sheet.getLastRow();
+          if (lastRow <= 1) return null;
+
+          const rows = sheet.getRange(
+            2, 1, lastRow - 1, REGISTRY_HEADERS.length
+          ).getValues();
+          const matches = rows.filter(row =>
+            String(row[0] || '').trim() === requestedProcessId
+          );
+          if (matches.length !== 1) {
+            if (matches.length === 0) return null;
+            throw makeRdeValidationError_(
+              'PROCESS_REGISTRY_DUPLICATE',
+              'Mais de um registro encontrado para PROCESS_ID: ' + requestedProcessId
+            );
+          }
+          return {
+            processId: String(matches[0][0] || '').trim(),
+            sourceFileId: String(matches[0][1] || '').trim(),
+            status: String(matches[0][6] || '').trim(),
+          };
+        },
+        readValidatedRde: function (processRecord) {
+          const processingRoot = DriveApp.getFolderById(
+            APP_CONFIG.FOLDERS.PROCESSING.id
+          );
+          const processFolder = getUniqueValidationFolder_(
+            processingRoot, processRecord.processId, processRecord.processId
+          );
+          const rdeFolder = getUniqueValidationFolder_(
+            processFolder, 'RDE', processRecord.processId
+          );
+          const fileName = 'rde-v' + RDE_SCHEMA_VERSION + '.json';
+          const files = rdeFolder.getFilesByName(fileName);
+          if (!files.hasNext()) {
+            throw makeRdeValidationError_(
+              'RDE_MISSING', 'Arquivo RDE validado não encontrado: ' + fileName
+            );
+          }
+          const file = files.next();
+          if (files.hasNext()) {
+            throw makeRdeValidationError_(
+              'RDE_DUPLICATE_FILE', 'Mais de um arquivo RDE validado encontrado.'
+            );
+          }
+          return file.getBlob().getDataAsString('UTF-8');
+        },
+      }
+    );
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Finds the existing registry without creating, repairing, or changing it. */
+function getExistingRegistrySheet_() {
+  const props = PropertiesService.getScriptProperties();
+  const storedId = props.getProperty('PROCESS_REGISTRY_SPREADSHEET_ID');
+  let spreadsheet = null;
+
+  if (storedId) {
+    spreadsheet = SpreadsheetApp.openById(storedId);
+  } else {
+    const configFolder = DriveApp.getFolderById(APP_CONFIG.FOLDERS.CONFIG.id);
+    const files = configFolder.getFilesByName(APP_CONFIG.REGISTRY.FILE_NAME);
+    if (!files.hasNext()) {
+      throw makeRdeValidationError_(
+        'PROCESS_REGISTRY_NOT_FOUND', 'Registry existente não foi encontrado.'
+      );
+    }
+    const file = files.next();
+    if (files.hasNext()) {
+      throw makeRdeValidationError_(
+        'PROCESS_REGISTRY_DUPLICATE', 'Mais de um registry existente foi encontrado.'
+      );
+    }
+    spreadsheet = SpreadsheetApp.openById(file.getId());
+  }
+
+  const sheet = spreadsheet.getSheetByName(APP_CONFIG.REGISTRY.SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 1 ||
+      sheet.getRange(1, 1, 1, REGISTRY_HEADERS.length).getValues()[0]
+        .some((value, index) => value !== REGISTRY_HEADERS[index])) {
+    throw makeRdeValidationError_(
+      'PROCESS_REGISTRY_INVALID', 'Registry existente tem cabeçalho incompatível.'
+    );
+  }
+  return sheet;
+}
+
 function makeProcessId_(fileId) {
 
   const digest =
