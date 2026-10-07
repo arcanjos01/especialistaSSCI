@@ -5,10 +5,10 @@ Este arquivo foi reconstruído a partir do HEAD indicado. Enumeração conferida
 diretamente pelo `CompiledRuntimeContract.js` (36 Criteria, 36 unidades
 baseadas em UNIT_KEY) e pelas regras de `02a_applicability.txt` (31 produtivas;
 5 não selecionáveis: quatro Criteria M5 e o regime UNRESOLVED legado).
-`CriterionExecutionCore.js` atualmente só materializa CALL(EXISTS), não
-iterações nem VALIDATE: quatro Criteria produtivos têm execução já suportada.
-Dois outros (literal MANUAL_REVIEW e composição OR) são implementáveis por
-contrato fechado, mas exigem ampliar o executor. Os 25 restantes dependem de
+No baseline 6f82475, `CriterionExecutionCore.js` só materializava CALL(EXISTS),
+sem iterações nem VALIDATE: quatro Criteria produtivos tinham execução já
+suportada. Dois outros (literal MANUAL_REVIEW e composição OR) eram
+implementáveis por contrato fechado. Os 25 restantes dependem de
 contratos de execução ou evidência ainda não formalizados; blockers se
 sobrepõem entre Criteria.
 
@@ -39,7 +39,31 @@ humana. A lacuna factual de RDE/view não é encerrada pela aprovação do catá
 Esta etapa não alterou runtime, resultado, applicability, Requirement ou
 Criterion.
 
-## Resultado agregado
+## Cobertura atual após a onda 1
+
+A onda 1 estendeu `EngineCore.js`, `CriterionExecutionCore.js` e o gate
+read-only de readiness para materializar os constructos declarados no contrato
+compilado: literal `MANUAL_REVIEW` e `OR` de dois nós que aceita
+recursivamente `EXISTS` e esse literal. Não alterou fontes normativas,
+Requirement, Criterion, Nonconformity ou applicability.
+
+| Métrica após a onda 1 | Quantidade |
+|---|---:|
+| Criteria produtivos | 31 |
+| Criteria atualmente materializáveis pelo executor | 6 |
+| Criteria restantes sem cobertura de executor | 25 |
+| Criteria anteriormente `IMPLEMENTABLE_CLOSED_CONTRACT`, agora cobertos | 2 |
+| Unidades planejadas cobertas nos cenários IN19 elegíveis | 2 de 2 |
+
+As seis unidades com constructos suportados são as quatro do baseline
+(`T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`,
+`T4_IN19_GROUNDING`) e as duas da onda 1 (`T4_IN19_APPLICABILITY_REVIEW`,
+`T4_IN19_LEGACY_DOCUMENTATION`). Cobertura é avaliada por unidade planejada:
+o caso legado só é selecionado no regime/data expressos em
+`02a_applicability.txt`. Os outros 25 continuam no escopo das fichas de
+blocker abaixo.
+
+## Resultado agregado no baseline pré-onda 1
 
 | Cobertura | Quantidade |
 |---|---:|
@@ -58,10 +82,9 @@ As categorias acima são por blocker ID, não por Criteria, porque vários
 blockers afetam o mesmo Criterion. Não há soma disjunta das 25 unidades
 bloqueadas por classe. `EXECUTABLE_EXISTING` quer dizer que o executor atual
 aceita o construct; não é evidência de cobertura de todos os fixtures ou de
-`VALIDATED → ANALYZED`. Os dois Criteria tecnicamente implementáveis são
+`VALIDATED → ANALYZED`. Os dois Criteria tecnicamente implementáveis eram
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
-define resultado MANUAL_REVIEW e composição OR. Nenhuma implementação foi
-iniciada neste checkpoint.
+define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
 ## Matriz por Criterion (snapshot do baseline)
 
@@ -113,16 +136,15 @@ bloqueador e fonte canônica.
 A matriz acima registra metadados de todos os 36 Criteria compilados. A regra
 02a_applicability torna produtivos 31: os 4 Criteria M5 não têm regra de
 applicability; `T4_IN19_REGIME_REVIEW` é referência UNRESOLVED legada, não
-selecionada pelo regime estrito. O executor suporta hoje apenas ASSERT direto
-`EXISTS`, sem FOR_EACH ou VALIDATE; assim, são atualmente executáveis
-`T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION` e
-`T4_IN19_GROUNDING`. As formas LITERAL/MANUAL_REVIEW e OR estão definidas, mas
-ainda exigem implementação genérica do IR.
+selecionada pelo regime estrito. No baseline, o executor suportava somente
+ASSERT `EXISTS`; após onda 1, também aceita literal `MANUAL_REVIEW` e `OR`
+recursivo sobre as formas suportadas, ainda sem FOR_EACH ou VALIDATE. As seis
+unidades cobertas estão listadas na seção "Cobertura atual após a onda 1".
 
 Os 25 Criteria restantes foram reclassificados provisoriamente na ficha abaixo.
-O inventário não seleciona novo alcance e não altera applicability. A
-classificação será submetida a revisão independente Sol antes de qualquer
-alteração canônica.
+O inventário não seleciona novo alcance e não altera applicability. A matriz
+preserva os estados do baseline 6f82475; o estado após onda 1 está registrado
+na seção anterior.
 
 ## Reconciliação das fontes originais e revisão independente Sol
 

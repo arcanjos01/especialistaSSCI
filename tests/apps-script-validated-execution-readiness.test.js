@@ -105,10 +105,10 @@ function rdeFixture() {
   };
 }
 
-function currentSubmissionContext() {
+function currentSubmissionContext(requestDate = '2026-01-28') {
   return {
     protocolIdentifier: 'TEST_ONLY_PROTOCOL',
-    requestDate: '2026-01-28',
+    requestDate,
     reIdentifier: 'TEST_ONLY_RE',
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_INTAKE' },
   };
@@ -164,6 +164,12 @@ assert.ok(prepared.coverage.plannedUnitKeys.includes(
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)'
 ));
+assert.ok(prepared.coverage.plannedUnitKeys.includes(
+  'UNIT_KEY (REQ_IN19_APPLICABILITY_REVIEW, T4_IN19_APPLICABILITY_REVIEW)'
+));
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
+  'UNIT_KEY (REQ_IN19_APPLICABILITY_REVIEW, T4_IN19_APPLICABILITY_REVIEW)'
+));
 assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)'
 ));
@@ -173,6 +179,35 @@ assert.equal(happyAdapters.counts.rdeReads, 1);
 assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.documentSourceReads, 0);
 assert.equal(happyAdapters.counts.executionCalls, 0);
+
+const legacyReadinessRde = rdeFixture();
+legacyReadinessRde.records[0].attributes.REQUEST_DATE = '2024-04-24';
+legacyReadinessRde.records.push({
+  record_id: 'ITEM_IEL', entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+  parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+  attributes: {
+    OFFICIAL_ESCI_CODE: 'IEL',
+    PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY low-voltage installation',
+    RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page 2',
+  },
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IEL_ITEM' },
+});
+const legacyReadinessAdapters = makeAdapters({ content: JSON.stringify(legacyReadinessRde) });
+const legacyReadiness = api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext('2024-04-24'),
+  legacyReadinessAdapters.adapters
+);
+assert.ok(legacyReadiness.coverage.plannedUnitKeys.includes(
+  'UNIT_KEY (REQ_IN19_LEGACY_DOCUMENTATION, T4_IN19_LEGACY_DOCUMENTATION)'
+));
+assert.ok(legacyReadiness.coverage.materializableUnitKeys.includes(
+  'UNIT_KEY (REQ_IN19_LEGACY_DOCUMENTATION, T4_IN19_LEGACY_DOCUMENTATION)'
+));
+assert.equal(legacyReadiness.workflowStatus, 'VALIDATED');
+assert.equal(legacyReadiness.analysisPermitted, false);
+assert.equal(legacyReadinessAdapters.counts.writes, 0);
+assert.equal(legacyReadinessAdapters.counts.executionCalls, 0);
+assert.equal(legacyReadinessAdapters.counts.documentSourceReads, 0);
 assert.equal(fixtureContent, JSON.stringify(rdeFixture()));
 assert.equal(Object.isFrozen(prepared), true);
 assert.equal(Object.isFrozen(prepared.coverage.unsupportedUnitKeys), true);

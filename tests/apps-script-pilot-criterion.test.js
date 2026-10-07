@@ -48,21 +48,22 @@ assert.equal(vm.runInContext("typeof criterionExecutionMaterializeAssert_", cont
 
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
 
-function currentContext() {
+function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
     protocolIdentifier: 'TEST_ONLY_PROTOCOL',
-    requestDate: '2026-01-28',
+    requestDate,
     reIdentifier: 'TEST_ONLY_RE',
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_INTAKE' }
   });
 }
 
-function makeRde({ includeGas = true, includeManual = false } = {}) {
+function makeRde({ includeGas = true, includeManual = false, includeIel = false,
+  includeLegacyExecutionDrt = false, requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
     parent_record_id: null, source_document: 'DOC_CURRENT',
     attributes: {
-      PROTOCOL_IDENTIFIER: 'TEST_ONLY_PROTOCOL', REQUEST_DATE: '2026-01-28',
+      PROTOCOL_IDENTIFIER: 'TEST_ONLY_PROTOCOL', REQUEST_DATE: requestDate,
       RE_IDENTIFIER: 'TEST_ONLY_RE'
     },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_DOCUMENT' }
@@ -84,6 +85,30 @@ function makeRde({ includeGas = true, includeManual = false } = {}) {
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_GAS_ITEM' }
     });
   }
+  if (includeIel) {
+    records.push({
+      record_id: 'ITEM_IEL', entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+      parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+      attributes: {
+        OFFICIAL_ESCI_CODE: 'IEL',
+        PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY low-voltage installation',
+        RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page'
+      },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IEL_ITEM' }
+    });
+  }
+  if (includeLegacyExecutionDrt) {
+    records.push({
+      record_id: 'DOC_DRT', entity_id: 'DRT', parent_record_id: null,
+      source_document: 'DOC_DRT', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_DRT_DOCUMENT' }
+    });
+    records.push({
+      record_id: 'DRT_LOW_VOLTAGE', entity_id: 'LOW_VOLTAGE_EXECUTION_DRT',
+      parent_record_id: null, source_document: 'DOC_DRT', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_LOW_VOLTAGE_DRT' }
+    });
+  }
   if (includeManual) {
     records.push({
       record_id: 'DOC_MANUAL', entity_id: 'MANUAL',
@@ -101,7 +126,9 @@ function makeRde({ includeGas = true, includeManual = false } = {}) {
 function prepare(options) {
   const rde = makeRde(options);
   const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
-  const resolution = api.resolveCbmscApplicability(view, currentContext(), contract);
+  const resolution = api.resolveCbmscApplicability(
+    view, currentContext(options && options.requestDate), contract
+  );
   const plan = api.materializeFrozenExecutionPlan(contract, resolution, view);
   return { rde, view, resolution, plan };
 }
@@ -158,6 +185,74 @@ const notApplicable = prepare({ includeGas: false, includeManual: true });
 assert.equal(notApplicable.plan.PLANNED_EXECUTION_UNITS.some(unit => unit.unitKey === PILOT_UNIT), false);
 assert.throws(() => api.executePlannedCriterion(
   contract, notApplicable.plan, PILOT_UNIT, notApplicable.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+
+const reviewUnit = 'UNIT_KEY (REQ_IN19_APPLICABILITY_REVIEW, T4_IN19_APPLICABILITY_REVIEW)';
+const applicabilityReview = prepare({ includeGas: true, includeIel: false });
+assert.equal(applicabilityReview.plan.PLANNED_EXECUTION_UNITS.some(
+  unit => unit.unitKey === reviewUnit
+), true);
+const reviewResult = api.executePlannedCriterion(
+  contract, applicabilityReview.plan, reviewUnit, applicabilityReview.view
+);
+assert.equal(reviewResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(reviewResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(reviewResult.normalization, 'IDENTITY');
+assert.equal(reviewResult.resultOrigin, 'EVALUATED');
+assert.equal(reviewResult.trace.length, 1);
+assert.equal(reviewResult.trace[0].predicateId, 'ASSERT_LITERAL');
+assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].arguments)),
+  { value: 'MANUAL_REVIEW' });
+assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].argumentReferences)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(reviewResult.trace[0].memoryReferences)), []);
+assert.equal(reviewResult.trace[0].criterionId, 'T4_IN19_APPLICABILITY_REVIEW');
+assert.equal(reviewResult.trace[0].requirementId, 'REQ_IN19_APPLICABILITY_REVIEW');
+assert.equal(reviewResult.nonconformityOnFalse, undefined);
+
+const legacyUnit = 'UNIT_KEY (REQ_IN19_LEGACY_DOCUMENTATION, T4_IN19_LEGACY_DOCUMENTATION)';
+const legacyManual = prepare({
+  includeGas: true, includeIel: true, requestDate: '2024-04-24'
+});
+assert.equal(legacyManual.plan.PLANNED_EXECUTION_UNITS.some(
+  unit => unit.unitKey === legacyUnit
+), true);
+const legacyManualResult = api.executePlannedCriterion(
+  contract, legacyManual.plan, legacyUnit, legacyManual.view
+);
+assert.equal(legacyManualResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(legacyManualResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(legacyManualResult.normalization, 'IDENTITY');
+assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace.map(item => item.predicateId))),
+  ['EXISTS', 'ASSERT_LITERAL']);
+assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace[0].memoryReferences)), [
+  { kind: 'DOCUMENT_ABSENCE', identifier: 'LOW_VOLTAGE_EXECUTION_DRT' }
+]);
+assert.equal(legacyManualResult.trace[1].result, 'MANUAL_REVIEW');
+assert.equal(legacyManualResult.nonconformityOnFalse, undefined);
+
+const legacyDocumented = prepare({
+  includeGas: true, includeIel: true, includeLegacyExecutionDrt: true,
+  requestDate: '2024-04-24'
+});
+const legacyDocumentedResult = api.executePlannedCriterion(
+  contract, legacyDocumented.plan, legacyUnit, legacyDocumented.view
+);
+assert.equal(legacyDocumentedResult.engineResult, api.EngineResult.TRUE);
+assert.equal(legacyDocumentedResult.pipelineResult, 'PASS');
+assert.deepEqual(JSON.parse(JSON.stringify(legacyDocumentedResult.trace.map(item => item.predicateId))),
+  ['EXISTS', 'ASSERT_LITERAL']);
+assert.equal(legacyDocumentedResult.trace[0].result, 'TRUE');
+assert.equal(legacyDocumentedResult.trace[1].result, 'MANUAL_REVIEW');
+assert.equal(legacyDocumentedResult.nonconformityOnFalse, undefined);
+
+const legacyCurrent = prepare({
+  includeGas: true, includeIel: true, requestDate: '2024-04-25'
+});
+assert.equal(legacyCurrent.plan.PLANNED_EXECUTION_UNITS.some(
+  unit => unit.unitKey === legacyUnit
+), false);
+assert.throws(() => api.executePlannedCriterion(
+  contract, legacyCurrent.plan, legacyUnit, legacyCurrent.view
 ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 function deepFreeze(value) {

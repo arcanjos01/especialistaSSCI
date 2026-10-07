@@ -13,7 +13,7 @@ globalThis.engineCore = {
   ArgumentContractError, PredicateNotFoundError, ResultContractError,
   CompositionContractError, TypedReference, ArgumentSpec, ArgumentSchema,
   ResolverContext, PredicateContract, PredicateRegistry, PredicateCall,
-  Exists, All, Or, ForEach, CriterionIR, evaluateExpression,
+  Exists, AssertLiteral, All, Or, ForEach, CriterionIR, evaluateExpression,
   evaluateCriterion, normalizeEngineResult, propagateResult
 };`, context);
 const E = context.engineCore;
@@ -153,6 +153,21 @@ const reg = new E.PredicateRegistry(contracts);
 const call = result => new E.PredicateCall('R_' + result, { subject: ref });
 const evaluate = expr => E.evaluateExpression(expr, reg, memory([ref]), ctx).result;
 assert.equal(evaluate(new E.Exists(ref)), ER.TRUE);
+assert.throws(() => new E.AssertLiteral(ER.FALSE), /only MANUAL_REVIEW/);
+const literalReview = E.evaluateCriterion(criterion(new E.AssertLiteral(ER.MANUAL_REVIEW)), reg, memory());
+assert.equal(literalReview.engineResult, ER.MANUAL_REVIEW);
+assert.equal(literalReview.pipelineResult, PR.MANUAL_REVIEW);
+assert.equal(literalReview.normalization, 'IDENTITY');
+assert.deepEqual(JSON.parse(JSON.stringify(literalReview.trace[0])), {
+  requirementId: 'TEST_REQUIREMENT', criterionId: 'TEST_CRITERION',
+  predicateId: 'ASSERT_LITERAL', arguments: { value: 'MANUAL_REVIEW' },
+  result: 'MANUAL_REVIEW', argumentReferences: [], memoryReferences: []
+});
+assert.equal(evaluate(new E.Or([new E.Exists(ref), new E.AssertLiteral(ER.MANUAL_REVIEW)])), ER.TRUE);
+assert.equal(evaluate(new E.Or([
+  new E.Exists(new E.TypedReference('TEST_ENTITY', 'missing')),
+  new E.AssertLiteral(ER.MANUAL_REVIEW)
+])), ER.MANUAL_REVIEW);
 assert.equal(E.evaluateExpression(new E.Exists(new E.TypedReference('TEST_ENTITY', 'missing')),
   reg, memory([ref]), ctx).result, ER.FALSE);
 assert.equal(evaluate(new E.All([call(ER.TRUE), call(ER.UNKNOWN)])), ER.UNKNOWN);

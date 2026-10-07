@@ -80,14 +80,46 @@ function criterionExecutionBindExists_(contract, view, argument) {
   });
 }
 
+function criterionExecutionRequireKeys_(value, expected, label) {
+  criterionExecutionRequire_(value && typeof value === 'object' && !Array.isArray(value) &&
+    JSON.stringify(Object.keys(value).sort()) === JSON.stringify(expected.slice().sort()),
+  label + ' has unsupported or residual fields');
+}
+
 function criterionExecutionMaterializeAssert_(contract, view, assertIr) {
-  criterionExecutionRequire_(assertIr && assertIr.type === 'CALL',
-    'Phase 4 executor supports only a direct CALL assertion');
-  criterionExecutionRequire_(assertIr.name === 'EXISTS',
-    'Phase 4 executor supports only the canonical EXISTS operator');
-  criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
-    'EXISTS must declare exactly one argument');
-  return criterionExecutionBindExists_(contract, view, assertIr.arguments[0]);
+  criterionExecutionRequire_(assertIr && typeof assertIr === 'object' &&
+    !Array.isArray(assertIr), 'ASSERT IR node must be an object');
+  if (assertIr.type === 'CALL') {
+    criterionExecutionRequireKeys_(assertIr, ['type', 'name', 'arguments'], 'CALL');
+    criterionExecutionRequire_(assertIr.name === 'EXISTS',
+      'executor supports only the canonical EXISTS operator');
+    criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
+      'EXISTS must declare exactly one argument');
+    const argument = assertIr.arguments[0];
+    criterionExecutionRequireKeys_(argument, ['type', 'value'], 'EXISTS argument');
+    return criterionExecutionBindExists_(contract, view, argument);
+  }
+  if (assertIr.type === 'LITERAL') {
+    criterionExecutionRequireKeys_(assertIr, ['type', 'value'], 'LITERAL');
+    criterionExecutionRequire_(assertIr.value === 'MANUAL_REVIEW',
+      'executor supports only the declared MANUAL_REVIEW literal');
+    return Object.freeze({
+      expression: new AssertLiteral(EngineResult.MANUAL_REVIEW),
+      binding: Object.freeze({ type: 'LITERAL', value: EngineResult.MANUAL_REVIEW })
+    });
+  }
+  if (assertIr.type === 'OR') {
+    criterionExecutionRequireKeys_(assertIr, ['type', 'expressions'], 'OR');
+    criterionExecutionRequire_(Array.isArray(assertIr.expressions) &&
+      assertIr.expressions.length === 2, 'OR must declare exactly two expressions');
+    const children = assertIr.expressions.map(child =>
+      criterionExecutionMaterializeAssert_(contract, view, child));
+    return Object.freeze({
+      expression: new Or(children.map(child => child.expression)),
+      binding: Object.freeze({ type: 'OR', expressions: Object.freeze(children.map(child => child.binding)) })
+    });
+  }
+  throw new CriterionExecutionIntegrityError('ASSERT IR construct is unsupported');
 }
 
 function materializePlannedCriterion(contract, plan, unitKey, view) {

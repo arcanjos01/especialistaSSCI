@@ -24,6 +24,32 @@ function readinessFreeze_(value) {
   return Object.freeze(value);
 }
 
+function readinessAssertSupported_(assertIr, contract) {
+  if (!assertIr || typeof assertIr !== 'object' || Array.isArray(assertIr)) return false;
+  if (assertIr.type === 'LITERAL') {
+    return Object.keys(assertIr).sort().join(',') === 'type,value' &&
+      assertIr.value === 'MANUAL_REVIEW';
+  }
+  if (assertIr.type === 'OR') {
+    return Object.keys(assertIr).sort().join(',') === 'expressions,type' &&
+      Array.isArray(assertIr.expressions) && assertIr.expressions.length === 2 &&
+      assertIr.expressions.every(child => readinessAssertSupported_(child, contract));
+  }
+  if (assertIr.type !== 'CALL' ||
+      Object.keys(assertIr).sort().join(',') !== 'arguments,name,type' ||
+      assertIr.name !== 'EXISTS') return false;
+
+  readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
+    'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion must have exactly one argument');
+  const argument = assertIr.arguments[0];
+  readinessRequire_(argument && typeof argument === 'object' && !Array.isArray(argument) &&
+    Object.keys(argument).sort().join(',') === 'type,value' &&
+    argument.type === 'SYMBOL' && typeof argument.value === 'string' && argument.value &&
+    contract.entityCatalog && contract.entityCatalog[argument.value],
+  'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion has an invalid entity symbol');
+  return true;
+}
+
 function readinessPilotSupport_(unit, contract) {
   if (unit.iterationSource !== null || !Array.isArray(unit.plannedBindings) ||
       unit.plannedBindings.length !== 0 || !Array.isArray(unit.validate) ||
@@ -39,15 +65,7 @@ function readinessPilotSupport_(unit, contract) {
     'COMPILED_CONTRACT_INVALID', 'planned Criterion must exist exactly once');
   const metadata = matches[0];
   const assertIr = metadata.assertIr;
-  if (!assertIr || assertIr.type !== 'CALL' || assertIr.name !== 'EXISTS') return false;
-
-  readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
-    'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion must have exactly one argument');
-  const argument = assertIr.arguments[0];
-  readinessRequire_(argument && argument.type === 'SYMBOL' &&
-    typeof argument.value === 'string' && argument.value &&
-    contract.entityCatalog && contract.entityCatalog[argument.value],
-  'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion has an invalid entity symbol');
+  if (!readinessAssertSupported_(assertIr, contract)) return false;
 
   const nonconformities = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;

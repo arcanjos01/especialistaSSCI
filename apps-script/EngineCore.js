@@ -236,6 +236,18 @@ class Exists {
   }
 }
 
+// The canonical Base currently declares only MANUAL_REVIEW as an ASSERT
+// literal. It has no documentary references; CriterionIR retains its source.
+class AssertLiteral {
+  constructor(value) {
+    if (value !== EngineResult.MANUAL_REVIEW) {
+      throw new ArgumentContractError('ASSERT literal supports only MANUAL_REVIEW');
+    }
+    this.value = value;
+    Object.freeze(this);
+  }
+}
+
 class All {
   constructor(expressions) { this.expressions = freezeExpressions(expressions); Object.freeze(this); }
 }
@@ -255,6 +267,7 @@ function freezeExpressions(expressions) {
 }
 function isExpression(value) {
   return value instanceof PredicateCall || value instanceof Exists ||
+    value instanceof AssertLiteral ||
     value instanceof All || value instanceof Or || value instanceof ForEach;
 }
 
@@ -338,6 +351,17 @@ function evaluateExpression(expression, registry, memory, context) {
       result,
       argumentReferences: Object.freeze([expression.reference]),
       memoryReferences: Object.freeze([expression.reference])
+    })]) });
+  }
+  if (expression instanceof AssertLiteral) {
+    return Object.freeze({ result: expression.value, trace: Object.freeze([Object.freeze({
+      requirementId: context.requirementId,
+      criterionId: context.criterionId,
+      predicateId: 'ASSERT_LITERAL',
+      arguments: Object.freeze({ value: expression.value }),
+      result: expression.value,
+      argumentReferences: Object.freeze([]),
+      memoryReferences: Object.freeze([])
     })]) });
   }
   if (expression instanceof All || expression instanceof ForEach || expression instanceof Or) {
