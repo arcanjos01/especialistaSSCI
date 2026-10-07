@@ -468,14 +468,15 @@ NORMATIVE_SOURCES:
 - OBSERVATIONS (mappings atuais/conformidade/CMAR): IN 01, art. 65 e Anexo I;
   IN 18, art. 14, I–II; ausência de identidade explícita entre declarante e
   titular DRT em IN 18, art. 14; separação conceitual no Documento 11, §§ 4–8.
-OBSERVATIONS: A Base também liga RT-007 ao Relatório de Conformidade e à
-declaração CMAR, mas as fontes consultadas sustentam o relatório de conformidade
-como atribuição do RT pela execução (IN 01, art. 65 e Anexo I) e exigem declaração
-do RT e DRT de instalação/execução para CMAR (IN 18, art. 14, I–II). Nenhuma
-fonte liga esses dois usos a RT-007 de verificação final. `UNRESOLVED_ATTRIBUTE
-CURRENT_REQUIREMENT_MAPPINGS` para esses vínculos até reconciliação da Base.
-Para CMAR, não presumir que declarante e titular da DRT sejam a mesma pessoa;
-a fonte não estabelece essa identidade.
+OBSERVATIONS: A Base ligava historicamente RT-007 ao Relatório de Conformidade
+e à declaração CMAR, mas nenhuma fonte liga esses produtos a RT-007 de
+verificação final. O mapping agregado do Relatório de Conformidade foi
+reconciliado para RT-002 nos Requirements e Criteria correspondentes, conforme
+IN 01, art. 65 e Anexo I; a associação de RT-003 pode ocorrer por SMSCI
+documentalmente assumido sem duplicar produto ou obrigação. Permanece
+`UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPINGS` para CMAR, cuja IN 18,
+art. 14, I–II exige declaração do RT e DRT de instalação/execução, mas não
+identifica se declarante e titular da DRT são a mesma pessoa.
 
 ### RT-014
 

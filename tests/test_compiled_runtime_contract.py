@@ -43,10 +43,18 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.8.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.9.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
             "3.4.0",
+        )
+        self.assertEqual(
+            self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
+            "3.4.0",
+        )
+        self.assertEqual(
+            self.contract["knowledgeBase"]["documentVersions"]["03_table1.txt"],
+            "3.3.0",
         )
 
     def test_runtime_contract_uses_private_identity_brand_and_locked_global(self):
@@ -98,6 +106,33 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(len(requirements), 30)
         self.assertEqual(len(criteria), 36)
+
+    def test_conformity_report_uses_aggregated_execution_responsibility(self):
+        requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
+        requirement_blocks = dict(self.builder._blocks(requirement_text, "REQUIREMENT"))
+        for requirement_id in (
+            "REQ_T1_CONFORMITY_REPORT",
+            "REQ_T1_CONFORMITY_REPORT_SIGNED",
+        ):
+            self.assertIn(
+                "REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA",
+                requirement_blocks[requirement_id],
+            )
+            self.assertIn("CATALOG_IDENTIFIER RT-002", requirement_blocks[requirement_id])
+
+        criteria_by_id = {item["criterionId"]: item for item in self.contract["criteria"]}
+        for criterion_id in (
+            "T1_CONFORMITY_REPORT",
+            "T1_CONFORMITY_REPORT_SIGNED",
+        ):
+            self.assertEqual(
+                criteria_by_id[criterion_id]["context"],
+                "REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA",
+            )
+        self.assertEqual(
+            criteria_by_id["T1_CONFORMITY_REPORT"]["assertIr"]["arguments"][0],
+            {"type": "SYMBOL", "value": "RT_002_EXECUCAO_DE_OBRA"},
+        )
 
     def test_pilot_criterion_assert_ir_is_exactly_source_derived(self):
         pilot = next(

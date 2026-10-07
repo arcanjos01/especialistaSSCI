@@ -125,6 +125,24 @@ Sol 6.1 revisou o primeiro candidate da onda 2 com `SOL_REVIEW=PASS` e apontou
 presente sem `SPDE`. Ambos foram adicionados; o follow-up candidate aguarda
 nova revisão Sol 6.1.
 
+## Reconciliação do Relatório de Conformidade (candidate)
+
+Revisão independente pré-alteração `SOL_MAPPING_REVIEW=PASS` autorizou a
+reconciliação dos dois Requirements e dois Criteria do Relatório de
+Conformidade de RT-007 para RT-002, no escopo agregado. IN 01 art. 65 e Anexo I
+atribuem o relatório ao RT pela execução dos SMSCI; Anexo A já define RT-002
+como escopo agregado e associa a esse RT o Relatório de Conformidade. RT-003
+permanece como representação interna de escopo por SMSCI quando o profissional
+assumiu aquele sistema, sem criar relatório ou obrigação adicional.
+
+O candidate local altera somente esses quatro mappings/contextos/assert,
+registra no Anexo A que o mapping de relatório foi reconciliado e mantém CMAR
+como `UNRESOLVED_ATTRIBUTE` por falta de identidade normativa entre declarante
+e titular da DRT. A entidade `CONFORMITY_REPORT`, os fatos RDE e os predicates
+necessários continuam ausentes; esta reconciliação ainda não aumenta a
+cobertura de Criteria. O candidate aguarda gates, commit, push e nova revisão
+Sol do diff efetivo.
+
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
 RDE válida. A próxima onda funcional só será selecionada após a revisão
@@ -312,8 +330,8 @@ semântica TRUE/FALSE/UNKNOWN/NOT_APPLICABLE/MANUAL_REVIEW quando aplicável e
 trace. Em particular, ausência, conflito, nulidade e proveniência incompleta
 não viram FALSE sem regra declarada.
 
-Nesta atualização local, `01_entities.txt`, os manifests, o artefato derivado
-e testes foram alterados apenas para formalizar `SIGNATURE_MECHANISM` FACT-ONLY
-na família SHP e a identidade documental do manual de pressurização já exigido
-pela IN 09, art. 122, III. A onda 2 aguarda revisão independente Sol 6.1.
-`ANALYZED` e Fase 5B permanecem pendentes.
+As alterações de entidades e mappings RT descritas acima atualizam as fontes
+canônicas e manifests somente dentro de regras já determinadas pelas fontes;
+os artefatos derivados são regenerados. O mapping de Relatório de
+Conformidade ainda aguarda revisão Sol do diff efetivo. `ANALYZED` e Fase 5B
+permanecem pendentes.
