@@ -368,8 +368,7 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   );
   if (validation !== null) {
     criterionExecutionRequire_(materialized.binding.type === 'TECHNICAL_PRODUCT_ATTRIBUTE' &&
-      materialized.binding.technicalProduct.kind === validation.binding.technicalProduct.kind &&
-      materialized.binding.technicalProduct.identifier === validation.binding.technicalProduct.identifier &&
+      materialized.binding.technicalProduct === validation.binding.technicalProduct &&
       materialized.binding.attribute === validation.binding.attribute,
     'TECHNICAL_PRODUCT_ATTRIBUTE ASSERT does not match VALIDATE metadata');
   }

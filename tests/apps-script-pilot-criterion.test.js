@@ -268,6 +268,77 @@ for (const conformityReports of [
   ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 }
 
+// Reproduce an internally mismatched but wrapper-canonical compiled artifact:
+// VALIDATE names SHP while ASSERT still names CONFORMITY_REPORT. Both products
+// are present and signed, so the executor must reject the binding before it
+// can return a normative result.
+const compiledSource = fs.readFileSync(
+  path.join(__dirname, '..', 'apps-script', 'CompiledRuntimeContract.js'), 'utf8'
+);
+const validateProductDeclaration =
+  '"requirementId":"REQ_T1_CONFORMITY_REPORT_SIGNED","table":"1",' +
+  '"technicalProduct":"CONFORMITY_REPORT"';
+assert.equal(compiledSource.includes(validateProductDeclaration), true);
+const mismatchedCompiledSource = compiledSource.replace(
+  validateProductDeclaration,
+  '"requirementId":"REQ_T1_CONFORMITY_REPORT_SIGNED","table":"1",' +
+  '"technicalProduct":"SHP_COMMISSIONING_REPORT"'
+);
+const mismatchedContext = {};
+vm.createContext(mismatchedContext);
+vm.runInContext(mismatchedCompiledSource, mismatchedContext);
+for (const relativePath of [
+  '../apps-script/EngineCore.js',
+  '../apps-script/RdeCore.js',
+  '../apps-script/ExecutionViewCore.js',
+  '../apps-script/CurrentSubmissionContextCore.js',
+  '../apps-script/CbmscApplicabilityCore.js',
+  '../apps-script/ExecutionPlanCore.js',
+  '../apps-script/CriterionExecutionCore.js'
+]) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), mismatchedContext);
+}
+vm.runInContext(
+  'globalThis.api = {' +
+  'COMPILED_RUNTIME_CONTRACT, TypedReference, projectRdeToExecutionView_,' +
+  'createCurrentSubmissionContext, resolveCbmscApplicability,' +
+  'materializeFrozenExecutionPlan, executePlannedCriterion' +
+  '};',
+  mismatchedContext
+);
+const mismatchedApi = mismatchedContext.api;
+const mismatchedRde = makeRde({
+  includeGas: false,
+  conformityReports: ['ICP-Brasil / PAdES']
+});
+mismatchedRde.records.push({
+  record_id: 'DOC_SHP', entity_id: 'PPCI', parent_record_id: null,
+  source_document: 'DOC_SHP', attributes: {},
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DOC_SHP_SOURCE' }
+}, {
+  record_id: 'SHP_1', entity_id: 'SHP_COMMISSIONING_REPORT', parent_record_id: null,
+  source_document: 'DOC_SHP', attributes: { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' },
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SHP_1_FACT' }
+});
+const mismatchedView = mismatchedApi.projectRdeToExecutionView_(
+  mismatchedRde, mismatchedApi.COMPILED_RUNTIME_CONTRACT.entityCatalog
+);
+const mismatchedSubmissionContext = mismatchedApi.createCurrentSubmissionContext({
+  protocolIdentifier: 'TEST_ONLY_PROTOCOL', requestDate: '2026-01-28',
+  reIdentifier: 'TEST_ONLY_RE',
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_INTAKE' }
+});
+const mismatchedResolution = mismatchedApi.resolveCbmscApplicability(
+  mismatchedView, mismatchedSubmissionContext, mismatchedApi.COMPILED_RUNTIME_CONTRACT
+);
+const mismatchedPlan = mismatchedApi.materializeFrozenExecutionPlan(
+  mismatchedApi.COMPILED_RUNTIME_CONTRACT, mismatchedResolution, mismatchedView
+);
+assert.throws(() => mismatchedApi.executePlannedCriterion(
+  mismatchedApi.COMPILED_RUNTIME_CONTRACT, mismatchedPlan,
+  CONFORMITY_REPORT_SIGNED_UNIT, mismatchedView
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+
 const positive = prepare({ includeGas: true, includeManual: true });
 assert.equal(positive.plan.PLANNED_EXECUTION_UNITS.some(unit => unit.unitKey === PILOT_UNIT), true);
 const positiveMaterialized = api.materializePlannedCriterion(
