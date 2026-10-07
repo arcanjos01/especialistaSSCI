@@ -204,6 +204,8 @@ def _split_assert_arguments(source: str, identifier: str) -> list[str]:
     tail = "".join(current).strip()
     if tail:
         arguments.append(tail)
+    elif arguments:
+        raise ValueError(f"argumento ASSERT vazio após separador em {identifier}")
     return arguments
 
 

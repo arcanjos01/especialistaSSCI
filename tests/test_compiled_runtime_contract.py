@@ -157,6 +157,46 @@ END
         with self.assertRaisesRegex(ValueError, "conteúdo residual ASSERT"):
             self.builder._parse_criterion_metadata(source)
 
+    def test_assert_call_rejects_empty_trailing_argument_in_each_supported_form(self):
+        sources = (
+            """CRITERION TEST_INLINE_EMPTY_TRAILING_ARGUMENT
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT EXISTS(TEST_DOCUMENT,)
+END
+""",
+            """CRITERION TEST_MULTILINE_EMPTY_TRAILING_ARGUMENT
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT
+EXISTS(TEST_DOCUMENT,   )
+FAIL NC_TEST
+END
+""",
+            """CRITERION TEST_OR_EMPTY_TRAILING_ARGUMENT
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT
+EXISTS(TEST_DOCUMENT,)
+OR MANUAL_REVIEW
+MANUAL_REVIEW "TEST_ONLY"
+END
+""",
+            """CRITERION TEST_ALL_EMPTY_TRAILING_ARGUMENT
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT ALL
+EXISTS(TEST_DOCUMENT,)
+END
+FAIL NC_TEST
+END
+""",
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(ValueError, "argumento ASSERT vazio"):
+                    self.builder._parse_criterion_metadata(source)
+
     def test_inline_manual_review_rejects_residual_expression(self):
         source = """
 CRITERION TEST_INLINE_REVIEW_RESIDUAL
