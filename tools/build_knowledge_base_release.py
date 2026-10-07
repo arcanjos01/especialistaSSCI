@@ -232,6 +232,12 @@ def _reject_assert_residual_lines(lines: list[str], identifier: str) -> None:
         stripped = line.strip()
         if not stripped:
             continue
+        if ended:
+            if re.fullmatch(r"-{3,}|#.*", stripped):
+                continue
+            raise ValueError(
+                f"conteúdo residual ASSERT após END em {identifier}: {stripped}"
+            )
         if manual_review_text_pending:
             if re.fullmatch(r'"(?:[^"\\]|\\.)*"', stripped):
                 manual_review_text_pending = False
@@ -239,7 +245,7 @@ def _reject_assert_residual_lines(lines: list[str], identifier: str) -> None:
             raise ValueError(f"texto MANUAL_REVIEW inválido em {identifier}: {stripped}")
         if stripped == "END":
             ended = True
-            break
+            continue
         if re.fullmatch(r"FAIL\s+[A-Z][A-Z0-9_]*", stripped):
             if seen_fail:
                 raise ValueError(f"FAIL duplicado após ASSERT em {identifier}")
