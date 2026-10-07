@@ -75,12 +75,12 @@ Concluído:
 - [x] Python mantido apenas como referência/testes.
 - [x] revisão Sol arquitetural concluída com PASS.
 - [x] baseline promovido à main: 92e79c8.
+- [x] materialização determinística do plano de execução em JavaScript.
+- [x] primeiro Criterion real executado no novo runtime.
 
 Ainda não concluído:
 
-- [ ] materialização do plano de execução em JavaScript.
 - [ ] integração VALIDATED → ANALYZED.
-- [ ] execução de Criterion real no novo runtime.
 - [ ] real EXTRACTION por LLM.
 - [ ] geração operacional de relatório pelo novo pipeline.
 - [ ] validação end-to-end e retirada do Gem legado.
@@ -364,7 +364,7 @@ Próxima fase autorizada: **Fase 4 — Primeiro Criterion piloto**. Não iniciad
 
 ## 7. Fase 4 — Primeiro Criterion piloto
 
-Status: **IMPLEMENTADA — AGUARDANDO REVISÃO SOL INDEPENDENTE**.
+Status: **CONCLUÍDA**.
 
 Objetivo: executar um Criterion real da Base no runtime JavaScript sem ainda promover processos reais automaticamente.
 
@@ -497,16 +497,25 @@ Checkpoint de implementação:
   regeneração byte-identical do runtime contract PASS; `git diff --check`
   desde o baseline da Fase 3 PASS. O workflow temporário desta validação foi
   removido após o gate.
-- Quarta revisão Sol independente permanece pendente; nenhum FAIL anterior foi
-  convertido em PASS automaticamente.
+- Quarta revisão Sol independente: `SOL_REVIEW=PASS` sobre o HEAD
+  `d42a754176111dd38a23b062bb678045e61ee41b`. F4-001, F4-002, F4-003,
+  F4-004, F4-005 e F4-006 foram considerados CLOSED; nenhum novo achado foi
+  registrado.
+- A revisão reproduziu adversarialmente o bypass de F4-006 com view A contendo
+  GAS e view B sem GAS; globals-decoy para `cbmscDeepFreeze_` e
+  `planFreeze_` não interferiram, o plano de A não foi autenticado para B e
+  a execução cruzada falhou com `CRITERION_EXECUTION_INTEGRITY_ERROR`.
+- Gates finais satisfeitos: 138 testes Python PASS; todos os 6 testes
+  `apps-script-*.test.js` PASS; `node --check` PASS; regeneração
+  byte-identical do runtime contract PASS; `git diff --check` PASS; revisão
+  Sol arquitetural independente PASS.
 - Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
-  relatório, EXTRACTION real por LLM e OpenAI Decisions.
+  relatório e EXTRACTION real por LLM. OpenAI Decisions permanece
+  explicitamente fora do escopo atual.
 
-Gate ainda pendente para declarar a Fase 4 **CONCLUÍDA**:
+Gate de saída da Fase 4: **SATISFEITO**.
 
-- revisão Sol arquitetural **independente** com `SOL_REVIEW=PASS`.
-
-Enquanto esse gate não for satisfeito, a Fase 5 não está autorizada.
+Próxima fase autorizada: **Fase 5 — Integração VALIDATED → ANALYZED**.
 
 ## 8. Fase 5 — Integração VALIDATED → ANALYZED
 
@@ -686,15 +695,17 @@ Não transformar este plano em changelog detalhado.
 
 Próxima etapa:
 
-Fase 1 — Núcleo determinístico JavaScript.
+**Fase 5 — Integração VALIDATED → ANALYZED**.
 
 Escopo imediato:
 
-- implementação isolada;
-- fixtures sintéticas;
-- sem Drive;
-- sem Apps Script orchestration;
-- sem mudança de status;
-- sem Base normativa real;
+- conectar somente o caminho já aprovado: RDE validada → ImmutableExecutionView
+  → applicability → frozen execution plan → execução do Criterion piloto;
+- preservar idempotência e atomicidade da transição;
+- não promover automaticamente processo real antes dos testes controlados;
+- não iniciar execução em massa de Criteria;
+- não iniciar relatório operacional;
+- não iniciar EXTRACTION real por LLM;
+- OpenAI Decisions permanece fora do escopo;
 - Luna implementa em ciclos;
-- Sol revisa antes de promover.
+- Sol revisa antes de promoção.
