@@ -91,7 +91,7 @@ function validateCbmscRuntimeContract_(contract) {
 }
 
 /** Resolves every declared CBMSC official target or blocks without partial output. */
-function resolveCbmscApplicability(view, currentSubmissionContext, compiledContract) {
+function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, compiledContract) {
   if (!(view instanceof ImmutableExecutionView) || !isImmutableExecutionView(view)) {
     throw new ApplicabilityBlocker('applicability requires an ImmutableExecutionView');
   }
@@ -228,6 +228,85 @@ function resolveCbmscApplicability(view, currentSubmissionContext, compiledContr
   });
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ApplicabilityBlocker, resolveCbmscApplicability };
-}
+(function (global) {
+  const provenance = new WeakMap();
+  const internalResolver = resolveCbmscApplicabilityInternal_;
+
+  function requireCanonicalContract_(contract) {
+    if (typeof isCanonicalCompiledRuntimeContract !== 'function' ||
+        !isCanonicalCompiledRuntimeContract(contract)) {
+      throw new ApplicabilityBlocker('canonical compiled runtime contract is required');
+    }
+  }
+
+  function referenceBelongsToView_(view, snapshot) {
+    if (!snapshot || typeof snapshot.kind !== 'string' || !snapshot.kind ||
+        typeof snapshot.identifier !== 'string' || !snapshot.identifier) {
+      return false;
+    }
+    try {
+      return view.contains(new TypedReference(snapshot.kind, snapshot.identifier));
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function traceBelongsToView_(view, trace) {
+    return !!trace && referenceBelongsToView_(view, trace.reference) &&
+      referenceBelongsToView_(view, trace.sourceDocument);
+  }
+
+  function resolutionReferencesBelongToView_(resolution, view) {
+    if (!referenceBelongsToView_(view, resolution.selectedComprovante)) return false;
+    for (const decision of resolution.officialDecisions || []) {
+      if (!traceBelongsToView_(view, decision.selectedDocument) ||
+          !traceBelongsToView_(view, decision.section)) return false;
+      for (const reference of decision.itemReferences || []) {
+        if (!referenceBelongsToView_(view, reference)) return false;
+      }
+      for (const trace of decision.itemTraces || []) {
+        if (!traceBelongsToView_(view, trace)) return false;
+      }
+    }
+    for (const decision of resolution.derivedDecisions || []) {
+      if (!traceBelongsToView_(view, decision.selectedDocument) ||
+          !traceBelongsToView_(view, decision.section)) return false;
+    }
+    const regimeTrace = resolution.IN19_DOCUMENTATION_REGIME_TRACE;
+    if (regimeTrace && !traceBelongsToView_(view, regimeTrace.selectedDocument)) return false;
+    return true;
+  }
+
+  function canonicalResolver(view, currentSubmissionContext, compiledContract) {
+    requireCanonicalContract_(compiledContract);
+    const resolution = internalResolver(view, currentSubmissionContext, compiledContract);
+    provenance.set(resolution, Object.freeze({ view, contract: compiledContract }));
+    return resolution;
+  }
+
+  function canonicalResolutionVerifier(resolution, view, contract) {
+    const source = provenance.get(resolution);
+    if (!source || source.view !== view || source.contract !== contract ||
+        typeof isCanonicalCompiledRuntimeContract !== 'function' ||
+        !isCanonicalCompiledRuntimeContract(contract) ||
+        !isImmutableExecutionView(view) || !Object.isFrozen(resolution)) {
+      return false;
+    }
+    return resolutionReferencesBelongToView_(resolution, view);
+  }
+
+  Object.defineProperty(global, 'resolveCbmscApplicability', {
+    value: canonicalResolver, enumerable: true, writable: false, configurable: false
+  });
+  Object.defineProperty(global, 'isCanonicalCbmscApplicabilityResolution', {
+    value: canonicalResolutionVerifier, enumerable: false, writable: false, configurable: false
+  });
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      ApplicabilityBlocker,
+      resolveCbmscApplicability: canonicalResolver,
+      isCanonicalCbmscApplicabilityResolution: canonicalResolutionVerifier,
+    };
+  }
+})(globalThis);

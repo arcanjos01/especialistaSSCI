@@ -49,6 +49,14 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             "3.2.0",
         )
 
+    def test_runtime_contract_uses_private_identity_brand_and_locked_global(self):
+        artifact = ARTIFACT.read_text(encoding="utf-8")
+        self.assertNotIn("var COMPILED_RUNTIME_CONTRACT =", artifact)
+        self.assertIn("var canonicalContracts = new WeakSet();", artifact)
+        self.assertIn("Object.defineProperty(global, 'COMPILED_RUNTIME_CONTRACT'", artifact)
+        self.assertIn("Object.defineProperty(global, 'isCanonicalCompiledRuntimeContract'", artifact)
+        self.assertIn("writable: false, configurable: false", artifact)
+
     def test_entity_catalog_is_exactly_derived_from_entity_declarations(self):
         source = self.builder.parse_entity_catalog(
             self.builder.ENTITIES.read_text(encoding="utf-8")

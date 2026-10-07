@@ -2,11 +2,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const contract = require('../apps-script/CompiledRuntimeContract.js');
-
 const context = {};
 vm.createContext(context);
 for (const relativePath of [
+  '../apps-script/CompiledRuntimeContract.js',
   '../apps-script/EngineCore.js',
   '../apps-script/RdeCore.js',
   '../apps-script/ExecutionViewCore.js',
@@ -17,17 +16,22 @@ for (const relativePath of [
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
 }
 vm.runInContext(`globalThis.api = {
+  COMPILED_RUNTIME_CONTRACT,
+  isCanonicalCompiledRuntimeContract,
   TypedReference,
   ImmutableExecutionView,
   projectRdeToExecutionView_,
   createCurrentSubmissionContext,
   resolveCbmscApplicability,
+  isCanonicalCbmscApplicabilityResolution,
   materializeFrozenExecutionPlan,
+  isCanonicalFrozenExecutionPlan,
   validateExecutionPlanIntegrity,
   ApplicabilityBlocker,
   ExecutionIntegrityError
 };`, context);
 const api = context.api;
+const contract = api.COMPILED_RUNTIME_CONTRACT;
 
 const currentContext = (requestDate = '2026-01-28', overrides = {}) =>
   api.createCurrentSubmissionContext({
@@ -135,7 +139,8 @@ for (const official of contract.officialEsciTargets) {
 }
 
 // Complete empty section explicitly supports 28 negative decisions; it does not imply other rules.
-const empty = resolve().resolution;
+const emptyCase = resolve();
+const empty = emptyCase.resolution;
 assert.equal(empty.officialDecisions.length, 28);
 assert.equal(empty.officialDecisions.every(item => item.decision === 'NEGATIVE'), true);
 assert.equal(empty.PROCESS_SMSCI.includes('SMSCI_SDAI'), false);
@@ -216,9 +221,10 @@ for (const [date, expected] of [
     resolution.selectedComprovante.identifier);
 }
 assert.equal(resolve().resolution.IN19_DOCUMENTATION_REGIME, undefined);
-const legacyResolution = resolve({ codes: ['IEL'], requestDate: '2024-04-24' },
-  currentContext('2024-04-24')).resolution;
-const legacyPlan = api.materializeFrozenExecutionPlan(contract, legacyResolution);
+const legacyCase = resolve({ codes: ['IEL'], requestDate: '2024-04-24' },
+  currentContext('2024-04-24'));
+const legacyResolution = legacyCase.resolution;
+const legacyPlan = api.materializeFrozenExecutionPlan(contract, legacyResolution, legacyCase.view);
 assert.equal(legacyPlan.APPLICABLE_REQUIREMENTS.some(item =>
   item.requirementId === 'REQ_IN19_LEGACY_DOCUMENTATION'), true);
 assert.equal(legacyPlan.APPLICABLE_REQUIREMENTS.some(item =>
@@ -235,8 +241,8 @@ assert.equal(Object.isFrozen(resolution.officialDecisions[0]), true);
 assert.equal(Object.isFrozen(resolution.officialDecisions[0].selectedDocument), true);
 assert.equal(resolution.officialDecisions.find(item => item.target === 'SMSCI_IGC'), undefined);
 assert.equal(resolution.officialDecisions.find(item => item.target === 'SMSCI_GAS').decision, 'POSITIVE');
-const firstPlan = api.materializeFrozenExecutionPlan(contract, resolution);
-const secondPlan = api.materializeFrozenExecutionPlan(contract, resolution);
+const firstPlan = api.materializeFrozenExecutionPlan(contract, resolution, complete.view);
+const secondPlan = api.materializeFrozenExecutionPlan(contract, resolution, complete.view);
 assert.deepEqual(JSON.parse(JSON.stringify(firstPlan)), JSON.parse(JSON.stringify(secondPlan)));
 assert.equal(Object.isFrozen(firstPlan), true);
 assert.equal(Object.isFrozen(firstPlan.PLANNED_EXECUTION_UNITS), true);
@@ -268,7 +274,7 @@ assert.equal(firstPlan.PLANNED_EXECUTION_UNITS.some(unit => unit.criterion.id ==
 assert.equal(firstPlan.APPLICABLE_REQUIREMENTS.some(item => item.requirementId === 'REQ_IN19_APPLICABILITY_REVIEW'), false);
 
 // A negative IEL keeps only the declared internal IN19 applicability-review route.
-const noIelPlan = api.materializeFrozenExecutionPlan(contract, empty);
+const noIelPlan = api.materializeFrozenExecutionPlan(contract, empty, emptyCase.view);
 assert.equal(noIelPlan.APPLICABLE_REQUIREMENTS.some(item =>
   item.requirementId === 'REQ_IN19_APPLICABILITY_REVIEW'), true);
 assert.equal(noIelPlan.PLANNED_EXECUTION_UNITS.some(unit =>
@@ -369,6 +375,36 @@ assertIntegrityError(() => api.validateExecutionPlanIntegrity(contract, partialR
 const badContractTarget = JSON.parse(JSON.stringify(contract));
 badContractTarget.officialEsciTargets.pop();
 assertBlocker(() => api.resolveCbmscApplicability(complete.view, currentContext(), badContractTarget));
+
+// Canonical provenance gates reject copied resolutions and bind the plan to one view.
+function deepFreezeForTest(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach(key => deepFreezeForTest(value[key]));
+  return Object.freeze(value);
+}
+const copiedResolution = deepFreezeForTest(JSON.parse(JSON.stringify(empty)));
+assert.equal(api.isCanonicalCbmscApplicabilityResolution(
+  copiedResolution, emptyCase.view, contract
+), false);
+assertIntegrityError(() => api.materializeFrozenExecutionPlan(
+  contract, copiedResolution, emptyCase.view
+));
+const equivalentCase = resolve({ codes: ['AI', 'IEL', 'IGC', 'PPE'] });
+assert.equal(api.isCanonicalFrozenExecutionPlan(firstPlan, contract, complete.view), true);
+assert.equal(api.isCanonicalFrozenExecutionPlan(firstPlan, contract, equivalentCase.view), false);
+const contractDescriptor = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(globalThis, 'COMPILED_RUNTIME_CONTRACT')", context
+);
+assert.equal(contractDescriptor.writable, false);
+assert.equal(contractDescriptor.configurable, false);
+const copiedContract = deepFreezeForTest(JSON.parse(JSON.stringify(contract)));
+assert.equal(api.isCanonicalCompiledRuntimeContract(copiedContract), false);
+assertBlocker(() => api.resolveCbmscApplicability(
+  complete.view, currentContext(), copiedContract
+));
+assertIntegrityError(() => api.materializeFrozenExecutionPlan(
+  copiedContract, resolution, complete.view
+));
 
 // Mutating the source RDE after view creation and resolution cannot alter the frozen trace.
 complete.rde.records[2].attributes.OFFICIAL_ESCI_CODE = 'TEST_ONLY_MUTATED';

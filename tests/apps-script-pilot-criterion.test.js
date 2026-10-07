@@ -89,7 +89,7 @@ function prepare(options) {
   const rde = makeRde(options);
   const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
   const resolution = api.resolveCbmscApplicability(view, currentContext(), contract);
-  const plan = api.materializeFrozenExecutionPlan(contract, resolution);
+  const plan = api.materializeFrozenExecutionPlan(contract, resolution, view);
   return { rde, view, resolution, plan };
 }
 
@@ -152,6 +152,11 @@ function deepFreeze(value) {
   Object.keys(value).forEach(key => deepFreeze(value[key]));
   return Object.freeze(value);
 }
+
+const alternatePositive = prepare({ includeGas: true, includeManual: true });
+assert.throws(() => api.executePlannedCriterion(
+  contract, positive.plan, PILOT_UNIT, alternatePositive.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 const forgedPlan = deepFreeze(JSON.parse(JSON.stringify(negative.plan)));
 assert.equal(Object.isFrozen(forgedPlan.PLANNED_EXECUTION_UNITS), true);

@@ -8,15 +8,6 @@ class ExecutionIntegrityError extends Error {
   }
 }
 
-const EXECUTION_PLAN_PROVENANCE = new WeakMap();
-
-function isCanonicalFrozenExecutionPlan(plan, contract) {
-  const provenance = EXECUTION_PLAN_PROVENANCE.get(plan);
-  return !!provenance && provenance.contract === contract &&
-    Object.isFrozen(plan) && Array.isArray(plan.PLANNED_EXECUTION_UNITS) &&
-    Object.isFrozen(plan.PLANNED_EXECUTION_UNITS);
-}
-
 function planFreeze_(value, seen) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   const active = seen || [];
@@ -353,7 +344,7 @@ function validateExecutionPlanIntegrity(contract, resolution, applicableIds, wor
 }
 
 /** Resolves applicability metadata and freezes the plan; no Criterion is evaluated. */
-function materializeFrozenExecutionPlan(contract, resolution) {
+function materializeFrozenExecutionPlanInternal_(contract, resolution) {
   const indexes = planIndexes_(contract);
   const applicable = applicableRequirements_(contract, resolution, indexes);
   const applicableIds = applicable.map(item => item.requirementId);
@@ -377,16 +368,49 @@ function materializeFrozenExecutionPlan(contract, resolution) {
     ITERATION_DOMAINS: materialized.units.filter(unit => unit.iterationDomain !== null)
       .map(unit => ({ unitKey: unit.unitKey, source: unit.iterationSource, values: unit.iterationDomain.slice() })),
   };
-  const frozenPlan = planFreeze_(plan);
-  EXECUTION_PLAN_PROVENANCE.set(frozenPlan, Object.freeze({ contract }));
-  return frozenPlan;
+  return planFreeze_(plan);
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    ExecutionIntegrityError,
-    materializeFrozenExecutionPlan,
-    validateExecutionPlanIntegrity,
-    isCanonicalFrozenExecutionPlan,
-  };
-}
+(function (global) {
+  const provenance = new WeakMap();
+  const internalMaterializer = materializeFrozenExecutionPlanInternal_;
+
+  function canonicalMaterializer(contract, resolution, view) {
+    planRequire_(typeof isCanonicalCompiledRuntimeContract === 'function' &&
+      isCanonicalCompiledRuntimeContract(contract),
+    'canonical compiled runtime contract is required');
+    planRequire_(typeof isCanonicalCbmscApplicabilityResolution === 'function' &&
+      isCanonicalCbmscApplicabilityResolution(resolution, view, contract),
+    'canonical applicability resolution is required');
+    const frozenPlan = internalMaterializer(contract, resolution);
+    provenance.set(frozenPlan, Object.freeze({ contract, resolution, view }));
+    return frozenPlan;
+  }
+
+  function canonicalPlanVerifier(plan, contract, view) {
+    const source = provenance.get(plan);
+    return !!source && source.contract === contract && source.view === view &&
+      typeof isCanonicalCompiledRuntimeContract === 'function' &&
+      isCanonicalCompiledRuntimeContract(contract) &&
+      typeof isCanonicalCbmscApplicabilityResolution === 'function' &&
+      isCanonicalCbmscApplicabilityResolution(source.resolution, view, contract) &&
+      Object.isFrozen(plan) && Array.isArray(plan.PLANNED_EXECUTION_UNITS) &&
+      Object.isFrozen(plan.PLANNED_EXECUTION_UNITS);
+  }
+
+  Object.defineProperty(global, 'materializeFrozenExecutionPlan', {
+    value: canonicalMaterializer, enumerable: true, writable: false, configurable: false
+  });
+  Object.defineProperty(global, 'isCanonicalFrozenExecutionPlan', {
+    value: canonicalPlanVerifier, enumerable: false, writable: false, configurable: false
+  });
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      ExecutionIntegrityError,
+      materializeFrozenExecutionPlan: canonicalMaterializer,
+      validateExecutionPlanIntegrity,
+      isCanonicalFrozenExecutionPlan: canonicalPlanVerifier,
+    };
+  }
+})(globalThis);

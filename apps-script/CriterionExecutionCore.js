@@ -16,9 +16,9 @@ function criterionExecutionReferenceSnapshot_(reference) {
   return Object.freeze({ kind: reference.kind, identifier: reference.identifier });
 }
 
-function criterionExecutionFindUnit_(plan, contract, unitKey) {
+function criterionExecutionFindUnit_(plan, contract, view, unitKey) {
   criterionExecutionRequire_(typeof isCanonicalFrozenExecutionPlan === 'function' &&
-    isCanonicalFrozenExecutionPlan(plan, contract),
+    isCanonicalFrozenExecutionPlan(plan, contract, view),
   'canonical frozen execution plan is required');
   criterionExecutionRequire_(typeof unitKey === 'string' && unitKey,
     'unitKey must be a non-empty string');
@@ -29,8 +29,8 @@ function criterionExecutionFindUnit_(plan, contract, unitKey) {
 }
 
 function criterionExecutionFindCriterion_(contract, criterionId) {
-  criterionExecutionRequire_(typeof COMPILED_RUNTIME_CONTRACT !== 'undefined' &&
-    contract === COMPILED_RUNTIME_CONTRACT,
+  criterionExecutionRequire_(typeof isCanonicalCompiledRuntimeContract === 'function' &&
+    isCanonicalCompiledRuntimeContract(contract),
   'canonical compiled runtime contract is required');
   criterionExecutionRequire_(Object.isFrozen(contract) &&
     contract.contractVersion === 1 && Array.isArray(contract.criteria) &&
@@ -91,10 +91,10 @@ function criterionExecutionMaterializeAssert_(contract, view, assertIr) {
 function materializePlannedCriterion(contract, plan, unitKey, view) {
   criterionExecutionRequire_(typeof isImmutableExecutionView === 'function' &&
     isImmutableExecutionView(view), 'execution requires an ImmutableExecutionView');
-  criterionExecutionRequire_(typeof COMPILED_RUNTIME_CONTRACT !== 'undefined' &&
-    contract === COMPILED_RUNTIME_CONTRACT,
+  criterionExecutionRequire_(typeof isCanonicalCompiledRuntimeContract === 'function' &&
+    isCanonicalCompiledRuntimeContract(contract),
   'canonical compiled runtime contract is required');
-  const unit = criterionExecutionFindUnit_(plan, contract, unitKey);
+  const unit = criterionExecutionFindUnit_(plan, contract, view, unitKey);
   criterionExecutionRequire_(unit.criterion && typeof unit.criterion.id === 'string' &&
     unit.requirement && typeof unit.requirement.id === 'string',
   'planned unit has invalid Requirement/Criterion identity');

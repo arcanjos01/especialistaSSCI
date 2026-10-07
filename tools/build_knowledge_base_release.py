@@ -548,13 +548,13 @@ def compile_runtime_contract() -> dict[str, object]:
 
 
 def render_runtime_contract() -> str:
-    """Render a deterministic, deeply frozen Apps Script global artifact."""
+    """Render a deterministic, deeply frozen and runtime-authenticated artifact."""
     payload = json.dumps(compile_runtime_contract(), ensure_ascii=False, separators=(",", ":"))
     return (
         "/* GENERATED_DERIVED_ARTIFACT: DO NOT EDIT. Regenerate with "
         "python tools/build_knowledge_base_release.py --write-runtime-contract. */\n"
         "/* DO_NOT_EDIT_AS_NORMATIVE_SOURCE. Sources are identified in knowledgeBase. */\n"
-        "var COMPILED_RUNTIME_CONTRACT = (function (value) {\n"
+        "(function (global, value) {\n"
         "  function freeze(node) {\n"
         "    if (node && typeof node === 'object' && !Object.isFrozen(node)) {\n"
         "      Object.keys(node).forEach(function (key) { freeze(node[key]); });\n"
@@ -562,13 +562,21 @@ def render_runtime_contract() -> str:
         "    }\n"
         "    return node;\n"
         "  }\n"
-        "  return freeze(value);\n"
-        f"}})({payload});\n"
-        "if (typeof module !== 'undefined' && module.exports) {\n"
-        "  module.exports = COMPILED_RUNTIME_CONTRACT;\n"
-        "}\n"
+        "  var canonical = freeze(value);\n"
+        "  var canonicalContracts = new WeakSet();\n"
+        "  canonicalContracts.add(canonical);\n"
+        "  Object.defineProperty(global, 'COMPILED_RUNTIME_CONTRACT', {\n"
+        "    value: canonical, enumerable: true, writable: false, configurable: false\n"
+        "  });\n"
+        "  Object.defineProperty(global, 'isCanonicalCompiledRuntimeContract', {\n"
+        "    value: function (candidate) { return canonicalContracts.has(candidate); },\n"
+        "    enumerable: false, writable: false, configurable: false\n"
+        "  });\n"
+        "  if (typeof module !== 'undefined' && module.exports) {\n"
+        "    module.exports = canonical;\n"
+        "  }\n"
+        f"}})(globalThis, {payload});\n"
     )
-
 
 def validate_runtime_contract_artifact() -> None:
     expected = render_runtime_contract().encode("utf-8")
