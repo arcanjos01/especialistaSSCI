@@ -63,6 +63,46 @@ o caso legado só é selecionado no regime/data expressos em
 `02a_applicability.txt`. Os outros 25 continuam no escopo das fichas de
 blocker abaixo.
 
+**Limite da métrica:** “materializável pelo executor” mede somente se o
+constructo ASSERT é aceito pelo executor e pelo readiness. Não comprova que a
+RDE possa validar um registro da entidade referenciada. A revisão contratual
+independente encontrou lacunas no `entityCatalog` para seis entidades usadas
+por Criteria existentes, inclusive `PRESSURIZATION_OPERATION_MANUAL` em
+`T4_IN09_MANUAL`. Portanto, das seis unidades acima, essa unidade ainda não
+tem suporte integral de entrada pela RDE. Não contar suporte sintático como
+cobertura efetiva de Plan-to-Results.
+
+## Revisão agregada independente da onda 1
+
+No candidate `667d737c2a4e365372432d146cee5afccb6eb75f`, Sol 6.1 revisou
+adversarialmente o intervalo desde `0260e5739ca43748708b3f0afc1fe57fb220b386`
+e retornou `SOL_REVIEW=PASS`. Foram seis ciclos independentes no total; os
+findings F6-001 a F6-006 foram encerrados pelo último candidate. Esse PASS
+aprova a onda funcional revisada, não fecha a Fase 6 nem substitui o exame
+separado de contratos necessários aos outros 25 Criteria.
+
+A revisão contratual posterior do mesmo HEAD retornou
+`SOL_CONTRACT_REVIEW=FAIL` para fechamento amplo dos contratos, sem identificar
+`HUMAN_NORMATIVE_DECISION_REQUIRED` entre F6-MC-001..007. A falha aponta
+formalizações e fatos ainda necessários, além de divergências entre mappings
+da Base e o catálogo agora aprovado; não autoriza executar as unidades
+afetadas.
+
+## Formalização FACT-ONLY em revisão
+
+O candidate contratual, ainda sem aprovação Sol, adiciona o atributo
+`SIGNATURE_MECHANISM TEXT` em `SHP_COMMISSIONING_REPORT`. Ele registra apenas a
+denominação do mecanismo explicitamente identificado no documento; não
+representa assinatura válida, autenticidade ou atendimento normativo. A
+ausência permanece como atributo ausente. A alteração não implementa
+predicate, não muda resultado e não aumenta a cobertura de Criteria.
+
+As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
+devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
+RDE válida. A próxima onda funcional só será selecionada após a revisão
+independente do diff contratual FACT-ONLY e a atualização da matriz por estado
+real de materialização.
+
 ## Resultado agregado no baseline pré-onda 1
 
 | Cobertura | Quantidade |
@@ -141,7 +181,8 @@ ASSERT `EXISTS`; após onda 1, também aceita literal `MANUAL_REVIEW` e `OR`
 recursivo sobre as formas suportadas, ainda sem FOR_EACH ou VALIDATE. As seis
 unidades cobertas estão listadas na seção "Cobertura atual após a onda 1".
 
-Os 25 Criteria restantes foram reclassificados provisoriamente na ficha abaixo.
+Os 25 Criteria restantes foram classificados na ficha abaixo no snapshot do
+baseline, antes da reconciliação F6-DEC-001.
 O inventário não seleciona novo alcance e não altera applicability. A matriz
 preserva os estados do baseline 6f82475; o estado após onda 1 está registrado
 na seção anterior.
@@ -169,10 +210,12 @@ remete aos arts. 95 da IN 8, 122 da IN 9, 41 da IN 10, 47 da IN 12, 30 da IN
 | F6-MC-006 | T4_IN09_TEST_REPORT / REPORT_CONTAINS(report, IN09_ART122_REQUIRED_ITEMS) | `MISSING_EVIDENCE_CONTRACT` | IN09 art.122 p.42 lista DRTs, laudo, oito componentes de inspeção, manual e lista de verificação, além de remeter a itens de NBR14880 e NBR17240/IN12. | Conteúdo factual por item e associação com a DRT de vistoria/ensaio. Parâmetros NBR referenciados não devem ser inventados. Formalizar condicional de mecanismo automático quando previsto e não tornar genericamente opcionais os componentes listados.
 | F6-MC-007 | T4_IN10_COMMISSIONING / REPORT_PREPARED_BY_INDEPENDENT_PARTY(report) | `MISSING_EVIDENCE_CONTRACT` | IRV Habite-se Tabela4 p.9 exige independência no sistema de controle de fumaça mecânico. IN10 art.41 e AnexoB exigem comissionamento/relatório, profissional habilitado e DRT, mas as duas cópias consultadas não mencionam a independência. | Evidências de sistema mecânico, identidades de comissionador/projetista/executor e vínculo/ausência de vínculo. Diferença de nomes não prova independência; `SMSCI_SMOKE_CONTROL` não demonstra sozinho que o sistema é mecânico.
 
-**Classificação revisada por blocker ID:** MC-001 e MC-004 exigem decisão
-humana; MC-002 é source-defined; MC-003, MC-005, MC-006 e MC-007 são
-missing-evidence. A classificação não é uma partição das 25 unidades, pois os
-blockers se sobrepõem.
+**Classificação revisada naquela etapa inicial (histórica, posteriormente
+substituída pela reconciliação F6-DEC-001):** MC-001 e MC-004 foram então
+marcados como decisão humana; MC-002 como source-defined; MC-003, MC-005,
+MC-006 e MC-007 como missing-evidence. A classificação não é uma partição das
+25 unidades, pois os blockers se sobrepõem. O estado vigente consta no início
+deste documento e na seção de revisão contratual agregada.
 
 ### Modelo contratual submetido a Sol
 
@@ -241,4 +284,7 @@ semântica TRUE/FALSE/UNKNOWN/NOT_APPLICABLE/MANUAL_REVIEW quando aplicável e
 trace. Em particular, ausência, conflito, nulidade e proveniência incompleta
 não viram FALSE sem regra declarada.
 
-Nenhuma fonte canônica foi alterada. `ANALYZED` e Fase 5B permanecem pendentes.
+Nesta atualização local, `01_entities.txt`, os manifests de versão e os
+assertions de testes foram alterados para formalizar somente o fato
+`SIGNATURE_MECHANISM` na família SHP. A revisão independente do diff efetivo
+continua pendente. `ANALYZED` e Fase 5B permanecem pendentes.

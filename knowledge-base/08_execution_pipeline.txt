@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.9.0
+# DOCUMENT_VERSION: 4.10.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.6.0
+KNOWLEDGE_BASE_VERSION: 5.7.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
 00_engine.txt: DOCUMENT_VERSION 4.2.0
-01_entities.txt: DOCUMENT_VERSION 3.2.0
+01_entities.txt: DOCUMENT_VERSION 3.3.0
 02_requirements.txt: DOCUMENT_VERSION 3.3.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.2.0
 04_table4.txt: DOCUMENT_VERSION 3.2.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
-06_reports.txt: DOCUMENT_VERSION 2.6.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.9.0
+06_reports.txt: DOCUMENT_VERSION 2.7.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.10.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.1.0
 
 END DOCUMENT_SET.

@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.2
+# VERSION 3.3
 ###############################################################################
 
 ###############################################################################
@@ -1272,7 +1272,17 @@ ENTITY SHP_COMMISSIONING_REPORT
 
 TYPE COMMISSIONING_REPORT
 
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
 SMSCI SMSCI_SHP
+
+DESCRIPTION
+
+SIGNATURE_MECHANISM registra somente a denominação do mecanismo digital ou
+eletrônico explicitamente identificado no próprio documento. O atributo não
+registra validade, autenticidade ou atendimento de Requirement. Se nenhum
+mecanismo estiver documentalmente identificado, o atributo permanece ausente.
+Registrar a localização de origem em provenance quando disponível.
 
 END
 

@@ -252,6 +252,27 @@ function validateRecords(records, catalog = entityCatalog) {
 
 assert.doesNotThrow(() => validateRecords(validRecords()));
 assert.doesNotThrow(() => validateRecords([]));
+const signatureCatalog = {
+  SOURCE_REPORT: { TYPE: 'DOCUMENT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
+  SHP_COMMISSIONING_REPORT: {
+    TYPE: 'COMMISSIONING_REPORT', ATTRIBUTES: ['SIGNATURE_MECHANISM'],
+    ATTRIBUTE_TYPES: { SIGNATURE_MECHANISM: 'TEXT' }
+  }
+};
+assert.doesNotThrow(() => validateRecords([
+  record('R_SIGNATURE_SOURCE', 'SOURCE_REPORT', null, 'R_SIGNATURE_SOURCE', {}, { page: 1 }),
+  record('R_SHP_REPORT', 'SHP_COMMISSIONING_REPORT', null, 'R_SIGNATURE_SOURCE',
+    { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' }, { page: 2 })
+], signatureCatalog));
+assert.doesNotThrow(() => validateRecords([
+  record('R_SIGNATURE_SOURCE', 'SOURCE_REPORT', null, 'R_SIGNATURE_SOURCE', {}, { page: 1 }),
+  record('R_SHP_REPORT', 'SHP_COMMISSIONING_REPORT', null, 'R_SIGNATURE_SOURCE', {}, { page: 2 })
+], signatureCatalog));
+assert.throws(() => validateRecords([
+  record('R_SIGNATURE_SOURCE', 'SOURCE_REPORT', null, 'R_SIGNATURE_SOURCE', {}, { page: 1 }),
+  record('R_SHP_REPORT', 'SHP_COMMISSIONING_REPORT', null, 'R_SIGNATURE_SOURCE',
+    { SIGNATURE_MECHANISM: true }, { page: 2 })
+], signatureCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})
 ]), error => error.code === 'RDE_RECORD_FIELD_INVALID');
