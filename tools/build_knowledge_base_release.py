@@ -286,6 +286,7 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
             residue = residue[:match.start()] + residue[match.end():]
         if residue.strip():
             raise ValueError(f"conteúdo ASSERT ALL não reconhecido em {identifier}")
+        _reject_assert_residual_lines(remainder[end.end():].splitlines(), identifier)
         return {
             "type": "ALL",
             "expressions": [
@@ -340,6 +341,7 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
                 {"type": "LITERAL", "value": "MANUAL_REVIEW"},
             ],
         }
+    _reject_assert_residual_lines(trailing_lines, identifier)
     return _parse_assert_call("\n".join(expression_lines), identifier)
 
 

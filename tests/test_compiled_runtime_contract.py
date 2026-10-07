@@ -218,6 +218,53 @@ EXISTS(OTHER_DOCUMENT)
                 with self.assertRaisesRegex(ValueError, "residual|não reconhecido"):
                     self.builder._parse_criterion_metadata(source)
 
+    def test_assert_multiline_and_all_reject_unconsumed_suffixes(self):
+        sources = (
+            '''
+CRITERION TEST_MULTILINE_RESIDUAL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT
+EXISTS(TEST_DOCUMENT)
+FAIL NC_TEST
+END
+EXISTS(OTHER_DOCUMENT)
+''',
+            '''
+CRITERION TEST_ALL_RESIDUAL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT ALL
+EXISTS(TEST_DOCUMENT)
+END
+FAIL NC_TEST
+END
+EXISTS(OTHER_DOCUMENT)
+''',
+            '''
+CRITERION TEST_ALL_MISSING_OUTER_END
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT ALL
+EXISTS(TEST_DOCUMENT)
+END
+FAIL NC_TEST
+''',
+            '''
+CRITERION TEST_MULTILINE_MALFORMED_FAIL
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT
+EXISTS(TEST_DOCUMENT)
+FAIL NC_TEST EXTRA
+END
+''',
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(ValueError, "residual|END|conteúdo"):
+                    self.builder._parse_criterion_metadata(source)
+
     def test_structured_index_reuses_canonical_compiler_unit_keys_and_order(self):
         requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
         criteria_texts = tuple(
