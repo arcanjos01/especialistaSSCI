@@ -452,8 +452,27 @@ Checkpoint de implementação:
   regeneração byte-identical do runtime contract PASS; `git diff --check`
   desde o baseline da Fase 3 PASS. O workflow temporário desta validação também
   foi removido após o gate.
-- Segunda revisão Sol independente permanece pendente; o FAIL anterior não foi
-  convertido em PASS automaticamente.
+- Segunda revisão Sol independente: `SOL_REVIEW=FAIL`. F4-003 foi confirmado
+  CLOSED; F4-001 e F4-002 ficaram PARTIAL e originaram F4-004 e F4-005 HIGH.
+- Correção funcional da segunda revisão:
+  `d7eb8de979c30eddadca1ed37a50308cd2e3d5ae`.
+  A resolução de applicability agora recebe provenance privada em `WeakMap`,
+  vinculada simultaneamente à instância canônica do contrato e à
+  `ImmutableExecutionView`; o planejador exige essa provenance e o plano
+  autenticado fica vinculado à mesma view. O contrato compilado deixou de usar
+  uma identidade baseada em `var` reatribuível: o artefato gerado mantém a
+  identidade canônica em closure privada, com `WeakSet`, e expõe contrato e
+  verificador como propriedades globais não graváveis e não configuráveis.
+  Planejador, resolver e executor consultam a marca canônica, não uma variável
+  global reatribuível.
+- Validação das segundas correções em GitHub Actions sobre
+  `8b7b6541522e710f5df1c239d02b732439af0039`: 138 testes Python PASS; todos
+  os 6 testes `apps-script-*.test.js` PASS; `node --check` PASS;
+  regeneração byte-identical do runtime contract PASS; `git diff --check`
+  desde o baseline da Fase 3 PASS. O workflow temporário desta validação foi
+  removido após o gate.
+- Terceira revisão Sol independente permanece pendente; nenhum FAIL anterior
+  foi convertido em PASS automaticamente.
 - Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
   relatório, EXTRACTION real por LLM e OpenAI Decisions.
 
