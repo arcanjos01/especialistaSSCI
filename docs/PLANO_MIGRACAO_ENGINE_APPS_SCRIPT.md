@@ -517,9 +517,13 @@ Gate de saída da Fase 4: **SATISFEITO**.
 
 Próxima etapa autorizada: preparação read-only da Fase 5, conforme seção 8.
 
-## 8. Fase 5 — Preparação da integração VALIDATED → ANALYZED
+## 8. Fase 5 — Integração VALIDATED → ANALYZED
 
-Status: **PREPARAÇÃO CONCLUÍDA; transição para ANALYZED PENDENTE**.
+Status global: **PARCIAL**.
+
+### Fase 5A — Preparação read-only
+
+Status: **CONCLUÍDA**.
 
 Por decisão humana, esta etapa integra somente a preparação read-only. O
 runtime ainda não executa Criteria nem consolida resultados: o plano completo
@@ -545,9 +549,22 @@ Checkpoint:
   da cobertura do executor piloto. Não houve execução, consolidação,
   persistência de resultados nem transição de status.
 
-Fase 6 não iniciada nem autorizada por este checkpoint. A transição
-VALIDATED → ANALYZED permanece pendente de cobertura completa e consolidação
-compatíveis com o 08_execution_pipeline.
+Checkpoint formal:
+
+- `FASE_5A=CONCLUÍDA`
+- `FUNCTIONAL_HEAD=ad9a1f43cdc4bc31caeb342547a57c00372df25d`
+- `CLOSEOUT_HEAD=f7bdd8a63ffc8e12623230f9b95ed5e267f8c654`
+- `SOL_REVIEW=PASS`
+- `FASE_5_GLOBAL=PARCIAL`
+- `VALIDATED_TO_ANALYZED=PENDENTE`
+- `NEXT_AUTHORIZED_PHASE=FASE_6`
+- `RETURN_AFTER_PHASE_6=FASE_5B`
+
+A Fase 6 está autorizada exclusivamente para cobertura progressiva dos
+Criteria. A transição `VALIDATED → ANALYZED` continua pendente de cobertura
+completa e consolidação compatíveis com o `08_execution_pipeline`. Após a
+Fase 6, retornar à **Fase 5B** para concluir execução, consolidação,
+persistência e transição operacional.
 
 ## 9. Fase 6 — Cobertura progressiva da Base
 
@@ -698,7 +715,16 @@ Não transformar este plano em changelog detalhado.
 
 ## 15. Próxima ação autorizada
 
-Preparação da Fase 5 concluída. `VALIDATED → ANALYZED` continua pendente;
-nenhuma fase posterior está autorizada por este checkpoint. Não iniciar Fase 6,
-execução de processos reais, relatório operacional, EXTRACTION real por LLM ou
-OpenAI Decisions.
+**Fase 6 — Cobertura progressiva da Base**.
+
+A Fase 5A read-only está concluída e aprovada. A Fase 5 global permanece
+parcial porque `VALIDATED → ANALYZED` ainda não pode ser satisfeito sem
+cobertura completa das unidades planejadas e consolidação compatível com o
+`08_execution_pipeline`.
+
+Executar a Fase 6 sem antecipar a transição de status. Ao concluir a cobertura
+necessária, retornar à **Fase 5B** para implementar e revisar a transição
+`VALIDATED → ANALYZED`.
+
+Não iniciar processo real, relatório operacional, EXTRACTION real por LLM ou
+OpenAI Decisions sem autorização específica.
