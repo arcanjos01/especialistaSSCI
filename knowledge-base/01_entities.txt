@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.3
+# VERSION 3.4
 ###############################################################################
 
 ###############################################################################
@@ -1303,6 +1303,22 @@ ENTITY GAS_OWNER_MANUAL
 TYPE MANUAL
 
 SMSCI SMSCI_GAS
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PRESSURIZATION_OPERATION_MANUAL
+
+TYPE MANUAL
+
+SMSCI SMSCI_PRESSURIZATION
+
+DESCRIPTION
+
+Documento do manual de operação e manutenção do sistema de pressurização e
+do gradiente de pressão apresentado na vistoria de habite-se, conforme IN 09,
+art. 122, III.
 
 END
 

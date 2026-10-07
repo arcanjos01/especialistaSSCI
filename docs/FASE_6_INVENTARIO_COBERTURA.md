@@ -63,14 +63,14 @@ o caso legado só é selecionado no regime/data expressos em
 `02a_applicability.txt`. Os outros 25 continuam no escopo das fichas de
 blocker abaixo.
 
-**Limite da métrica:** “materializável pelo executor” mede somente se o
-constructo ASSERT é aceito pelo executor e pelo readiness. Não comprova que a
-RDE possa validar um registro da entidade referenciada. A revisão contratual
-independente encontrou lacunas no `entityCatalog` para seis entidades usadas
-por Criteria existentes, inclusive `PRESSURIZATION_OPERATION_MANUAL` em
-`T4_IN09_MANUAL`. Portanto, das seis unidades acima, essa unidade ainda não
-tem suporte integral de entrada pela RDE. Não contar suporte sintático como
-cobertura efetiva de Plan-to-Results.
+**Limite da métrica na onda 1:** “materializável pelo executor” mede somente
+se o constructo ASSERT é aceito pelo executor e pelo readiness. Não comprova
+que a RDE possa validar um registro da entidade referenciada. No HEAD da onda
+1, cinco das seis unidades tinham as entidades referenciadas declaradas no
+`entityCatalog`; `PRESSURIZATION_OPERATION_MANUAL`, de `T4_IN09_MANUAL`, era a
+lacuna entre essas seis. A onda 2 abaixo adiciona essa identidade e testa sua
+entrada pela RDE, applicability, frozen plan, resultado e trace. Isso não
+resolve as lacunas de entidade ou evidência dos demais Criteria bloqueados.
 
 ## Revisão agregada independente da onda 1
 
@@ -88,14 +88,38 @@ formalizações e fatos ainda necessários, além de divergências entre mapping
 da Base e o catálogo agora aprovado; não autoriza executar as unidades
 afetadas.
 
-## Formalização FACT-ONLY em revisão
+## Revisão do contrato FACT-ONLY de assinatura
 
-O candidate contratual, ainda sem aprovação Sol, adiciona o atributo
-`SIGNATURE_MECHANISM TEXT` em `SHP_COMMISSIONING_REPORT`. Ele registra apenas a
-denominação do mecanismo explicitamente identificado no documento; não
-representa assinatura válida, autenticidade ou atendimento normativo. A
-ausência permanece como atributo ausente. A alteração não implementa
-predicate, não muda resultado e não aumenta a cobertura de Criteria.
+O candidate `763c57e5ea4ebbce2b8c1b862cbb41869295a201` adiciona o atributo
+`SIGNATURE_MECHANISM TEXT` em `SHP_COMMISSIONING_REPORT`. Sol 6.1 revisou o
+diff desde `667d737c2a4e365372432d146cee5afccb6eb75f` e retornou
+`SOL_CONTRACT_DIFF_REVIEW=PASS`. O único achado foi
+`F6-SIG-R1-001` (LOW): quando o predicate de assinatura for implementado,
+acrescentar fixture de integração usando o catálogo compilado e conferir
+atributo, ausência, `sourceDocument`, `provenance` e imutabilidade. Esse ponto
+não bloqueia a formalização factual. O atributo registra apenas denominação
+explicitamente identificada no documento; não representa assinatura válida,
+autenticidade ou atendimento normativo. A alteração não implementa predicate
+nem muda resultado.
+
+## Onda 2 — entidade documental declarada para manual de pressurização
+
+O candidate da onda 2 adiciona `PRESSURIZATION_OPERATION_MANUAL` como identidade
+de entidade do tipo `MANUAL`. A fonte é IN 09, art. 122, III, que exige
+apresentação do manual de operação e manutenção do sistema de pressurização e
+gradiente de pressão na vistoria de habite-se. O Criterion existente
+`T4_IN09_MANUAL` mantém seu `ASSERT EXISTS`; nenhuma regra, Requirement,
+Criterion, Nonconformity ou applicability foi criada ou alterada.
+
+A fixture sintética inclui o item oficial `SPDE`, comprova que a unidade
+`UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)` é selecionada no frozen plan e
+avalia o documento presente como TRUE/PASS com trace da entidade/proveniência;
+sem o documento ou com outro tipo de manual, o resultado declarado é
+FALSE/FAIL com `NC_T4_006`; sem o SMSCI aplicável, a unidade não é planejada
+nem executada. Essa verificação fecha a lacuna de entidade para essa unidade
+específica, mas não demonstra a cobertura integral do Requirement de DRT nem
+das outras unidades do plano.
+O candidate permanece sujeito à revisão independente da onda 2.
 
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
@@ -284,7 +308,8 @@ semântica TRUE/FALSE/UNKNOWN/NOT_APPLICABLE/MANUAL_REVIEW quando aplicável e
 trace. Em particular, ausência, conflito, nulidade e proveniência incompleta
 não viram FALSE sem regra declarada.
 
-Nesta atualização local, `01_entities.txt`, os manifests de versão e os
-assertions de testes foram alterados para formalizar somente o fato
-`SIGNATURE_MECHANISM` na família SHP. A revisão independente do diff efetivo
-continua pendente. `ANALYZED` e Fase 5B permanecem pendentes.
+Nesta atualização local, `01_entities.txt`, os manifests, o artefato derivado
+e testes foram alterados apenas para formalizar `SIGNATURE_MECHANISM` FACT-ONLY
+na família SHP e a identidade documental do manual de pressurização já exigido
+pela IN 09, art. 122, III. A onda 2 aguarda revisão independente Sol 6.1.
+`ANALYZED` e Fase 5B permanecem pendentes.

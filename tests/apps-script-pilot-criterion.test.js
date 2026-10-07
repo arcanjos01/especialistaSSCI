@@ -47,6 +47,8 @@ assert.equal(vm.runInContext("typeof criterionExecutionFindUnit_", context), 'un
 assert.equal(vm.runInContext("typeof criterionExecutionMaterializeAssert_", context), 'undefined');
 
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
+const PRESSURIZATION_MANUAL_UNIT =
+  'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
 
 function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
@@ -58,6 +60,7 @@ function currentContext(requestDate = '2026-01-28') {
 }
 
 function makeRde({ includeGas = true, includeManual = false, includeIel = false,
+  includePressurization = false, includePressurizationManual = false,
   includeLegacyExecutionDrt = false, requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -97,6 +100,18 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IEL_ITEM' }
     });
   }
+  if (includePressurization) {
+    records.push({
+      record_id: 'ITEM_PRESSURIZATION', entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+      parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+      attributes: {
+        OFFICIAL_ESCI_CODE: 'SPDE',
+        PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY pressurization system',
+        RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page'
+      },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_PRESSURIZATION_ITEM' }
+    });
+  }
   if (includeLegacyExecutionDrt) {
     records.push({
       record_id: 'DOC_DRT', entity_id: 'DRT', parent_record_id: null,
@@ -118,6 +133,22 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       record_id: 'MANUAL_CLASSIFICATION', entity_id: 'GAS_OWNER_MANUAL',
       parent_record_id: null, source_document: 'DOC_MANUAL', attributes: {},
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_MANUAL_CLASSIFICATION' }
+    });
+  }
+  if (includePressurizationManual) {
+    records.push({
+      record_id: 'DOC_PRESSURIZATION_MANUAL', entity_id: 'MANUAL',
+      parent_record_id: null, source_document: 'DOC_PRESSURIZATION_MANUAL', attributes: {},
+      provenance: {
+        sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_PRESSURIZATION_MANUAL_DOCUMENT'
+      }
+    }, {
+      record_id: 'PRESSURIZATION_MANUAL_CLASSIFICATION',
+      entity_id: 'PRESSURIZATION_OPERATION_MANUAL',
+      parent_record_id: null, source_document: 'DOC_PRESSURIZATION_MANUAL', attributes: {},
+      provenance: {
+        sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_PRESSURIZATION_MANUAL_CLASSIFICATION'
+      }
     });
   }
   return { schema_version: '0.2.0', records };
@@ -175,6 +206,89 @@ assert.deepEqual(JSON.parse(JSON.stringify(negativeResult.trace[0].memoryReferen
 ]);
 assert.deepEqual(JSON.parse(JSON.stringify(negativeResult.traceability.documentaryBinding.sourceDocument)),
   { kind: 'DOCUMENT_ABSENCE', identifier: 'GAS_OWNER_MANUAL' });
+
+assert.equal(
+  contract.entityCatalog.PRESSURIZATION_OPERATION_MANUAL.TYPE,
+  'MANUAL'
+);
+const pressurizationManual = prepare({
+  includeGas: false,
+  includePressurization: true,
+  includePressurizationManual: true
+});
+assert.equal(
+  pressurizationManual.plan.PLANNED_EXECUTION_UNITS.some(
+    unit => unit.unitKey === PRESSURIZATION_MANUAL_UNIT
+  ),
+  true
+);
+const pressurizationManualResult = api.executePlannedCriterion(
+  contract, pressurizationManual.plan, PRESSURIZATION_MANUAL_UNIT,
+  pressurizationManual.view
+);
+assert.equal(pressurizationManualResult.engineResult, api.EngineResult.TRUE);
+assert.equal(pressurizationManualResult.pipelineResult, 'PASS');
+assert.equal(pressurizationManualResult.resultOrigin, 'EVALUATED');
+assert.deepEqual(
+  JSON.parse(JSON.stringify(pressurizationManualResult.trace[0].memoryReferences)),
+  [{ kind: 'MANUAL',
+    identifier: 'PRESSURIZATION_MANUAL_CLASSIFICATION' }]
+);
+assert.equal(
+  pressurizationManualResult.traceability.unitKey,
+  PRESSURIZATION_MANUAL_UNIT
+);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(
+    pressurizationManualResult.traceability.documentaryBinding.sourceDocument
+  )),
+  { kind: 'DOCUMENT', identifier: 'DOC_PRESSURIZATION_MANUAL' }
+);
+
+const missingPressurizationManual = prepare({
+  includeGas: false,
+  includePressurization: true,
+  includePressurizationManual: false
+});
+const missingPressurizationManualResult = api.executePlannedCriterion(
+  contract, missingPressurizationManual.plan, PRESSURIZATION_MANUAL_UNIT,
+  missingPressurizationManual.view
+);
+assert.equal(missingPressurizationManualResult.engineResult, api.EngineResult.FALSE);
+assert.equal(missingPressurizationManualResult.pipelineResult, 'FAIL');
+assert.equal(missingPressurizationManualResult.nonconformityOnFalse, 'NC_T4_006');
+assert.deepEqual(
+  JSON.parse(JSON.stringify(missingPressurizationManualResult.trace[0].memoryReferences)),
+  [{ kind: 'DOCUMENT_ABSENCE', identifier: 'PRESSURIZATION_OPERATION_MANUAL' }]
+);
+const wrongManualEntity = prepare({
+  includeGas: false,
+  includeManual: true,
+  includePressurization: true,
+  includePressurizationManual: false
+});
+const wrongManualEntityResult = api.executePlannedCriterion(
+  contract, wrongManualEntity.plan, PRESSURIZATION_MANUAL_UNIT,
+  wrongManualEntity.view
+);
+assert.equal(wrongManualEntityResult.engineResult, api.EngineResult.FALSE);
+assert.equal(wrongManualEntityResult.nonconformityOnFalse, 'NC_T4_006');
+assert.deepEqual(
+  JSON.parse(JSON.stringify(wrongManualEntityResult.trace[0].memoryReferences)),
+  [{ kind: 'DOCUMENT_ABSENCE', identifier: 'PRESSURIZATION_OPERATION_MANUAL' }]
+);
+
+const pressurizationNotApplicable = prepare({ includeGas: false });
+assert.equal(
+  pressurizationNotApplicable.plan.PLANNED_EXECUTION_UNITS.some(
+    unit => unit.unitKey === PRESSURIZATION_MANUAL_UNIT
+  ),
+  false
+);
+assert.throws(() => api.executePlannedCriterion(
+  contract, pressurizationNotApplicable.plan, PRESSURIZATION_MANUAL_UNIT,
+  pressurizationNotApplicable.view
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 
 const repeat = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
 assert.deepEqual(JSON.parse(JSON.stringify(repeat)), JSON.parse(JSON.stringify(negativeResult)));
