@@ -143,15 +143,15 @@ os fatos RDE e os predicates necessários continuam ausentes; esta
 reconciliação ainda não aumenta a cobertura de Criteria. O candidate
 `8e4ebce348ae5b41b50edda9bdc56d536ce19cda` foi revisado por Sol 6.1 com
 `SOL_REVIEW=PASS`. O achado `F6-RT-001` (LOW) apontou somente a descrição
-desatualizada do candidate como ainda não testado, commitado ou enviado; este
-follow-up atualiza o registro e aguarda confirmação Sol. Após a confirmação
-independente deste follow-up, o finding será marcado como encerrado.
+desatualizada do candidate como ainda não testado, commitado ou enviado. O
+follow-up `cc8a5ef6c261dc3aa13e887df29e4a0bed07e00b` atualizou o registro e
+recebeu revisão independente `SOL_REVIEW=PASS`; `F6-RT-001` está encerrado,
+sem novos findings.
 
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
-RDE válida. A próxima onda funcional será selecionada após a confirmação
-independente deste registro e a atualização da matriz por estado real de
-materialização.
+RDE válida. A próxima onda funcional será selecionada após a atualização da
+matriz por estado real de materialização.
 
 ## Resultado agregado no baseline pré-onda 1
 
@@ -337,5 +337,5 @@ não viram FALSE sem regra declarada.
 As alterações FACT-ONLY e a reconciliação RT descritas acima atualizam as
 fontes canônicas e manifests somente dentro de regras já determinadas pelas
 fontes; os artefatos derivados são regenerados. O mapping de Relatório de
-Conformidade recebeu `SOL_REVIEW=PASS`; somente a confirmação do follow-up
-documental está pendente. `ANALYZED` e Fase 5B permanecem pendentes.
+Conformidade e o follow-up documental receberam `SOL_REVIEW=PASS`;
+`F6-RT-001` está encerrado. `ANALYZED` e Fase 5B permanecem pendentes.
