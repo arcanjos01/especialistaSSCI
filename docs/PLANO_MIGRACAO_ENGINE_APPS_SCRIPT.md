@@ -437,6 +437,23 @@ Checkpoint de implementação:
   Fase 3 PASS.
 - O workflow temporário usado exclusivamente para executar esses gates foi
   removido após a validação; não integra o runtime nem altera a arquitetura.
+- Primeira revisão Sol independente: `SOL_REVIEW=FAIL`, com F4-001 e F4-002
+  HIGH e F4-003 MEDIUM. Foram corrigidos exclusivamente esses achados.
+- Correção funcional: `cf4480eecdf75f6b9e3a2eee4bdb208d4114a986`.
+  O frozen plan agora recebe provenance privada via `WeakMap`, vinculada à
+  instância exata do contrato usada pelo planejador; o executor aceita somente
+  plano assim autenticado. O executor também exige identidade de objeto com
+  `COMPILED_RUNTIME_CONTRACT`, rejeitando clones alterados mesmo quando
+  profundamente congelados. O parser de `ASSERT` rejeita conteúdo residual
+  antes de `FAIL`, `MANUAL_REVIEW` ou `END`.
+- Validação das correções em GitHub Actions sobre
+  `8c444e26c3961a8f0e1b25e19f17187a33c960f7`: 137 testes Python PASS;
+  todos os 6 testes `apps-script-*.test.js` PASS; `node --check` PASS;
+  regeneração byte-identical do runtime contract PASS; `git diff --check`
+  desde o baseline da Fase 3 PASS. O workflow temporário desta validação também
+  foi removido após o gate.
+- Segunda revisão Sol independente permanece pendente; o FAIL anterior não foi
+  convertido em PASS automaticamente.
 - Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
   relatório, EXTRACTION real por LLM e OpenAI Decisions.
 
