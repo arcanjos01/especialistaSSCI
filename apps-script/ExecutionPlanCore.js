@@ -1,3 +1,5 @@
+(function (global) {
+'use strict';
 /** Frozen pre-Engine selection and planning; this module never evaluates a Criterion. */
 
 class ExecutionIntegrityError extends Error {
@@ -383,6 +385,16 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
       isCanonicalCbmscApplicabilityResolution(resolution, view, contract),
     'canonical applicability resolution is required');
     const frozenPlan = internalMaterializer(contract, resolution);
+    planRequire_(Object.isFrozen(frozenPlan) &&
+      Array.isArray(frozenPlan.PLANNED_EXECUTION_UNITS) &&
+      Object.isFrozen(frozenPlan.PLANNED_EXECUTION_UNITS),
+    'canonical materializer produced an unfrozen execution plan');
+    planRequire_(canonicalPlanJson_(frozenPlan.PROCESS_SMSCI) ===
+      canonicalPlanJson_(resolution.PROCESS_SMSCI) &&
+      frozenPlan.selectedComprovante &&
+      frozenPlan.selectedComprovante.kind === resolution.selectedComprovante.kind &&
+      frozenPlan.selectedComprovante.identifier === resolution.selectedComprovante.identifier,
+    'canonical materializer output differs from applicability resolution');
     provenance.set(frozenPlan, Object.freeze({ contract, resolution, view }));
     return frozenPlan;
   }
@@ -413,4 +425,12 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
       isCanonicalFrozenExecutionPlan: canonicalPlanVerifier,
     };
   }
+})(globalThis);
+
+Object.defineProperty(global, 'ExecutionIntegrityError', {
+  value: ExecutionIntegrityError, enumerable: true, writable: false, configurable: false
+});
+Object.defineProperty(global, 'validateExecutionPlanIntegrity', {
+  value: validateExecutionPlanIntegrity, enumerable: true, writable: false, configurable: false
+});
 })(globalThis);

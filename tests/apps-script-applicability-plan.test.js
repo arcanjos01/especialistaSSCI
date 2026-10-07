@@ -33,6 +33,20 @@ vm.runInContext(`globalThis.api = {
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
 
+for (const name of [
+  'resolveCbmscApplicability',
+  'isCanonicalCbmscApplicabilityResolution',
+  'materializeFrozenExecutionPlan',
+  'isCanonicalFrozenExecutionPlan',
+  'validateExecutionPlanIntegrity'
+]) {
+  const descriptor = vm.runInContext(
+    "Object.getOwnPropertyDescriptor(globalThis, " + JSON.stringify(name) + ")", context
+  );
+  assert.equal(descriptor.writable, false, name);
+  assert.equal(descriptor.configurable, false, name);
+}
+
 const currentContext = (requestDate = '2026-01-28', overrides = {}) =>
   api.createCurrentSubmissionContext({
     protocolIdentifier: 'TEST_ONLY_PROTOCOL',
@@ -405,6 +419,54 @@ assertBlocker(() => api.resolveCbmscApplicability(
 assertIntegrityError(() => api.materializeFrozenExecutionPlan(
   copiedContract, resolution, complete.view
 ));
+
+// F4-006: decoy globals with the old helper names cannot influence private closures.
+assert.equal(vm.runInContext("typeof cbmscDeepFreeze_", context), 'undefined');
+assert.equal(vm.runInContext("typeof planFreeze_", context), 'undefined');
+
+const gasCaseForBypass = resolve({ codes: ['IGC'] });
+const noGasCaseForBypass = resolve();
+const gasPlanForBypass = api.materializeFrozenExecutionPlan(
+  contract, gasCaseForBypass.resolution, gasCaseForBypass.view
+);
+assert.equal(gasPlanForBypass.PLANNED_EXECUTION_UNITS.some(unit =>
+  unit.criterion.id === 'T4_IN08_MANUAL'
+), true);
+assert.equal(noGasCaseForBypass.resolution.PROCESS_SMSCI.includes('SMSCI_GAS'), false);
+
+context.__F4_RESOLUTION_A__ = gasCaseForBypass.resolution;
+context.__F4_PLAN_A__ = gasPlanForBypass;
+vm.runInContext(
+  "globalThis.cbmscDeepFreeze_ = function () { return globalThis.__F4_RESOLUTION_A__; };",
+  context
+);
+vm.runInContext(
+  "globalThis.planFreeze_ = function () { return globalThis.__F4_PLAN_A__; };",
+  context
+);
+
+const resolutionAfterDecoy = api.resolveCbmscApplicability(
+  noGasCaseForBypass.view, currentContext(), contract
+);
+assert.notEqual(resolutionAfterDecoy, gasCaseForBypass.resolution);
+assert.equal(resolutionAfterDecoy.PROCESS_SMSCI.includes('SMSCI_GAS'), false);
+assert.equal(api.isCanonicalCbmscApplicabilityResolution(
+  resolutionAfterDecoy, noGasCaseForBypass.view, contract
+), true);
+
+const planAfterDecoy = api.materializeFrozenExecutionPlan(
+  contract, resolutionAfterDecoy, noGasCaseForBypass.view
+);
+assert.notEqual(planAfterDecoy, gasPlanForBypass);
+assert.equal(planAfterDecoy.PLANNED_EXECUTION_UNITS.some(unit =>
+  unit.criterion.id === 'T4_IN08_MANUAL'
+), false);
+assert.equal(api.isCanonicalFrozenExecutionPlan(
+  gasPlanForBypass, contract, noGasCaseForBypass.view
+), false);
+assert.equal(api.isCanonicalFrozenExecutionPlan(
+  planAfterDecoy, contract, noGasCaseForBypass.view
+), true);
 
 // Mutating the source RDE after view creation and resolution cannot alter the frozen trace.
 complete.rde.records[2].attributes.OFFICIAL_ESCI_CODE = 'TEST_ONLY_MUTATED';

@@ -1,3 +1,5 @@
+(function (global) {
+'use strict';
 /** CBMSC-specific, pre-Engine applicability over immutable Process Memory. */
 
 class ApplicabilityBlocker extends Error {
@@ -280,6 +282,12 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
   function canonicalResolver(view, currentSubmissionContext, compiledContract) {
     requireCanonicalContract_(compiledContract);
     const resolution = internalResolver(view, currentSubmissionContext, compiledContract);
+    if (!Object.isFrozen(resolution) ||
+        !resolutionReferencesBelongToView_(resolution, view)) {
+      throw new ApplicabilityBlocker(
+        'canonical resolver produced an invalid applicability result'
+      );
+    }
     provenance.set(resolution, Object.freeze({ view, contract: compiledContract }));
     return resolution;
   }
@@ -309,4 +317,9 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
       isCanonicalCbmscApplicabilityResolution: canonicalResolutionVerifier,
     };
   }
+})(globalThis);
+
+Object.defineProperty(global, 'ApplicabilityBlocker', {
+  value: ApplicabilityBlocker, enumerable: true, writable: false, configurable: false
+});
 })(globalThis);

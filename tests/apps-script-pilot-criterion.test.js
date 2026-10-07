@@ -33,6 +33,19 @@ vm.runInContext(
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
 
+for (const name of [
+  'materializePlannedCriterion',
+  'executePlannedCriterion'
+]) {
+  const descriptor = vm.runInContext(
+    "Object.getOwnPropertyDescriptor(globalThis, " + JSON.stringify(name) + ")", context
+  );
+  assert.equal(descriptor.writable, false, name);
+  assert.equal(descriptor.configurable, false, name);
+}
+assert.equal(vm.runInContext("typeof criterionExecutionFindUnit_", context), 'undefined');
+assert.equal(vm.runInContext("typeof criterionExecutionMaterializeAssert_", context), 'undefined');
+
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
 
 function currentContext() {

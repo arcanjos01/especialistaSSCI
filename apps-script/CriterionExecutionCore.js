@@ -1,3 +1,5 @@
+(function (global) {
+'use strict';
 /** Phase 4 bridge from a frozen planned unit to the generic Criterion IR engine. */
 
 class CriterionExecutionIntegrityError extends Error {
@@ -191,3 +193,14 @@ if (typeof module !== 'undefined' && module.exports) {
     executePlannedCriterion,
   };
 }
+
+Object.defineProperty(global, 'CriterionExecutionIntegrityError', {
+  value: CriterionExecutionIntegrityError, enumerable: true, writable: false, configurable: false
+});
+Object.defineProperty(global, 'materializePlannedCriterion', {
+  value: materializePlannedCriterion, enumerable: true, writable: false, configurable: false
+});
+Object.defineProperty(global, 'executePlannedCriterion', {
+  value: executePlannedCriterion, enumerable: true, writable: false, configurable: false
+});
+})(globalThis);
