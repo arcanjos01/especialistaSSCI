@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.4
+# VERSION 3.5
 ###############################################################################
 
 ###############################################################################
@@ -1282,6 +1282,25 @@ SIGNATURE_MECHANISM registra somente a denominação do mecanismo digital ou
 eletrônico explicitamente identificado no próprio documento. O atributo não
 registra validade, autenticidade ou atendimento de Requirement. Se nenhum
 mecanismo estiver documentalmente identificado, o atributo permanece ausente.
+Registrar a localização de origem em provenance quando disponível.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY CONFORMITY_REPORT
+
+TYPE REPORT
+
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
+DESCRIPTION
+
+SIGNATURE_MECHANISM registra somente a denominação do mecanismo digital ou
+eletrônico explicitamente identificado como aposto ao Relatório de
+Conformidade. O atributo é factual e não registra validade criptográfica,
+autenticidade, identidade do signatário ou atendimento de Requirement. Se
+nenhum mecanismo for identificado no relatório, o atributo permanece ausente.
 Registrar a localização de origem em provenance quando disponível.
 
 END

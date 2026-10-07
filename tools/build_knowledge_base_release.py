@@ -394,11 +394,15 @@ def _parse_requirement_metadata(text: str) -> list[dict[str, object]]:
             ("SMSCI", "smsci"),
             ("IN19_DOCUMENTATION_REGIME", "in19DocumentationRegime"),
             ("FOR_EACH", "forEach"),
+            ("TECHNICAL_PRODUCT", "technicalProduct"),
         ):
             value = _single_field(block, source, identifier, required=source == "TABLE")
             if value is not None:
                 item[target] = value
         item["validate"] = _field_list(block, "VALIDATE")
+        evidence_attributes = _field_list(block, "EVIDENCE_ATTRIBUTE")
+        if evidence_attributes:
+            item["evidenceAttributes"] = evidence_attributes
         item["nonconformities"] = _field_list(block, "NONCONFORMITY")
         requirements.append(item)
     return requirements

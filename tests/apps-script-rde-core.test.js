@@ -257,6 +257,10 @@ const signatureCatalog = {
   SHP_COMMISSIONING_REPORT: {
     TYPE: 'COMMISSIONING_REPORT', ATTRIBUTES: ['SIGNATURE_MECHANISM'],
     ATTRIBUTE_TYPES: { SIGNATURE_MECHANISM: 'TEXT' }
+  },
+  CONFORMITY_REPORT: {
+    TYPE: 'REPORT', ATTRIBUTES: ['SIGNATURE_MECHANISM'],
+    ATTRIBUTE_TYPES: { SIGNATURE_MECHANISM: 'TEXT' }
   }
 };
 assert.doesNotThrow(() => validateRecords([
@@ -272,6 +276,20 @@ assert.throws(() => validateRecords([
   record('R_SIGNATURE_SOURCE', 'SOURCE_REPORT', null, 'R_SIGNATURE_SOURCE', {}, { page: 1 }),
   record('R_SHP_REPORT', 'SHP_COMMISSIONING_REPORT', null, 'R_SIGNATURE_SOURCE',
     { SIGNATURE_MECHANISM: true }, { page: 2 })
+], signatureCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
+assert.doesNotThrow(() => validateRecords([
+  record('R_CONFORMITY_SOURCE', 'SOURCE_REPORT', null, 'R_CONFORMITY_SOURCE', {}, { page: 1 }),
+  record('R_CONFORMITY_REPORT', 'CONFORMITY_REPORT', null, 'R_CONFORMITY_SOURCE',
+    { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' }, { page: 2 })
+], signatureCatalog));
+assert.doesNotThrow(() => validateRecords([
+  record('R_CONFORMITY_SOURCE', 'SOURCE_REPORT', null, 'R_CONFORMITY_SOURCE', {}, { page: 1 }),
+  record('R_CONFORMITY_REPORT', 'CONFORMITY_REPORT', null, 'R_CONFORMITY_SOURCE', {}, { page: 2 })
+], signatureCatalog));
+assert.throws(() => validateRecords([
+  record('R_CONFORMITY_SOURCE', 'SOURCE_REPORT', null, 'R_CONFORMITY_SOURCE', {}, { page: 1 }),
+  record('R_CONFORMITY_REPORT', 'CONFORMITY_REPORT', null, 'R_CONFORMITY_SOURCE',
+    { SIGNATURE_MECHANISM: false }, { page: 2 })
 ], signatureCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})

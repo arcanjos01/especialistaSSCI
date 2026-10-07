@@ -14,7 +14,8 @@ globalThis.engineCore = {
   CompositionContractError, TypedReference, ArgumentSpec, ArgumentSchema,
   ResolverContext, PredicateContract, PredicateRegistry, PredicateCall,
   Exists, AssertLiteral, All, Or, ForEach, CriterionIR, evaluateExpression,
-  evaluateCriterion, normalizeEngineResult, propagateResult
+  evaluateCriterion, normalizeEngineResult, propagateResult,
+  technicalProductAttributePredicateContract
 };`, context);
 const E = context.engineCore;
 const { EngineResult: ER, PipelineResult: PR } = E;
@@ -129,6 +130,35 @@ mutablePrototype.resolve = () => ({ result: ER.FALSE, memoryReferences: [] });
 assert.equal(E.evaluateCriterion(criterion(new E.PredicateCall(
   'TEST_CAPTURED', { subject: ref, label: 'x' }
 )), new E.PredicateRegistry([capturedContract]), memory([ref])).engineResult, ER.TRUE);
+
+const signedProduct = new E.TypedReference('REPORT', 'signed-product');
+const absentProduct = new E.TypedReference('DOCUMENT_ABSENCE', 'CONFORMITY_REPORT');
+const productMemory = Object.freeze({
+  contains(reference) { return reference === signedProduct; },
+  read(reference) {
+    assert.equal(reference, signedProduct);
+    return Object.freeze({ SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' });
+  }
+});
+const productRegistry = new E.PredicateRegistry([
+  E.technicalProductAttributePredicateContract()
+]);
+const signedCall = product => new E.PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE', {
+  technicalProduct: product, attribute: 'SIGNED'
+});
+assert.equal(E.evaluateCriterion(criterion(signedCall(signedProduct)), productRegistry,
+  productMemory).engineResult, ER.TRUE);
+assert.equal(E.evaluateCriterion(criterion(signedCall(absentProduct)), productRegistry,
+  productMemory).engineResult, ER.MANUAL_REVIEW);
+assert.throws(() => E.evaluateCriterion(criterion(new E.PredicateCall(
+  'TECHNICAL_PRODUCT_ATTRIBUTE', { technicalProduct: signedProduct, attribute: 'REGISTERED' }
+)), productRegistry, productMemory), /supports only SIGNED/);
+const unsignedMemory = Object.freeze({
+  contains() { return true; },
+  read() { return Object.freeze({ SIGNATURE_MECHANISM: '  ' }); }
+});
+assert.equal(E.evaluateCriterion(criterion(signedCall(signedProduct)), productRegistry,
+  unsignedMemory).engineResult, ER.MANUAL_REVIEW);
 
 assert.throws(() => new E.PredicateContract({
   predicateId: 'TEST_NA', argumentSchema: new E.ArgumentSchema(),

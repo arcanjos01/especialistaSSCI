@@ -50,6 +50,8 @@ assert.equal(vm.runInContext("typeof criterionExecutionMaterializeAssert_", cont
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
 const PRESSURIZATION_MANUAL_UNIT =
   'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
+const CONFORMITY_REPORT_SIGNED_UNIT =
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)';
 
 function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
@@ -62,7 +64,8 @@ function currentContext(requestDate = '2026-01-28') {
 
 function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includePressurization = false, includePressurizationManual = false,
-  includeLegacyExecutionDrt = false, requestDate = '2026-01-28' } = {}) {
+  includeLegacyExecutionDrt = false, conformityReports = [],
+  requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
     parent_record_id: null, source_document: 'DOC_CURRENT',
@@ -125,6 +128,23 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_LOW_VOLTAGE_DRT' }
     });
   }
+  conformityReports.forEach((signatureMechanism, index) => {
+    const documentId = 'DOC_CONFORMITY_' + (index + 1);
+    records.push({
+      record_id: documentId, entity_id: 'PPCI', parent_record_id: null,
+      source_document: documentId, attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: documentId + '_SOURCE' }
+    });
+    const attributes = {};
+    if (signatureMechanism !== undefined) {
+      attributes.SIGNATURE_MECHANISM = signatureMechanism;
+    }
+    records.push({
+      record_id: 'CONFORMITY_' + (index + 1), entity_id: 'CONFORMITY_REPORT',
+      parent_record_id: null, source_document: documentId, attributes,
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'CONFORMITY_' + (index + 1) + '_FACT' }
+    });
+  });
   if (includeManual) {
     records.push({
       record_id: 'DOC_MANUAL', entity_id: 'MANUAL',
@@ -172,6 +192,81 @@ assert.deepEqual(JSON.parse(JSON.stringify(pilotMetadata.assertIr)), {
 });
 assert.equal(pilotMetadata.sourceFile, '04_table4.txt');
 assert.deepEqual(JSON.parse(JSON.stringify(pilotMetadata.failNonconformities)), ['NC_T4_003']);
+
+assert.deepEqual(
+  JSON.parse(JSON.stringify(contract.entityCatalog.CONFORMITY_REPORT)),
+  {
+    TYPE: 'REPORT', ATTRIBUTES: ['SIGNATURE_MECHANISM'],
+    ATTRIBUTE_TYPES: { SIGNATURE_MECHANISM: 'TEXT' }
+  }
+);
+const signedRequirement = contract.requirements.find(
+  item => item.requirementId === 'REQ_T1_CONFORMITY_REPORT_SIGNED'
+);
+assert.equal(signedRequirement.technicalProduct, 'CONFORMITY_REPORT');
+assert.deepEqual(JSON.parse(JSON.stringify(signedRequirement.evidenceAttributes)), ['SIGNED']);
+
+const signedConformity = prepare({
+  includeGas: false,
+  conformityReports: ['ICP-Brasil / PAdES']
+});
+assert.equal(signedConformity.plan.PLANNED_EXECUTION_UNITS.some(
+  unit => unit.unitKey === CONFORMITY_REPORT_SIGNED_UNIT
+), true);
+const signedConformityResult = api.executePlannedCriterion(
+  contract, signedConformity.plan, CONFORMITY_REPORT_SIGNED_UNIT, signedConformity.view
+);
+assert.equal(signedConformityResult.unitKey, CONFORMITY_REPORT_SIGNED_UNIT);
+assert.equal(signedConformityResult.resultOrigin, 'EVALUATED');
+assert.equal(signedConformityResult.engineResult, api.EngineResult.TRUE);
+assert.equal(signedConformityResult.pipelineResult, 'PASS');
+assert.equal(signedConformityResult.normalization, 'IDENTITY');
+assert.equal(signedConformityResult.trace.length, 2);
+assert.ok(signedConformityResult.trace.every(
+  entry => entry.predicateId === 'TECHNICAL_PRODUCT_ATTRIBUTE' && entry.result === 'TRUE'
+));
+assert.equal(signedConformityResult.nonconformityOnFalse, undefined);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(signedConformityResult.traceability.documentaryBinding.sourceDocument)),
+  { kind: 'DOCUMENT', identifier: 'DOC_CONFORMITY_1' }
+);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(signedConformityResult.traceability.documentaryBinding.provenance)),
+  { sourceKind: 'TEST_ONLY', sourceReference: 'CONFORMITY_1_FACT' }
+);
+assert.equal(Object.isFrozen(signedConformityResult.traceability.documentaryBinding.provenance), true);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(
+    signedConformity.view.read(new api.TypedReference('REPORT', 'CONFORMITY_1'))
+  )),
+  { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' }
+);
+
+for (const conformityReports of [[], [undefined], [''], ['   ']]) {
+  const unsignedConformity = prepare({ includeGas: false, conformityReports });
+  const result = api.executePlannedCriterion(
+    contract, unsignedConformity.plan, CONFORMITY_REPORT_SIGNED_UNIT,
+    unsignedConformity.view
+  );
+  assert.equal(result.resultOrigin, 'EVALUATED');
+  assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(result.normalization, 'IDENTITY');
+  assert.equal(result.trace.length, 1, 'MR validation must skip the ASSERT');
+  assert.equal(result.trace[0].result, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(Object.hasOwn(result, 'nonconformityOnFalse'), false);
+}
+
+for (const conformityReports of [
+  ['ICP-Brasil / PAdES', undefined],
+  [undefined, 'ICP-Brasil / PAdES']
+]) {
+  const ambiguousConformity = prepare({ includeGas: false, conformityReports });
+  assert.throws(() => api.executePlannedCriterion(
+    contract, ambiguousConformity.plan, CONFORMITY_REPORT_SIGNED_UNIT,
+    ambiguousConformity.view
+  ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+}
 
 const positive = prepare({ includeGas: true, includeManual: true });
 assert.equal(positive.plan.PLANNED_EXECUTION_UNITS.some(unit => unit.unitKey === PILOT_UNIT), true);

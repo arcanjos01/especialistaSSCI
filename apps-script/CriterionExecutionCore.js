@@ -80,6 +80,71 @@ function criterionExecutionBindExists_(contract, view, argument) {
   });
 }
 
+function criterionExecutionBindTechnicalProductAttribute_(contract, view, technicalProduct,
+  evidenceAttribute) {
+  criterionExecutionRequire_(typeof technicalProduct === 'string' && technicalProduct,
+    'TECHNICAL_PRODUCT_ATTRIBUTE requires one canonical technical product');
+  criterionExecutionRequire_(evidenceAttribute === 'SIGNED',
+    'TECHNICAL_PRODUCT_ATTRIBUTE supports only SIGNED');
+  const entity = contract.entityCatalog && contract.entityCatalog[technicalProduct];
+  criterionExecutionRequire_(entity && Array.isArray(entity.ATTRIBUTES) &&
+    entity.ATTRIBUTES.includes('SIGNATURE_MECHANISM') && entity.ATTRIBUTE_TYPES &&
+    entity.ATTRIBUTE_TYPES.SIGNATURE_MECHANISM === 'TEXT',
+  'TECHNICAL_PRODUCT_ATTRIBUTE requires declared SIGNATURE_MECHANISM TEXT');
+  const references = view.referencesByEntity(technicalProduct);
+  criterionExecutionRequire_(Array.isArray(references),
+    'execution view returned an invalid technical product reference collection');
+  criterionExecutionRequire_(references.length <= 1,
+    'TECHNICAL_PRODUCT_ATTRIBUTE does not support multiple technical product records');
+  const product = references.length === 1 ? references[0] :
+    new TypedReference('DOCUMENT_ABSENCE', technicalProduct);
+  if (references.length === 1) {
+    criterionExecutionRequire_(product instanceof TypedReference && view.contains(product) &&
+      view.entityId(product) === technicalProduct,
+    'technical product reference does not match its canonical entity');
+  }
+  const sourceDocument = references.length === 1 ? view.sourceDocument(product) : product;
+  criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
+    (references.length === 0 || sourceDocument.kind === 'DOCUMENT'),
+  'technical product has an invalid source document');
+  return Object.freeze({
+    expression: new PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE', {
+      technicalProduct: product, attribute: evidenceAttribute
+    }),
+    binding: immutableCopy({
+      type: 'TECHNICAL_PRODUCT_ATTRIBUTE',
+      technicalProduct,
+      attribute: evidenceAttribute,
+      matchedCount: references.length,
+      sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
+      provenance: references.length === 0 || view.provenance(product) === undefined
+        ? null : view.provenance(product)
+    })
+  });
+}
+
+function criterionExecutionTechnicalProductValidation_(contract, requirementMetadata,
+  metadata, unit, view) {
+  const validate = requirementMetadata.validate;
+  if (!Array.isArray(validate) || validate.length === 0) return null;
+  criterionExecutionRequire_(validate.length === 1 &&
+    validate[0] === 'TECHNICAL_PRODUCT_ATTRIBUTE' &&
+    Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
+    Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
+  'unsupported VALIDATE declaration');
+  const related = contract.criteria.filter(item => item &&
+    item.requirementId === requirementMetadata.requirementId);
+  criterionExecutionRequire_(related.length === 1 && related[0].criterionId === metadata.criterionId,
+    'TECHNICAL_PRODUCT_ATTRIBUTE requires exactly one Criterion per Requirement');
+  criterionExecutionRequire_(typeof requirementMetadata.technicalProduct === 'string' &&
+    Array.isArray(requirementMetadata.evidenceAttributes) &&
+    requirementMetadata.evidenceAttributes.length === 1 &&
+    requirementMetadata.evidenceAttributes[0] === 'SIGNED',
+  'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE metadata is invalid');
+  return criterionExecutionBindTechnicalProductAttribute_(contract, view,
+    requirementMetadata.technicalProduct, requirementMetadata.evidenceAttributes[0]);
+}
+
 function criterionExecutionDocumentTrace_(view, reference, expectedSourceDocument) {
   criterionExecutionRequire_(reference && typeof reference.kind === 'string' &&
     typeof reference.identifier === 'string', 'applicability trace reference is invalid');
@@ -208,6 +273,20 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
     !Array.isArray(assertIr), 'ASSERT IR node must be an object');
   if (assertIr.type === 'CALL') {
     criterionExecutionRequireKeys_(assertIr, ['type', 'name', 'arguments'], 'CALL');
+    if (assertIr.name === 'TECHNICAL_PRODUCT_ATTRIBUTE') {
+      criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 2,
+        'TECHNICAL_PRODUCT_ATTRIBUTE must declare product and attribute symbols');
+      const product = assertIr.arguments[0];
+      const attribute = assertIr.arguments[1];
+      criterionExecutionRequireKeys_(product, ['type', 'value'],
+        'TECHNICAL_PRODUCT_ATTRIBUTE product argument');
+      criterionExecutionRequireKeys_(attribute, ['type', 'value'],
+        'TECHNICAL_PRODUCT_ATTRIBUTE attribute argument');
+      criterionExecutionRequire_(product.type === 'SYMBOL' && attribute.type === 'SYMBOL',
+        'TECHNICAL_PRODUCT_ATTRIBUTE arguments must be canonical symbols');
+      return criterionExecutionBindTechnicalProductAttribute_(contract, view,
+        product.value, attribute.value);
+    }
     criterionExecutionRequire_(assertIr.name === 'EXISTS',
       'executor supports only the canonical EXISTS operator');
     criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
@@ -271,9 +350,14 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   criterionExecutionRequire_(unit.iterationSource === null &&
     Array.isArray(unit.plannedBindings) && unit.plannedBindings.length === 0,
   'Phase 4 pilot does not execute iterative Criteria');
-  criterionExecutionRequire_(Array.isArray(unit.validate) && unit.validate.length === 0 &&
-    Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
-  'Phase 4 pilot does not execute VALIDATE functions');
+  const validation = criterionExecutionTechnicalProductValidation_(
+    contract, requirementMetadata, metadata, unit, view
+  );
+  if (validation === null) {
+    criterionExecutionRequire_(Array.isArray(unit.validate) && unit.validate.length === 0 &&
+      Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
+    'Phase 4 pilot does not execute VALIDATE functions');
+  }
   if (metadata.appliesTo !== undefined) {
     criterionExecutionRequire_(Array.isArray(plan.PROCESS_SMSCI) &&
       plan.PROCESS_SMSCI.includes(metadata.appliesTo),
@@ -282,6 +366,13 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   const materialized = criterionExecutionMaterializeAssert_(
     contract, plan, view, unit, metadata.assertIr
   );
+  if (validation !== null) {
+    criterionExecutionRequire_(materialized.binding.type === 'TECHNICAL_PRODUCT_ATTRIBUTE' &&
+      materialized.binding.technicalProduct.kind === validation.binding.technicalProduct.kind &&
+      materialized.binding.technicalProduct.identifier === validation.binding.technicalProduct.identifier &&
+      materialized.binding.attribute === validation.binding.attribute,
+    'TECHNICAL_PRODUCT_ATTRIBUTE ASSERT does not match VALIDATE metadata');
+  }
   const criterionFail = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;
   const requirementNonconformities = unit.nonconformityReferences &&
@@ -315,12 +406,37 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
       documentaryBinding: materialized.binding
     }
   });
-  return Object.freeze({ criterion, unit, metadata, binding: materialized.binding });
+  return Object.freeze({ criterion, unit, metadata, binding: materialized.binding,
+    validationExpression: validation === null ? null : validation.expression });
 }
 
 function executePlannedCriterion(contract, plan, unitKey, view) {
   const materialized = materializePlannedCriterion(contract, plan, unitKey, view);
-  const result = evaluateCriterion(materialized.criterion, new PredicateRegistry([]), view);
+  const registry = materialized.validationExpression === null
+    ? new PredicateRegistry([])
+    : new PredicateRegistry([technicalProductAttributePredicateContract()]);
+  let result;
+  if (materialized.validationExpression !== null) {
+    const validationCriterion = new CriterionIR({
+      criterionId: materialized.criterion.criterionId,
+      requirementId: materialized.criterion.requirementId,
+      expression: materialized.validationExpression,
+      expectedResult: EngineResult.TRUE,
+      traceability: materialized.criterion.traceability
+    });
+    const validationResult = evaluateCriterion(validationCriterion, registry, view);
+    if (validationResult.engineResult === EngineResult.MANUAL_REVIEW) {
+      result = validationResult;
+    } else {
+      criterionExecutionRequire_(validationResult.engineResult === EngineResult.TRUE,
+        'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE returned an unsupported EngineResult');
+      const assertResult = evaluateCriterion(materialized.criterion, registry, view);
+      result = immutableCopy({ ...assertResult,
+        trace: validationResult.trace.concat(assertResult.trace) });
+    }
+  } else {
+    result = evaluateCriterion(materialized.criterion, registry, view);
+  }
   criterionExecutionRequire_(result.criterionId === materialized.metadata.criterionId &&
     result.requirementId === materialized.metadata.requirementId,
   'Engine result identity differs from the planned Criterion');

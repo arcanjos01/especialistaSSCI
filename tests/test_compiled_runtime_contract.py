@@ -43,10 +43,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.9.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.10.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
-            "3.4.0",
+            "3.5.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
@@ -79,6 +79,14 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(
             self.contract["entityCatalog"]["SHP_COMMISSIONING_REPORT"]["ATTRIBUTE_TYPES"],
             {"SIGNATURE_MECHANISM": "TEXT"},
+        )
+        self.assertEqual(
+            self.contract["entityCatalog"]["CONFORMITY_REPORT"],
+            {
+                "TYPE": "REPORT",
+                "ATTRIBUTES": ["SIGNATURE_MECHANISM"],
+                "ATTRIBUTE_TYPES": {"SIGNATURE_MECHANISM": "TEXT"},
+            },
         )
         self.assertEqual(
             self.contract["entityCatalog"]["PRESSURIZATION_OPERATION_MANUAL"],
@@ -133,6 +141,15 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             criteria_by_id["T1_CONFORMITY_REPORT"]["assertIr"]["arguments"][0],
             {"type": "SYMBOL", "value": "RT_002_EXECUCAO_DE_OBRA"},
         )
+
+    def test_signature_requirement_compiles_its_validation_inputs(self):
+        requirement = next(
+            item for item in self.contract["requirements"]
+            if item["requirementId"] == "REQ_T1_CONFORMITY_REPORT_SIGNED"
+        )
+        self.assertEqual(requirement["validate"], ["TECHNICAL_PRODUCT_ATTRIBUTE"])
+        self.assertEqual(requirement["technicalProduct"], "CONFORMITY_REPORT")
+        self.assertEqual(requirement["evidenceAttributes"], ["SIGNED"])
 
     def test_pilot_criterion_assert_ir_is_exactly_source_derived(self):
         pilot = next(

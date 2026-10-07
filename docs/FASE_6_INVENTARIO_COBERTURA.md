@@ -122,8 +122,8 @@ fecha a lacuna de entidade para essa unidade específica, mas não demonstra a
 cobertura integral dos requisitos de DRT ou das outras unidades do plano.
 Sol 6.1 revisou o primeiro candidate da onda 2 com `SOL_REVIEW=PASS` e apontou
 `F6-W2-001` (LOW): faltavam asserts versionados para proveniência e manual
-presente sem `SPDE`. Ambos foram adicionados; o follow-up candidate aguarda
-nova revisão Sol 6.1.
+presente sem `SPDE`. Ambos foram adicionados em `afffc0e...`; a revisão
+independente do follow-up retornou `SOL_REVIEW=PASS` e encerrou o finding.
 
 ## Reconciliação do Relatório de Conformidade (candidate)
 
@@ -150,8 +150,52 @@ sem novos findings.
 
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
-RDE válida. A próxima onda funcional será selecionada após a atualização da
-matriz por estado real de materialização.
+RDE válida. A onda factual de assinatura abaixo não executa os Criteria de DRT
+ou produto↔DRT e não amplia a contagem de cobertura integral.
+
+## Onda funcional — assinatura do Relatório de Conformidade (candidate)
+
+Revisão independente anterior à alteração retornou
+`SOL_CONTRACT_REVIEW=PASS`, com recomendação `NARROW`: o Requirement existente
+declara `VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE` e `EVIDENCE_ATTRIBUTE SIGNED`,
+e o Criterion existente chama o mesmo predicate. A entidade factual
+`CONFORMITY_REPORT TYPE REPORT` declara `SIGNATURE_MECHANISM TEXT` sem herança
+de atributos. O campo registra somente o mecanismo digital/eletrônico
+documentalmente identificado como aplicado ao relatório; não atesta validade
+criptográfica, autenticidade, identidade do signatário ou atendimento
+normativo.
+
+O candidate acrescenta ao compilador os metadados canônicos `TECHNICAL_PRODUCT`
+e `EVIDENCE_ATTRIBUTE`, implementa somente `TECHNICAL_PRODUCT_ATTRIBUTE(...,
+SIGNED)` e executa o `VALIDATE` declarado antes do ASSERT. Com zero relatórios
+ou campo ausente/vazio, o Engine retorna `MANUAL_REVIEW` sem executar ASSERT e
+sem Nonconformity. Com um relatório e mecanismo factual não vazio, validação e
+ASSERT retornam TRUE com duas entradas de trace. Mais de um registro de
+relatório interrompe a execução por integridade técnica antes de produzir
+resultado: as fontes consultadas não definem seleção nem agregação. Essa
+interrupção não conta como cobertura integral do Criterion e mantém aberto o
+contrato de multiplicidade/evidência.
+
+Fixtures verificam entidade/metadados compilados, provenance e sourceDocument,
+imutabilidade da view, campo TEXT, ausência, string vazia/espaços e dois
+relatórios em ordens diferentes. O escopo não acrescenta DRT_COVERS nem torna
+executáveis os ASSERTs de outros Requirements que compartilhem VALIDATE.
+Nenhuma regra, Requirement, Criterion, Nonconformity ou applicability foi
+criada/alterada; ANALYZED não foi iniciado.
+
+| Estado antes da revisão independente deste candidate | Quantidade |
+|---|---:|
+| Criteria compilados | 36 |
+| Produtivamente alcançáveis | 31 |
+| Criteria integralmente cobertos | 6 |
+| Criteria integralmente bloqueados | 24 |
+| Criteria com suporte parcial da assinatura, bloqueado por multiplicidade | 1 |
+| Unidades desta onda com fixture positiva/ausência cobertas | 1 (0 ou 1 relatório) |
+
+Contagens não somam cobertura por entidade nem por predicate: o Criterion de
+assinatura permanece fora dos seis integralmente cobertos enquanto não houver
+contrato suficiente para multiplicidade. Revisão Sol desta onda ainda
+pendente para o candidate funcional.
 
 ## Resultado agregado no baseline pré-onda 1
 

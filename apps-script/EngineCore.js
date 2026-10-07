@@ -214,6 +214,50 @@ class PredicateRegistry {
   }
 }
 
+// The source-defined TECHNICAL_PRODUCT_ATTRIBUTE behavior currently supports
+// only SIGNED.  It consumes an already-bound product reference; entity lookup
+// and the mapping to its declared field remain in the execution bridge.
+function technicalProductAttributePredicateContract() {
+  return new PredicateContract({
+    predicateId: 'TECHNICAL_PRODUCT_ATTRIBUTE',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'technicalProduct', kind: ArgumentKind.REFERENCE }),
+      new ArgumentSpec({ name: 'attribute', kind: ArgumentKind.TEXT })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory) {
+        if (args.attribute !== 'SIGNED') {
+          throw new ArgumentContractError(
+            'TECHNICAL_PRODUCT_ATTRIBUTE supports only SIGNED'
+          );
+        }
+        if (args.technicalProduct.kind === 'DOCUMENT_ABSENCE') {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [args.technicalProduct] };
+        }
+        if (typeof memory.read !== 'function') {
+          throw new EngineContractError(
+            'TECHNICAL_PRODUCT_ATTRIBUTE requires read-only memory.read'
+          );
+        }
+        const attributes = memory.read(args.technicalProduct);
+        if (!attributes || typeof attributes !== 'object' || Array.isArray(attributes)) {
+          throw new ResultContractError(
+            'TECHNICAL_PRODUCT_ATTRIBUTE product attributes are invalid'
+          );
+        }
+        const mechanism = attributes.SIGNATURE_MECHANISM;
+        return {
+          result: typeof mechanism === 'string' && mechanism.trim()
+            ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
+          memoryReferences: [args.technicalProduct]
+        };
+      }
+    }
+  });
+}
+
 class PredicateCall {
   constructor(predicateId, argumentsByName = {}) {
     this.predicateId = requireNonEmptyString(predicateId, 'predicateId');
