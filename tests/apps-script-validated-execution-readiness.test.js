@@ -184,6 +184,24 @@ assert.deepEqual(JSON.parse(JSON.stringify(repeated)), JSON.parse(JSON.stringify
 assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.executionCalls, 0);
 
+const viewPrototype = vm.runInContext('ImmutableExecutionView.prototype', context);
+const originalReferencesByEntity = viewPrototype.referencesByEntity;
+viewPrototype.referencesByEntity = function (entityId) {
+  if (entityId === 'GAS_OWNER_MANUAL') return {};
+  return originalReferencesByEntity.call(this, entityId);
+};
+const integrityFailureAdapters = makeAdapters();
+try {
+  assert.throws(() => api.prepareValidatedExecutionReadiness(
+    processRecord.processId, currentSubmissionContext(), integrityFailureAdapters.adapters
+  ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR' &&
+    /invalid entity reference collection/.test(error.message));
+} finally {
+  viewPrototype.referencesByEntity = originalReferencesByEntity;
+}
+assert.equal(integrityFailureAdapters.counts.writes, 0);
+assert.equal(integrityFailureAdapters.counts.executionCalls, 0);
+
 const analyzedAdapters = makeAdapters({ status: 'ANALYZED' });
 const alreadyAnalyzed = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(), analyzedAdapters.adapters

@@ -24,20 +24,53 @@ function readinessFreeze_(value) {
   return Object.freeze(value);
 }
 
+function readinessPilotSupport_(unit, contract) {
+  if (unit.iterationSource !== null || !Array.isArray(unit.plannedBindings) ||
+      unit.plannedBindings.length !== 0 || !Array.isArray(unit.validate) ||
+      unit.validate.length !== 0 || !Array.isArray(unit.criterionValidate) ||
+      unit.criterionValidate.length !== 0) {
+    return false;
+  }
+
+  const matches = contract.criteria.filter(item =>
+    item && item.criterionId === unit.criterion.id
+  );
+  readinessRequire_(matches.length === 1,
+    'COMPILED_CONTRACT_INVALID', 'planned Criterion must exist exactly once');
+  const metadata = matches[0];
+  const assertIr = metadata.assertIr;
+  if (!assertIr || assertIr.type !== 'CALL' || assertIr.name !== 'EXISTS') return false;
+
+  readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
+    'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion must have exactly one argument');
+  const argument = assertIr.arguments[0];
+  readinessRequire_(argument && argument.type === 'SYMBOL' &&
+    typeof argument.value === 'string' && argument.value &&
+    contract.entityCatalog && contract.entityCatalog[argument.value],
+  'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion has an invalid entity symbol');
+
+  const nonconformities = unit.nonconformityReferences &&
+    unit.nonconformityReferences.criterionFail;
+  readinessRequire_(Array.isArray(nonconformities),
+    'PLAN_INVALID', 'planned Criterion FAIL references must be an array');
+  if (nonconformities.length > 1) return false;
+  return true;
+}
+
 function readinessInspectPlan_(plan, contract, view) {
   const plannedUnitKeys = [];
   const materializableUnitKeys = [];
   const unsupportedUnitKeys = [];
   for (const unit of plan.PLANNED_EXECUTION_UNITS) {
     plannedUnitKeys.push(unit.unitKey);
-    try {
-      // Materialization checks the approved executor boundary but evaluates no Criterion.
-      materializePlannedCriterion(contract, plan, unit.unitKey, view);
-      materializableUnitKeys.push(unit.unitKey);
-    } catch (error) {
-      if (!error || error.code !== 'CRITERION_EXECUTION_INTEGRITY_ERROR') throw error;
+    if (!readinessPilotSupport_(unit, contract)) {
       unsupportedUnitKeys.push(unit.unitKey);
+      continue;
     }
+    // Materialization checks integrity for supported units but evaluates no Criterion.
+    // Any error here is an integrity failure and must retain its original code/message.
+    materializePlannedCriterion(contract, plan, unit.unitKey, view);
+    materializableUnitKeys.push(unit.unitKey);
   }
   return readinessFreeze_({ plannedUnitKeys, materializableUnitKeys, unsupportedUnitKeys });
 }
