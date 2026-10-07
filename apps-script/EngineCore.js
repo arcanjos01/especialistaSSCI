@@ -362,8 +362,9 @@ function evaluateExpression(expression, registry, memory, context) {
   }
   if (expression instanceof AssertLiteral) {
     const invalidReference = expression.documentaryReferences.some(reference =>
-      (reference.kind === 'DOCUMENT' && !memory.contains(reference)) ||
-      (reference.kind === 'DOCUMENT_ABSENCE' && memory.contains(reference))
+      reference.kind === 'DOCUMENT_ABSENCE'
+        ? memory.contains(reference)
+        : !memory.contains(reference)
     );
     if (invalidReference) {
       throw new ResultContractError('ASSERT literal has an invalid documentary reference');

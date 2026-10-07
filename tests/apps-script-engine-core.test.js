@@ -156,12 +156,23 @@ assert.equal(evaluate(new E.Exists(ref)), ER.TRUE);
 assert.throws(() => new E.AssertLiteral(ER.FALSE), /only MANUAL_REVIEW/);
 assert.throws(() => new E.AssertLiteral(ER.MANUAL_REVIEW, []), /requires a source document/);
 const literalDocument = new E.TypedReference('DOCUMENT', 'literal-source');
+const literalSection = new E.TypedReference('DOCUMENT_SECTION', 'literal-section');
 const literalReview = E.evaluateCriterion(criterion(
   new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
 ), reg, memory([literalDocument]));
 assert.throws(() => E.evaluateCriterion(criterion(
   new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
 ), reg, memory()), /invalid documentary reference/);
+assert.throws(() => E.evaluateCriterion(criterion(
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument, literalSection])
+), reg, memory([literalDocument])), /invalid documentary reference/);
+const literalReviewWithSection = E.evaluateCriterion(criterion(
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument, literalSection])
+), reg, memory([literalDocument, literalSection]));
+assert.deepEqual(JSON.parse(JSON.stringify(literalReviewWithSection.trace[0].memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'literal-source' },
+  { kind: 'DOCUMENT_SECTION', identifier: 'literal-section' }
+]);
 assert.equal(literalReview.engineResult, ER.MANUAL_REVIEW);
 assert.equal(literalReview.pipelineResult, PR.MANUAL_REVIEW);
 assert.equal(literalReview.normalization, 'IDENTITY');
