@@ -243,8 +243,16 @@ OBSERVATIONS=`A natureza manutenção é fonte-definida pelo art. 123, I. A liga
 proposta, antes da edição do Anexo A. Foram aplicadas as recomendações sobre:
 redação exata do laudo anual da RT-015; ausência de limite/cardinalidade
 máxima de DRT na decomposição interna RT-005/RT-006; e não inferência de
-identidade entre declarante CMAR e titular da DRT. A aprovação da proposta não
-substitui a revisão Sol do diff efetivo do Anexo A.
+identidade entre declarante CMAR e titular da DRT.
+
+Após commit/push do catálogo, uma segunda revisão independente do diff
+agregado retornou `SOL_CATALOG_DIFF_REVIEW=PASS` em
+`e997815712782f91f38f4e43b578e5b864d7b828`. Os achados materiais do primeiro
+parecer de diff foram corrigidos. O parecer final registrou somente
+`F6-CAT-R2-001` (LOW), recomendação editorial não bloqueante em
+`APPLICABLE_SMSCI` RT-003; a cobertura da DRT continua conferida contra o PPCI
+nos critérios gerais. A decisão F6-DEC-001 foi então encerrada. Esse PASS não
+resolve mappings atuais ou contratos factuais de evidência da Fase 6.
 
 ## Referências primárias conferidas nesta proposta
 
@@ -258,4 +266,4 @@ substitui a revisão Sol do diff efetivo do Anexo A.
 
 ## Formalização autorizada no Anexo A
 
-As alterações estão aplicadas em `docs/Anexo_A_Catalogo_Oficial_das_Responsabilidades_Tecnicas_Rev2.txt`, aguardando revisão Sol independente do diff efetivo. As entradas preservam `UNRESOLVED_ATTRIBUTE`, distinguem execução da via condicional de regularização e mantêm DRT como evidência documental.
+As alterações estão aplicadas em `docs/Anexo_A_Catalogo_Oficial_das_Responsabilidades_Tecnicas_Rev2.txt` e aprovadas na revisão Sol independente do diff efetivo. As entradas preservam `UNRESOLVED_ATTRIBUTE`, distinguem execução da via condicional de regularização e mantêm DRT como evidência documental.

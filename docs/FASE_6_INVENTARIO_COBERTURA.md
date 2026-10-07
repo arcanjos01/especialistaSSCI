@@ -8,8 +8,9 @@ baseadas em UNIT_KEY) e pelas regras de `02a_applicability.txt` (31 produtivas;
 `CriterionExecutionCore.js` atualmente só materializa CALL(EXISTS), não
 iterações nem VALIDATE: quatro Criteria produtivos têm execução já suportada.
 Dois outros (literal MANUAL_REVIEW e composição OR) são implementáveis por
-contrato fechado, mas exigem ampliar o executor. Os 25 restantes dependem de formalização, evidência computável ou resolução
-do bloqueio do catálogo oficial; os blockers se sobrepõem entre Criteria.
+contrato fechado, mas exigem ampliar o executor. Os 25 restantes dependem de
+contratos de execução ou evidência ainda não formalizados; blockers se
+sobrepõem entre Criteria.
 
 O inventário anterior atribuía 8 casos a predicate-contract ausente e 17 a
 evidence-contract ausente. Essa divisão foi substituída após a leitura das
@@ -18,16 +19,25 @@ Nova classificação de blockers usa exclusivamente
 `SOURCE_DEFINED_NEEDS_FORMALIZATION`, `MISSING_EVIDENCE_CONTRACT` e
 `HUMAN_NORMATIVE_DECISION_REQUIRED`.
 
-## Estado após a decisão F6-DEC-001
+## Estado após a decisão e revisão F6-DEC-001
 
-A matriz e as classificações por blocker abaixo registram o inventário no
-baseline `6f824750b7022094a96b8cbe6016297cbcc71bab`, antes da ratificação
-humana do catálogo. F6-DEC-001 autorizou a formalização dos IDs internos; a
-proposta recebeu `SOL_CATALOG_REVIEW=PASS` e o Anexo A foi atualizado neste
-candidate. As classificações que dependiam da ausência do catálogo (em
-particular MC-001 e MC-004) são, portanto, históricas e aguardam reavaliação
-após revisão Sol do diff efetivo. Nenhum runtime ou resultado normativo foi
-alterado nesta etapa.
+`F6-DEC-001=OPTION_B_APPROVED`; catálogo formalizado em `e997815712782f91f38f4e43b578e5b864d7b828`.
+Proposta revisada independentemente: `SOL_CATALOG_REVIEW=PASS`. Diff agregado
+do Anexo A revisado por nova instância Sol 6.1: `SOL_CATALOG_DIFF_REVIEW=PASS`.
+O reviewer confirmou as correções dos achados anteriores e registrou somente
+`F6-CAT-R2-001` (LOW), recomendação editorial não bloqueante para separar com
+mais nitidez SMSCI aplicável (PPCI/IN) da cobertura encontrada na DRT. A entrada
+RT-003 também exige conferir cobertura contra PPCI, então a recomendação não
+altera o universo aplicável nem bloqueia o catálogo.
+
+`F6-DEC-001=CLOSED`. Reclassificação atual dos blockers: MC-001 e MC-004
+passam a `SOURCE_DEFINED_NEEDS_FORMALIZATION` (a decisão semântica está
+formalizada; faltam os contratos/predicates de execução); MC-002 permanece
+`SOURCE_DEFINED_NEEDS_FORMALIZATION`; MC-003, MC-005, MC-006 e MC-007 são
+`MISSING_EVIDENCE_CONTRACT`. Nenhum blocker atual exige decisão normativa
+humana. A lacuna factual de RDE/view não é encerrada pela aprovação do catálogo.
+Esta etapa não alterou runtime, resultado, applicability, Requirement ou
+Criterion.
 
 ## Resultado agregado
 
@@ -37,9 +47,9 @@ alterado nesta etapa.
 | Produtivamente alcançáveis | 31 |
 | `EXECUTABLE_EXISTING` | 4 |
 | `IMPLEMENTABLE_CLOSED_CONTRACT` | 2 |
-| Blockers `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 1 ID (MC-002) |
+| Blockers `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 3 IDs (MC-001, 002, 004) |
 | Blockers `MISSING_EVIDENCE_CONTRACT` | 4 IDs (MC-003, 005, 006, 007) |
-| Blockers `HUMAN_NORMATIVE_DECISION_REQUIRED` | 2 IDs (MC-001, 004) |
+| Blockers `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 |
 | `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 1 |
 | `NOT_PRODUCTIVELY_REACHABLE` | 4 |
 | UNIT_KEYs no índice compilado; máximo atual num plano | 36; 29 |
@@ -53,7 +63,7 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 define resultado MANUAL_REVIEW e composição OR. Nenhuma implementação foi
 iniciada neste checkpoint.
 
-## Matriz por Criterion
+## Matriz por Criterion (snapshot do baseline)
 
 Campos: Criterion, Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT,
 VALIDATE, FAIL_NONCONFORMITY, entidades/predicates referenciados, estado,
@@ -125,7 +135,7 @@ em `references/`, foram consultadas as cópias oficiais CBMSC 2024 da IN 7, 8,
 remete aos arts. 95 da IN 8, 122 da IN 9, 41 da IN 10, 47 da IN 12, 30 da IN
 15 e 14 da IN 18.
 
-### Resultado provisório por blocker
+### Classificação original por blocker (snapshot pré F6-DEC-001)
 
 | BLOCKER_ID | CRITERIA / REQUIREMENTS | CLASSIFICATION | O QUE A FONTE JÁ DEFINE | O QUE FALTA PARA PROVA COMPUTÁVEL |
 |---|---|---|---|---|
