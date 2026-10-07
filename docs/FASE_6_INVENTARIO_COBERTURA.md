@@ -135,19 +135,23 @@ como escopo agregado e associa a esse RT o Relatório de Conformidade. RT-003
 permanece como representação interna de escopo por SMSCI quando o profissional
 assumiu aquele sistema, sem criar relatório ou obrigação adicional.
 
-O candidate local altera somente esses quatro mappings/contextos/assert,
-registra no Anexo A que o mapping de relatório foi reconciliado e mantém CMAR
-como `UNRESOLVED_ATTRIBUTE` por falta de identidade normativa entre declarante
-e titular da DRT. A entidade `CONFORMITY_REPORT`, os fatos RDE e os predicates
-necessários continuam ausentes; esta reconciliação ainda não aumenta a
-cobertura de Criteria. O candidate aguarda gates, commit, push e nova revisão
-Sol do diff efetivo.
+O candidate de reconciliação alterou somente esses quatro
+mappings/contextos/assert, registra no Anexo A que o mapping de relatório foi
+reconciliado e mantém CMAR como `UNRESOLVED_ATTRIBUTE` por falta de identidade
+normativa entre declarante e titular da DRT. A entidade `CONFORMITY_REPORT`,
+os fatos RDE e os predicates necessários continuam ausentes; esta
+reconciliação ainda não aumenta a cobertura de Criteria. O candidate
+`8e4ebce348ae5b41b50edda9bdc56d536ce19cda` foi revisado por Sol 6.1 com
+`SOL_REVIEW=PASS`. O achado `F6-RT-001` (LOW) apontou somente a descrição
+desatualizada do candidate como ainda não testado, commitado ou enviado; este
+follow-up atualiza o registro e aguarda confirmação Sol. Após a confirmação
+independente deste follow-up, o finding será marcado como encerrado.
 
 As entidades declaradas na Base e as lacunas relatadas pela revisão contratual
 devem ser resolvidas antes de afirmar que um Criterion pode receber evidência
-RDE válida. A próxima onda funcional só será selecionada após a revisão
-independente do diff contratual FACT-ONLY e a atualização da matriz por estado
-real de materialização.
+RDE válida. A próxima onda funcional será selecionada após a confirmação
+independente deste registro e a atualização da matriz por estado real de
+materialização.
 
 ## Resultado agregado no baseline pré-onda 1
 
@@ -330,8 +334,8 @@ semântica TRUE/FALSE/UNKNOWN/NOT_APPLICABLE/MANUAL_REVIEW quando aplicável e
 trace. Em particular, ausência, conflito, nulidade e proveniência incompleta
 não viram FALSE sem regra declarada.
 
-As alterações de entidades e mappings RT descritas acima atualizam as fontes
-canônicas e manifests somente dentro de regras já determinadas pelas fontes;
-os artefatos derivados são regenerados. O mapping de Relatório de
-Conformidade ainda aguarda revisão Sol do diff efetivo. `ANALYZED` e Fase 5B
-permanecem pendentes.
+As alterações FACT-ONLY e a reconciliação RT descritas acima atualizam as
+fontes canônicas e manifests somente dentro de regras já determinadas pelas
+fontes; os artefatos derivados são regenerados. O mapping de Relatório de
+Conformidade recebeu `SOL_REVIEW=PASS`; somente a confirmação do follow-up
+documental está pendente. `ANALYZED` e Fase 5B permanecem pendentes.
