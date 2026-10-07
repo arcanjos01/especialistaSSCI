@@ -471,8 +471,34 @@ Checkpoint de implementação:
   regeneração byte-identical do runtime contract PASS; `git diff --check`
   desde o baseline da Fase 3 PASS. O workflow temporário desta validação foi
   removido após o gate.
-- Terceira revisão Sol independente permanece pendente; nenhum FAIL anterior
-  foi convertido em PASS automaticamente.
+- Terceira revisão Sol independente: `SOL_REVIEW=FAIL`, com F4-006 HIGH.
+  F4-002, F4-003 e F4-005 permaneceram CLOSED; F4-001 e F4-004 permaneceram
+  PARTIAL por causa do mesmo bypass.
+- Correção funcional de F4-006:
+  `1f71f2ddb7259a38a3c5b5c5d0af26ee1fa317d1`.
+  `CbmscApplicabilityCore.js`, `ExecutionPlanCore.js` e
+  `CriterionExecutionCore.js` agora executam seus helpers internos em escopo
+  lexical privado. Os nomes antigos `cbmscDeepFreeze_`, `planFreeze_` e os
+  helpers internos do executor não existem mais como bindings globais
+  substituíveis. Somente entrypoints públicos necessários são expostos, com
+  propriedades não graváveis e não configuráveis.
+- Antes de cunhar provenance, o resolver agora confirma que a saída está
+  profundamente congelada e que suas referências pertencem à view recebida.
+  Antes de cunhar provenance do plano, o planejador confirma congelamento e
+  correspondência de `PROCESS_SMSCI` e `selectedComprovante` com a resolução
+  autenticada.
+- Foi adicionada regressão que reproduz diretamente F4-006: globals-decoy com
+  os nomes antigos dos helpers retornam resolução/plano de outra view. A
+  execução privada ignora os decoys, mantém GAS não aplicável na view B e não
+  autentica o plano da view A para a view B.
+- Validação em GitHub Actions sobre
+  `c8c0504ce619dbd7ace306ff0d9d37249f6d9d82`: 138 testes Python PASS; todos
+  os 6 testes `apps-script-*.test.js` PASS; `node --check` PASS;
+  regeneração byte-identical do runtime contract PASS; `git diff --check`
+  desde o baseline da Fase 3 PASS. O workflow temporário desta validação foi
+  removido após o gate.
+- Quarta revisão Sol independente permanece pendente; nenhum FAIL anterior foi
+  convertido em PASS automaticamente.
 - Não iniciados: `VALIDATED → ANALYZED`, execução em massa de Criteria,
   relatório, EXTRACTION real por LLM e OpenAI Decisions.
 
