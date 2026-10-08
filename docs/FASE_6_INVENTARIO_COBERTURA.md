@@ -515,4 +515,10 @@ antes do registro final: 150 testes Python, sete testes JS, sintaxe de todos os
 módulos/testes e `Code.gs`, duas gerações byte-idênticas com SHA-256
 `a68906db309d35e3c495f2ccbc25b53393ab520004149b79b2057a4a7fdc79e0`, e
 `git diff --check`. Revisão Sol do diff efetivo e candidato commit/push estão
-pendentes.
+registrados como concluídos: o candidate
+`c67e1eafed1062eb39222460d00b3f5d1f8f9454`, revisado contra baseline
+`deafe5a01bf3bfda1cd3b4e341eb6b080ad25ecf`, recebeu
+`SOL_CONTRACT_DIFF_REVIEW=PASS`, sem findings e sem decisão humana. Sol
+confirmou que apenas `entityCatalog` mudou com os dois atributos nas quatro
+entidades DRT e que os fixtures respeitam o envelope RDE. A cobertura continua
+6/31. O candidato está publicado no branch; ANALYZED não foi iniciado.
