@@ -473,6 +473,17 @@ inválida. Cobertura permanece 9/31 Criteria produtivos; não foram adicionados
 predicates nem capacidade de Criterion. Revisão Sol 6.1 do diff efetivo ainda
 pendente.
 
+### Finding Sol F6-040
+
+Na revisão independente do candidate `3fe96004912dde5f356d6ce1a23cf511f1ffc5f0`,
+Sol retornou `SOL_REVIEW=FAIL` com um finding MEDIUM: o construtor público da
+ExecutionView aceitava propriedades não enumeráveis na coleção nova e podia
+descartar campos ocultos da provenance durante a cópia imutável. A correção
+local exige array estritamente denso e valida provenance recursivamente como
+JSON estrito antes da cópia; testes reproduzem propriedades ocultas e
+accessors. O finding só será marcado encerrado após novo candidate e revisão
+independente.
+
 ## Onda factual — dados básicos identificados na DRT
 
 Pré-revisão independente Sol 6.1: `SOL_CONTRACT_REVIEW=PASS` para a proposta

@@ -206,6 +206,49 @@ assert.throws(() => declarationView.drtDeclarationItems(
   new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
 ), /requires a DRT reference/);
 assert.equal(JSON.stringify(declarationRde), declarationSnapshot);
+const directSourceRef = new api.TypedReference('DOCUMENT', 'DIRECT_SOURCE');
+const directDrtRef = new api.TypedReference('DRT', 'DIRECT_DRT');
+const directProjectionEntries = [
+  {
+    reference: directSourceRef, entityId: 'TEST_DOCUMENT', parent: null,
+    sourceDocument: directSourceRef, value: {}
+  },
+  {
+    reference: directDrtRef, entityId: 'TEST_DRT', parent: null,
+    sourceDocument: directSourceRef, value: {}
+  }
+];
+const directDeclaration = {
+  declarationId: 'DIRECT_DECLARATION',
+  drt: directDrtRef,
+  activityServiceText: 'execução de instalação',
+  smsciScopeText: 'sistema de hidrantes',
+  sourceDocument: directSourceRef,
+  sourceText: 'Atividade: execução de instalação; sistema: sistema de hidrantes.'
+};
+const directView = new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.4.0', [directDeclaration]
+);
+assert.equal(directView.drtDeclarationItems(directDrtRef).length, 1);
+const hiddenDeclarationArray = [{ ...directDeclaration }];
+Object.defineProperty(hiddenDeclarationArray, 'extra', { value: 'hidden' });
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.4.0', hiddenDeclarationArray
+), /declarationEntries must be a dense array/);
+const hiddenDeclarationProvenance = { ...directDeclaration, provenance: { page: 1 } };
+Object.defineProperty(hiddenDeclarationProvenance.provenance, 'hiddenOrigin', {
+  value: 'UNDOCUMENTED'
+});
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.4.0', [hiddenDeclarationProvenance]
+), /declaration provenance/);
+const accessorDeclarationProvenance = { ...directDeclaration, provenance: {} };
+Object.defineProperty(accessorDeclarationProvenance.provenance, 'source', {
+  enumerable: true, get() { throw new Error('must not be evaluated'); }
+});
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.4.0', [accessorDeclarationProvenance]
+), /declaration provenance/);
 const badDeclarationRde = JSON.parse(JSON.stringify(declarationRde));
 badDeclarationRde.drt_declaration_items[0].drt_record_id = 'R_DRT_SOURCE';
 assert.throws(() => api.projectRdeToExecutionView_(badDeclarationRde, entityCatalog),

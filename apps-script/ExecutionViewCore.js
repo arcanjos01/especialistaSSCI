@@ -126,6 +126,42 @@ function immutableExecutionCopy(value, active = []) {
   );
 }
 
+function assertStrictExecutionJsonValue(value, active = []) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))) return;
+  if (!value || typeof value !== 'object' || active.includes(value)) {
+    throw new ExecutionViewContractError('declaration provenance must be strict JSON data');
+  }
+  active.push(value);
+  if (Array.isArray(value)) {
+    const keys = Object.keys(value);
+    if (Object.getOwnPropertySymbols(value).length || keys.length !== value.length ||
+        Object.getOwnPropertyNames(value).length !== value.length + 1) {
+      throw new ExecutionViewContractError('declaration provenance arrays must be dense JSON arrays');
+    }
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new ExecutionViewContractError('declaration provenance cannot contain accessors');
+      }
+      assertStrictExecutionJsonValue(descriptor.value, active);
+    }
+  } else {
+    if (!isPlainExecutionObject(value) || Object.getOwnPropertySymbols(value).length ||
+        Object.getOwnPropertyNames(value).length !== Object.keys(value).length) {
+      throw new ExecutionViewContractError('declaration provenance must contain plain JSON objects');
+    }
+    Object.keys(value).forEach(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new ExecutionViewContractError('declaration provenance cannot contain accessors');
+      }
+      assertStrictExecutionJsonValue(descriptor.value, active);
+    });
+  }
+  active.pop();
+}
+
 function executionViewRecord(view, reference) {
   const state = EXECUTION_VIEW_RECORDS.get(view);
   if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
@@ -163,7 +199,8 @@ class ImmutableExecutionView {
     }
     if (!Array.isArray(declarationEntries) ||
         Object.getOwnPropertySymbols(declarationEntries).length ||
-        Object.keys(declarationEntries).length !== declarationEntries.length) {
+        Object.keys(declarationEntries).length !== declarationEntries.length ||
+        Object.getOwnPropertyNames(declarationEntries).length !== declarationEntries.length + 1) {
       throw new ExecutionViewContractError('declarationEntries must be a dense array');
     }
     for (let index = 0; index < declarationEntries.length; index += 1) {
@@ -436,6 +473,7 @@ class ImmutableExecutionView {
         throw new ExecutionViewContractError('declaration provenance must be an object or null');
       }
       const hasProvenance = Object.prototype.hasOwnProperty.call(declaration, 'provenance');
+      if (hasProvenance) assertStrictExecutionJsonValue(declaration.provenance);
       const copiedProvenance = hasProvenance
         ? immutableExecutionCopy(declaration.provenance) : undefined;
       const signature = executionCanonicalJson({
