@@ -400,21 +400,34 @@ function executionCanonicalJson(value) {
 
 /** Create the closed documentary projection from a validated RDE 0.2.0/0.3.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
-  if (!rde || !['0.2.0', '0.3.0'].includes(rde.schema_version) ||
-      !Array.isArray(rde.records) ||
-      (rde.schema_version === '0.3.0' && !Array.isArray(rde.documentary_associations))) {
+  if (!rde || typeof rde !== 'object' || Array.isArray(rde)) {
     throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0');
   }
-  if (rde.schema_version === '0.2.0' &&
+  const schemaDescriptor = Object.getOwnPropertyDescriptor(rde, 'schema_version');
+  if (!schemaDescriptor || !Object.prototype.hasOwnProperty.call(schemaDescriptor, 'value') ||
+      !['0.2.0', '0.3.0'].includes(schemaDescriptor.value)) {
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0');
+  }
+  const schemaVersion = schemaDescriptor.value;
+  if (schemaVersion === '0.2.0' &&
       Object.prototype.hasOwnProperty.call(rde, 'documentary_associations')) {
     throw new ExecutionViewContractError('RDE 0.2.0 cannot declare documentary associations');
   }
+  const expectedKeys = [
+    'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
+  ];
+  if (schemaVersion === '0.3.0') expectedKeys.push('documentary_associations');
+  if (!hasExactKeys_(rde, expectedKeys) || !Array.isArray(rde.records)) {
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0');
+  }
+  const documentaryAssociations = schemaVersion === '0.3.0'
+    ? Object.getOwnPropertyDescriptor(rde, 'documentary_associations').value : [];
   if (!entityCatalog || typeof entityCatalog !== 'object') {
     throw new ExecutionViewContractError('entityCatalog is required for RDE projection');
   }
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
-  if (rde.schema_version === '0.3.0') {
-    validateRdeDocumentaryAssociations_(rde.documentary_associations, rde.records, entityCatalog);
+  if (schemaVersion === '0.3.0') {
+    validateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
   const referencesByRecordId = Object.create(null);
   rde.records.forEach(record => {
@@ -453,8 +466,8 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     }
     return entry;
   });
-  const associations = rde.schema_version === '0.3.0'
-    ? rde.documentary_associations.map(association => ({
+  const associations = schemaVersion === '0.3.0'
+    ? documentaryAssociations.map(association => ({
       associationId: association.association_id,
       left: referencesByRecordId[association.left_record_id],
       right: referencesByRecordId[association.right_record_id],
@@ -464,5 +477,5 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
         ? { provenance: association.provenance } : {})
     }))
     : [];
-  return new ImmutableExecutionView(entries, associations, rde.schema_version);
+  return new ImmutableExecutionView(entries, associations, schemaVersion);
 }

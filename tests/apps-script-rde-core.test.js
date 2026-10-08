@@ -148,6 +148,15 @@ function cloneOperationalRde() {
   return JSON.parse(operationalSnapshot);
 }
 
+let rootAssociationReads = 0;
+const rootAssociationAccessor = { ...operationalRde };
+Object.defineProperty(rootAssociationAccessor, 'documentary_associations', {
+  enumerable: true,
+  get() { rootAssociationReads += 1; return []; }
+});
+expectValidationCode(rootAssociationAccessor, 'RDE_ENVELOPE_INVALID');
+assert.equal(rootAssociationReads, 0);
+
 let invalid = cloneOperationalRde();
 invalid.schema_version = '9.9.9';
 expectValidationCode(invalid, 'RDE_SCHEMA_VERSION_MISMATCH');

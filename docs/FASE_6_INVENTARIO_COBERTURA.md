@@ -630,3 +630,25 @@ runtime com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
 `git diff --check`. Coverage permanece 6/31. O resultado Sol do follow-up será
 registrado após a nova revisão independente.
+
+### Finding residual de envelope — acesso calculado a `documentary_associations`
+
+A revisão do follow-up `3bd2286c6391506b21ad0d456081bae72b4d82a5`, contra
+`733dfb4d7a10ee6d192557f574050085c0a21049`, retornou FAIL com os findings
+anteriores `F6-ASSOC-001..004` fechados e um novo MEDIUM,
+`F6-ASSOC-005`: a propriedade raiz `documentary_associations` podia ser getter
+e devolver arrays diferentes durante validação e projeção. O Sol reproduziu
+quatro leituras e uma view que continha uma associação não validada.
+
+Correção local: envelope exato rejeita propriedades não-dado (incluindo
+accessors e símbolos); validação captura/usa o descriptor de versão e a
+coleção; projeção valida o envelope, captura a coleção uma única vez e a mesma
+referência é usada na validação e materialização. Testes exigem que o getter
+raiz seja rejeitado sem ser chamado. Os gates completos desta correção, o
+commit/push e nova revisão independente ainda estão pendentes. Os gates agora
+passaram: 150 testes Python; sete suítes Apps Script; sintaxe de todos os
+módulos/testes JS e `Code.gs`; duas regenerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
+`git diff --check`. Os fixtures de applicability/pilot foram atualizados para
+usar envelope RDE completo, conforme exigido pela projeção fechada. Cobertura
+permanece 6/31 e a revisão Sol do novo candidate ainda não ocorreu.

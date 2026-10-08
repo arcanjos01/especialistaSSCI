@@ -39,6 +39,14 @@ function hasExactKeys_(value, expectedKeys) {
 
   const actualKeys = Object.keys(value).sort();
   const requiredKeys = expectedKeys.slice().sort();
+  if (Object.getOwnPropertySymbols(value).length ||
+      Object.getOwnPropertyNames(value).length !== actualKeys.length ||
+      actualKeys.some(key => {
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        return !descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value');
+      })) {
+    return false;
+  }
 
   return actualKeys.length === requiredKeys.length &&
     actualKeys.every((key, index) => key === requiredKeys[index]);
@@ -637,18 +645,21 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
-  if (!isSupportedRdeSchemaVersion_(rde.schema_version)) {
+  const schemaDescriptor = Object.getOwnPropertyDescriptor(rde, 'schema_version');
+  if (!schemaDescriptor || !Object.prototype.hasOwnProperty.call(schemaDescriptor, 'value') ||
+      !isSupportedRdeSchemaVersion_(schemaDescriptor.value)) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
       'schema_version deve ser ' + RDE_SCHEMA_VERSION + ' ou ' +
         RDE_PREVIOUS_SCHEMA_VERSION + '.'
     );
   }
+  const schemaVersion = schemaDescriptor.value;
 
   const expectedEnvelopeKeys = [
     'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
   ];
-  if (rde.schema_version === RDE_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
     expectedEnvelopeKeys.push('documentary_associations');
   }
   if (!hasExactKeys_(rde, expectedEnvelopeKeys)) {
@@ -712,8 +723,9 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
 
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
 
-  if (rde.schema_version === RDE_SCHEMA_VERSION) {
-    validateRdeDocumentaryAssociations_(rde.documentary_associations, rde.records, entityCatalog);
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
+    const associationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_associations');
+    validateRdeDocumentaryAssociations_(associationsDescriptor.value, rde.records, entityCatalog);
   }
 
   if (!Array.isArray(rde.extraction_warnings)) {

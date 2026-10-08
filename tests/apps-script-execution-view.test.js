@@ -161,6 +161,22 @@ Object.defineProperty(accessorProjectionRde.documentary_associations[0], 'statem
 });
 assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog),
   error => error && error.code === 'RDE_ASSOCIATION_INVALID');
+let rootAssociationReads = 0;
+const rootAssociationAccessor = JSON.parse(JSON.stringify(validatedRde));
+Object.defineProperty(rootAssociationAccessor, 'documentary_associations', {
+  enumerable: true,
+  get() {
+    rootAssociationReads += 1;
+    return rootAssociationReads <= 2 ? [] : [{
+      association_id: 'A-UNVALIDATED', left_record_id: 'R000014',
+      right_record_id: 'R000003', source_document: 'R000001',
+      statement_text: 'unvalidated relation', DRT_COVERS: true
+    }];
+  }
+});
+assert.throws(() => api.projectRdeToExecutionView_(rootAssociationAccessor, entityCatalog),
+  /validated RDE/);
+assert.equal(rootAssociationReads, 0);
 assert.equal(Object.isFrozen(view), true);
 assert.equal(Object.keys(view).length, 0);
 for (const forbidden of [
