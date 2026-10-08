@@ -754,3 +754,13 @@ de módulos/testes JS e `Code.gs`, duas regenerações byte-idênticas com SHA-2
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
 `git diff --check`. O candidato corrigido aguarda commit/push e nova revisão
 Sol; cobertura continua 6/31.
+
+A revisão independente do candidate `5c0425c2b97ebb7ad5bfcbd5a4d41b422ea85e40`
+retornou `SOL_CONTRACT_DIFF_REVIEW=PASS`. Sol confirmou `F6-ASSOC-009` e
+`F6-ASSOC-010` fechados, sem novo finding e sem regressão para objetos JSON
+válidos. `F6-ASSOC-001..010=CLOSED`. As 150 verificações Python, sete suítes
+Apps Script, checagem sintática de todos os módulos/testes JS e `Code.gs`,
+dupla regeneração byte-idêntica (`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`)
+e `git diff --check` foram executados antes da revisão neste SHA. A onda trata
+somente integridade da RDE/view; cobertura normativa continua 6/31 e nenhuma
+transição para `ANALYZED` foi iniciada.
