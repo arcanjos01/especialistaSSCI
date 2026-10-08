@@ -43,10 +43,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.10.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.11.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
-            "3.5.0",
+            "3.6.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
