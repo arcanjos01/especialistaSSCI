@@ -161,6 +161,43 @@ Object.defineProperty(accessorProjectionRde.documentary_associations[0], 'statem
 });
 assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog),
   error => error && error.code === 'RDE_ASSOCIATION_INVALID');
+const prototypeMapRde = JSON.parse(JSON.stringify(validatedRde));
+prototypeMapRde.documentary_associations = [];
+let inheritedMapCalls = 0;
+const associationArrayPrototype = Object.create(Array.prototype);
+associationArrayPrototype.map = function forgedMap() {
+  inheritedMapCalls += 1;
+  return [{
+    associationId: 'FORGED', left: refs.document, right: refs.entity,
+    sourceDocument: refs.document, statementText: 'Statement absent from validated RDE'
+  }];
+};
+Object.setPrototypeOf(prototypeMapRde.documentary_associations, associationArrayPrototype);
+api.validateRdeStructure_(prototypeMapRde, {
+  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
+}, entityCatalog);
+const prototypeMapView = api.projectRdeToExecutionView_(prototypeMapRde, entityCatalog);
+assert.equal(inheritedMapCalls, 0);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  prototypeMapView.documentaryAssociations(refs.document)
+)), []);
+const prototypeRecordsRde = JSON.parse(JSON.stringify(validatedRde));
+let inheritedRecordMethods = 0;
+const recordArrayPrototype = Object.create(Array.prototype);
+recordArrayPrototype.forEach = function forgedForEach() {
+  inheritedRecordMethods += 1;
+};
+recordArrayPrototype.map = function forgedMap() {
+  inheritedRecordMethods += 1;
+  return [];
+};
+Object.setPrototypeOf(prototypeRecordsRde.records, recordArrayPrototype);
+api.validateRdeStructure_(prototypeRecordsRde, {
+  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
+}, entityCatalog);
+const prototypeRecordsView = api.projectRdeToExecutionView_(prototypeRecordsRde, entityCatalog);
+assert.equal(inheritedRecordMethods, 0);
+assert.equal(prototypeRecordsView.referencesByEntity('TEST_DOCUMENT').length, 2);
 let rootAssociationReads = 0;
 const rootAssociationAccessor = JSON.parse(JSON.stringify(validatedRde));
 Object.defineProperty(rootAssociationAccessor, 'documentary_associations', {
@@ -318,6 +355,21 @@ const cyclicAssociationView = new api.ImmutableExecutionView([
 ], '0.3.0');
 assert.equal(cyclicAssociationView.documentaryAssociations(refs.document).length, 2);
 assert.equal(cyclicAssociationView.documentaryAssociations(nestedReference).length, 2);
+let inheritedForEachCalls = 0;
+const associationArrayWithForEach = [];
+const associationForEachPrototype = Object.create(Array.prototype);
+associationForEachPrototype.forEach = function forgedForEach() {
+  inheritedForEachCalls += 1;
+};
+Object.setPrototypeOf(associationArrayWithForEach, associationForEachPrototype);
+const safeEmptyAssociationView = new api.ImmutableExecutionView([
+  directDocumentEntry,
+  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
+], associationArrayWithForEach, '0.3.0');
+assert.equal(inheritedForEachCalls, 0);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  safeEmptyAssociationView.documentaryAssociations(refs.document)
+)), []);
 assert.throws(() => new api.ImmutableExecutionView([
   directDocumentEntry,
   directItemEntry(nestedReference, { value: 'TEST_ONLY' })

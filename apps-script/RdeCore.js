@@ -262,6 +262,21 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
   if (!Array.isArray(records)) {
     throw makeRdeValidationError_('RDE_INVALID_FIELD_TYPE', 'records deve ser um array.');
   }
+  if (Object.getOwnPropertySymbols(records).length ||
+      Object.keys(records).length !== records.length ||
+      Object.getOwnPropertyNames(records).length !== records.length + 1) {
+    throw makeRdeValidationError_(
+      'RDE_RECORD_ENVELOPE_INVALID', 'records deve ser um array denso sem propriedades extras.'
+    );
+  }
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(records, String(index));
+    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_ENVELOPE_INVALID', 'records deve conter registros de dados em todas as posições.'
+      );
+    }
+  }
   if (records.length && !entityCatalog) {
     throw makeRdeValidationError_(
       'RDE_ENTITY_CATALOG_REQUIRED',
@@ -276,7 +291,8 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
 
   const recordsById = Object.create(null);
   const definitionsById = Object.create(null);
-  records.forEach((record, index) => {
+  for (let index = 0; index < records.length; index += 1) {
+    const record = Object.getOwnPropertyDescriptor(records, String(index)).value;
     const requiredKeys = [
       'record_id', 'entity_id', 'parent_record_id', 'source_document', 'attributes'
     ];
@@ -365,9 +381,10 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
     }
     recordsById[record.record_id] = record;
     definitionsById[record.record_id] = definition;
-  });
+  }
 
-  records.forEach(record => {
+  for (let index = 0; index < records.length; index += 1) {
+    const record = Object.getOwnPropertyDescriptor(records, String(index)).value;
     const source = recordsById[record.source_document];
     if (!source) {
       throw makeRdeValidationError_(
@@ -432,7 +449,7 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
         'RDE_PARENT_REQUIRED', 'DOCUMENT_SECTION deve apontar para seu DOCUMENT pai.'
       );
     }
-  });
+  }
 
   const stateById = Object.create(null);
   function visit(recordId) {
@@ -445,7 +462,10 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
     if (parentId !== null) visit(parentId);
     stateById[recordId] = 2;
   }
-  records.forEach(record => visit(record.record_id));
+  for (let index = 0; index < records.length; index += 1) {
+    const record = Object.getOwnPropertyDescriptor(records, String(index)).value;
+    visit(record.record_id);
+  }
   return true;
 }
 
@@ -537,7 +557,17 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
     );
   }
   const recordsById = Object.create(null);
-  records.forEach(record => { recordsById[record.record_id] = record; });
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(records, String(index));
+    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_ENDPOINT_DANGLING',
+        'records deve conter registros de dados em todas as posições.'
+      );
+    }
+    const record = descriptor.value;
+    recordsById[record.record_id] = record;
+  }
   const associationIds = Object.create(null);
   const structuralAssociations = Object.create(null);
   for (let index = 0; index < associations.length; index += 1) {

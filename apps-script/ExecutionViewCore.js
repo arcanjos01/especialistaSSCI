@@ -227,7 +227,15 @@ class ImmutableExecutionView {
     const documentaryAssociations = [];
     const associationIds = Object.create(null);
     const associationSignatures = Object.create(null);
-    associationEntries.forEach((association, index) => {
+    for (let index = 0; index < associationEntries.length; index += 1) {
+      const associationDescriptor = Object.getOwnPropertyDescriptor(
+        associationEntries, String(index)
+      );
+      if (!associationDescriptor ||
+          !Object.prototype.hasOwnProperty.call(associationDescriptor, 'value')) {
+        throw new ExecutionViewContractError('associationEntries must contain data entries');
+      }
+      const association = associationDescriptor.value;
       if (!isPlainExecutionObject(association)) {
         throw new ExecutionViewContractError('association entry must be an object');
       }
@@ -303,7 +311,7 @@ class ImmutableExecutionView {
         projected.provenance = copiedProvenance;
       }
       documentaryAssociations.push(Object.freeze(projected));
-    });
+    }
     EXECUTION_VIEW_RECORDS.set(this, Object.freeze({
       byReference: Object.freeze(records),
       orderedReferences: Object.freeze(orderedReferences),
@@ -430,7 +438,12 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     validateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
   const referencesByRecordId = Object.create(null);
-  rde.records.forEach(record => {
+  for (let index = 0; index < rde.records.length; index += 1) {
+    const recordDescriptor = Object.getOwnPropertyDescriptor(rde.records, String(index));
+    if (!recordDescriptor || !Object.prototype.hasOwnProperty.call(recordDescriptor, 'value')) {
+      throw new ExecutionViewContractError('RDE record entry is invalid');
+    }
+    const record = recordDescriptor.value;
     if (!Object.prototype.hasOwnProperty.call(entityCatalog, record.entity_id) ||
         !entityCatalog[record.entity_id] || typeof entityCatalog[record.entity_id].TYPE !== 'string') {
       throw new ExecutionViewContractError('canonical entity TYPE is missing: ' + record.entity_id);
@@ -442,8 +455,14 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
       entityCatalog[record.entity_id].TYPE,
       record.record_id
     );
-  });
-  const entries = rde.records.map(record => {
+  }
+  const entries = [];
+  for (let index = 0; index < rde.records.length; index += 1) {
+    const recordDescriptor = Object.getOwnPropertyDescriptor(rde.records, String(index));
+    if (!recordDescriptor || !Object.prototype.hasOwnProperty.call(recordDescriptor, 'value')) {
+      throw new ExecutionViewContractError('RDE record entry is invalid');
+    }
+    const record = recordDescriptor.value;
     const reference = referencesByRecordId[record.record_id];
     const parent = record.parent_record_id === null
       ? null : referencesByRecordId[record.parent_record_id];
@@ -464,18 +483,29 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     if (Object.prototype.hasOwnProperty.call(record, 'provenance')) {
       entry.provenance = record.provenance;
     }
-    return entry;
-  });
-  const associations = schemaVersion === '0.3.0'
-    ? documentaryAssociations.map(association => ({
-      associationId: association.association_id,
-      left: referencesByRecordId[association.left_record_id],
-      right: referencesByRecordId[association.right_record_id],
-      sourceDocument: referencesByRecordId[association.source_document],
-      statementText: association.statement_text,
-      ...(Object.prototype.hasOwnProperty.call(association, 'provenance')
-        ? { provenance: association.provenance } : {})
-    }))
-    : [];
+    entries.push(entry);
+  }
+  const associations = [];
+  if (schemaVersion === '0.3.0') {
+    for (let index = 0; index < documentaryAssociations.length; index += 1) {
+      const associationDescriptor = Object.getOwnPropertyDescriptor(
+        documentaryAssociations, String(index)
+      );
+      if (!associationDescriptor ||
+          !Object.prototype.hasOwnProperty.call(associationDescriptor, 'value')) {
+        throw new ExecutionViewContractError('documentary association entry is invalid');
+      }
+      const association = associationDescriptor.value;
+      associations.push({
+        associationId: association.association_id,
+        left: referencesByRecordId[association.left_record_id],
+        right: referencesByRecordId[association.right_record_id],
+        sourceDocument: referencesByRecordId[association.source_document],
+        statementText: association.statement_text,
+        ...(Object.prototype.hasOwnProperty.call(association, 'provenance')
+          ? { provenance: association.provenance } : {})
+      });
+    }
+  }
   return new ImmutableExecutionView(entries, associations, schemaVersion);
 }

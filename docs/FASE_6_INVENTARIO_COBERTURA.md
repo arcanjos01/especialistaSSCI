@@ -652,3 +652,18 @@ módulos/testes JS e `Code.gs`; duas regenerações byte-idênticas com SHA-256
 `git diff --check`. Os fixtures de applicability/pilot foram atualizados para
 usar envelope RDE completo, conforme exigido pela projeção fechada. Cobertura
 permanece 6/31 e a revisão Sol do novo candidate ainda não ocorreu.
+
+A revisão independente seguinte encontrou `F6-ASSOC-006` MEDIUM no candidate
+`a278766a1009a9a3646c8540921cad52af382a95`: prototype customizado da coleção
+vazia podia fornecer `map()` herdado e fabricar uma associação durante a
+projeção. Correção local: materialização de associações e processamento de
+`associationEntries` usam loops indexados e descriptors de valores próprios,
+sem chamar `map`/`forEach` herdados. O mesmo padrão de callbacks herdados foi
+removido de `records` na validação estrutural e projeção. Fixtures adversariais
+de `map` e `forEach` herdados verificam que os métodos não são executados e
+nenhum registro ou associação é criado. Gates completos, commit/push e nova
+revisão Sol dessa correção ainda estão pendentes. Gates locais passaram:
+150 testes Python; sete suítes Apps Script; sintaxe de todos os módulos/testes
+JS e `Code.gs`; duas gerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
+`git diff --check`. Cobertura continua 6/31.
