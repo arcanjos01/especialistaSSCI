@@ -827,4 +827,12 @@ Requirements, Criteria, Nonconformities e applicability não foram alterados.
 Não aumenta a contagem de cobertura completa: permanecem 6/31; assinatura
 isolada não resolve associação DRT-produto, multiplicidade, validade, conteúdo
 de relatório, independência ou mapping RT-015. Revisão do diff final por Sol
-6.1 e gates completos ainda pendentes.
+6.1 no candidate `69320169c2c28e29deee3f60b75e00f437f17000` retornou
+`SOL_REVIEW=PASS`, sem findings. A revisão confirmou o limite independente do
+gate read-only de readiness: `VALIDATE` ainda não é aceito nele, portanto esta
+onda não aumenta a cobertura operacional e permanece 6/31. Os gates executados
+no mesmo candidate passaram: 150 testes Python, sete suítes Apps Script,
+`node --check` nos módulos e testes JS e em `Code.gs`, regeneração dupla
+byte-idêntica do contrato (`8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`)
+e `git diff --check`. Nenhum finding foi aberto; a autenticação de portal e
+os demais contratos de evidência continuam pendentes.
