@@ -54,6 +54,7 @@ const entityCatalog = {
     TYPE: 'DOCUMENT', ATTRIBUTES: ['REQUEST_IDENTIFIER', 'PROTOCOL_IDENTIFIER'],
     ATTRIBUTE_TYPES: { REQUEST_IDENTIFIER: 'TEXT', PROTOCOL_IDENTIFIER: 'TEXT' }
   },
+  TEST_DRT: { TYPE: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   TEST_SECTION: { TYPE: 'DOCUMENT_SECTION', ATTRIBUTES: ['LEGIBLE'], ATTRIBUTE_TYPES: { LEGIBLE: 'BOOLEAN' } },
   TEST_ENTITY: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['label'], ATTRIBUTE_TYPES: { label: 'TEXT' } },
   TEST_VALUE: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['value'], ATTRIBUTE_TYPES: { value: 'TEXT' } },
@@ -142,7 +143,7 @@ assert.equal(view.read(refs.section).LEGIBLE, false);
 assert.equal(JSON.stringify(validatedRde), originalRdeJson);
 assert.throws(() => api.projectRdeToExecutionView_(
   { ...validatedRde, schema_version: '0.1.0' }, entityCatalog
-), /validated RDE 0.2.0\/0.3.0/);
+), /validated RDE 0.2.0\/0.3.0\/0.4.0/);
 const legacyRde = { ...validatedRde, schema_version: '0.2.0' };
 delete legacyRde.documentary_associations;
 const legacyView = api.projectRdeToExecutionView_(legacyRde, entityCatalog);
@@ -151,6 +152,67 @@ assert.deepEqual(JSON.parse(JSON.stringify(legacyView.documentaryAssociations(re
 assert.throws(() => api.projectRdeToExecutionView_({
   ...legacyRde, documentary_associations: []
 }, entityCatalog), /cannot declare documentary associations/);
+const declarationRde = {
+  ...fixtureRde,
+  schema_version: '0.4.0',
+  records: [
+    rdeRecord('R_DRT_SOURCE', 'TEST_DOCUMENT', null, 'R_DRT_SOURCE', {}),
+    rdeRecord('R_DRT_RECORD', 'TEST_DRT', null, 'R_DRT_SOURCE', {})
+  ],
+  documentary_associations: [],
+  drt_declaration_items: [{
+    declaration_id: 'D000001',
+    drt_record_id: 'R_DRT_RECORD',
+    activity_service_text: 'execução de instalação',
+    smsci_scope_text: 'sistema de hidrantes',
+    source_document: 'R_DRT_SOURCE',
+    source_text: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
+    provenance: { page: 2, row: 4 }
+  }, {
+    declaration_id: 'D000002',
+    drt_record_id: 'R_DRT_RECORD',
+    activity_service_text: 'vistoria de funcionamento',
+    smsci_scope_text: 'alarme de incêndio',
+    source_document: 'R_DRT_SOURCE',
+    source_text: 'Atividade: vistoria de funcionamento; sistema: alarme de incêndio.'
+  }]
+};
+const declarationSnapshot = JSON.stringify(declarationRde);
+const validatedDeclarationRde = api.validateRdeStructure_(declarationRde, {
+  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
+}, entityCatalog);
+const declarationView = api.projectRdeToExecutionView_(validatedDeclarationRde, entityCatalog);
+const drtRef = new api.TypedReference('DRT', 'R_DRT_RECORD');
+assert.equal(declarationView.schemaVersion(), '0.4.0');
+assert.deepEqual(JSON.parse(JSON.stringify(declarationView.drtDeclarationItems(drtRef))), [{
+  declarationId: 'D000001',
+  drt: { kind: 'DRT', identifier: 'R_DRT_RECORD' },
+  activityServiceText: 'execução de instalação',
+  smsciScopeText: 'sistema de hidrantes',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceText: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
+  provenance: { page: 2, row: 4 }
+}, {
+  declarationId: 'D000002',
+  drt: { kind: 'DRT', identifier: 'R_DRT_RECORD' },
+  activityServiceText: 'vistoria de funcionamento',
+  smsciScopeText: 'alarme de incêndio',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceText: 'Atividade: vistoria de funcionamento; sistema: alarme de incêndio.'
+}]);
+assert.equal(Object.isFrozen(declarationView.drtDeclarationItems(drtRef)), true);
+assert.equal(Object.isFrozen(declarationView.drtDeclarationItems(drtRef)[0].provenance), true);
+assert.throws(() => declarationView.drtDeclarationItems(
+  new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
+), /requires a DRT reference/);
+assert.equal(JSON.stringify(declarationRde), declarationSnapshot);
+const badDeclarationRde = JSON.parse(JSON.stringify(declarationRde));
+badDeclarationRde.drt_declaration_items[0].drt_record_id = 'R_DRT_SOURCE';
+assert.throws(() => api.projectRdeToExecutionView_(badDeclarationRde, entityCatalog),
+  error => error && error.code === 'RDE_DRT_DECLARATION_DRT_TYPE_INVALID');
+const missingV4Collection = { ...declarationRde };
+delete missingV4Collection.drt_declaration_items;
+assert.throws(() => api.projectRdeToExecutionView_(missingV4Collection, entityCatalog));
 const malformedProjectionRde = JSON.parse(JSON.stringify(validatedRde));
 malformedProjectionRde.documentary_associations[0].DRT_COVERS = true;
 assert.throws(() => api.projectRdeToExecutionView_(malformedProjectionRde, entityCatalog),

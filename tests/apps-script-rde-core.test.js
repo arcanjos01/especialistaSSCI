@@ -36,6 +36,7 @@ vm.runInContext(source + `
 const core = context.rdeCore;
 assert.equal(core.isSupportedRdeSchemaVersion_('0.2.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.3.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.4.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.1.0'), false);
 const input = {
   processId: 'HAB-E30DD583092F3F62',
@@ -52,20 +53,21 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.3.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.4.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
 );
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.3.0');
+assert.equal(rde.schema_version, '0.4.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
 assert.equal(rde.extraction.provider, 'FAKE_DETERMINISTIC');
 assert.deepEqual(JSON.parse(JSON.stringify(rde.records)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_declaration_items)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -273,6 +275,7 @@ const legacyStructuralRde = {
   records: validRecords()
 };
 delete legacyStructuralRde.documentary_associations;
+delete legacyStructuralRde.drt_declaration_items;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
 assert.equal(core.parseAndValidateOperationalRdeJson_(
@@ -283,6 +286,12 @@ const unsupportedAssociationRde = {
   documentary_associations: []
 };
 expectValidationCode(unsupportedAssociationRde, 'RDE_ENVELOPE_INVALID');
+const legacyV3Rde = { ...operationalRde, schema_version: '0.3.0' };
+delete legacyV3Rde.drt_declaration_items;
+assert.equal(core.validateRdeStructure_(legacyV3Rde, operationalExpected, entityCatalog), legacyV3Rde);
+const missingV4Declarations = { ...operationalRde };
+delete missingV4Declarations.drt_declaration_items;
+expectValidationCode(missingV4Declarations, 'RDE_ENVELOPE_INVALID');
 const associationRecords = [
   record('R_ASSOC_SOURCE', 'TEST_DOCUMENT', null, 'R_ASSOC_SOURCE', {}),
   record('R_ASSOC_DRT', 'TEST_ITEM', null, 'R_ASSOC_SOURCE', { LABEL: 'DRT declarada' }),
@@ -330,6 +339,79 @@ assert.throws(() => core.validateRdeStructure_({
   records: associationRecords,
   documentary_associations: [association, { ...association, association_id: 'A000001', statement_text: 'Outro texto' }]
 }, operationalExpected, entityCatalog), error => error.code === 'RDE_ASSOCIATION_ID_DUPLICATE');
+const declarationRecords = [
+  record('R_DECL_SOURCE', 'TEST_DOCUMENT', null, 'R_DECL_SOURCE', {}),
+  record('R_DECL_OTHER_SOURCE', 'TEST_DOCUMENT', null, 'R_DECL_OTHER_SOURCE', {}),
+  record('R_DECL_DRT', 'TEST_DRT', null, 'R_DECL_SOURCE', {})
+];
+const declaration = {
+  declaration_id: 'D000001',
+  drt_record_id: 'R_DECL_DRT',
+  activity_service_text: 'execução de instalação',
+  smsci_scope_text: 'sistema de hidrantes',
+  source_document: 'R_DECL_SOURCE',
+  source_text: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
+  provenance: { page: 2, row: 4 }
+};
+const declarationCatalog = {
+  ...entityCatalog,
+  TEST_DRT: { TYPE: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} }
+};
+const declarationRde = {
+  ...operationalRde,
+  records: declarationRecords,
+  drt_declaration_items: [declaration]
+};
+assert.doesNotThrow(() => core.validateRdeStructure_(
+  declarationRde, operationalExpected, declarationCatalog
+));
+function invalidDeclaration(candidate, code) {
+  assert.throws(() => core.validateRdeStructure_({
+    ...declarationRde, drt_declaration_items: [candidate]
+  }, operationalExpected, declarationCatalog), error => error.code === code);
+}
+invalidDeclaration({ ...declaration, extra: true }, 'RDE_DRT_DECLARATION_INVALID');
+const missingDeclarationField = { ...declaration };
+delete missingDeclarationField.smsci_scope_text;
+invalidDeclaration(missingDeclarationField, 'RDE_DRT_DECLARATION_INVALID');
+invalidDeclaration({ ...declaration, declaration_id: '' }, 'RDE_DRT_DECLARATION_INVALID');
+invalidDeclaration({ ...declaration, declaration_id: 'D000001', smsci_scope_text: 'scope absent' },
+  'RDE_DRT_DECLARATION_TEXT_MISMATCH');
+invalidDeclaration({ ...declaration, drt_record_id: 'R_DECL_SOURCE' },
+  'RDE_DRT_DECLARATION_DRT_TYPE_INVALID');
+invalidDeclaration({ ...declaration, drt_record_id: 'R_MISSING' },
+  'RDE_DRT_DECLARATION_DRT_DANGLING');
+invalidDeclaration({ ...declaration, source_document: 'R_DECL_DRT' },
+  'RDE_DRT_DECLARATION_SOURCE_INVALID');
+invalidDeclaration({ ...declaration, source_document: 'R_DECL_OTHER_SOURCE' },
+  'RDE_DRT_DECLARATION_SOURCE_MISMATCH');
+invalidDeclaration({ ...declaration, activity_service_text: '   ' },
+  'RDE_DRT_DECLARATION_INVALID');
+invalidDeclaration({ ...declaration, declaration_id: 'D000001', provenance: [] },
+  'RDE_DRT_DECLARATION_PROVENANCE_INVALID');
+assert.throws(() => core.validateRdeStructure_({
+  ...declarationRde,
+  drt_declaration_items: [declaration, { ...declaration, declaration_id: 'D000002' }]
+}, operationalExpected, declarationCatalog), error => error.code === 'RDE_DRT_DECLARATION_DUPLICATE');
+assert.throws(() => core.validateRdeStructure_({
+  ...declarationRde,
+  drt_declaration_items: new Array(1)
+}, operationalExpected, declarationCatalog), error => error.code === 'RDE_DRT_DECLARATIONS_INVALID');
+const declarationWithAccessor = { ...declaration };
+Object.defineProperty(declarationWithAccessor, 'source_text', {
+  enumerable: true, get() { throw new Error('must not be evaluated'); }
+});
+invalidDeclaration(declarationWithAccessor, 'RDE_DRT_DECLARATION_INVALID');
+const declarationArrayWithAccessor = [declaration];
+Object.defineProperty(declarationArrayWithAccessor, '0', {
+  enumerable: true, get() { throw new Error('must not be evaluated'); }
+});
+assert.throws(() => core.validateRdeStructure_({
+  ...declarationRde, drt_declaration_items: declarationArrayWithAccessor
+}, operationalExpected, declarationCatalog), error =>
+  error.code === 'RDE_DRT_DECLARATIONS_INVALID' ||
+  error.code === 'RDE_DRT_DECLARATION_INVALID'
+);
 const signatureCatalog = {
   SOURCE_REPORT: { TYPE: 'DOCUMENT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   SHP_COMMISSIONING_REPORT: {

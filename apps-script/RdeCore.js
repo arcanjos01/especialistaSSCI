@@ -1,8 +1,10 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.3.0';
-const RDE_PREVIOUS_SCHEMA_VERSION = '0.2.0';
+const RDE_SCHEMA_VERSION = '0.4.0';
+const RDE_PREVIOUS_SCHEMA_VERSION = '0.3.0';
+const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
 function isSupportedRdeSchemaVersion_(version) {
-  return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION;
+  return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION ||
+    version === RDE_HISTORICAL_SCHEMA_VERSION;
 }
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
@@ -28,6 +30,7 @@ function buildFakeRde_(input) {
     },
     records: [],
     documentary_associations: [],
+    drt_declaration_items: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -69,6 +72,7 @@ function validateRde_(rde, expected) {
     'extraction',
     'records',
     'documentary_associations',
+    'drt_declaration_items',
     'extraction_warnings'
   ])) {
     throw new Error('RDE deve ser um objeto JSON.');
@@ -129,6 +133,9 @@ function validateRde_(rde, expected) {
 
   if (!Array.isArray(rde.documentary_associations) || rde.documentary_associations.length !== 0) {
     throw new Error('documentary_associations deve ser vazia no extrator fake.');
+  }
+  if (!Array.isArray(rde.drt_declaration_items) || rde.drt_declaration_items.length !== 0) {
+    throw new Error('drt_declaration_items deve ser vazia no extrator fake.');
   }
 
   if (
@@ -755,7 +762,156 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
   return true;
 }
 
-/** Valida estrutura RDE 0.2.0/0.3.0 sem executar Requirements ou Criteria. */
+function validateRdeDrtDeclarationItems_(items, records, entityCatalog) {
+  if (!Array.isArray(items)) {
+    throw makeRdeValidationError_(
+      'RDE_DRT_DECLARATIONS_INVALID',
+      'drt_declaration_items deve ser um array.'
+    );
+  }
+  if (Object.getOwnPropertySymbols(items).length ||
+      Object.keys(items).length !== items.length ||
+      Object.getOwnPropertyNames(items).length !== items.length + 1) {
+    throw makeRdeValidationError_(
+      'RDE_DRT_DECLARATIONS_INVALID',
+      'drt_declaration_items deve ser um array denso sem propriedades extras.'
+    );
+  }
+  const recordsById = Object.create(null);
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(records, String(index));
+    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_DRT_DANGLING',
+        'records deve conter dados em todas as posições.'
+      );
+    }
+    recordsById[descriptor.value.record_id] = descriptor.value;
+  }
+  const declarationIds = Object.create(null);
+  const signatures = Object.create(null);
+  for (let index = 0; index < items.length; index += 1) {
+    const itemDescriptor = Object.getOwnPropertyDescriptor(items, String(index));
+    if (!itemDescriptor || !Object.prototype.hasOwnProperty.call(itemDescriptor, 'value')) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATIONS_INVALID',
+        'drt_declaration_items deve conter dados em todas as posições.'
+      );
+    }
+    const item = itemDescriptor.value;
+    if (!isPlainRdeObject_(item)) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_INVALID',
+        'drt_declaration_items[' + index + '] deve ser um objeto simples.'
+      );
+    }
+    const required = [
+      'declaration_id', 'drt_record_id', 'activity_service_text',
+      'smsci_scope_text', 'source_document', 'source_text'
+    ];
+    const allowed = required.concat(['provenance']);
+    const keys = Object.keys(item);
+    if (Object.getOwnPropertySymbols(item).length ||
+        Object.getOwnPropertyNames(item).length !== keys.length ||
+        keys.some(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(item, key);
+          return !descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value');
+        }) || required.some(key => !keys.includes(key)) ||
+        keys.some(key => !allowed.includes(key))) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_INVALID',
+        'drt_declaration_items[' + index + '] tem campos ausentes ou não declarados.'
+      );
+    }
+    required.forEach(key => {
+      if (typeof item[key] !== 'string' || !item[key].trim()) {
+        throw makeRdeValidationError_(
+          'RDE_DRT_DECLARATION_INVALID',
+          'drt_declaration_items[' + index + '].' + key + ' deve ser texto literal não vazio.'
+        );
+      }
+    });
+    if (!item.source_text.includes(item.activity_service_text) ||
+        !item.source_text.includes(item.smsci_scope_text)) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_TEXT_MISMATCH',
+        'Os textos declarados devem ocorrer literalmente em source_text.'
+      );
+    }
+    if (Object.prototype.hasOwnProperty.call(declarationIds, item.declaration_id)) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_ID_DUPLICATE',
+        'declaration_id duplicado: ' + item.declaration_id
+      );
+    }
+    declarationIds[item.declaration_id] = true;
+    const drt = recordsById[item.drt_record_id];
+    if (!drt) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_DRT_DANGLING',
+        'drt_record_id deve resolver para DRT na mesma RDE.'
+      );
+    }
+    const drtDefinition = entityCatalog[drt.entity_id];
+    if (!drtDefinition || drtDefinition.TYPE !== 'DRT') {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_DRT_TYPE_INVALID',
+        'drt_record_id deve resolver para entidade TYPE DRT.'
+      );
+    }
+    const source = recordsById[item.source_document];
+    const sourceDefinition = source && entityCatalog[source.entity_id];
+    if (!source || !sourceDefinition || sourceDefinition.TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_SOURCE_INVALID',
+        'source_document deve resolver para TYPE DOCUMENT na mesma RDE.'
+      );
+    }
+    if (item.source_document !== drt.source_document) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_SOURCE_MISMATCH',
+        'source_document deve corresponder ao documento de origem da DRT.'
+      );
+    }
+    let provenance = null;
+    const hasProvenance = Object.prototype.hasOwnProperty.call(item, 'provenance');
+    if (hasProvenance && item.provenance !== null && !isPlainRdeObject_(item.provenance)) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_PROVENANCE_INVALID',
+        'provenance deve ser objeto simples quando informada.'
+      );
+    }
+    if (hasProvenance) {
+      try {
+        provenance = canonicalRdeJson_(item.provenance);
+      } catch (error) {
+        throw makeRdeValidationError_(
+          'RDE_DRT_DECLARATION_PROVENANCE_INVALID',
+          'provenance deve conter somente valores JSON simples.'
+        );
+      }
+    }
+    const signature = canonicalRdeJson_({
+      drt_record_id: item.drt_record_id,
+      activity_service_text: item.activity_service_text,
+      smsci_scope_text: item.smsci_scope_text,
+      source_document: item.source_document,
+      source_text: item.source_text,
+      has_provenance: hasProvenance,
+      provenance
+    });
+    if (Object.prototype.hasOwnProperty.call(signatures, signature)) {
+      throw makeRdeValidationError_(
+        'RDE_DRT_DECLARATION_DUPLICATE',
+        'Uma declaração documental estruturalmente idêntica já foi registrada.'
+      );
+    }
+    signatures[signature] = true;
+  }
+  return true;
+}
+
+/** Valida RDE 0.2.0/0.3.0/0.4.0 sem executar Requirements ou Criteria. */
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
@@ -764,8 +920,8 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
       !isSupportedRdeSchemaVersion_(schemaDescriptor.value)) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
-      'schema_version deve ser ' + RDE_SCHEMA_VERSION + ' ou ' +
-        RDE_PREVIOUS_SCHEMA_VERSION + '.'
+      'schema_version deve ser ' + RDE_SCHEMA_VERSION + ', ' +
+        RDE_PREVIOUS_SCHEMA_VERSION + ' ou ' + RDE_HISTORICAL_SCHEMA_VERSION + '.'
     );
   }
   const schemaVersion = schemaDescriptor.value;
@@ -774,6 +930,9 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
     'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
   ];
   if (schemaVersion === RDE_SCHEMA_VERSION) {
+    expectedEnvelopeKeys.push('documentary_associations');
+    expectedEnvelopeKeys.push('drt_declaration_items');
+  } else if (schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
     expectedEnvelopeKeys.push('documentary_associations');
   }
   if (!hasExactKeys_(rde, expectedEnvelopeKeys)) {
@@ -837,9 +996,14 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
 
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
 
-  if (schemaVersion === RDE_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION ||
+      schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
     const associationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_associations');
     validateRdeDocumentaryAssociations_(associationsDescriptor.value, rde.records, entityCatalog);
+  }
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
+    const declarationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_declaration_items');
+    validateRdeDrtDeclarationItems_(declarationsDescriptor.value, rde.records, entityCatalog);
   }
 
   if (!Array.isArray(rde.extraction_warnings)) {

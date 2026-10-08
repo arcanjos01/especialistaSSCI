@@ -452,6 +452,27 @@ os módulos/testes e `Code.gs`, duas gerações com SHA-256
 `3f17937ba479da50102007211100f92d15bebe958f246a70a542b8743f96e58e` e
 `git diff --check`.
 
+## Formalização factual RDE 0.4.0 — em revisão de implementação
+
+Revisão independente de contratos no HEAD `55a72005aa83c55483340554d0eba4564b15e363`
+retornou `SOL_CONTRACT_REVIEW=FAIL` para execução de DRT. Sol não identificou
+decisão normativa humana pendente; registrou que seleção/cobertura, associação
+DRT-produto, temporalidade e independência ainda exigem contratos computáveis
+e/ou fatos. Como avanço factual mínimo, uma segunda revisão independente
+aprovou (`SOL_SCHEMA_REVIEW=PASS`) a proposta de coleção RDE 0.4.0
+`drt_declaration_items`: unidade documental explicitamente agrupada na própria
+DRT, textos literais, DRT e origem estruturalmente autenticados, provenance e
+ordem preservadas. A aprovação não cobre `DRT_COVERS`, mapeamento de valores,
+seleção de evidência, compatibilidade, resultados ou Criteria.
+
+A implementação candidata adiciona a versão 0.4.0 mantendo validação de 0.2.0
+e 0.3.0 sem migração, conserva a coleção imutável na ExecutionView e não a
+consome em execução normativa. Rejeita chaves/versões incompatíveis, relações
+pendentes ou de tipo errado, textos ausentes/não literais e provenance
+inválida. Cobertura permanece 9/31 Criteria produtivos; não foram adicionados
+predicates nem capacidade de Criterion. Revisão Sol 6.1 do diff efetivo ainda
+pendente.
+
 ## Onda factual — dados básicos identificados na DRT
 
 Pré-revisão independente Sol 6.1: `SOL_CONTRACT_REVIEW=PASS` para a proposta

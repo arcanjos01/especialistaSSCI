@@ -148,6 +148,15 @@ ausente/insuficiente para tratamento posterior. Esses campos FACT-ONLY não
 determinam compatibilidade, cobertura, validade ou satisfação de
 Responsabilidade Técnica, e não associam a DRT a produto técnico.
 
+RDE 0.4.0 pode preservar adicionalmente um item `drt_declaration_items`
+quando uma unidade documental explícita na própria DRT contiver ambos os
+textos literais. O item registra somente a coocorrência nessa unidade
+declarada. Não associa individualmente cada atividade/serviço a cada SMSCI
+enumerado, não normaliza, classifica ou expande escopo genérico, não determina
+cobertura/compatibilidade e não associa a DRT a produto técnico. Proximidade de
+página ou seção não é suficiente. O item integra o contrato factual da RDE e
+não é conclusão normativa.
+
 DRT_ISSUE_DATE_TEXT registra literalmente a data identificada no documento
 como emissão desta DRT; não registra data de execução, período de serviço ou
 data de cancelamento. DRT_DOCUMENT_ROLE_TEXT registra somente a denominação

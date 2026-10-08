@@ -2,7 +2,7 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
-RDE_SCHEMA_VERSION: 0.3.0
+RDE_SCHEMA_VERSION: 0.4.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -103,9 +103,11 @@ As etapas posteriores não poderão:
 ENTITY REPRESENTATION
 
 Toda RDE 0.3.0 deverá possuir uma coleção `records` ordenada e uma coleção
-`documentary_associations` ordenada, que pode estar vazia. A ordem de `records` é
-preservada e determinística dentro da RDE finalizada; ela não é identidade e
-nunca poderá ser usada como identidade durante EXECUTION.
+`documentary_associations` ordenada, que pode estar vazia. Toda RDE 0.4.0
+deverá possuir também `drt_declaration_items`, coleção ordenada que pode estar
+vazia. As ordens das coleções são preservadas. A ordem de `records` é
+determinística dentro da RDE finalizada; ela não é identidade e nunca poderá
+ser usada como identidade durante EXECUTION.
 
 Cada registro deverá obedecer ao envelope estrutural abaixo, nesta ordem:
 
@@ -168,8 +170,8 @@ RDE 0.1.0 e 0.2.0 já persistidas permanecem históricas e imutáveis. Não
 migrar nem reescrever seus fatos ou relações. A versão 0.2.0 contém somente as
 relações estruturais de registro desta versão e não declara uma associação
 documental vazia como prova de completude. Qualquer consumidor que dependa de
-associações documentais deve exigir RDE 0.3.0; não pode fabricar, completar ou
-simular associações para versões anteriores.
+associações documentais deve exigir RDE 0.3.0 ou 0.4.0; não pode fabricar,
+completar ou simular associações para versões anteriores.
 
 ------------------------------------------------------------------------
 
@@ -221,6 +223,54 @@ demonstrar validade, escopo, compatibilidade, temporalidade ou atendimento.
 Por exemplo, o vínculo explícito entre laudo e DRT não atesta por si só
 funcionamento adequado nem satisfação de responsabilidade.
 
+------------------------------------------------------------------------
+
+DRT DECLARATION ITEMS
+
+RDE 0.4.0 pode representar unidades documentais explícitas que agrupem, na
+própria DRT, a descrição literal de atividade/serviço e o escopo literal de
+SMSCI declarado. Cada item, na ordem declarada, possui exatamente:
+
+declaration_id:
+
+drt_record_id:
+
+activity_service_text:
+
+smsci_scope_text:
+
+source_document:
+
+source_text:
+
+provenance: (opcional)
+
+`declaration_id` é opaco e único na coleção. `drt_record_id` resolve para um
+registro `TYPE DRT` da mesma RDE. `source_document` resolve para `TYPE DOCUMENT`
+e deve corresponder ao documento de origem da DRT. Os três campos de texto são
+strings literais não vazias; `activity_service_text` e `smsci_scope_text`
+devem ocorrer literalmente em `source_text`. `source_text` preserva a unidade
+documental explícita (por exemplo, declaração, linha de tabela ou entrada de
+formulário) que contém os dois trechos, sem paráfrase. `provenance`, quando
+presente, contém somente localização/origem disponível.
+
+Emitir item somente quando a própria unidade documental explicitar o
+agrupamento. Página, seção, ordem, proximidade, relação de parent ou
+similaridade não demonstram agrupamento. Se qualquer trecho estiver ausente,
+ambíguo ou não puder ser atribuído inequivocamente à DRT, não criar o item;
+preservar separadamente os fatos já representáveis nos atributos DRT. Itens
+distintos e sua ordem/provenance são preservados; não combinar declarações.
+Uma coleção vazia ou item omitido por insuficiência não prova que a DRT não
+contenha outras declarações nem atesta completude documental.
+
+Esta coleção registra somente coocorrência explícita dentro de uma unidade
+documental atribuída à DRT. Não estabelece correspondência individual entre
+cada atividade/serviço e cada SMSCI quando um campo enumera vários itens, nem
+classifica ou normaliza valores, expande escopo genérico, determina
+compatibilidade/cobertura, seleciona evidência para Responsabilidade Técnica,
+associa produto técnico, ou produz conclusão normativa. A coleção não substitui
+`documentary_associations`, que registra vínculos literais entre registros.
+
 Toda entidade deverá obedecer ao envelope acima e à representação de atributos
 abaixo.
 
@@ -271,7 +321,7 @@ Nenhum conteúdo adicional deverá ser produzido.
 A etapa EXECUTION utilizará exclusivamente a RDE validada como fonte de
 evidências e relações estruturais.
 
-RDE 0.2.0/0.3.0 → IMMUTABLE EXECUTION VIEW
+RDE 0.2.0/0.3.0/0.4.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:
 
@@ -287,13 +337,18 @@ continuam atributos/fatos; não substituem a identidade estrutural.
 A immutable execution view preserva `contains`, `read` e `provenance`, e
 expõe as relações explícitas por `entityId(ref)`, `parent(ref)`,
 `sourceDocument(ref)`, `referencesByEntity(entity_id)` e
-`children(parent_ref, entity_id opcional)`. Para RDE 0.3.0 expõe também
+`children(parent_ref, entity_id opcional)`. Para RDE 0.3.0/0.4.0 expõe também
 `schemaVersion()` e `documentaryAssociations(ref)`, que retorna, na ordem da
 RDE, associações imutáveis incidentes ao registro indicado, com endpoints,
 documento-fonte, declaração literal e provenance disponível. RDE 0.2.0 é
 projetada com `schemaVersion() = 0.2.0` e nenhuma associação; isso não atesta
 completude para consumidores dependentes dessa relação. As coleções retornadas são
 imutáveis e preservam a ordem canônica de `records`.
+
+Para RDE 0.4.0, `drtDeclarationItems(drt_ref)` retorna, na ordem da coleção,
+os itens factuais atribuídos àquela DRT, preservando os textos literais,
+documento-fonte e provenance disponível. RDE 0.2.0/0.3.0 não possuem essa
+coleção; sua ausência não representa coleção vazia nem prova de completude.
 
 `read(ref)` retorna somente `attributes` documentais. `record_id`, `entity_id`,
 `parent_record_id` e `source_document` são metadados estruturais disponíveis
