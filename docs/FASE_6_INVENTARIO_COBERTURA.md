@@ -865,3 +865,34 @@ Gates no candidate: 150 testes Python, sete suítes Apps Script, sintaxe de
 módulos/testes JS e `Code.gs`, regeneração dupla byte-idêntica (SHA-256
 `8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`) e
 `git diff --check`.
+
+## Onda técnica — composição genérica `ALL`
+
+Revisão independente pré-implementação por Sol 6.1 no HEAD
+`707ca971ab07bc907108d2ca8ad90edb1b8d753b`: as opções de DRT avaliadas
+continuam sem binding computacional suficiente entre responsabilidade e
+evidência. Sol identificou `ALL` como constructo já definido e composição
+genérica segura, mas sem Criterion adicional coberto enquanto suas folhas
+permanecerem não suportadas.
+
+O materializador agora aceita `ALL` com uma ou mais expressões, exige o objeto
+IR sem campos residuais, materializa recursivamente todos os filhos e preserva
+o binding/trace de cada um. A readiness aplica a mesma regra recursiva e só
+marca a unidade suportada quando todos os filhos são suportados. Assim,
+`T4_IN07_COMMISSIONING` segue explicitamente unsupported porque sua folha
+`DRT_COVERS` não tem executor; nenhuma unidade é declarada coberta por aceitar
+somente o nó pai `ALL`.
+
+Fontes: Documento 10, §§20.3 e 20.6, define `ALL` como composição universal e
+declara a precedência de resultados já implementada no Engine; `00_engine.txt`
+define o ASSERT como árvore de chamadas/composição; `08_execution_pipeline.txt`
+proíbe inventar composição para `NOT_APPLICABLE`. Parser/artefato compilado já
+reconheciam `ALL`; não houve alteração de fonte canônica, parser nem gerador.
+
+Fixtures sintéticas exercitam `ALL` com resultados TRUE/FALSE, cardinalidade de
+um ou mais filhos, determinismo, trace dos filhos, associação de NC apenas no
+FALSE, rejeição de expressão vazia, campo residual e folha `DRT_COVERS` ainda
+não executável. A readiness confirma que um `ALL` com folha não suportada não
+se torna materializável. Cobertura permanece 9/31; nenhum predicate, Criterion,
+Requirement ou Nonconformity foi adicionado. Gates completos, commit/push e
+revisão independente pós-implementação Sol 6.1 ainda pendentes.

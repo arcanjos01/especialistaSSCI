@@ -345,6 +345,17 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
       binding: Object.freeze({ type: 'OR', expressions: Object.freeze(children.map(child => child.binding)) })
     });
   }
+  if (assertIr.type === 'ALL') {
+    criterionExecutionRequireKeys_(assertIr, ['type', 'expressions'], 'ALL');
+    criterionExecutionRequire_(Array.isArray(assertIr.expressions) &&
+      assertIr.expressions.length > 0, 'ALL must declare at least one expression');
+    const children = assertIr.expressions.map(child =>
+      criterionExecutionMaterializeAssert_(contract, plan, view, unit, child));
+    return Object.freeze({
+      expression: new All(children.map(child => child.expression)),
+      binding: Object.freeze({ type: 'ALL', expressions: Object.freeze(children.map(child => child.binding)) })
+    });
+  }
   throw new CriterionExecutionIntegrityError('ASSERT IR construct is unsupported');
 }
 

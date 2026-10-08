@@ -224,6 +224,10 @@ function readinessForSignedSystemProduct(officialEsciCode, productEntityId) {
 
 for (const signedReadinessCase of [
   {
+    officialEsciCode: 'SHP', productEntityId: 'SHP_COMMISSIONING_REPORT',
+    unitKey: 'UNIT_KEY (REQ_IN07_COMMISSIONING, T4_IN07_COMMISSIONING)',
+  },
+  {
     officialEsciCode: 'SPDE', productEntityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
     unitKey: 'UNIT_KEY (REQ_IN09_CHECKLIST, T4_IN09_CHECKLIST)',
   },
@@ -237,11 +241,17 @@ for (const signedReadinessCase of [
   );
   assert.equal(result.outcome, 'EXECUTION_COVERAGE_INCOMPLETE');
   assert.ok(result.coverage.plannedUnitKeys.includes(signedReadinessCase.unitKey));
-  assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
   if (signedReadinessCase.officialEsciCode === 'SPDE') {
     assert.ok(result.coverage.unsupportedUnitKeys.includes(
       'UNIT_KEY (REQ_IN09_TEST_REPORT, T4_IN09_TEST_REPORT)'
     ));
+  }
+  if (signedReadinessCase.officialEsciCode === 'SHP') {
+    assert.ok(result.coverage.unsupportedUnitKeys.includes(signedReadinessCase.unitKey),
+      'ALL must remain unsupported when a child predicate lacks an executor');
+    assert.ok(!result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
+  } else {
+    assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
   }
   assert.equal(result.workflowStatus, 'VALIDATED');
   assert.equal(result.analysisPermitted, false);

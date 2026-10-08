@@ -757,4 +757,123 @@ assert.equal(moduleSource.includes('T4_IN08_MANUAL'), false);
 assert.equal(moduleSource.includes('REQ_IN08_MANUAL'), false);
 assert.equal(moduleSource.includes('NC_T4_003'), false);
 
+// A test-only authenticated contract exercises generic ALL materialization
+// without rewriting any production Criterion or claiming additional coverage.
+const allContext = {};
+vm.createContext(allContext);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../apps-script/EngineCore.js'), 'utf8'), allContext);
+vm.runInContext(`
+  const allTestContracts = new WeakSet();
+  const allTestPlans = new WeakMap();
+  const allTestViews = new WeakSet();
+  Object.defineProperty(globalThis, 'isCanonicalCompiledRuntimeContract', {
+    value: value => allTestContracts.has(value)
+  });
+  Object.defineProperty(globalThis, 'isCanonicalFrozenExecutionPlan', {
+    value: (plan, contract, view) => {
+      const source = allTestPlans.get(plan);
+      return !!source && source.contract === contract && source.view === view;
+    }
+  });
+  Object.defineProperty(globalThis, 'isImmutableExecutionView', {
+    value: view => allTestViews.has(view)
+  });
+  globalThis.createAllTestFixture = function (assertIr, presentEntities) {
+    const requirements = Object.freeze([Object.freeze({
+      requirementId: 'REQ_ALL_TEST', table: 'TEST', validate: Object.freeze([]),
+      nonconformities: Object.freeze([])
+    })]);
+    const criteria = Object.freeze([Object.freeze({
+      criterionId: 'CRIT_ALL_TEST', requirementId: 'REQ_ALL_TEST', table: 'TEST',
+      sourceFile: 'TEST_ONLY', failNonconformities: Object.freeze(['NC_ALL_TEST']),
+      assertIr
+    })]);
+    const contract = Object.freeze({
+      contractVersion: 1, requirements, criteria,
+      entityCatalog: Object.freeze({ DOC_A: Object.freeze({}), DOC_B: Object.freeze({}) }),
+      nonconformities: Object.freeze({ NC_ALL_TEST: Object.freeze({
+        REF_REQUIREMENT: 'REQ_ALL_TEST', REF_CRITERION: 'CRIT_ALL_TEST', TABLE: 'TEST'
+      }) })
+    });
+    allTestContracts.add(contract);
+    const references = Object.create(null);
+    for (const entityId of ['DOC_A', 'DOC_B']) {
+      references[entityId] = presentEntities.includes(entityId)
+        ? Object.freeze([new TypedReference('TEST_DOCUMENT', entityId)]) : Object.freeze([]);
+    }
+    const view = Object.freeze({
+      referencesByEntity: entityId => references[entityId] || Object.freeze([]),
+      sourceDocument: reference => new TypedReference('DOCUMENT', 'SOURCE_' + reference.identifier),
+      contains: reference => reference.kind === 'DOCUMENT' ||
+        (reference.kind === 'TEST_DOCUMENT' && presentEntities.includes(reference.identifier))
+    });
+    allTestViews.add(view);
+    const unit = Object.freeze({
+      unitKey: 'UNIT_KEY (REQ_ALL_TEST, CRIT_ALL_TEST)',
+      requirement: Object.freeze({ id: 'REQ_ALL_TEST' }),
+      criterion: Object.freeze({ id: 'CRIT_ALL_TEST' }),
+      requirementTable: 'TEST', criterionTable: 'TEST', context: null,
+      appliesTo: null, iterationSource: null, plannedBindings: Object.freeze([]),
+      validate: Object.freeze([]), criterionValidate: Object.freeze([]),
+      nonconformityReferences: Object.freeze({
+        criterionFail: Object.freeze(['NC_ALL_TEST']), requirement: Object.freeze([])
+      })
+    });
+    const plan = Object.freeze({
+      PROCESS_SMSCI: Object.freeze([]), PLANNED_EXECUTION_UNITS: Object.freeze([unit])
+    });
+    allTestPlans.set(plan, { contract, view });
+    return { contract, plan, view, unitKey: unit.unitKey };
+  };
+`, allContext);
+vm.runInContext(fs.readFileSync(
+  path.join(__dirname, '../apps-script/CriterionExecutionCore.js'), 'utf8'
+), allContext);
+const runAllFixture = (assertIr, presentEntities) => {
+  allContext.testIr = assertIr;
+  allContext.testPresentEntities = presentEntities;
+  return vm.runInContext(`(() => {
+    const fixture = createAllTestFixture(testIr, testPresentEntities);
+    return executePlannedCriterion(
+      fixture.contract, fixture.plan, fixture.unitKey, fixture.view
+    );
+  })()`, allContext);
+};
+const allIr = {
+  type: 'ALL', expressions: [
+    { type: 'CALL', name: 'EXISTS', arguments: [{ type: 'SYMBOL', value: 'DOC_A' }] },
+    { type: 'CALL', name: 'EXISTS', arguments: [{ type: 'SYMBOL', value: 'DOC_B' }] },
+  ]
+};
+const allPositive = runAllFixture(allIr, ['DOC_A', 'DOC_B']);
+assert.equal(allPositive.engineResult, api.EngineResult.TRUE);
+assert.equal(allPositive.pipelineResult, 'PASS');
+assert.equal(allPositive.resultOrigin, 'EVALUATED');
+assert.equal(allPositive.unitKey, 'UNIT_KEY (REQ_ALL_TEST, CRIT_ALL_TEST)');
+assert.equal(allPositive.trace.length, 2);
+assert.deepEqual(JSON.parse(JSON.stringify(allPositive.trace.map(item => item.predicateId))),
+  ['EXISTS', 'EXISTS']);
+assert.equal(Object.hasOwn(allPositive, 'nonconformityOnFalse'), false);
+const oneChildAll = runAllFixture({ type: 'ALL', expressions: [allIr.expressions[0]] }, ['DOC_A']);
+assert.equal(oneChildAll.engineResult, api.EngineResult.TRUE);
+assert.equal(oneChildAll.trace.length, 1);
+assert.deepEqual(JSON.parse(JSON.stringify(allPositive)),
+  JSON.parse(JSON.stringify(runAllFixture(allIr, ['DOC_A', 'DOC_B']))),
+  'ALL materialization and evaluation must be deterministic');
+
+const allFalse = runAllFixture(allIr, ['DOC_A']);
+assert.equal(allFalse.engineResult, api.EngineResult.FALSE);
+assert.equal(allFalse.pipelineResult, 'FAIL');
+assert.equal(allFalse.nonconformityOnFalse, 'NC_ALL_TEST');
+assert.equal(allFalse.trace.length, 2, 'ALL trace must retain every child evaluation');
+assert.throws(() => runAllFixture({ type: 'ALL', expressions: [] }, []),
+  error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+assert.throws(() => runAllFixture({ ...allIr, residual: true }, ['DOC_A', 'DOC_B']),
+  error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+assert.throws(() => runAllFixture({
+  type: 'ALL', expressions: [allIr.expressions[0], {
+    type: 'CALL', name: 'DRT_COVERS', arguments: []
+  }]
+}, ['DOC_A']), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+
 console.log('apps-script-pilot-criterion: PASS');

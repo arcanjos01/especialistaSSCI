@@ -36,6 +36,12 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
       assertIr.expressions.every(child =>
         readinessAssertSupported_(child, contract, validatedProduct));
   }
+  if (assertIr.type === 'ALL') {
+    return Object.keys(assertIr).sort().join(',') === 'expressions,type' &&
+      Array.isArray(assertIr.expressions) && assertIr.expressions.length > 0 &&
+      assertIr.expressions.every(child =>
+        readinessAssertSupported_(child, contract, validatedProduct));
+  }
   if (assertIr.type !== 'CALL' ||
       Object.keys(assertIr).sort().join(',') !== 'arguments,name,type') return false;
 
