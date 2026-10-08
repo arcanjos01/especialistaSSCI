@@ -2,7 +2,7 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
-RDE_SCHEMA_VERSION: 0.4.0
+RDE_SCHEMA_VERSION: 0.5.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -105,7 +105,8 @@ ENTITY REPRESENTATION
 Toda RDE 0.3.0 deverá possuir uma coleção `records` ordenada e uma coleção
 `documentary_associations` ordenada, que pode estar vazia. Toda RDE 0.4.0
 deverá possuir também `drt_declaration_items`, coleção ordenada que pode estar
-vazia. As ordens das coleções são preservadas. A ordem de `records` é
+vazia. Toda RDE 0.5.0 deverá possuir também `documentary_date_items`, coleção
+ordenada que pode estar vazia. As ordens das coleções são preservadas. A ordem de `records` é
 determinística dentro da RDE finalizada; ela não é identidade e nunca poderá
 ser usada como identidade durante EXECUTION.
 
@@ -271,6 +272,51 @@ compatibilidade/cobertura, seleciona evidência para Responsabilidade Técnica,
 associa produto técnico, ou produz conclusão normativa. A coleção não substitui
 `documentary_associations`, que registra vínculos literais entre registros.
 
+------------------------------------------------------------------------
+
+DOCUMENTARY DATE ITEMS
+
+RDE 0.5.0 pode preservar cada declaração documental explícita que associe um
+rótulo de data a seu valor em um `TEST_REPORT`. Cada item, na ordem declarada,
+possui exatamente:
+
+date_item_id:
+
+product_record_id:
+
+date_label_text:
+
+date_text:
+
+source_document:
+
+source_text:
+
+provenance: (opcional)
+
+`date_item_id` é opaco e único na coleção. `product_record_id` resolve somente
+para registro cujo tipo canônico seja exatamente `TEST_REPORT` na mesma RDE;
+nenhum outro tipo é implicitamente permitido. `source_document` resolve para
+`TYPE DOCUMENT` e corresponde ao documento de origem do relatório. Os campos
+textuais são literais não vazios. `source_text` preserva a unidade documental
+que associa explicitamente aquele `date_label_text` àquele `date_text`; a mera
+presença de ambos em trecho amplo não estabelece a associação. Não parafrasear,
+normalizar ou combinar ocorrências. `provenance`, quando presente, contém
+somente localização/origem disponível.
+
+Emitir item somente quando a associação rótulo/valor e sua atribuição ao
+relatório estiverem explícitas. Preservar ordem, itens múltiplos, valores
+conflitantes e provenances separadamente. Não escolher, priorizar ou deduplicar
+datas documentais. Uma coleção vazia ou item omitido por insuficiência não
+prova inexistência de data nem completude da extração.
+
+Esta coleção registra fatos documentais somente. Não interpreta rótulo ou
+formato, não converte nem compara datas, não escolhe data de emissão ou de
+realização, não define data de avaliação, validade, janela temporal, produto
+aplicável, associação com DRT, Requirement, Criterion, resultado ou
+Nonconformity. A validade de cinco anos prevista para o laudo de estanqueidade
+de gás não se estende a outros `TEST_REPORT` por esta representação.
+
 Toda entidade deverá obedecer ao envelope acima e à representação de atributos
 abaixo.
 
@@ -321,7 +367,7 @@ Nenhum conteúdo adicional deverá ser produzido.
 A etapa EXECUTION utilizará exclusivamente a RDE validada como fonte de
 evidências e relações estruturais.
 
-RDE 0.2.0/0.3.0/0.4.0 → IMMUTABLE EXECUTION VIEW
+RDE 0.2.0/0.3.0/0.4.0/0.5.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:
 
@@ -337,7 +383,7 @@ continuam atributos/fatos; não substituem a identidade estrutural.
 A immutable execution view preserva `contains`, `read` e `provenance`, e
 expõe as relações explícitas por `entityId(ref)`, `parent(ref)`,
 `sourceDocument(ref)`, `referencesByEntity(entity_id)` e
-`children(parent_ref, entity_id opcional)`. Para RDE 0.3.0/0.4.0 expõe também
+`children(parent_ref, entity_id opcional)`. Para RDE 0.3.0/0.4.0/0.5.0 expõe também
 `schemaVersion()` e `documentaryAssociations(ref)`, que retorna, na ordem da
 RDE, associações imutáveis incidentes ao registro indicado, com endpoints,
 documento-fonte, declaração literal e provenance disponível. RDE 0.2.0 é
@@ -345,10 +391,17 @@ projetada com `schemaVersion() = 0.2.0` e nenhuma associação; isso não atesta
 completude para consumidores dependentes dessa relação. As coleções retornadas são
 imutáveis e preservam a ordem canônica de `records`.
 
-Para RDE 0.4.0, `drtDeclarationItems(drt_ref)` retorna, na ordem da coleção,
+Para RDE 0.4.0/0.5.0, `drtDeclarationItems(drt_ref)` retorna, na ordem da coleção,
 os itens factuais atribuídos àquela DRT, preservando os textos literais,
 documento-fonte e provenance disponível. RDE 0.2.0/0.3.0 não possuem essa
 coleção; sua ausência não representa coleção vazia nem prova de completude.
+
+Para RDE 0.5.0, `documentaryDateItems(test_report_ref)` retorna, na ordem da
+coleção, os itens factuais de data ligados ao relatório indicado, preservando
+rótulo, valor, documento-fonte e provenance disponível. RDE
+0.2.0/0.3.0/0.4.0 não possuem essa coleção; sua ausência não representa
+coleção vazia nem prova de completude. A interface preserva literais e não
+interpreta nem compara datas.
 
 `read(ref)` retorna somente `attributes` documentais. `record_id`, `entity_id`,
 `parent_record_id` e `source_document` são metadados estruturais disponíveis

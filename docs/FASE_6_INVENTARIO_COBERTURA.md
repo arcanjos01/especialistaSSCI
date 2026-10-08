@@ -969,3 +969,27 @@ genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continu
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
 Logo `PHASE_6_CONTRACTS=READY` ainda não foi declarado e a cobertura da Fase 6
 permanece incompleta.
+
+## Formalização factual de datas — RDE 0.5.0
+
+Após a revisão Sol do domínio ajustado (`SOL_DATE_SCHEMA_REVIEW=PASS`, sem
+findings), a especificação da RDE e o contrato factual de entidades autorizam
+`documentary_date_items` em RDE 0.5.0. A coleção preserva pares literais
+rótulo/valor explicitamente associados dentro da unidade documental e somente
+para registros de tipo canônico `TEST_REPORT`, com documento de origem
+coincidente. Mantém ordem, multiplicidade e conflitos. RDE 0.2.0–0.4.0 retém
+seus envelopes históricos.
+
+A `ImmutableExecutionView` expõe os itens somente por
+`documentaryDateItems(TEST_REPORT)`. A coleção não interpreta formato ou rótulo,
+seleciona datas, determina data de avaliação, compara janelas, associa DRT,
+avalia validade nem determina resultado. A regra de cinco anos do laudo de
+estanqueidade de gás não se aplica genericamente aos demais `TEST_REPORT`.
+
+Isto formaliza apenas fatos documentais para apoiar futuramente os Criteria
+temporais. `T4_IN08_ESTANQUEIDADE` e `F6-MC-005` continuam bloqueados por
+seleção da data pertinente, formato/interpretação, referência autorizada de
+avaliação, produto quando houver vários relatórios e associação ao DRT. Esta
+mudança não altera Requirement, Criterion, predicate, applicability, resultado
+ou Nonconformity, e não aumenta a cobertura atual de 9/31. A revisão Sol da
+implementação efetiva e os gates desta onda serão registrados após o commit.

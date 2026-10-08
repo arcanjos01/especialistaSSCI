@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.5
+# VERSION 3.6
 ###############################################################################
 
 ###############################################################################
@@ -156,6 +156,18 @@ enumerado, não normaliza, classifica ou expande escopo genérico, não determin
 cobertura/compatibilidade e não associa a DRT a produto técnico. Proximidade de
 página ou seção não é suficiente. O item integra o contrato factual da RDE e
 não é conclusão normativa.
+
+RDE 0.5.0 pode preservar `documentary_date_items` para datas explicitamente
+rotuladas em registros de tipo canônico exatamente `TEST_REPORT`. Cada item
+preserva o texto literal do rótulo e do valor, a unidade documental que os
+associa explicitamente, o relatório de origem, o documento-fonte e provenance
+disponível. A mera presença do rótulo e do valor em trecho amplo não estabelece
+essa associação. Preservar ocorrências múltiplas, conflitos e ordem; não
+interpretar, normalizar, combinar ou escolher datas. A coleção é FACT-ONLY e
+não estabelece data de emissão/realização pertinente, data de avaliação,
+validade temporal, associação com DRT, atendimento de Requirement ou resultado.
+A estrutura de datas da RDE não estende a validade normativa de cinco anos do
+laudo de estanqueidade de gás a outros produtos `TEST_REPORT`.
 
 DRT_ISSUE_DATE_TEXT registra literalmente a data identificada no documento
 como emissão desta DRT; não registra data de execução, período de serviço ou

@@ -55,6 +55,7 @@ const entityCatalog = {
     ATTRIBUTE_TYPES: { REQUEST_IDENTIFIER: 'TEXT', PROTOCOL_IDENTIFIER: 'TEXT' }
   },
   TEST_DRT: { TYPE: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
+  TEST_REPORT: { TYPE: 'TEST_REPORT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   TEST_SECTION: { TYPE: 'DOCUMENT_SECTION', ATTRIBUTES: ['LEGIBLE'], ATTRIBUTE_TYPES: { LEGIBLE: 'BOOLEAN' } },
   TEST_ENTITY: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['label'], ATTRIBUTE_TYPES: { label: 'TEXT' } },
   TEST_VALUE: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['value'], ATTRIBUTE_TYPES: { value: 'TEXT' } },
@@ -143,7 +144,7 @@ assert.equal(view.read(refs.section).LEGIBLE, false);
 assert.equal(JSON.stringify(validatedRde), originalRdeJson);
 assert.throws(() => api.projectRdeToExecutionView_(
   { ...validatedRde, schema_version: '0.1.0' }, entityCatalog
-), /validated RDE 0.2.0\/0.3.0\/0.4.0/);
+), /validated RDE 0.2.0 through 0.5.0/);
 const legacyRde = { ...validatedRde, schema_version: '0.2.0' };
 delete legacyRde.documentary_associations;
 const legacyView = api.projectRdeToExecutionView_(legacyRde, entityCatalog);
@@ -206,8 +207,50 @@ assert.throws(() => declarationView.drtDeclarationItems(
   new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
 ), /requires a DRT reference/);
 assert.equal(JSON.stringify(declarationRde), declarationSnapshot);
+const dateRde = {
+  ...declarationRde,
+  schema_version: '0.5.0',
+  records: [
+    ...declarationRde.records,
+    rdeRecord('R_TEST_REPORT', 'TEST_REPORT', null, 'R_DRT_SOURCE', {})
+  ],
+  documentary_date_items: [{
+    date_item_id: 'DATE-001', product_record_id: 'R_TEST_REPORT',
+    date_label_text: 'Data do ensaio', date_text: '03/04/2026',
+    source_document: 'R_DRT_SOURCE', source_text: 'Data do ensaio: 03/04/2026',
+    provenance: { page: 4, row: 2 }
+  }, {
+    date_item_id: 'DATE-002', product_record_id: 'R_TEST_REPORT',
+    date_label_text: 'Data da emissão', date_text: '03/04/2026',
+    source_document: 'R_DRT_SOURCE', source_text: 'Data da emissão: 03/04/2026'
+  }]
+};
+const dateSnapshot = JSON.stringify(dateRde);
+const dateView = api.projectRdeToExecutionView_(api.validateRdeStructure_(dateRde, {
+  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
+}, entityCatalog), entityCatalog);
+const testReportRef = new api.TypedReference('TEST_REPORT', 'R_TEST_REPORT');
+assert.equal(dateView.schemaVersion(), '0.5.0');
+assert.deepEqual(JSON.parse(JSON.stringify(dateView.documentaryDateItems(testReportRef))), [{
+  dateItemId: 'DATE-001', product: { kind: 'TEST_REPORT', identifier: 'R_TEST_REPORT' },
+  dateLabelText: 'Data do ensaio', dateText: '03/04/2026',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceText: 'Data do ensaio: 03/04/2026', provenance: { page: 4, row: 2 }
+}, {
+  dateItemId: 'DATE-002', product: { kind: 'TEST_REPORT', identifier: 'R_TEST_REPORT' },
+  dateLabelText: 'Data da emissão', dateText: '03/04/2026',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceText: 'Data da emissão: 03/04/2026'
+}]);
+assert.equal(Object.isFrozen(dateView.documentaryDateItems(testReportRef)), true);
+assert.equal(Object.isFrozen(dateView.documentaryDateItems(testReportRef)[0].provenance), true);
+assert.throws(() => dateView.documentaryDateItems(
+  new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
+), /requires a TEST_REPORT reference/);
+assert.equal(JSON.stringify(dateRde), dateSnapshot);
 const directSourceRef = new api.TypedReference('DOCUMENT', 'DIRECT_SOURCE');
 const directDrtRef = new api.TypedReference('DRT', 'DIRECT_DRT');
+const directReportRef = new api.TypedReference('TEST_REPORT', 'DIRECT_REPORT');
 const directProjectionEntries = [
   {
     reference: directSourceRef, entityId: 'TEST_DOCUMENT', parent: null,
@@ -215,6 +258,9 @@ const directProjectionEntries = [
   },
   {
     reference: directDrtRef, entityId: 'TEST_DRT', parent: null,
+    sourceDocument: directSourceRef, value: {}
+  }, {
+    reference: directReportRef, entityId: 'TEST_REPORT', parent: null,
     sourceDocument: directSourceRef, value: {}
   }
 ];
@@ -230,6 +276,23 @@ const directView = new api.ImmutableExecutionView(
   directProjectionEntries, [], '0.4.0', [directDeclaration]
 );
 assert.equal(directView.drtDeclarationItems(directDrtRef).length, 1);
+const directDate = {
+  dateItemId: 'DIRECT_DATE', product: directReportRef,
+  dateLabelText: 'Data de emissão', dateText: '2026-04-03',
+  sourceDocument: directSourceRef, sourceText: 'Data de emissão: 2026-04-03'
+};
+const directDateView = new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.5.0', [], [directDate]
+);
+assert.equal(directDateView.documentaryDateItems(directReportRef).length, 1);
+const hiddenDateArray = [{ ...directDate }];
+Object.defineProperty(hiddenDateArray, 'extra', { value: 'hidden' });
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.5.0', [], hiddenDateArray
+), /documentaryDateEntries must be a dense array/);
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.4.0', [], [directDate]
+), /only RDE 0.5.0/);
 const hiddenDeclarationArray = [{ ...directDeclaration }];
 Object.defineProperty(hiddenDeclarationArray, 'extra', { value: 'hidden' });
 assert.throws(() => new api.ImmutableExecutionView(

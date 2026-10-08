@@ -173,12 +173,12 @@ function executionViewRecord(view, reference) {
 }
 
 /**
- * Read-only Process Memory over canonical records projected from RDE 0.2.0/0.3.0/0.4.0.
+ * Read-only Process Memory over canonical records projected from RDE 0.2.0 through 0.5.0.
  * Only attributes are exposed by read(); structural relations use dedicated APIs.
  */
 class ImmutableExecutionView {
   constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0',
-    declarationEntries = []) {
+    declarationEntries = [], documentaryDateEntries = []) {
     if (!Array.isArray(projectionEntries)) {
       throw new ExecutionViewContractError('projectionEntries must be an array');
     }
@@ -209,14 +209,29 @@ class ImmutableExecutionView {
         throw new ExecutionViewContractError('declarationEntries must contain data entries');
       }
     }
-    if (!['0.2.0', '0.3.0', '0.4.0'].includes(schemaVersion)) {
+    if (!Array.isArray(documentaryDateEntries) ||
+        Object.getOwnPropertySymbols(documentaryDateEntries).length ||
+        Object.keys(documentaryDateEntries).length !== documentaryDateEntries.length ||
+        Object.getOwnPropertyNames(documentaryDateEntries).length !== documentaryDateEntries.length + 1) {
+      throw new ExecutionViewContractError('documentaryDateEntries must be a dense array');
+    }
+    for (let index = 0; index < documentaryDateEntries.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(documentaryDateEntries, String(index));
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new ExecutionViewContractError('documentaryDateEntries must contain data entries');
+      }
+    }
+    if (!['0.2.0', '0.3.0', '0.4.0', '0.5.0'].includes(schemaVersion)) {
       throw new ExecutionViewContractError('unsupported execution view schemaVersion');
     }
     if (schemaVersion === '0.2.0' && associationEntries.length) {
       throw new ExecutionViewContractError('RDE 0.2.0 cannot contain documentary associations');
     }
-    if (schemaVersion !== '0.4.0' && declarationEntries.length) {
+    if (schemaVersion !== '0.4.0' && schemaVersion !== '0.5.0' && declarationEntries.length) {
       throw new ExecutionViewContractError('RDE 0.2.0/0.3.0 cannot contain DRT declaration items');
+    }
+    if (schemaVersion !== '0.5.0' && documentaryDateEntries.length) {
+      throw new ExecutionViewContractError('only RDE 0.5.0 can contain documentary date items');
     }
     const records = Object.create(null);
     const orderedReferences = [];
@@ -500,11 +515,78 @@ class ImmutableExecutionView {
       if (hasProvenance) projected.provenance = copiedProvenance;
       drtDeclarationItems.push(Object.freeze(projected));
     }
+    const documentaryDateItems = [];
+    const dateItemIds = Object.create(null);
+    for (let index = 0; index < documentaryDateEntries.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(documentaryDateEntries, String(index));
+      const dateItem = descriptor.value;
+      if (!isPlainExecutionObject(dateItem)) {
+        throw new ExecutionViewContractError('documentary date entry must be an object');
+      }
+      const keys = Object.keys(dateItem).sort();
+      const requiredDateKeys = [
+        'dateItemId', 'product', 'dateLabelText', 'dateText', 'sourceDocument', 'sourceText'
+      ];
+      const allowedDateKeys = requiredDateKeys.concat(['provenance']);
+      if (Object.getOwnPropertySymbols(dateItem).length ||
+          Object.getOwnPropertyNames(dateItem).length !== keys.length ||
+          keys.some(key => !Object.prototype.hasOwnProperty.call(
+            Object.getOwnPropertyDescriptor(dateItem, key), 'value'
+          )) || requiredDateKeys.some(key => !keys.includes(key)) ||
+          keys.some(key => !allowedDateKeys.includes(key))) {
+        throw new ExecutionViewContractError('documentary date entry has missing or unsupported fields');
+      }
+      if (requiredDateKeys.filter(key => key !== 'product' && key !== 'sourceDocument')
+        .some(key => typeof dateItem[key] !== 'string' || !dateItem[key].trim())) {
+        throw new ExecutionViewContractError('documentary date text fields must be non-empty strings');
+      }
+      if (!dateItem.sourceText.includes(dateItem.dateLabelText) ||
+          !dateItem.sourceText.includes(dateItem.dateText)) {
+        throw new ExecutionViewContractError('documentary date literals must occur in sourceText');
+      }
+      if (!(dateItem.product instanceof TypedReference) || dateItem.product.kind !== 'TEST_REPORT' ||
+          !(dateItem.sourceDocument instanceof TypedReference) ||
+          dateItem.sourceDocument.kind !== 'DOCUMENT') {
+        throw new ExecutionViewContractError('documentary date references are invalid');
+      }
+      const productKey = executionReferenceKey(dateItem.product);
+      const sourceKey = executionReferenceKey(dateItem.sourceDocument);
+      if (!Object.prototype.hasOwnProperty.call(records, productKey) ||
+          !Object.prototype.hasOwnProperty.call(records, sourceKey)) {
+        throw new ExecutionViewContractError('documentary date reference is missing from the view');
+      }
+      if (executionReferenceKey(records[productKey].sourceDocument) !== sourceKey) {
+        throw new ExecutionViewContractError('documentary date source must match the product source');
+      }
+      if (Object.prototype.hasOwnProperty.call(dateItemIds, dateItem.dateItemId)) {
+        throw new ExecutionViewContractError('duplicate documentary date item id');
+      }
+      dateItemIds[dateItem.dateItemId] = true;
+      const hasProvenance = Object.prototype.hasOwnProperty.call(dateItem, 'provenance');
+      if (hasProvenance && dateItem.provenance !== null &&
+          !isPlainExecutionObject(dateItem.provenance)) {
+        throw new ExecutionViewContractError('documentary date provenance must be an object or null');
+      }
+      if (hasProvenance) assertStrictExecutionJsonValue(dateItem.provenance);
+      const copiedProvenance = hasProvenance
+        ? immutableExecutionCopy(dateItem.provenance) : undefined;
+      const projected = {
+        dateItemId: dateItem.dateItemId,
+        product: dateItem.product,
+        dateLabelText: dateItem.dateLabelText,
+        dateText: dateItem.dateText,
+        sourceDocument: dateItem.sourceDocument,
+        sourceText: dateItem.sourceText
+      };
+      if (hasProvenance) projected.provenance = copiedProvenance;
+      documentaryDateItems.push(Object.freeze(projected));
+    }
     EXECUTION_VIEW_RECORDS.set(this, Object.freeze({
       byReference: Object.freeze(records),
       orderedReferences: Object.freeze(orderedReferences),
       documentaryAssociations: Object.freeze(documentaryAssociations),
       drtDeclarationItems: Object.freeze(drtDeclarationItems),
+      documentaryDateItems: Object.freeze(documentaryDateItems),
       schemaVersion
     }));
     Object.freeze(this);
@@ -544,6 +626,19 @@ class ImmutableExecutionView {
     const key = executionReferenceKey(reference);
     return Object.freeze(state.drtDeclarationItems.filter(item =>
       executionReferenceKey(item.drt) === key
+    ));
+  }
+
+  documentaryDateItems(reference) {
+    const record = executionViewRecord(this, reference);
+    if (record.reference.kind !== 'TEST_REPORT') {
+      throw new ExecutionViewContractError('documentaryDateItems requires a TEST_REPORT reference');
+    }
+    const state = EXECUTION_VIEW_RECORDS.get(this);
+    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    const key = executionReferenceKey(reference);
+    return Object.freeze(state.documentaryDateItems.filter(item =>
+      executionReferenceKey(item.product) === key
     ));
   }
 
@@ -608,45 +703,53 @@ function executionCanonicalJson(value) {
   ).join(',') + '}';
 }
 
-/** Create the closed documentary projection from a validated RDE 0.2.0/0.3.0/0.4.0. */
+/** Create the closed documentary projection from a validated RDE 0.2.0 through 0.5.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
   if (!rde || typeof rde !== 'object' || Array.isArray(rde)) {
-    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0/0.4.0');
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0 through 0.5.0');
   }
   const schemaDescriptor = Object.getOwnPropertyDescriptor(rde, 'schema_version');
   if (!schemaDescriptor || !Object.prototype.hasOwnProperty.call(schemaDescriptor, 'value') ||
-      !['0.2.0', '0.3.0', '0.4.0'].includes(schemaDescriptor.value)) {
-    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0/0.4.0');
+      !['0.2.0', '0.3.0', '0.4.0', '0.5.0'].includes(schemaDescriptor.value)) {
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0 through 0.5.0');
   }
   const schemaVersion = schemaDescriptor.value;
   if (schemaVersion === '0.2.0' &&
       (Object.prototype.hasOwnProperty.call(rde, 'documentary_associations') ||
-       Object.prototype.hasOwnProperty.call(rde, 'drt_declaration_items'))) {
+       Object.prototype.hasOwnProperty.call(rde, 'drt_declaration_items') ||
+       Object.prototype.hasOwnProperty.call(rde, 'documentary_date_items'))) {
     throw new ExecutionViewContractError('RDE 0.2.0 cannot declare documentary associations');
   }
   const expectedKeys = [
     'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
   ];
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     expectedKeys.push('documentary_associations');
   }
-  if (schemaVersion === '0.4.0') expectedKeys.push('drt_declaration_items');
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0') expectedKeys.push('drt_declaration_items');
+  if (schemaVersion === '0.5.0') expectedKeys.push('documentary_date_items');
   if (!hasExactKeys_(rde, expectedKeys) || !Array.isArray(rde.records)) {
-    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0/0.4.0');
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0 through 0.5.0');
   }
-  const documentaryAssociations = schemaVersion === '0.3.0' || schemaVersion === '0.4.0'
+  const documentaryAssociations = schemaVersion === '0.3.0' || schemaVersion === '0.4.0' ||
+    schemaVersion === '0.5.0'
     ? Object.getOwnPropertyDescriptor(rde, 'documentary_associations').value : [];
-  const drtDeclarationItems = schemaVersion === '0.4.0'
+  const drtDeclarationItems = schemaVersion === '0.4.0' || schemaVersion === '0.5.0'
     ? Object.getOwnPropertyDescriptor(rde, 'drt_declaration_items').value : [];
+  const documentaryDateItems = schemaVersion === '0.5.0'
+    ? Object.getOwnPropertyDescriptor(rde, 'documentary_date_items').value : [];
   if (!entityCatalog || typeof entityCatalog !== 'object') {
     throw new ExecutionViewContractError('entityCatalog is required for RDE projection');
   }
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     validateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
-  if (schemaVersion === '0.4.0') {
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     validateRdeDrtDeclarationItems_(drtDeclarationItems, rde.records, entityCatalog);
+  }
+  if (schemaVersion === '0.5.0') {
+    validateRdeDocumentaryDateItems_(documentaryDateItems, rde.records, entityCatalog);
   }
   const referencesByRecordId = Object.create(null);
   for (let index = 0; index < rde.records.length; index += 1) {
@@ -697,7 +800,7 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     entries.push(entry);
   }
   const associations = [];
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     for (let index = 0; index < documentaryAssociations.length; index += 1) {
       const associationDescriptor = Object.getOwnPropertyDescriptor(
         documentaryAssociations, String(index)
@@ -719,7 +822,7 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     }
   }
   const declarations = [];
-  if (schemaVersion === '0.4.0') {
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     for (let index = 0; index < drtDeclarationItems.length; index += 1) {
       const declarationDescriptor = Object.getOwnPropertyDescriptor(drtDeclarationItems, String(index));
       if (!declarationDescriptor ||
@@ -739,5 +842,25 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
       });
     }
   }
-  return new ImmutableExecutionView(entries, associations, schemaVersion, declarations);
+  const dates = [];
+  if (schemaVersion === '0.5.0') {
+    for (let index = 0; index < documentaryDateItems.length; index += 1) {
+      const dateDescriptor = Object.getOwnPropertyDescriptor(documentaryDateItems, String(index));
+      if (!dateDescriptor || !Object.prototype.hasOwnProperty.call(dateDescriptor, 'value')) {
+        throw new ExecutionViewContractError('documentary date item is invalid');
+      }
+      const dateItem = dateDescriptor.value;
+      dates.push({
+        dateItemId: dateItem.date_item_id,
+        product: referencesByRecordId[dateItem.product_record_id],
+        dateLabelText: dateItem.date_label_text,
+        dateText: dateItem.date_text,
+        sourceDocument: referencesByRecordId[dateItem.source_document],
+        sourceText: dateItem.source_text,
+        ...(Object.prototype.hasOwnProperty.call(dateItem, 'provenance')
+          ? { provenance: dateItem.provenance } : {})
+      });
+    }
+  }
+  return new ImmutableExecutionView(entries, associations, schemaVersion, declarations, dates);
 }

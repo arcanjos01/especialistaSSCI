@@ -1,10 +1,11 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.4.0';
-const RDE_PREVIOUS_SCHEMA_VERSION = '0.3.0';
+const RDE_SCHEMA_VERSION = '0.5.0';
+const RDE_PREVIOUS_SCHEMA_VERSION = '0.4.0';
+const RDE_LEGACY_SCHEMA_VERSION = '0.3.0';
 const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
 function isSupportedRdeSchemaVersion_(version) {
   return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION ||
-    version === RDE_HISTORICAL_SCHEMA_VERSION;
+    version === RDE_LEGACY_SCHEMA_VERSION || version === RDE_HISTORICAL_SCHEMA_VERSION;
 }
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
@@ -31,6 +32,7 @@ function buildFakeRde_(input) {
     records: [],
     documentary_associations: [],
     drt_declaration_items: [],
+    documentary_date_items: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -73,6 +75,7 @@ function validateRde_(rde, expected) {
     'records',
     'documentary_associations',
     'drt_declaration_items',
+    'documentary_date_items',
     'extraction_warnings'
   ])) {
     throw new Error('RDE deve ser um objeto JSON.');
@@ -136,6 +139,9 @@ function validateRde_(rde, expected) {
   }
   if (!Array.isArray(rde.drt_declaration_items) || rde.drt_declaration_items.length !== 0) {
     throw new Error('drt_declaration_items deve ser vazia no extrator fake.');
+  }
+  if (!Array.isArray(rde.documentary_date_items) || rde.documentary_date_items.length !== 0) {
+    throw new Error('documentary_date_items deve ser vazia no extrator fake.');
   }
 
   if (
@@ -911,7 +917,103 @@ function validateRdeDrtDeclarationItems_(items, records, entityCatalog) {
   return true;
 }
 
-/** Valida RDE 0.2.0/0.3.0/0.4.0 sem executar Requirements ou Criteria. */
+function validateRdeDocumentaryDateItems_(items, records, entityCatalog) {
+  if (!Array.isArray(items)) {
+    throw makeRdeValidationError_('RDE_DOCUMENTARY_DATES_INVALID',
+      'documentary_date_items deve ser um array.');
+  }
+  if (Object.getOwnPropertySymbols(items).length || Object.keys(items).length !== items.length ||
+      Object.getOwnPropertyNames(items).length !== items.length + 1) {
+    throw makeRdeValidationError_('RDE_DOCUMENTARY_DATES_INVALID',
+      'documentary_date_items deve ser um array denso sem propriedades extras.');
+  }
+  const recordsById = Object.create(null);
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(records, String(index));
+    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_PRODUCT_DANGLING',
+        'records deve conter dados em todas as posições.');
+    }
+    recordsById[descriptor.value.record_id] = descriptor.value;
+  }
+  const itemIds = Object.create(null);
+  for (let index = 0; index < items.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(items, String(index));
+    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATES_INVALID',
+        'documentary_date_items deve conter dados em todas as posições.');
+    }
+    const item = descriptor.value;
+    if (!isPlainRdeObject_(item)) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_INVALID',
+        'documentary_date_items[' + index + '] deve ser um objeto simples.');
+    }
+    const required = ['date_item_id', 'product_record_id', 'date_label_text', 'date_text',
+      'source_document', 'source_text'];
+    const allowed = required.concat(['provenance']);
+    const keys = Object.keys(item);
+    if (Object.getOwnPropertySymbols(item).length ||
+        Object.getOwnPropertyNames(item).length !== keys.length ||
+        keys.some(key => {
+          const field = Object.getOwnPropertyDescriptor(item, key);
+          return !field || !Object.prototype.hasOwnProperty.call(field, 'value');
+        }) || required.some(key => !keys.includes(key)) || keys.some(key => !allowed.includes(key))) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_INVALID',
+        'documentary_date_items[' + index + '] tem campos ausentes ou não declarados.');
+    }
+    required.forEach(key => {
+      if (typeof item[key] !== 'string' || !item[key].trim()) {
+        throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_INVALID',
+          'documentary_date_items[' + index + '].' + key + ' deve ser texto literal não vazio.');
+      }
+    });
+    if (!item.source_text.includes(item.date_label_text) ||
+        !item.source_text.includes(item.date_text)) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_TEXT_MISMATCH',
+        'date_label_text e date_text devem ocorrer literalmente em source_text.');
+    }
+    if (Object.prototype.hasOwnProperty.call(itemIds, item.date_item_id)) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_ID_DUPLICATE',
+        'date_item_id duplicado: ' + item.date_item_id);
+    }
+    itemIds[item.date_item_id] = true;
+    const product = recordsById[item.product_record_id];
+    if (!product) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_PRODUCT_DANGLING',
+        'product_record_id deve resolver para TEST_REPORT na mesma RDE.');
+    }
+    const productDefinition = entityCatalog[product.entity_id];
+    if (!productDefinition || productDefinition.TYPE !== 'TEST_REPORT') {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_PRODUCT_TYPE_INVALID',
+        'product_record_id deve resolver exatamente para TYPE TEST_REPORT.');
+    }
+    const source = recordsById[item.source_document];
+    const sourceDefinition = source && entityCatalog[source.entity_id];
+    if (!source || !sourceDefinition || sourceDefinition.TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_SOURCE_INVALID',
+        'source_document deve resolver para TYPE DOCUMENT na mesma RDE.');
+    }
+    if (item.source_document !== product.source_document) {
+      throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_SOURCE_MISMATCH',
+        'source_document deve corresponder ao documento de origem do produto.');
+    }
+    if (Object.prototype.hasOwnProperty.call(item, 'provenance')) {
+      if (item.provenance !== null && !isPlainRdeObject_(item.provenance)) {
+        throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_PROVENANCE_INVALID',
+          'provenance deve ser objeto simples quando informada.');
+      }
+      try {
+        canonicalRdeJson_(item.provenance);
+      } catch (error) {
+        throw makeRdeValidationError_('RDE_DOCUMENTARY_DATE_PROVENANCE_INVALID',
+          'provenance deve conter somente valores JSON simples.');
+      }
+    }
+  }
+  return true;
+}
+
+/** Valida RDE 0.2.0/0.3.0/0.4.0/0.5.0 sem executar Requirements ou Criteria. */
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
@@ -920,8 +1022,7 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
       !isSupportedRdeSchemaVersion_(schemaDescriptor.value)) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
-      'schema_version deve ser ' + RDE_SCHEMA_VERSION + ', ' +
-        RDE_PREVIOUS_SCHEMA_VERSION + ' ou ' + RDE_HISTORICAL_SCHEMA_VERSION + '.'
+      'schema_version deve ser 0.5.0, 0.4.0, 0.3.0 ou 0.2.0.'
     );
   }
   const schemaVersion = schemaDescriptor.value;
@@ -932,7 +1033,11 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   if (schemaVersion === RDE_SCHEMA_VERSION) {
     expectedEnvelopeKeys.push('documentary_associations');
     expectedEnvelopeKeys.push('drt_declaration_items');
+    expectedEnvelopeKeys.push('documentary_date_items');
   } else if (schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+    expectedEnvelopeKeys.push('documentary_associations');
+    expectedEnvelopeKeys.push('drt_declaration_items');
+  } else if (schemaVersion === RDE_LEGACY_SCHEMA_VERSION) {
     expectedEnvelopeKeys.push('documentary_associations');
   }
   if (!hasExactKeys_(rde, expectedEnvelopeKeys)) {
@@ -997,13 +1102,18 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
 
   if (schemaVersion === RDE_SCHEMA_VERSION ||
-      schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+      schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
+      schemaVersion === RDE_LEGACY_SCHEMA_VERSION) {
     const associationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_associations');
     validateRdeDocumentaryAssociations_(associationsDescriptor.value, rde.records, entityCatalog);
   }
-  if (schemaVersion === RDE_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
     const declarationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_declaration_items');
     validateRdeDrtDeclarationItems_(declarationsDescriptor.value, rde.records, entityCatalog);
+  }
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
+    const datesDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_date_items');
+    validateRdeDocumentaryDateItems_(datesDescriptor.value, rde.records, entityCatalog);
   }
 
   if (!Array.isArray(rde.extraction_warnings)) {

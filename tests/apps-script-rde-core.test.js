@@ -37,6 +37,7 @@ const core = context.rdeCore;
 assert.equal(core.isSupportedRdeSchemaVersion_('0.2.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.3.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.4.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.5.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.1.0'), false);
 const input = {
   processId: 'HAB-E30DD583092F3F62',
@@ -53,14 +54,14 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.4.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.5.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
 );
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.4.0');
+assert.equal(rde.schema_version, '0.5.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
@@ -68,6 +69,7 @@ assert.equal(rde.extraction.provider, 'FAKE_DETERMINISTIC');
 assert.deepEqual(JSON.parse(JSON.stringify(rde.records)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_declaration_items)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_date_items)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -276,6 +278,7 @@ const legacyStructuralRde = {
 };
 delete legacyStructuralRde.documentary_associations;
 delete legacyStructuralRde.drt_declaration_items;
+delete legacyStructuralRde.documentary_date_items;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
 assert.equal(core.parseAndValidateOperationalRdeJson_(
@@ -288,7 +291,11 @@ const unsupportedAssociationRde = {
 expectValidationCode(unsupportedAssociationRde, 'RDE_ENVELOPE_INVALID');
 const legacyV3Rde = { ...operationalRde, schema_version: '0.3.0' };
 delete legacyV3Rde.drt_declaration_items;
+delete legacyV3Rde.documentary_date_items;
 assert.equal(core.validateRdeStructure_(legacyV3Rde, operationalExpected, entityCatalog), legacyV3Rde);
+const legacyV4Rde = { ...operationalRde, schema_version: '0.4.0' };
+delete legacyV4Rde.documentary_date_items;
+assert.equal(core.validateRdeStructure_(legacyV4Rde, operationalExpected, entityCatalog), legacyV4Rde);
 const missingV4Declarations = { ...operationalRde };
 delete missingV4Declarations.drt_declaration_items;
 expectValidationCode(missingV4Declarations, 'RDE_ENVELOPE_INVALID');
@@ -412,6 +419,50 @@ assert.throws(() => core.validateRdeStructure_({
   error.code === 'RDE_DRT_DECLARATIONS_INVALID' ||
   error.code === 'RDE_DRT_DECLARATION_INVALID'
 );
+const dateRecords = [
+  record('R_DATE_SOURCE', 'TEST_DOCUMENT', null, 'R_DATE_SOURCE', {}),
+  record('R_DATE_REPORT', 'TEST_REPORT', null, 'R_DATE_SOURCE', {})
+];
+const dateItem = {
+  date_item_id: 'DATE-001', product_record_id: 'R_DATE_REPORT',
+  date_label_text: 'Data do ensaio', date_text: '03/04/2026',
+  source_document: 'R_DATE_SOURCE',
+  source_text: 'Data do ensaio: 03/04/2026', provenance: { page: 4, row: 2 }
+};
+const dateCatalog = {
+  ...entityCatalog,
+  TEST_REPORT: { TYPE: 'TEST_REPORT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} }
+};
+const dateRde = {
+  ...operationalRde, records: dateRecords, documentary_date_items: [dateItem]
+};
+assert.doesNotThrow(() => core.validateRdeStructure_(dateRde, operationalExpected, dateCatalog));
+function invalidDate(candidate, code, overrides = {}) {
+  assert.throws(() => core.validateRdeStructure_({
+    ...dateRde, documentary_date_items: [candidate], ...overrides
+  }, operationalExpected, dateCatalog), error => error.code === code);
+}
+invalidDate({ ...dateItem, extra: true }, 'RDE_DOCUMENTARY_DATE_INVALID');
+invalidDate({ ...dateItem, date_text: '2026-04-03' }, 'RDE_DOCUMENTARY_DATE_TEXT_MISMATCH');
+invalidDate({ ...dateItem, product_record_id: 'R_DATE_SOURCE' },
+  'RDE_DOCUMENTARY_DATE_PRODUCT_TYPE_INVALID');
+invalidDate({ ...dateItem, product_record_id: 'R_MISSING' },
+  'RDE_DOCUMENTARY_DATE_PRODUCT_DANGLING');
+invalidDate({ ...dateItem, source_document: 'R_DATE_REPORT' },
+  'RDE_DOCUMENTARY_DATE_SOURCE_INVALID');
+invalidDate({ ...dateItem, date_item_id: '' }, 'RDE_DOCUMENTARY_DATE_INVALID');
+invalidDate({ ...dateItem, provenance: [] }, 'RDE_DOCUMENTARY_DATE_PROVENANCE_INVALID');
+invalidDate(dateItem, 'RDE_DOCUMENTARY_DATE_SOURCE_MISMATCH', {
+  records: [...dateRecords, record('R_OTHER_SOURCE', 'TEST_DOCUMENT', null, 'R_OTHER_SOURCE', {})],
+  documentary_date_items: [{ ...dateItem, source_document: 'R_OTHER_SOURCE' }]
+});
+assert.doesNotThrow(() => core.validateRdeStructure_({
+  ...dateRde,
+  documentary_date_items: [dateItem, { ...dateItem, date_item_id: 'DATE-002' }]
+}, operationalExpected, dateCatalog));
+assert.throws(() => core.validateRdeStructure_({
+  ...dateRde, documentary_date_items: new Array(1)
+}, operationalExpected, dateCatalog), error => error.code === 'RDE_DOCUMENTARY_DATES_INVALID');
 const signatureCatalog = {
   SOURCE_REPORT: { TYPE: 'DOCUMENT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   SHP_COMMISSIONING_REPORT: {
