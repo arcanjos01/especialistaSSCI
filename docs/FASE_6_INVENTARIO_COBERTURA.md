@@ -558,4 +558,9 @@ compartilhava fatos de distrato com uma ART de execução. O finding é restrito
 aos exemplos sintéticos e não altera a semântica; a correção separa DRT de
 execução, DRT de distrato e registro documental de cancelamento. Os gates
 foram repetidos após a correção e passaram; o follow-up aguarda novo commit,
-push e revisão independente.
+push e revisão independente. O follow-up
+`6be19ce463bf0984914ba04010d46d1bfcede1ef`, revisado contra baseline
+`8103ca758397552673f650eac803126cc65228ba`, recebeu
+`SOL_FOLLOWUP_REVIEW=PASS`; `F6-DATE-001=CLOSED`, sem novos achados. Sol
+confirmou que execução, distrato e registro de cancelamento estão separados e
+que nenhum resultado normativo foi introduzido.
