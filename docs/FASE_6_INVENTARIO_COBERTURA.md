@@ -443,5 +443,11 @@ estado estejam contratados. O candidate
 `SOL_CONTRACT_DIFF_REVIEW=PASS`; Sol registrou o achado LOW `F6-DRT-001` para
 delimitadores `END` redundantes e uma observação INFO sobre combinação
 inconsistente de parte/mecanismo na fixture. Ambos foram corrigidos no
-candidate de follow-up; a revisão independente do diff corrigido está pendente.
-Nenhum finding foi fechado por autorrevisão.
+follow-up `660fdfaaf76a4b01cd1d91e4c01586f3936a1d80`; nova instância Sol 6.1
+retornou `SOL_CONTRACT_DIFF_REVIEW=PASS`, encerrou `F6-DRT-001` e não abriu
+achados. Confirmou que o diff do follow-up preserva somente os seis campos
+`TEXT` e que o contrato compilado permaneceu idêntico. Após a correção, os gates
+foram executados novamente: 150 testes Python, sete testes JS, sintaxe de todos
+os módulos/testes e `Code.gs`, duas gerações com SHA-256
+`3f17937ba479da50102007211100f92d15bebe958f246a70a542b8743f96e58e` e
+`git diff --check`.
