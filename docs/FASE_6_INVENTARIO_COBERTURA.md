@@ -471,5 +471,16 @@ nem mapeia implicitamente `PROPERTY_ADDRESS_TEXT`/`PROPERTY_AREA_TEXT` para os
 seletores `ADDRESS`/`AREA`. Assim, os Criteria de dados básicos continuam
 bloqueados por associação responsabilidade↔DRT e contratos de comparação; a
 cobertura permanece 6/31 (24 bloqueados e 1 parcialmente suportado, ainda
-bloqueado por multiplicidade). Os gates e a revisão independente do diff
-efetivo desta onda ainda estão pendentes.
+bloqueado por multiplicidade).
+
+O candidate `21f8cc37cc9b8746f267322ffbd5cf0a55d1700d` recebeu
+`SOL_CONTRACT_DIFF_REVIEW=PASS` em revisão independente read-only contra o
+baseline `a7d0ba6108a0bd102a289d42eec19f54fe56fd3f`. Sol confirmou suporte
+direto da IRV para os quatro fatos e os limites FACT-ONLY acima; não encontrou
+achados bloqueantes nem decisão humana adicional. A revisão confirmou que
+somente `entityCatalog` mudou no artefato gerado. Os gates completos desta
+onda passaram: 150 testes Python, sete testes JS, `node --check` de todos os
+módulos/testes e validação sintática de `Code.gs`, duas gerações byte-idênticas
+com SHA-256 `a4778f934ded0eb46397bce325aeb7a55739ba10d28022f470fca2cee254b5dc`,
+e `git diff --check`. Nenhum Requirement, Criterion, Nonconformity, predicate,
+executor ou resultado foi alterado; ANALYZED não foi iniciado.
