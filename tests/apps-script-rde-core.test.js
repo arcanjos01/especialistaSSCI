@@ -305,16 +305,26 @@ const drtFactFields = {
   PROPERTY_AREA_TEXT: '120,00 m² (área informada)',
   DECLARED_ACTIVITY_SERVICE_TEXT: 'Execução de sistema preventivo; serviço descrito na DRT',
   DECLARED_SMSCI_SCOPE_TEXT: 'Sistema preventivo contra incêndio e pânico',
-  DRT_ISSUE_DATE_TEXT: 'Data de emissão: 15/03/2026',
-  DRT_DOCUMENT_ROLE_TEXT: 'Designação documental declarada (fixture sintética)',
-  DRT_CANCELLATION_STATUS_TEXT: 'Declaração textual de cancelamento (fixture sintética)',
-  DRT_TERMINATION_SERVICES_TEXT: 'Serviço descrito como realizado (fixture sintética)'
+  DRT_ISSUE_DATE_TEXT: 'Data de emissão: 15/03/2026'
 };
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_RT_SOURCE', 'PPCI', null, 'R_DRT_RT_SOURCE', {}, { page: 1 }),
   record('R_DRT_FACT_DRT', 'DRT', null, 'R_DRT_FACT_DRT',
-    { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123' }, { page: 2, field: 'explicitly-labeled' }),
+    { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123',
+      DRT_DOCUMENT_ROLE_TEXT: 'DRT de execução (fixture sintética)' },
+    { page: 2, field: 'explicitly-labeled' }),
+  record('R_DRT_FACT_DISTRATO', 'DRT', null, 'R_DRT_FACT_DISTRATO', {
+    DRT_IDENTIFIER: 'DRT 000124',
+    DRT_ISSUE_DATE_TEXT: 'Data de emissão: 16/03/2026',
+    DRT_DOCUMENT_ROLE_TEXT: 'DRT de distrato de contrato (fixture sintética)',
+    DRT_TERMINATION_SERVICES_TEXT: 'Serviços efetivamente realizados e sob responsabilidade (fixture sintética)'
+  }, { page: 3, field: 'explicitly-labeled' }),
+  record('R_DRT_FACT_CANCELLED', 'DRT', null, 'R_DRT_FACT_CANCELLED', {
+    DRT_IDENTIFIER: 'DRT 000125',
+    DRT_DOCUMENT_ROLE_TEXT: 'DRT com declaração de situação (fixture sintética)',
+    DRT_CANCELLATION_STATUS_TEXT: 'Esta DRT foi revogada ou cancelada (fixture sintética)'
+  }, { page: 4, field: 'explicitly-labeled' }),
   record('R_DRT_FACT_ART_RT', 'ART', null, 'R_DRT_RT_SOURCE', {
     ...drtFactFields,
     DRT_IDENTIFIER: 'ART 000456',
@@ -323,7 +333,7 @@ const drtFactRecords = [
     RT_NAME: 'RT identificado nesta ART',
     PROPERTY_AREA_TEXT: '85 m²',
     DRT_ISSUE_DATE_TEXT: '15/03/2026',
-    DRT_DOCUMENT_ROLE_TEXT: 'ART identificada como DRT de execução'
+    DRT_DOCUMENT_ROLE_TEXT: 'ART identificada documentalmente (fixture sintética)'
   }, { page: 2, field: 'explicitly-labeled' }),
   ...['ART', 'RRT', 'TRT'].map((entityId, index) => record(
     'R_DRT_FACT_' + entityId,

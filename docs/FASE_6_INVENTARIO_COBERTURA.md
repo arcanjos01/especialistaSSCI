@@ -549,5 +549,13 @@ suportado, ainda bloqueado por multiplicidade). Os gates passaram: 150 testes
 Python, sete testes JS, sintaxe de todos os módulos/testes e `Code.gs`, duas
 gerações byte-idênticas com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
-`git diff --check`. Revisão Sol do diff efetivo e candidato commit/push estão
-pendentes.
+`git diff --check`. O candidate
+`8103ca758397552673f650eac803126cc65228ba`, revisado contra baseline
+`2b00b3de03a43ca1b61600b7741cef20e4176723`, recebeu
+`SOL_CONTRACT_DIFF_REVIEW=PASS` sem decisão humana, com o finding LOW
+`F6-DATE-001` aberto sobre a clareza/coerência dos exemplos: a fixture
+compartilhava fatos de distrato com uma ART de execução. O finding é restrito
+aos exemplos sintéticos e não altera a semântica; a correção separa DRT de
+execução, DRT de distrato e registro documental de cancelamento. Os gates
+foram repetidos após a correção e passaram; o follow-up aguarda novo commit,
+push e revisão independente.
