@@ -285,6 +285,31 @@ const directDateView = new api.ImmutableExecutionView(
   directProjectionEntries, [], '0.5.0', [], [directDate]
 );
 assert.equal(directDateView.documentaryDateItems(directReportRef).length, 1);
+assert.equal(Object.isFrozen(
+  directDateView.documentaryDateItems(directReportRef)[0].product
+), true);
+assert.equal(Object.isFrozen(
+  directDateView.documentaryDateItems(directReportRef)[0].sourceDocument
+), true);
+for (const referenceField of ['product', 'sourceDocument']) {
+  const forgedReference = Object.create(api.TypedReference.prototype);
+  forgedReference.kind = referenceField === 'product' ? 'TEST_REPORT' : 'DOCUMENT';
+  forgedReference.identifier = referenceField === 'product' ? 'DIRECT_REPORT' : 'DIRECT_SOURCE';
+  assert.throws(() => new api.ImmutableExecutionView(
+    directProjectionEntries, [], '0.5.0', [], [{ ...directDate, [referenceField]: forgedReference }]
+  ), /immutable TypedReference/);
+}
+let forgedReferenceGetterCalls = 0;
+const accessorReference = Object.create(api.TypedReference.prototype);
+Object.defineProperty(accessorReference, 'kind', { value: 'TEST_REPORT', enumerable: true });
+Object.defineProperty(accessorReference, 'identifier', {
+  enumerable: true, get() { forgedReferenceGetterCalls += 1; return 'DIRECT_REPORT'; }
+});
+Object.freeze(accessorReference);
+assert.throws(() => new api.ImmutableExecutionView(
+  directProjectionEntries, [], '0.5.0', [], [{ ...directDate, product: accessorReference }]
+), /reference fields are invalid/);
+assert.equal(forgedReferenceGetterCalls, 0);
 const hiddenDateArray = [{ ...directDate }];
 Object.defineProperty(hiddenDateArray, 'extra', { value: 'hidden' });
 assert.throws(() => new api.ImmutableExecutionView(

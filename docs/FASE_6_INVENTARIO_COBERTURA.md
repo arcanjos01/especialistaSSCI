@@ -992,4 +992,11 @@ seleção da data pertinente, formato/interpretação, referência autorizada de
 avaliação, produto quando houver vários relatórios e associação ao DRT. Esta
 mudança não altera Requirement, Criterion, predicate, applicability, resultado
 ou Nonconformity, e não aumenta a cobertura atual de 9/31. A revisão Sol da
-implementação efetiva e os gates desta onda serão registrados após o commit.
+implementação efetiva no candidate `2ac2018e2be2b9243ff00c8db40db27c30fc6588`
+retornou `SOL_REVIEW=FAIL` com o finding MEDIUM `F6-DATE-001`: referências
+`TypedReference` mutáveis ou com accessors podiam entrar pela construção direta
+da view e alterar a identidade de produto/origem depois da construção. A
+correção rejeita referências não congeladas ou com campos que não sejam dados,
+e armazena cópias canônicas imutáveis. Testes reproduzem produto/origem
+forjados e getter que não pode ser executado. O finding só será marcado fechado
+após novo PASS independente.

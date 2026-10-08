@@ -12,6 +12,25 @@ function executionReferenceKey(reference) {
   return JSON.stringify([reference.kind, reference.identifier]);
 }
 
+function copyImmutableExecutionReference(reference, expectedKind) {
+  if (!(reference instanceof TypedReference) ||
+      Object.getPrototypeOf(reference) !== TypedReference.prototype ||
+      !Object.isFrozen(reference) || Object.getOwnPropertySymbols(reference).length ||
+      Object.getOwnPropertyNames(reference).length !== 2) {
+    throw new ExecutionViewContractError('documentary date reference must be an immutable TypedReference');
+  }
+  const kindDescriptor = Object.getOwnPropertyDescriptor(reference, 'kind');
+  const identifierDescriptor = Object.getOwnPropertyDescriptor(reference, 'identifier');
+  if (!kindDescriptor || !Object.prototype.hasOwnProperty.call(kindDescriptor, 'value') ||
+      !identifierDescriptor || !Object.prototype.hasOwnProperty.call(identifierDescriptor, 'value') ||
+      typeof kindDescriptor.value !== 'string' || !kindDescriptor.value.trim() ||
+      typeof identifierDescriptor.value !== 'string' || !identifierDescriptor.value.trim() ||
+      kindDescriptor.value !== expectedKind) {
+    throw new ExecutionViewContractError('documentary date reference fields are invalid');
+  }
+  return new TypedReference(kindDescriptor.value, identifierDescriptor.value);
+}
+
 function hasNativeExecutionNonJsonBrand(value) {
   const probe = {};
   const checks = [
@@ -544,18 +563,26 @@ class ImmutableExecutionView {
           !dateItem.sourceText.includes(dateItem.dateText)) {
         throw new ExecutionViewContractError('documentary date literals must occur in sourceText');
       }
-      if (!(dateItem.product instanceof TypedReference) || dateItem.product.kind !== 'TEST_REPORT' ||
-          !(dateItem.sourceDocument instanceof TypedReference) ||
-          dateItem.sourceDocument.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('documentary date references are invalid');
-      }
-      const productKey = executionReferenceKey(dateItem.product);
-      const sourceKey = executionReferenceKey(dateItem.sourceDocument);
+      const productReference = copyImmutableExecutionReference(dateItem.product, 'TEST_REPORT');
+      const sourceReference = copyImmutableExecutionReference(dateItem.sourceDocument, 'DOCUMENT');
+      const productKey = executionReferenceKey(productReference);
+      const sourceKey = executionReferenceKey(sourceReference);
       if (!Object.prototype.hasOwnProperty.call(records, productKey) ||
           !Object.prototype.hasOwnProperty.call(records, sourceKey)) {
         throw new ExecutionViewContractError('documentary date reference is missing from the view');
       }
-      if (executionReferenceKey(records[productKey].sourceDocument) !== sourceKey) {
+      const productRecordReference = copyImmutableExecutionReference(
+        records[productKey].reference, 'TEST_REPORT'
+      );
+      const productSourceReference = copyImmutableExecutionReference(
+        records[productKey].sourceDocument, 'DOCUMENT'
+      );
+      const sourceRecordReference = copyImmutableExecutionReference(
+        records[sourceKey].reference, 'DOCUMENT'
+      );
+      if (executionReferenceKey(productRecordReference) !== productKey ||
+          executionReferenceKey(sourceRecordReference) !== sourceKey ||
+          executionReferenceKey(productSourceReference) !== sourceKey) {
         throw new ExecutionViewContractError('documentary date source must match the product source');
       }
       if (Object.prototype.hasOwnProperty.call(dateItemIds, dateItem.dateItemId)) {
@@ -572,10 +599,10 @@ class ImmutableExecutionView {
         ? immutableExecutionCopy(dateItem.provenance) : undefined;
       const projected = {
         dateItemId: dateItem.dateItemId,
-        product: dateItem.product,
+        product: productReference,
         dateLabelText: dateItem.dateLabelText,
         dateText: dateItem.dateText,
-        sourceDocument: dateItem.sourceDocument,
+        sourceDocument: sourceReference,
         sourceText: dateItem.sourceText
       };
       if (hasProvenance) projected.provenance = copiedProvenance;
