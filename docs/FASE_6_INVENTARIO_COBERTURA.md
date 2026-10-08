@@ -739,3 +739,18 @@ JS e `Code.gs`, duas regenerações byte-idênticas do contrato com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
 `git diff --check`. O candidato corrigido ainda aguarda commit/push e revisão
 independente Sol; cobertura permanece 6/31.
+
+A revisão independente do candidate `4cabd534ac050dcad42be5efdee78129d1723247`
+confirmou a correção dos bypasses das quatro coleções, mas encontrou outro
+caso da mesma fronteira: `ArrayBuffer` e `DataView` com protótipo substituído
+por `Object.prototype` podiam perder seus slots internos na canonicalização e
+projeção. F6-ASSOC-010 continua aberto. Este candidate estende os brand checks
+para views via `ArrayBuffer.isView`, `ArrayBuffer`/`SharedArrayBuffer` via
+getters nativos de `byteLength` e `DataView` via seu getter nativo, todos sem
+ler campos fornecidos pelo objeto nem mutá-lo. Fixtures cobrem ArrayBuffer,
+DataView e typed array em ambos os protótipos na validação RDE e na projeção.
+Gates completos passaram: 150 testes Python, sete suítes Apps Script, sintaxe
+de módulos/testes JS e `Code.gs`, duas regenerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. O candidato corrigido aguarda commit/push e nova revisão
+Sol; cobertura continua 6/31.

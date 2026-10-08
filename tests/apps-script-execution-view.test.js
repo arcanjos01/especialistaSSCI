@@ -179,7 +179,10 @@ for (const createNativeValue of [
   () => new Map([['declared', 'factual value']]),
   () => new Set(['factual value']),
   () => new WeakMap([[{}, 'factual value']]),
-  () => new WeakSet([{}])
+  () => new WeakSet([{}]),
+  () => new ArrayBuffer(4),
+  () => new DataView(new ArrayBuffer(4)),
+  () => new Uint8Array([1, 2, 3])
 ]) {
   for (const prototype of [null, Object.prototype]) {
     const nativeValue = createNativeValue();

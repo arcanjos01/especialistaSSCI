@@ -498,7 +498,10 @@ for (const [label, createNativeValue] of [
   ['MAP', () => new Map([['declared', 'factual value']])],
   ['SET', () => new Set(['factual value'])],
   ['WEAK_MAP', () => new WeakMap([[{}, 'factual value']])],
-  ['WEAK_SET', () => new WeakSet([{}])]
+  ['WEAK_SET', () => new WeakSet([{}])],
+  ['ARRAY_BUFFER', () => new ArrayBuffer(4)],
+  ['DATA_VIEW', () => new DataView(new ArrayBuffer(4))],
+  ['TYPED_ARRAY', () => new Uint8Array([1, 2, 3])]
 ]) {
   for (const prototype of [null, Object.prototype]) {
     const nativeValue = createNativeValue();

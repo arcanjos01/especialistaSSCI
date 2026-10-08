@@ -231,7 +231,7 @@ function requireRdeString_(object, field, path) {
   return object[field];
 }
 
-function hasNativeCollectionBrand_(value) {
+function hasNativeNonJsonBrand_(value) {
   const probe = {};
   const checks = [
     typeof Map === 'function' && [Map.prototype, 'has'],
@@ -249,12 +249,37 @@ function hasNativeCollectionBrand_(value) {
       // The intrinsic brand check rejects ordinary objects without reading them.
     }
   }
+  if (typeof ArrayBuffer === 'function' && ArrayBuffer.isView(value)) return true;
+  const bufferTypes = [
+    typeof ArrayBuffer === 'function' && ArrayBuffer,
+    typeof SharedArrayBuffer === 'function' && SharedArrayBuffer
+  ];
+  for (let index = 0; index < bufferTypes.length; index += 1) {
+    const bufferType = bufferTypes[index];
+    if (!bufferType) continue;
+    const getter = Object.getOwnPropertyDescriptor(bufferType.prototype, 'byteLength').get;
+    try {
+      getter.call(value);
+      return true;
+    } catch (error) {
+      // The intrinsic getter rejects values without the corresponding buffer slots.
+    }
+  }
+  if (typeof DataView === 'function') {
+    const getter = Object.getOwnPropertyDescriptor(DataView.prototype, 'byteLength').get;
+    try {
+      getter.call(value);
+      return true;
+    } catch (error) {
+      // The intrinsic getter rejects values without DataView internal slots.
+    }
+  }
   return false;
 }
 
 function isPlainRdeObject_(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  if (hasNativeCollectionBrand_(value)) return false;
+  if (hasNativeNonJsonBrand_(value)) return false;
   let current = value;
   while (current !== null) {
     if (Object.getOwnPropertyDescriptor(current, Symbol.toStringTag)) return false;
