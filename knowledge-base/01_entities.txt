@@ -81,6 +81,14 @@ ATTRIBUTE SIGNATURE_PARTY TEXT
 
 ATTRIBUTE SIGNATURE_MECHANISM TEXT
 
+ATTRIBUTE RI_NAME TEXT
+
+ATTRIBUTE RT_NAME TEXT
+
+ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
+
+ATTRIBUTE PROPERTY_AREA_TEXT TEXT
+
 DESCRIPTION
 
 COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
@@ -102,6 +110,19 @@ emissor); `SIGNATURE_MECHANISM` registra a denominação explicitamente indicada
 Registro, emissão e pagamento são fatos separados e não podem ser inferidos
 uns dos outros.
 
+RI_NAME registra somente o nome explicitamente identificado como RI nesta DRT;
+não inferir o papel a partir de proprietário, contratante, pagador ou
+signatário. RT_NAME registra somente o nome explicitamente identificado como
+RT nesta DRT. PROPERTY_ADDRESS_TEXT registra o endereço explicitamente
+atribuído à edificação/imóvel, não o endereço de profissional, contratante ou
+Conselho. PROPERTY_AREA_TEXT registra a área explicitamente informada para o
+imóvel, preservando a forma textual, unidade e qualificadores apresentados.
+Os quatro campos não normalizam nem comparam nomes, identidade jurídica,
+endereços ou áreas e não determinam atendimento de Requirement. Quando houver
+ambiguidade ou valores incompatíveis, não selecionar, concatenar ou inferir;
+preservar os fatos individualmente com sua provenance e manter a insuficiência
+para tratamento contratual posterior.
+
 END
 
 -------------------------------------------------------------------------------
@@ -122,6 +143,14 @@ ATTRIBUTE SIGNATURE_PARTY TEXT
 
 ATTRIBUTE SIGNATURE_MECHANISM TEXT
 
+ATTRIBUTE RI_NAME TEXT
+
+ATTRIBUTE RT_NAME TEXT
+
+ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
+
+ATTRIBUTE PROPERTY_AREA_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -129,6 +158,9 @@ Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
 `SIGNATURE_MECHANISM` seguem a definição comum da entidade `DRT`. Aplicam-se
 somente a fatos explicitamente apresentados nesta ART; dados ausentes
 permanecem ausentes e não são conclusões de autenticidade ou conformidade.
+Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
+`PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
+registram somente o que estiver explicitamente apresentado nesta ART.
 
 END
 
@@ -150,6 +182,14 @@ ATTRIBUTE SIGNATURE_PARTY TEXT
 
 ATTRIBUTE SIGNATURE_MECHANISM TEXT
 
+ATTRIBUTE RI_NAME TEXT
+
+ATTRIBUTE RT_NAME TEXT
+
+ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
+
+ATTRIBUTE PROPERTY_AREA_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -157,6 +197,9 @@ Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
 `SIGNATURE_MECHANISM` seguem a definição comum da entidade `DRT`. Aplicam-se
 somente a fatos explicitamente apresentados nesta RRT; dados ausentes
 permanecem ausentes e não são conclusões de autenticidade ou conformidade.
+Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
+`PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
+registram somente o que estiver explicitamente apresentado nesta RRT.
 
 END
 
@@ -178,6 +221,14 @@ ATTRIBUTE SIGNATURE_PARTY TEXT
 
 ATTRIBUTE SIGNATURE_MECHANISM TEXT
 
+ATTRIBUTE RI_NAME TEXT
+
+ATTRIBUTE RT_NAME TEXT
+
+ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
+
+ATTRIBUTE PROPERTY_AREA_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -185,6 +236,9 @@ Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
 `SIGNATURE_MECHANISM` seguem a definição comum da entidade `DRT`. Aplicam-se
 somente a fatos explicitamente apresentados neste TRT; dados ausentes
 permanecem ausentes e não são conclusões de autenticidade ou conformidade.
+Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
+`PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
+registram somente o que estiver explicitamente apresentado neste TRT.
 
 END
 

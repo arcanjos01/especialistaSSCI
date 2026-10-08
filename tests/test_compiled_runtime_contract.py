@@ -95,6 +95,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             "COUNCIL_PAYMENT_STATUS": "TEXT",
             "SIGNATURE_PARTY": "TEXT",
             "SIGNATURE_MECHANISM": "TEXT",
+            "RI_NAME": "TEXT",
+            "RT_NAME": "TEXT",
+            "PROPERTY_ADDRESS_TEXT": "TEXT",
+            "PROPERTY_AREA_TEXT": "TEXT",
         }
         for entity_id in ("DRT", "ART", "RRT", "TRT"):
             with self.subTest(entity=entity_id):

@@ -451,3 +451,25 @@ foram executados novamente: 150 testes Python, sete testes JS, sintaxe de todos
 os módulos/testes e `Code.gs`, duas gerações com SHA-256
 `3f17937ba479da50102007211100f92d15bebe958f246a70a542b8743f96e58e` e
 `git diff --check`.
+
+## Onda factual — dados básicos identificados na DRT
+
+Pré-revisão independente Sol 6.1: `SOL_CONTRACT_REVIEW=PASS` para a proposta
+de registrar quatro textos documentais: `RI_NAME`, `RT_NAME`,
+`PROPERTY_ADDRESS_TEXT` e `PROPERTY_AREA_TEXT`. A fonte direta é IRV Habite-se,
+Anexo A, Tabela 1, p. 4, que manda identificar e conferir no DRT o nome do RI,
+nome do RT, endereço da edificação e área informada do imóvel. Os campos são
+TEXT: preservam os valores como apresentados, inclusive unidade e
+qualificadores da área. A proposta proíbe inferir os papéis de RI/RT,
+normalizar ou comparar nomes, identidade jurídica, endereços ou áreas, e não
+escolher ou concatenar valores ambíguos. Os campos foram declarados diretamente
+em DRT/ART/RRT/TRT, sem introduzir herança no gerador/RDE. O `source_document`
+dos subtipos continua apontando para entidade efetivamente `TYPE DOCUMENT`.
+
+Esta formalização FACT-ONLY não implementa os predicados atuais de comparação
+nem mapeia implicitamente `PROPERTY_ADDRESS_TEXT`/`PROPERTY_AREA_TEXT` para os
+seletores `ADDRESS`/`AREA`. Assim, os Criteria de dados básicos continuam
+bloqueados por associação responsabilidade↔DRT e contratos de comparação; a
+cobertura permanece 6/31 (24 bloqueados e 1 parcialmente suportado, ainda
+bloqueado por multiplicidade). Os gates e a revisão independente do diff
+efetivo desta onda ainda estão pendentes.

@@ -298,7 +298,11 @@ const drtFactFields = {
   COUNCIL_ISSUANCE_STATUS: 'emitida; não é rascunho',
   COUNCIL_PAYMENT_STATUS: 'paga',
   SIGNATURE_PARTY: 'Conselho emissor',
-  SIGNATURE_MECHANISM: 'certificação digital do conselho emissor'
+  SIGNATURE_MECHANISM: 'certificação digital do conselho emissor',
+  RI_NAME: 'Responsável pelo imóvel',
+  RT_NAME: 'Responsável técnico declarado',
+  PROPERTY_ADDRESS_TEXT: 'Rua demonstrativa, 10, Centro',
+  PROPERTY_AREA_TEXT: '120,00 m² (área informada)'
 };
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
@@ -309,7 +313,9 @@ const drtFactRecords = [
     ...drtFactFields,
     DRT_IDENTIFIER: 'ART 000456',
     SIGNATURE_PARTY: 'RT',
-    SIGNATURE_MECHANISM: 'assinatura digital do RT'
+    SIGNATURE_MECHANISM: 'assinatura digital do RT',
+    RT_NAME: 'RT identificado nesta ART',
+    PROPERTY_AREA_TEXT: '85 m²'
   }, { page: 2, field: 'explicitly-labeled' }),
   ...['ART', 'RRT', 'TRT'].map((entityId, index) => record(
     'R_DRT_FACT_' + entityId,
@@ -330,12 +336,12 @@ assert.doesNotThrow(() => validateRecords([
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_ART_BAD_TYPE', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { COUNCIL_REGISTRATION_STATUS: false }, { page: 2 })
+    { PROPERTY_AREA_TEXT: 120 }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_NON_DRT_SIGNATURE', 'PRESSURIZATION_OPERATION_MANUAL', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { SIGNATURE_PARTY: 'RT' }, { page: 2 })
+    { RI_NAME: 'Responsável pelo imóvel' }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_UNDECLARED_ENTITY_ATTRIBUTE');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})
