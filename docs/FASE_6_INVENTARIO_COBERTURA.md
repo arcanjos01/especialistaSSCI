@@ -471,7 +471,13 @@ consome em execução normativa. Rejeita chaves/versões incompatíveis, relaç�
 pendentes ou de tipo errado, textos ausentes/não literais e provenance
 inválida. Cobertura permanece 9/31 Criteria produtivos; não foram adicionados
 predicates nem capacidade de Criterion. Revisão Sol 6.1 do diff efetivo ainda
-pendente.
+pendente naquele momento; a revisão do candidate
+`3fe96004912dde5f356d6ce1a23cf511f1ffc5f0` encontrou e abriu F6-040. O finding
+foi corrigido em `ef6cd5a9c294e9d777cfbdde654d8b88795f737c`, revisado contra
+`3fe96004912dde5f356d6ce1a23cf511f1ffc5f0` e aprovado por Sol 6.1 com
+`SOL_REVIEW=PASS`, sem findings novos. Esta aprovação fecha somente F6-040 e
+aprova a formalização factual RDE 0.4.0; não fecha os contratos DRT-COVERS ou
+os outros blockers da Fase 6.
 
 ### Finding Sol F6-040
 
@@ -481,8 +487,9 @@ ExecutionView aceitava propriedades não enumeráveis na coleção nova e podia
 descartar campos ocultos da provenance durante a cópia imutável. A correção
 local exige array estritamente denso e valida provenance recursivamente como
 JSON estrito antes da cópia; testes reproduzem propriedades ocultas e
-accessors. O finding só será marcado encerrado após novo candidate e revisão
-independente.
+accessors. Sol revisou o candidate `ef6cd5a9c294e9d777cfbdde654d8b88795f737c`,
+reproduziu a rejeição dos ataques e retornou `SOL_REVIEW=PASS`; F6-040 está
+encerrado. Gates completos passaram nesse candidate.
 
 ## Onda factual — dados básicos identificados na DRT
 
@@ -939,3 +946,26 @@ de todos os módulos/testes JS e `Code.gs` (stdin); duas regenerações
 byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 `8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`; e
 `git diff --check`.
+
+## Cobertura consolidada atual após reconciliação e RDE 0.4.0
+
+A matriz detalhada entre as linhas 252–287 e a classificação original por
+blocker preservam o snapshot do baseline 6f82475. O estado corrente, após a
+ratificação/carga do Anexo A, as ondas assinadas/ALL e a RDE 0.4.0, é:
+
+| Categoria atual | Quantidade | Criteria |
+|---|---:|---|
+| `EXECUTABLE_EXISTING` | 9 | `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 16 | `T1_DRT_REQUIRED`, `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_DRT_PROFESSIONAL_REGULARITY`, `T1_CONFORMITY_REPORT`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_DRT_PROFESSIONAL_REGULARITY`, `T4_IN09_DRT`, `T4_IN19_FINAL_VERIFICATION` |
+| `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
+| `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
+| `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 31 Criteria produtivos conforme revisão de contratos atual. |
+
+Contagens reconciliadas: 36 Criteria compilados; 31 produtivos; 5 não
+selecionáveis; 9 cobertos; 22 produtivos ainda sem executor integral. O PASS
+da formalização RDE 0.4.0 não aumenta os 9 cobertos. Os 16 casos
+`SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
+genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
+sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
+Logo `PHASE_6_CONTRACTS=READY` ainda não foi declarado e a cobertura da Fase 6
+permanece incompleta.
