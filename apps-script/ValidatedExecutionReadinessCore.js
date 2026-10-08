@@ -24,7 +24,7 @@ function readinessFreeze_(value) {
   return Object.freeze(value);
 }
 
-function readinessAssertSupported_(assertIr, contract) {
+function readinessAssertSupported_(assertIr, contract, validatedProduct) {
   if (!assertIr || typeof assertIr !== 'object' || Array.isArray(assertIr)) return false;
   if (assertIr.type === 'LITERAL') {
     return Object.keys(assertIr).sort().join(',') === 'type,value' &&
@@ -33,11 +33,24 @@ function readinessAssertSupported_(assertIr, contract) {
   if (assertIr.type === 'OR') {
     return Object.keys(assertIr).sort().join(',') === 'expressions,type' &&
       Array.isArray(assertIr.expressions) && assertIr.expressions.length === 2 &&
-      assertIr.expressions.every(child => readinessAssertSupported_(child, contract));
+      assertIr.expressions.every(child =>
+        readinessAssertSupported_(child, contract, validatedProduct));
   }
   if (assertIr.type !== 'CALL' ||
-      Object.keys(assertIr).sort().join(',') !== 'arguments,name,type' ||
-      assertIr.name !== 'EXISTS') return false;
+      Object.keys(assertIr).sort().join(',') !== 'arguments,name,type') return false;
+
+  if (assertIr.name === 'TECHNICAL_PRODUCT_ATTRIBUTE') {
+    if (!validatedProduct || !Array.isArray(assertIr.arguments) ||
+        assertIr.arguments.length !== 2) return false;
+    const [product, attribute] = assertIr.arguments;
+    const entity = contract.entityCatalog && contract.entityCatalog[validatedProduct];
+    return product && product.type === 'SYMBOL' && product.value === validatedProduct &&
+      attribute && attribute.type === 'SYMBOL' && attribute.value === 'SIGNED' &&
+      entity && Array.isArray(entity.ATTRIBUTES) &&
+      entity.ATTRIBUTES.includes('SIGNATURE_MECHANISM') && entity.ATTRIBUTE_TYPES &&
+      entity.ATTRIBUTE_TYPES.SIGNATURE_MECHANISM === 'TEXT';
+  }
+  if (assertIr.name !== 'EXISTS') return false;
 
   readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
     'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion must have exactly one argument');
@@ -45,7 +58,8 @@ function readinessAssertSupported_(assertIr, contract) {
   readinessRequire_(argument && typeof argument === 'object' && !Array.isArray(argument) &&
     Object.keys(argument).sort().join(',') === 'type,value' &&
     argument.type === 'SYMBOL' && typeof argument.value === 'string' && argument.value &&
-    contract.entityCatalog && contract.entityCatalog[argument.value],
+    contract.entityCatalog && contract.entityCatalog[argument.value] &&
+    (validatedProduct === null || argument.value === validatedProduct),
   'COMPILED_CONTRACT_INVALID', 'canonical EXISTS assertion has an invalid entity symbol');
   return true;
 }
@@ -53,7 +67,7 @@ function readinessAssertSupported_(assertIr, contract) {
 function readinessPilotSupport_(unit, contract) {
   if (unit.iterationSource !== null || !Array.isArray(unit.plannedBindings) ||
       unit.plannedBindings.length !== 0 || !Array.isArray(unit.validate) ||
-      unit.validate.length !== 0 || !Array.isArray(unit.criterionValidate) ||
+      !Array.isArray(unit.criterionValidate) ||
       unit.criterionValidate.length !== 0) {
     return false;
   }
@@ -64,8 +78,30 @@ function readinessPilotSupport_(unit, contract) {
   readinessRequire_(matches.length === 1,
     'COMPILED_CONTRACT_INVALID', 'planned Criterion must exist exactly once');
   const metadata = matches[0];
+  let validatedProduct = null;
+  if (unit.validate.length > 0) {
+    if (unit.validate.length !== 1 ||
+        unit.validate[0] !== 'TECHNICAL_PRODUCT_ATTRIBUTE') return false;
+    const requirementMatches = contract.requirements.filter(item =>
+      item && item.requirementId === unit.requirement.id);
+    if (requirementMatches.length !== 1) {
+      readinessRequire_(false, 'COMPILED_CONTRACT_INVALID',
+        'planned Requirement must exist exactly once');
+    }
+    const requirement = requirementMatches[0];
+    const relatedCriteria = contract.criteria.filter(item =>
+      item && item.requirementId === unit.requirement.id);
+    if (!Array.isArray(requirement.validate) ||
+        JSON.stringify(requirement.validate) !== JSON.stringify(unit.validate) ||
+        relatedCriteria.length !== 1 || relatedCriteria[0].criterionId !== unit.criterion.id ||
+        typeof requirement.technicalProduct !== 'string' ||
+        !Array.isArray(requirement.evidenceAttributes) ||
+        requirement.evidenceAttributes.length !== 1 ||
+        requirement.evidenceAttributes[0] !== 'SIGNED') return false;
+    validatedProduct = requirement.technicalProduct;
+  }
   const assertIr = metadata.assertIr;
-  if (!readinessAssertSupported_(assertIr, contract)) return false;
+  if (!readinessAssertSupported_(assertIr, contract, validatedProduct)) return false;
 
   const nonconformities = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;

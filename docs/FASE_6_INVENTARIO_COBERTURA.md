@@ -836,3 +836,23 @@ no mesmo candidate passaram: 150 testes Python, sete suítes Apps Script,
 byte-idêntica do contrato (`8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`)
 e `git diff --check`. Nenhum finding foi aberto; a autenticação de portal e
 os demais contratos de evidência continuam pendentes.
+
+## Onda readiness — `VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)`
+
+A readiness read-only passa a reconhecer VALIDATE somente quando o Requirement
+declara exatamente `TECHNICAL_PRODUCT_ATTRIBUTE`, `SIGNED`, um único produto
+técnico canônico e um único Criterion não iterativo. A materialização continua
+delegada ao executor, que verifica âncora entre validação e ASSERT. Readiness
+aceita ASSERT `EXISTS` ou `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` no mesmo
+produto e rejeita constructos compostos ainda sem executor, como `ALL` com `DRT_COVERS`,
+`VALID_WITHIN_YEARS` ou `REPORT_CONTAINS`.
+
+A cobertura materializável/readiness sobe de 6 para 9 dos 31 Criteria
+produtivos: `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST` e
+`T4_IN18_CMAR` juntam-se aos seis Criteria já cobertos. A contagem não cobre
+os Criteria compostos restantes só porque seus produtos agora têm o atributo
+factual de assinatura. Não foram adicionados predicates nem formas do ASSERT
+IR. Os testes demonstram seleção da unidade, materialização positiva dos três
+casos, manutenção de Criteria compostos como unsupported, estado `VALIDATED`,
+nenhum resultado/persistência/execução na readiness e RDE não mutada. O fluxo
+de resultados não mudou e `ANALYZED` continua fora da Fase 6.

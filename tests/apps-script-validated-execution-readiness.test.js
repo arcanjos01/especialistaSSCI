@@ -174,11 +174,84 @@ assert.ok(prepared.coverage.materializableUnitKeys.includes(
 assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)'
 ));
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)'
+));
+assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+  'UNIT_KEY (REQ_IN08_ESTANQUEIDADE, T4_IN08_ESTANQUEIDADE)'
+));
 assert.equal(happyAdapters.counts.locks, 1);
 assert.equal(happyAdapters.counts.processReads, 1);
 assert.equal(happyAdapters.counts.rdeReads, 1);
 assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.documentSourceReads, 0);
+
+function readinessForSignedSystemProduct(officialEsciCode, productEntityId) {
+  const rde = rdeFixture();
+  rde.records.push({
+    record_id: 'ITEM_SIGNED_SYSTEM',
+    entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+    parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+    attributes: {
+      OFFICIAL_ESCI_CODE: officialEsciCode,
+      PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY signed product system',
+      RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page 3',
+    },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SIGNED_SYSTEM' },
+  });
+  const productId = 'SIGNED_PRODUCT';
+  const isDocument = api.COMPILED_RUNTIME_CONTRACT.entityCatalog[productEntityId].TYPE === 'DOCUMENT';
+  const sourceDocumentId = isDocument ? productId : 'DOC_SIGNED_PRODUCT';
+  if (!isDocument) {
+    rde.records.push({
+      record_id: sourceDocumentId, entity_id: 'PPCI', parent_record_id: null,
+      source_document: sourceDocumentId, attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_SOURCE' },
+    });
+  }
+  rde.records.push({
+    record_id: productId, entity_id: productEntityId, parent_record_id: null,
+    source_document: sourceDocumentId,
+    attributes: { SIGNATURE_MECHANISM: 'TEST_ONLY explicitly stated mechanism' },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_FACT' },
+  });
+  const adapters = makeAdapters({ content: JSON.stringify(rde) });
+  const result = api.prepareValidatedExecutionReadiness(
+    processRecord.processId, currentSubmissionContext(), adapters.adapters
+  );
+  return { result, adapters };
+}
+
+for (const signedReadinessCase of [
+  {
+    officialEsciCode: 'SPDE', productEntityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
+    unitKey: 'UNIT_KEY (REQ_IN09_CHECKLIST, T4_IN09_CHECKLIST)',
+  },
+  {
+    officialEsciCode: 'CMAR', productEntityId: 'CMAR_DECLARATION',
+    unitKey: 'UNIT_KEY (REQ_IN18_CMAR, T4_IN18_CMAR)',
+  },
+]) {
+  const { result, adapters } = readinessForSignedSystemProduct(
+    signedReadinessCase.officialEsciCode, signedReadinessCase.productEntityId
+  );
+  assert.equal(result.outcome, 'EXECUTION_COVERAGE_INCOMPLETE');
+  assert.ok(result.coverage.plannedUnitKeys.includes(signedReadinessCase.unitKey));
+  assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
+  if (signedReadinessCase.officialEsciCode === 'SPDE') {
+    assert.ok(result.coverage.unsupportedUnitKeys.includes(
+      'UNIT_KEY (REQ_IN09_TEST_REPORT, T4_IN09_TEST_REPORT)'
+    ));
+  }
+  assert.equal(result.workflowStatus, 'VALIDATED');
+  assert.equal(result.analysisPermitted, false);
+  assert.equal(result.resultRecordsCreated, 0);
+  assert.equal(result.artifactsPersisted, false);
+  assert.equal(result.rdeMutated, false);
+  assert.equal(adapters.counts.writes, 0);
+  assert.equal(adapters.counts.executionCalls, 0);
+  assert.equal(adapters.counts.documentSourceReads, 0);
+}
 assert.equal(happyAdapters.counts.executionCalls, 0);
 
 const legacyReadinessRde = rdeFixture();
