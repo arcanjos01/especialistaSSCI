@@ -779,3 +779,52 @@ byte-idêntica com SHA-256
 `git diff --check`. Os findings de integridade `F6-ASSOC-001..010` estão
 fechados; nenhuma regra normativa ou resultado foi adicionado. Cobertura segue
 6/31 e a Fase 5B/`ANALYZED` não foi iniciada.
+
+## Onda factual — mecanismo de assinatura em produtos técnicos
+
+Revisão Sol 6.1 pré-alteração: `SOL_CONTRACT_REVIEW=PASS` para disponibilizar
+`SIGNATURE_MECHANISM TEXT` nos produtos já vinculados a Requirements com
+`EVIDENCE_ATTRIBUTE SIGNED`. A fonte geral de assinatura em processo eletrônico
+é IN 01, art. 30: documento autônomo produzido por RT e posteriormente
+inserido requer assinatura digital; declaração/documento produzido dentro do
+portal tem autenticação por usuário e senha, com as alternativas expressas do
+artigo. Para laudos, ensaios, inspeções e mensurações, IN 01, art. 108, § 3º,
+exige nome e assinatura do RT. As INs específicas identificam os produtos:
+IN 07, art. 106/Anexo C; IN 08, art. 95; IN 09, art. 122, II e IV; IN 10,
+art. 41/Anexo B; IN 12, art. 47; IN 15, art. 30/Anexo B; e IN 18, art. 14.
+
+O Anexo `01_entities.txt` declara o atributo opcional nos produtos FACT-ONLY
+vinculados a Requirements com assinatura. Foram incluídas identidades ausentes
+para `PRESSURIZATION_TEST_REPORT`, `PRESSURIZATION_MAINTENANCE_CHECKLIST`,
+`SMOKE_CONTROL_COMMISSIONING_REPORT` e `SPRINKLER_COMMISSIONING_REPORT`, com
+tipos documentais genéricos existentes e SMSCI-fonte. O checklist permanece
+`DOCUMENT`, sem categoria nova nem reclassificação como manual ou laudo.
+`GAS_TIGHTNESS_REPORT`, `SDAI_COMMISSIONING_REPORT` e `CMAR_DECLARATION`
+receberam o atributo. Os tipos com atributo preexistente (`CONFORMITY_REPORT`
+e `SHP_COMMISSIONING_REPORT`) foram preservados.
+
+O atributo registra somente denominação de mecanismo digital/eletrônico
+explicitamente identificada no próprio produto e mantém provenance. Não
+registra autenticidade criptográfica, identidade do signatário, rota de
+criação ou autenticação do e-SCI. A validação `SIGNED` não foi ampliada para
+inferir autenticação de portal; sem mecanismo documentalmente identificável,
+o contrato do Engine mantém `MANUAL_REVIEW`. A rota de autenticação e a
+associação exata entre evidência de submissão e produto continuam
+`MISSING_EVIDENCE_CONTRACT`. O mapping RT-015/checklist permanece independente
+e não foi resolvido pela identidade documental.
+
+Fixtures sintéticas cobrem produto assinado, produto sem atributo e produto
+ausente para checklist e declaração CMAR, incluindo seleção do UNIT_KEY,
+trace/sourceDocument/provenance e resultado `MANUAL_REVIEW` sem
+Nonconformity quando o mecanismo não está identificado. O executor foi
+generalizado somente para permitir `VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE`
+seguido de `ASSERT EXISTS` no mesmo produto canônico; a checagem de âncora
+recusa referências diferentes. A unicidade de Criterion por Requirement e os
+constructs não suportados permanecem bloqueados, pois o executor ainda não tem
+contexto compartilhado que garanta VALIDATE único no Requirement. O trace
+preserva o binding/provenance de VALIDATE junto ao binding do ASSERT.
+Requirements, Criteria, Nonconformities e applicability não foram alterados.
+Não aumenta a contagem de cobertura completa: permanecem 6/31; assinatura
+isolada não resolve associação DRT-produto, multiplicidade, validade, conteúdo
+de relatório, independência ou mapping RT-015. Revisão do diff final por Sol
+6.1 e gates completos ainda pendentes.

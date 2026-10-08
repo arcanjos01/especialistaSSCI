@@ -1549,7 +1549,18 @@ ENTITY GAS_TIGHTNESS_REPORT
 
 TYPE TEST_REPORT
 
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
 SMSCI SMSCI_GAS
+
+DESCRIPTION
+
+SIGNATURE_MECHANISM registra somente a denominação do mecanismo digital ou
+eletrônico explicitamente identificada no próprio laudo ou ensaio. O atributo
+é factual: não registra autenticidade, validade criptográfica, identidade do
+signatário ou autenticação do processo. Se o mecanismo não estiver
+documentalmente identificado no produto, o atributo permanece ausente.
+Registrar a localização de origem em provenance quando disponível.
 
 END
 
@@ -1581,11 +1592,115 @@ END
 
 -------------------------------------------------------------------------------
 
+ENTITY PRESSURIZATION_TEST_REPORT
+
+TYPE TEST_REPORT
+
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
+SMSCI SMSCI_PRESSURIZATION
+
+DESCRIPTION
+
+Laudo de vistoria/ensaio do sistema de pressurização exigido na vistoria para
+habite-se, conforme IN 09, art. 122, II. SIGNATURE_MECHANISM registra somente
+a denominação do mecanismo digital ou eletrônico explicitamente identificada
+no próprio laudo; não registra autenticidade, validade criptográfica,
+identidade do signatário ou autenticação do processo. Se não houver mecanismo
+documentalmente identificado no produto, o atributo permanece ausente.
+Registrar a localização de origem em provenance quando disponível.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY PRESSURIZATION_MAINTENANCE_CHECKLIST
+
+TYPE DOCUMENT
+
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
+SMSCI SMSCI_PRESSURIZATION
+
+DESCRIPTION
+
+Cópia da lista de verificações dos procedimentos de manutenção do sistema de
+pressurização, fornecida aos proprietários ao final das obras pelos
+responsáveis pela instalação, com manuais em português, conforme IN 09,
+art. 122, IV. A entidade representa somente o documento checklist; não o
+classifica como manual, laudo, ensaio ou DRT. SIGNATURE_MECHANISM registra
+somente a denominação do mecanismo digital ou eletrônico explicitamente
+identificada no próprio documento; não registra autoria, autenticidade,
+validade criptográfica ou autenticação do processo. Se o mecanismo não estiver
+documentalmente identificado no produto, o atributo permanece ausente.
+Registrar a localização de origem em provenance quando disponível.
+
+END
+
+-------------------------------------------------------------------------------
+
 ENTITY SDAI_COMMISSIONING_REPORT
 
 TYPE COMMISSIONING_REPORT
 
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
 SMSCI SMSCI_SDAI
+
+DESCRIPTION
+
+SIGNATURE_MECHANISM registra somente a denominação do mecanismo digital ou
+eletrônico explicitamente identificada no próprio relatório. O atributo é
+factual e não registra validade criptográfica, autenticidade, identidade do
+signatário ou autenticação do processo. Se nenhum mecanismo for identificado
+no relatório, o atributo permanece ausente. Registrar a localização de origem
+em provenance quando disponível.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SMOKE_CONTROL_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
+SMSCI SMSCI_SMOKE_CONTROL
+
+DESCRIPTION
+
+Entidade de produto para relatório de comissionamento de controle de fumaça.
+A IN 10, art. 41 e Anexo B, exige esse relatório para sistema mecânico; a
+presença desta entidade não afirma que o sistema seja mecânico nem que exista
+independência entre participantes. SIGNATURE_MECHANISM registra somente a
+denominação do mecanismo digital ou eletrônico explicitamente identificada
+no próprio relatório; não registra validade criptográfica, autenticidade,
+identidade do signatário ou autenticação do processo. Se nenhum mecanismo for
+identificado no relatório, o atributo permanece ausente. Registrar a
+localização de origem em provenance quando disponível.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY SPRINKLER_COMMISSIONING_REPORT
+
+TYPE COMMISSIONING_REPORT
+
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
+SMSCI SMSCI_SPRINKLER
+
+DESCRIPTION
+
+Relatório de comissionamento do sistema de chuveiros automáticos conforme
+IN 15, art. 30 e Anexo B. SIGNATURE_MECHANISM registra somente a denominação
+do mecanismo digital ou eletrônico explicitamente identificada no próprio
+relatório; não registra validade criptográfica, autenticidade, identidade do
+signatário ou autenticação do processo. Se nenhum mecanismo for identificado
+no relatório, o atributo permanece ausente. Registrar a localização de origem
+em provenance quando disponível.
 
 END
 
@@ -1595,7 +1710,19 @@ ENTITY CMAR_DECLARATION
 
 TYPE DECLARATION
 
+ATTRIBUTE SIGNATURE_MECHANISM TEXT
+
 SMSCI SMSCI_CMAR
+
+DESCRIPTION
+
+Declaração do RT informando o cumprimento integral dos requisitos de CMAR,
+conforme IN 18, art. 14, I. SIGNATURE_MECHANISM registra somente a denominação
+do mecanismo digital ou eletrônico explicitamente identificada na própria
+declaração; não registra validade criptográfica, autenticidade, identidade do
+signatário ou autenticação do processo. Se nenhum mecanismo for identificado
+na declaração, o atributo permanece ausente. Registrar a localização de
+origem em provenance quando disponível.
 
 END
 

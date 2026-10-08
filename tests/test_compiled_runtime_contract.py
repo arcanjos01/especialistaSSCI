@@ -88,6 +88,24 @@ class CompiledRuntimeContractTests(unittest.TestCase):
                 "ATTRIBUTE_TYPES": {"SIGNATURE_MECHANISM": "TEXT"},
             },
         )
+        signed_products = {
+            "SHP_COMMISSIONING_REPORT": "COMMISSIONING_REPORT",
+            "GAS_TIGHTNESS_REPORT": "TEST_REPORT",
+            "PRESSURIZATION_TEST_REPORT": "TEST_REPORT",
+            "PRESSURIZATION_MAINTENANCE_CHECKLIST": "DOCUMENT",
+            "SMOKE_CONTROL_COMMISSIONING_REPORT": "COMMISSIONING_REPORT",
+            "SDAI_COMMISSIONING_REPORT": "COMMISSIONING_REPORT",
+            "SPRINKLER_COMMISSIONING_REPORT": "COMMISSIONING_REPORT",
+            "CMAR_DECLARATION": "DECLARATION",
+        }
+        for entity_id, entity_type in signed_products.items():
+            with self.subTest(entity=entity_id):
+                entity = self.contract["entityCatalog"][entity_id]
+                self.assertEqual(entity["TYPE"], entity_type)
+                self.assertIn("SIGNATURE_MECHANISM", entity["ATTRIBUTES"])
+                self.assertEqual(
+                    entity["ATTRIBUTE_TYPES"]["SIGNATURE_MECHANISM"], "TEXT"
+                )
         drt_fact_attributes = {
             "DRT_IDENTIFIER": "TEXT",
             "COUNCIL_REGISTRATION_STATUS": "TEXT",

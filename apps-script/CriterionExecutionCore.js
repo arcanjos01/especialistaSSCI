@@ -145,6 +145,35 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
     requirementMetadata.technicalProduct, requirementMetadata.evidenceAttributes[0]);
 }
 
+function criterionExecutionProductReferences_(assertIr) {
+  const references = [];
+  function visit(node) {
+    if (!node || typeof node !== 'object') return;
+    if (node.type === 'CALL' &&
+        (node.name === 'EXISTS' || node.name === 'TECHNICAL_PRODUCT_ATTRIBUTE')) {
+      const args = node.arguments;
+      criterionExecutionRequire_(Array.isArray(args) && args.length >= 1 &&
+        args[0] && args[0].type === 'SYMBOL' && typeof args[0].value === 'string',
+      'ASSERT technical product reference is malformed');
+      references.push(args[0].value);
+    }
+    Object.keys(node).forEach(key => {
+      const child = node[key];
+      if (Array.isArray(child)) child.forEach(visit);
+      else if (child && typeof child === 'object') visit(child);
+    });
+  }
+  visit(assertIr);
+  return references;
+}
+
+function criterionExecutionRequireProductValidationAnchor_(assertIr, technicalProduct) {
+  const references = criterionExecutionProductReferences_(assertIr);
+  criterionExecutionRequire_(references.length > 0 &&
+    references.every(reference => reference === technicalProduct),
+  'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE does not match ASSERT product references');
+}
+
 function criterionExecutionDocumentTrace_(view, reference, expectedSourceDocument) {
   criterionExecutionRequire_(reference && typeof reference.kind === 'string' &&
     typeof reference.identifier === 'string', 'applicability trace reference is invalid');
@@ -367,10 +396,9 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
     contract, plan, view, unit, metadata.assertIr
   );
   if (validation !== null) {
-    criterionExecutionRequire_(materialized.binding.type === 'TECHNICAL_PRODUCT_ATTRIBUTE' &&
-      materialized.binding.technicalProduct === validation.binding.technicalProduct &&
-      materialized.binding.attribute === validation.binding.attribute,
-    'TECHNICAL_PRODUCT_ATTRIBUTE ASSERT does not match VALIDATE metadata');
+    criterionExecutionRequireProductValidationAnchor_(
+      metadata.assertIr, validation.binding.technicalProduct
+    );
   }
   const criterionFail = unit.nonconformityReferences &&
     unit.nonconformityReferences.criterionFail;
@@ -402,7 +430,10 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
       declarationSource: metadata.sourceFile,
       compiledAssertIr: metadata.assertIr,
       unitKey: unit.unitKey,
-      documentaryBinding: materialized.binding
+      documentaryBinding: validation === null ? materialized.binding : immutableCopy({
+        ...materialized.binding,
+        validationBinding: validation.binding
+      })
     }
   });
   return Object.freeze({ criterion, unit, metadata, binding: materialized.binding,

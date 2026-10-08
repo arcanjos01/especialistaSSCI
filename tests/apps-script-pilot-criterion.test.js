@@ -52,6 +52,10 @@ const PRESSURIZATION_MANUAL_UNIT =
   'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
 const CONFORMITY_REPORT_SIGNED_UNIT =
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)';
+const PRESSURIZATION_CHECKLIST_SIGNED_UNIT =
+  'UNIT_KEY (REQ_IN09_CHECKLIST, T4_IN09_CHECKLIST)';
+const CMAR_DECLARATION_SIGNED_UNIT =
+  'UNIT_KEY (REQ_IN18_CMAR, T4_IN18_CMAR)';
 
 function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
@@ -64,7 +68,8 @@ function currentContext(requestDate = '2026-01-28') {
 
 function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includePressurization = false, includePressurizationManual = false,
-  includeLegacyExecutionDrt = false, conformityReports = [],
+  includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
+  signedProducts = [],
   requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -116,6 +121,42 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_PRESSURIZATION_ITEM' }
     });
   }
+  if (includeCmar) {
+    records.push({
+      record_id: 'ITEM_CMAR', entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+      parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+      attributes: {
+        OFFICIAL_ESCI_CODE: 'CMAR',
+        PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY CMAR',
+        RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page'
+      },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_CMAR_ITEM' }
+    });
+  }
+  signedProducts.forEach((product, index) => {
+    const productRecordId = 'SIGNED_PRODUCT_' + (index + 1);
+    const productIsDocument = contract.entityCatalog[product.entityId].TYPE === 'DOCUMENT';
+    const documentId = productIsDocument ? productRecordId :
+      'DOC_SIGNED_PRODUCT_' + (index + 1);
+    if (!productIsDocument) {
+      records.push({
+        record_id: documentId, entity_id: 'PPCI', parent_record_id: null,
+        source_document: documentId, attributes: {},
+        provenance: { sourceKind: 'TEST_ONLY', sourceReference: documentId + '_SOURCE' }
+      });
+    }
+    const attributes = {};
+    if (Object.prototype.hasOwnProperty.call(product, 'signatureMechanism')) {
+      attributes.SIGNATURE_MECHANISM = product.signatureMechanism;
+    }
+    records.push({
+      record_id: productRecordId, entity_id: product.entityId,
+      parent_record_id: null, source_document: documentId, attributes,
+      provenance: {
+        sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_' + (index + 1) + '_FACT'
+      }
+    });
+  });
   if (includeLegacyExecutionDrt) {
     records.push({
       record_id: 'DOC_DRT', entity_id: 'DRT', parent_record_id: null,
@@ -253,6 +294,97 @@ assert.deepEqual(
   )),
   { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' }
 );
+
+for (const signedProductCase of [
+  {
+    entityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
+    requirementId: 'REQ_IN09_CHECKLIST', criterionId: 'T4_IN09_CHECKLIST',
+    unitKey: PRESSURIZATION_CHECKLIST_SIGNED_UNIT,
+    includePressurization: true, includeCmar: false
+  },
+  {
+    entityId: 'CMAR_DECLARATION',
+    requirementId: 'REQ_IN18_CMAR', criterionId: 'T4_IN18_CMAR',
+    unitKey: CMAR_DECLARATION_SIGNED_UNIT,
+    includePressurization: false, includeCmar: true
+  }
+]) {
+  const productRequirement = contract.requirements.find(
+    item => item.requirementId === signedProductCase.requirementId
+  );
+  assert.equal(productRequirement.technicalProduct, signedProductCase.entityId);
+  assert.deepEqual(JSON.parse(JSON.stringify(productRequirement.evidenceAttributes)), ['SIGNED']);
+
+  const signedProduct = prepare({
+    includeGas: false,
+    includePressurization: signedProductCase.includePressurization,
+    includeCmar: signedProductCase.includeCmar,
+    signedProducts: [{
+      entityId: signedProductCase.entityId,
+      signatureMechanism: 'ICP-Brasil / PAdES'
+    }]
+  });
+  assert.equal(signedProduct.plan.PLANNED_EXECUTION_UNITS.some(
+    unit => unit.unitKey === signedProductCase.unitKey
+  ), true);
+  const signedProductResult = api.executePlannedCriterion(
+    contract, signedProduct.plan, signedProductCase.unitKey, signedProduct.view
+  );
+  assert.equal(signedProductResult.engineResult, api.EngineResult.TRUE);
+  assert.equal(signedProductResult.pipelineResult, 'PASS');
+  assert.equal(signedProductResult.resultOrigin, 'EVALUATED');
+  assert.equal(signedProductResult.trace.length, 2);
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    signedProductResult.trace.map(entry => entry.predicateId)
+  )), ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS']);
+  assert.ok(signedProductResult.trace.every(entry => entry.result === 'TRUE'));
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(
+      signedProductResult.traceability.documentaryBinding.sourceDocument
+    )),
+    {
+      kind: 'DOCUMENT',
+      identifier: signedProductCase.entityId === 'PRESSURIZATION_MAINTENANCE_CHECKLIST'
+        ? 'SIGNED_PRODUCT_1' : 'DOC_SIGNED_PRODUCT_1'
+    }
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(
+      signedProductResult.traceability.documentaryBinding.validationBinding.provenance
+    )),
+    { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_1_FACT' }
+  );
+
+  const unsignedProduct = prepare({
+    includeGas: false,
+    includePressurization: signedProductCase.includePressurization,
+    includeCmar: signedProductCase.includeCmar,
+    signedProducts: [{ entityId: signedProductCase.entityId }]
+  });
+  const unsignedProductResult = api.executePlannedCriterion(
+    contract, unsignedProduct.plan, signedProductCase.unitKey, unsignedProduct.view
+  );
+  assert.equal(unsignedProductResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(unsignedProductResult.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(unsignedProductResult.resultOrigin, 'EVALUATED');
+  assert.equal(unsignedProductResult.nonconformityOnFalse, undefined);
+
+  const absentProduct = prepare({
+    includeGas: false,
+    includePressurization: signedProductCase.includePressurization,
+    includeCmar: signedProductCase.includeCmar
+  });
+  assert.equal(absentProduct.plan.PLANNED_EXECUTION_UNITS.some(
+    unit => unit.unitKey === signedProductCase.unitKey
+  ), true);
+  const absentProductResult = api.executePlannedCriterion(
+    contract, absentProduct.plan, signedProductCase.unitKey, absentProduct.view
+  );
+  assert.equal(absentProductResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(absentProductResult.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(absentProductResult.resultOrigin, 'EVALUATED');
+  assert.equal(absentProductResult.nonconformityOnFalse, undefined);
+}
 
 for (const conformityReports of [[], [undefined], [''], ['   ']]) {
   const unsignedConformity = prepare({ includeGas: false, conformityReports });
