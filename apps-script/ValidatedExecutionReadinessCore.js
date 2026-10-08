@@ -122,6 +122,9 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
     readinessRequire_(typeof processRecord.sourceFileId === 'string' &&
       processRecord.sourceFileId.trim(),
     'PROCESS_SOURCE_ID_MISSING', 'validated registry record has no SOURCE_FILE_ID');
+    readinessRequire_(typeof global.isSupportedRdeSchemaVersion_ === 'function' &&
+      global.isSupportedRdeSchemaVersion_(processRecord.rdeVersion),
+    'RDE_VERSION_MISMATCH', 'validated registry record has no supported RDE_VERSION');
 
     const rdeContent = adapters.readValidatedRde(processRecord);
     readinessRequire_(typeof rdeContent === 'string' && rdeContent.length > 0,
@@ -149,6 +152,8 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
         'RDE_INVALID', error && error.message ? error.message : 'validated RDE failed structural validation'
       );
     }
+    readinessRequire_(rde.schema_version === processRecord.rdeVersion,
+      'RDE_VERSION_MISMATCH', 'validated RDE schema_version does not match registry RDE_VERSION');
 
     let view;
     let context;

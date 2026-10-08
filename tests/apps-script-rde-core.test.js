@@ -21,6 +21,7 @@ vm.createContext(context);
 vm.runInContext(source + `
   globalThis.rdeCore = {
     RDE_SCHEMA_VERSION,
+    isSupportedRdeSchemaVersion_,
     buildFakeRde_,
     validateRde_,
     parseAndValidateRdeJson_,
@@ -33,6 +34,9 @@ vm.runInContext(source + `
 `, context);
 
 const core = context.rdeCore;
+assert.equal(core.isSupportedRdeSchemaVersion_('0.2.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.3.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.1.0'), false);
 const input = {
   processId: 'HAB-E30DD583092F3F62',
   sourceFileId: 'source-file-123',
@@ -262,6 +266,9 @@ const legacyStructuralRde = {
 delete legacyStructuralRde.documentary_associations;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
+assert.equal(core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(legacyStructuralRde), operationalExpected, entityCatalog
+).schema_version, '0.2.0');
 const unsupportedAssociationRde = {
   ...legacyStructuralRde,
   documentary_associations: []
@@ -296,6 +303,14 @@ invalidAssociation({ ...association, source_document: 'R_MISSING' }, 'RDE_ASSOCI
 invalidAssociation({ ...association, association_id: '' }, 'RDE_ASSOCIATION_INVALID');
 invalidAssociation({ ...association, extra: true }, 'RDE_ASSOCIATION_INVALID');
 invalidAssociation({ ...association, provenance: [] }, 'RDE_ASSOCIATION_PROVENANCE_INVALID');
+assert.throws(() => core.validateRdeStructure_({
+  ...operationalRde, records: associationRecords, documentary_associations: new Array(1)
+}, operationalExpected, entityCatalog), error => error.code === 'RDE_ASSOCIATIONS_INVALID');
+const associationWithAccessor = { ...association };
+Object.defineProperty(associationWithAccessor, 'statement_text', {
+  enumerable: true, get() { return 'must not be evaluated'; }
+});
+invalidAssociation(associationWithAccessor, 'RDE_ASSOCIATION_INVALID');
 assert.throws(() => core.validateRdeStructure_({
   ...operationalRde,
   records: associationRecords,

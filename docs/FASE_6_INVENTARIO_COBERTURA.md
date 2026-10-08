@@ -601,3 +601,32 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 focados RDE/view passaram antes da última adição de casos para ciclos e
 endpoint dangling. `git diff --check` passou. Repetirei os gates após concluir
 esses casos e antes do commit/push e revisão Sol do diff.
+
+### Revisão adversarial e correção de findings — associações RDE
+
+A revisão independente do candidate `733dfb4d7a10ee6d192557f574050085c0a21049`,
+contra baseline `7dbeb976affe00fc8c5c65e3d1215326e8233125`, retornou
+`SOL_CONTRACT_DIFF_REVIEW=FAIL` sem decisão humana. Achados: `F6-ASSOC-001`
+MEDIUM (projeção pública podia aceitar e normalizar associação inválida),
+`F6-ASSOC-002` MEDIUM (Code.gs só buscava o filename da versão corrente, apesar
+de core/view aceitarem 0.2.0), `F6-ASSOC-003` LOW (array esparso de associação
+passava validação) e `F6-ASSOC-004` LOW (evidência do inventário ainda marcava
+gates/revisão como pendentes). O Sol confirmou que a proposta FACT-ONLY
+continuava válida; não identificou regra normativa nova.
+
+Correções no follow-up em andamento: a projeção valida a coleção original
+antes de criar referências/view e rejeita campo de associação em RDE 0.2.0;
+validação de associations rejeita holes, propriedades extras e accessors; o
+adaptador Apps Script lê `rde-v[versão registrada].json`, suporta
+0.2.0/0.3.0 sem reescrever o artifact e confere a versão do conteúdo contra o
+registro; entrega o catálogo compilado ao validador operacional para que RDE
+com registros de qualquer uma dessas versões seja estruturalmente validada.
+Testes exercitam getter/campo extra, versão conflitante, associação em 0.2.0 e
+array esparso. Não houve mudança de semântica das relações. A
+revisão independente do follow-up ainda está pendente. Os gates deste
+follow-up já passaram: 150 testes Python; sete suítes Apps Script; `node
+--check` nos módulos/testes e `Code.gs`; duas regenerações byte-idênticas do
+runtime com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
+`git diff --check`. Coverage permanece 6/31. O resultado Sol do follow-up será
+registrado após a nova revisão independente.

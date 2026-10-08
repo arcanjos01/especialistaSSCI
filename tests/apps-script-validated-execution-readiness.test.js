@@ -32,6 +32,7 @@ const processRecord = {
   processId: 'TEST_ONLY_PROCESS',
   sourceFileId: 'TEST_ONLY_SOURCE',
   status: 'VALIDATED',
+  rdeVersion: '0.2.0',
 };
 
 function rdeFixture() {
@@ -266,6 +267,16 @@ assert.throws(() => api.prepareValidatedExecutionReadiness(
 ), error => error && error.code === 'RDE_INVALID');
 assert.equal(invalidRdeAdapters.counts.writes, 0);
 
+const mismatchedVersionAdapters = makeAdapters();
+const originalReadProcess = mismatchedVersionAdapters.adapters.readProcess;
+mismatchedVersionAdapters.adapters.readProcess = processId => ({
+  ...originalReadProcess(processId), rdeVersion: '0.3.0'
+});
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), mismatchedVersionAdapters.adapters
+), error => error && error.code === 'RDE_VERSION_MISMATCH');
+assert.equal(mismatchedVersionAdapters.counts.rdeReads, 1);
+
 const invalidContextAdapters = makeAdapters();
 assert.throws(() => api.prepareValidatedExecutionReadiness(
   processRecord.processId,
@@ -322,7 +333,12 @@ function iterator(items) {
 const appScriptRdeFile = {
   getBlob() { return { getDataAsString() { return fixtureContent; } }; },
 };
-const appScriptRdeFolder = { getFilesByName() { return iterator([appScriptRdeFile]); } };
+const appScriptRdeFolder = {
+  getFilesByName(name) {
+    assert.equal(name, 'rde-v0.2.0.json');
+    return iterator([appScriptRdeFile]);
+  }
+};
 const appScriptProcessFolder = {
   getFoldersByName(name) {
     return iterator(name === 'RDE' ? [appScriptRdeFolder] : []);

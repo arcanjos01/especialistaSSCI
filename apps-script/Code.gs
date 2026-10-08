@@ -980,10 +980,11 @@ function validateExtractedProcesses() {
           );
         }
 
-        if (row[12] !== RDE_SCHEMA_VERSION) {
+        const registeredRdeVersion = String(row[12] || '').trim();
+        if (!isSupportedRdeSchemaVersion_(registeredRdeVersion)) {
           throw makeRdeValidationError_(
             'RDE_VERSION_MISMATCH',
-            'RDE_VERSION do registro deve ser ' + RDE_SCHEMA_VERSION + '.'
+            'RDE_VERSION do registro não é suportada: ' + registeredRdeVersion + '.'
           );
         }
 
@@ -999,8 +1000,7 @@ function validateExtractedProcesses() {
           processId
         );
 
-        const rdeFileName =
-          'rde-v' + RDE_SCHEMA_VERSION + '.json';
+        const rdeFileName = 'rde-v' + registeredRdeVersion + '.json';
         const rdeFiles = rdeFolder.getFilesByName(rdeFileName);
 
         if (!rdeFiles.hasNext()) {
@@ -1026,7 +1026,13 @@ function validateExtractedProcesses() {
         const rde = parseAndValidateOperationalRdeJson_(rdeContent, {
           processId: processId,
           sourceFileId: sourceFileId
-        });
+        }, COMPILED_RUNTIME_CONTRACT.entityCatalog);
+        if (rde.schema_version !== registeredRdeVersion) {
+          throw makeRdeValidationError_(
+            'RDE_VERSION_MISMATCH',
+            'RDE_VERSION do registro não corresponde ao arquivo RDE.'
+          );
+        }
 
         let sourceFile;
 
@@ -1058,7 +1064,7 @@ function validateExtractedProcesses() {
         processes.push({
           processId: processId,
           rdeFileId: rdeFile.getId(),
-          rdeVersion: RDE_SCHEMA_VERSION,
+          rdeVersion: rde.schema_version,
           status: PROCESS_STATUS.VALIDATED
         });
 
@@ -1274,9 +1280,16 @@ function prepareValidatedProcessExecutionReadiness(
             processId: String(matches[0][0] || '').trim(),
             sourceFileId: String(matches[0][1] || '').trim(),
             status: String(matches[0][6] || '').trim(),
+            rdeVersion: String(matches[0][12] || '').trim(),
           };
         },
         readValidatedRde: function (processRecord) {
+          if (!isSupportedRdeSchemaVersion_(processRecord.rdeVersion)) {
+            throw makeRdeValidationError_(
+              'RDE_VERSION_MISMATCH',
+              'RDE_VERSION do registro não é suportada: ' + processRecord.rdeVersion + '.'
+            );
+          }
           const processingRoot = DriveApp.getFolderById(
             APP_CONFIG.FOLDERS.PROCESSING.id
           );
@@ -1286,7 +1299,7 @@ function prepareValidatedProcessExecutionReadiness(
           const rdeFolder = getUniqueValidationFolder_(
             processFolder, 'RDE', processRecord.processId
           );
-          const fileName = 'rde-v' + RDE_SCHEMA_VERSION + '.json';
+          const fileName = 'rde-v' + processRecord.rdeVersion + '.json';
           const files = rdeFolder.getFilesByName(fileName);
           if (!files.hasNext()) {
             throw makeRdeValidationError_(

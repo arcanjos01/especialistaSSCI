@@ -148,6 +148,19 @@ delete legacyRde.documentary_associations;
 const legacyView = api.projectRdeToExecutionView_(legacyRde, entityCatalog);
 assert.equal(legacyView.schemaVersion(), '0.2.0');
 assert.deepEqual(JSON.parse(JSON.stringify(legacyView.documentaryAssociations(refs.entity))), []);
+assert.throws(() => api.projectRdeToExecutionView_({
+  ...legacyRde, documentary_associations: []
+}, entityCatalog), /cannot declare documentary associations/);
+const malformedProjectionRde = JSON.parse(JSON.stringify(validatedRde));
+malformedProjectionRde.documentary_associations[0].DRT_COVERS = true;
+assert.throws(() => api.projectRdeToExecutionView_(malformedProjectionRde, entityCatalog),
+  error => error && error.code === 'RDE_ASSOCIATION_INVALID');
+const accessorProjectionRde = JSON.parse(JSON.stringify(validatedRde));
+Object.defineProperty(accessorProjectionRde.documentary_associations[0], 'statement_text', {
+  enumerable: true, get() { return 'must not be evaluated'; }
+});
+assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog),
+  error => error && error.code === 'RDE_ASSOCIATION_INVALID');
 assert.equal(Object.isFrozen(view), true);
 assert.equal(Object.keys(view).length, 0);
 for (const forbidden of [

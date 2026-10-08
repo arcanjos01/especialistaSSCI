@@ -405,10 +405,17 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
       (rde.schema_version === '0.3.0' && !Array.isArray(rde.documentary_associations))) {
     throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0');
   }
+  if (rde.schema_version === '0.2.0' &&
+      Object.prototype.hasOwnProperty.call(rde, 'documentary_associations')) {
+    throw new ExecutionViewContractError('RDE 0.2.0 cannot declare documentary associations');
+  }
   if (!entityCatalog || typeof entityCatalog !== 'object') {
     throw new ExecutionViewContractError('entityCatalog is required for RDE projection');
   }
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
+  if (rde.schema_version === '0.3.0') {
+    validateRdeDocumentaryAssociations_(rde.documentary_associations, rde.records, entityCatalog);
+  }
   const referencesByRecordId = Object.create(null);
   rde.records.forEach(record => {
     if (!Object.prototype.hasOwnProperty.call(entityCatalog, record.entity_id) ||

@@ -1,6 +1,9 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
 const RDE_SCHEMA_VERSION = '0.3.0';
 const RDE_PREVIOUS_SCHEMA_VERSION = '0.2.0';
+function isSupportedRdeSchemaVersion_(version) {
+  return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION;
+}
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
 const RDE_FAKE_WARNING =
@@ -280,7 +283,7 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
         keys.some(key => !allowed.includes(key))) {
       throw makeRdeValidationError_(
         'RDE_RECORD_ENVELOPE_INVALID',
-        'records[' + index + '] deve obedecer ao envelope RDE 0.2.0.'
+        'records[' + index + '] deve obedecer ao envelope de registro da RDE.'
       );
     }
     ['record_id', 'entity_id', 'source_document'].forEach(field => {
@@ -517,11 +520,27 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
       'documentary_associations deve ser um array.'
     );
   }
+  if (Object.getOwnPropertySymbols(associations).length ||
+      Object.keys(associations).length !== associations.length ||
+      Object.getOwnPropertyNames(associations).length !== associations.length + 1) {
+    throw makeRdeValidationError_(
+      'RDE_ASSOCIATIONS_INVALID',
+      'documentary_associations deve ser um array denso sem propriedades extras.'
+    );
+  }
   const recordsById = Object.create(null);
   records.forEach(record => { recordsById[record.record_id] = record; });
   const associationIds = Object.create(null);
   const structuralAssociations = Object.create(null);
-  associations.forEach((association, index) => {
+  for (let index = 0; index < associations.length; index += 1) {
+    const itemDescriptor = Object.getOwnPropertyDescriptor(associations, String(index));
+    if (!itemDescriptor || !Object.prototype.hasOwnProperty.call(itemDescriptor, 'value')) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATIONS_INVALID',
+        'documentary_associations deve conter itens de dados em todas as posições.'
+      );
+    }
+    const association = itemDescriptor.value;
     if (!isPlainRdeObject_(association)) {
       throw makeRdeValidationError_(
         'RDE_ASSOCIATION_INVALID',
@@ -610,7 +629,7 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
       );
     }
     structuralAssociations[signature] = true;
-  });
+  }
   return true;
 }
 
@@ -618,14 +637,12 @@ function validateRdeDocumentaryAssociations_(associations, records, entityCatalo
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
-  if (rde.schema_version !== RDE_SCHEMA_VERSION) {
-    if (rde.schema_version !== RDE_PREVIOUS_SCHEMA_VERSION) {
-      throw makeRdeValidationError_(
-        'RDE_SCHEMA_VERSION_MISMATCH',
-        'schema_version deve ser ' + RDE_SCHEMA_VERSION + ' ou ' +
-          RDE_PREVIOUS_SCHEMA_VERSION + '.'
-      );
-    }
+  if (!isSupportedRdeSchemaVersion_(rde.schema_version)) {
+    throw makeRdeValidationError_(
+      'RDE_SCHEMA_VERSION_MISMATCH',
+      'schema_version deve ser ' + RDE_SCHEMA_VERSION + ' ou ' +
+        RDE_PREVIOUS_SCHEMA_VERSION + '.'
+    );
   }
 
   const expectedEnvelopeKeys = [
@@ -709,7 +726,7 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   return rde;
 }
 
-function parseAndValidateOperationalRdeJson_(content, expected) {
+function parseAndValidateOperationalRdeJson_(content, expected, entityCatalog) {
   let rde;
 
   try {
@@ -721,7 +738,7 @@ function parseAndValidateOperationalRdeJson_(content, expected) {
     );
   }
 
-  return validateRdeStructure_(rde, expected);
+  return validateRdeStructure_(rde, expected, entityCatalog);
 }
 
 function validateSourceHash_(expectedHash, actualHash) {
