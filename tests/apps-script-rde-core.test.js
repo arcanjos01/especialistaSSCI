@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const compiledContract = require('../apps-script/CompiledRuntimeContract.js');
 
 const corePath = path.join(__dirname, '..', 'apps-script', 'RdeCore.js');
 const source = fs.readFileSync(corePath, 'utf8');
@@ -291,6 +292,44 @@ assert.throws(() => validateRecords([
   record('R_CONFORMITY_REPORT', 'CONFORMITY_REPORT', null, 'R_CONFORMITY_SOURCE',
     { SIGNATURE_MECHANISM: false }, { page: 2 })
 ], signatureCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
+const drtFactFields = {
+  DRT_IDENTIFIER: 'ART 000123',
+  COUNCIL_REGISTRATION_STATUS: 'registrada no conselho',
+  COUNCIL_ISSUANCE_STATUS: 'emitida; não é rascunho',
+  COUNCIL_PAYMENT_STATUS: 'paga',
+  SIGNATURE_PARTY: 'RT',
+  SIGNATURE_MECHANISM: 'certificação digital do conselho emissor'
+};
+const drtFactRecords = [
+  record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
+  record('R_DRT_FACT_DRT', 'DRT', null, 'R_DRT_FACT_DRT',
+    { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123' }, { page: 2, field: 'explicitly-labeled' }),
+  ...['ART', 'RRT', 'TRT'].map((entityId, index) => record(
+    'R_DRT_FACT_' + entityId,
+    entityId,
+    null,
+    'R_DRT_SOURCE',
+    { ...drtFactFields, DRT_IDENTIFIER: entityId + ' 000123' },
+    { page: index + 3, field: 'explicitly-labeled' }
+  ))
+];
+const drtFactSnapshot = JSON.stringify(drtFactRecords);
+assert.doesNotThrow(() => validateRecords(drtFactRecords, compiledContract.entityCatalog));
+assert.equal(JSON.stringify(drtFactRecords), drtFactSnapshot);
+assert.doesNotThrow(() => validateRecords([
+  record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
+  record('R_DRT_ART_ABSENT', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE', {}, { page: 2 })
+], compiledContract.entityCatalog));
+assert.throws(() => validateRecords([
+  record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
+  record('R_DRT_ART_BAD_TYPE', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
+    { COUNCIL_REGISTRATION_STATUS: false }, { page: 2 })
+], compiledContract.entityCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
+assert.throws(() => validateRecords([
+  record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
+  record('R_NON_DRT_SIGNATURE', 'PRESSURIZATION_OPERATION_MANUAL', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
+    { SIGNATURE_PARTY: 'RT' }, { page: 2 })
+], compiledContract.entityCatalog), error => error.code === 'RDE_UNDECLARED_ENTITY_ATTRIBUTE');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})
 ]), error => error.code === 'RDE_RECORD_FIELD_INVALID');

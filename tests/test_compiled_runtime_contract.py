@@ -88,6 +88,20 @@ class CompiledRuntimeContractTests(unittest.TestCase):
                 "ATTRIBUTE_TYPES": {"SIGNATURE_MECHANISM": "TEXT"},
             },
         )
+        drt_fact_attributes = {
+            "DRT_IDENTIFIER": "TEXT",
+            "COUNCIL_REGISTRATION_STATUS": "TEXT",
+            "COUNCIL_ISSUANCE_STATUS": "TEXT",
+            "COUNCIL_PAYMENT_STATUS": "TEXT",
+            "SIGNATURE_PARTY": "TEXT",
+            "SIGNATURE_MECHANISM": "TEXT",
+        }
+        for entity_id in ("DRT", "ART", "RRT", "TRT"):
+            with self.subTest(entity=entity_id):
+                entity = self.contract["entityCatalog"][entity_id]
+                self.assertTrue(set(drt_fact_attributes).issubset(entity["ATTRIBUTES"]))
+                for attribute, attribute_type in drt_fact_attributes.items():
+                    self.assertEqual(entity["ATTRIBUTE_TYPES"][attribute], attribute_type)
         self.assertEqual(
             self.contract["entityCatalog"]["PRESSURIZATION_OPERATION_MANUAL"],
             {

@@ -404,3 +404,38 @@ fontes canônicas e manifests somente dentro de regras já determinadas pelas
 fontes; os artefatos derivados são regenerados. O mapping de Relatório de
 Conformidade e o follow-up documental receberam `SOL_REVIEW=PASS`;
 `F6-RT-001` está encerrado. `ANALYZED` e Fase 5B permanecem pendentes.
+
+## Onda factual — atributos documentais da DRT
+
+Pré-revisão Sol 6.1 da proposta: `SOL_CONTRACT_REVIEW=PASS` para formalizar
+somente fatos documentais da DRT. A fonte direta é a IRV Habite-se, Anexo A,
+Tabela 1, p. 4: conferir registro/emissão no Conselho (pagamento; não ser
+rascunho) e assinatura digital do RT ou certificação digital do Conselho
+emissor. `DRT_IDENTIFIER` registra o identificador impresso, distinguindo-o do
+`record_id` opaco da RDE conforme o Documento 09-RDE. Nenhum desses campos é
+conclusão de autenticidade, validade, assinatura válida ou satisfação de RT.
+
+Foram formalizados como `TEXT` e estritamente FACT-ONLY:
+`DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`, `COUNCIL_ISSUANCE_STATUS`,
+`COUNCIL_PAYMENT_STATUS`, `SIGNATURE_PARTY` e `SIGNATURE_MECHANISM`. Cada
+atributo registra apenas informação explicitamente apresentada na DRT
+correspondente; ausência permanece ausência, registro/emissão/pagamento não se
+inferem uns dos outros, e assinatura/certificação não verifica identidade ou
+validade criptográfica. `SIGNATURE_PARTY` limita-se ao papel explicitamente
+identificado como RT ou Conselho emissor.
+
+Os seis atributos foram declarados diretamente em `DRT`, `ART`, `RRT` e `TRT`.
+O catálogo compilado e `RdeCore.js` validam os atributos diretamente na
+entidade do registro e não herdam atributos de `TYPE`; não se introduziu uma
+mudança geral de herança no gerador/runtime. Testes verificam os quatro
+catálogos, admissão dos valores textuais com provenance/source document,
+ausência, rejeição de tipo incompatível e rejeição em entidade não DRT.
+
+Esta onda não implementa predicate, não associa DRT à Responsabilidade exigida
+ou a produto, não define cardinalidade/seleção e não converte os estados
+textuais em `REGISTERED` ou `SIGNED`. Portanto não aumenta a cobertura
+executável: permanecem 6/31 Criteria produtivos cobertos, 24 integralmente
+bloqueados e 1 parcialmente suportado mas bloqueado por multiplicidade. Os
+Criteria `T1/T4_DRT_REGISTERED` e `T1/T4_DRT_SIGNED` continuam sem executor até
+que associação responsabilidade↔DRT, cardinalidade/pareamento e semântica de
+estado estejam contratados. Revisão Sol do diff funcional desta onda: pendente.
