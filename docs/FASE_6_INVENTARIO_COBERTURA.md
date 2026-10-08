@@ -998,5 +998,13 @@ retornou `SOL_REVIEW=FAIL` com o finding MEDIUM `F6-DATE-001`: referências
 da view e alterar a identidade de produto/origem depois da construção. A
 correção rejeita referências não congeladas ou com campos que não sejam dados,
 e armazena cópias canônicas imutáveis. Testes reproduzem produto/origem
-forjados e getter que não pode ser executado. O finding só será marcado fechado
-após novo PASS independente.
+forjados e getter que não pode ser executado. Revisão independente nova do
+baseline `625e2af4d482d8d453cad7b57a90cd738d679bb9` ao candidate
+`74ae7455cc05d6242a9c8425f678a821b12c10b1` retornou `SOL_REVIEW=PASS`:
+`F6-DATE-001=CLOSED`, nenhum finding novo e nenhuma severidade residual.
+O Sol confirmou que as referências retornadas são cópias canônicas congeladas,
+campos ocultos e accessors são rejeitados sem execução, envelopes 0.2–0.4 foram
+preservados e nenhum contrato normativo ou cobertura foi acrescentado. Os gates
+no candidate passaram: 150 testes Python, sete suítes Apps Script, sintaxe JS e
+Code.gs, `git diff --check` e regeneração byte-idêntica do runtime compilado
+(SHA-256 `d810712fe6a527386f8db1f93b85defc5e40ddfb564c246f1263c0b6602139f4`).
