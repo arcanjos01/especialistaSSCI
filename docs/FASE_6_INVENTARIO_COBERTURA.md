@@ -894,5 +894,16 @@ um ou mais filhos, determinismo, trace dos filhos, associação de NC apenas no
 FALSE, rejeição de expressão vazia, campo residual e folha `DRT_COVERS` ainda
 não executável. A readiness confirma que um `ALL` com folha não suportada não
 se torna materializável. Cobertura permanece 9/31; nenhum predicate, Criterion,
-Requirement ou Nonconformity foi adicionado. Gates completos, commit/push e
-revisão independente pós-implementação Sol 6.1 ainda pendentes.
+Requirement ou Nonconformity foi adicionado. O candidate
+`22a4665fa5958becbfd996b84cad28d5a6ca1201` foi commitado e enviado à branch.
+Revisão independente Sol 6.1 contra o baseline
+`707ca971ab07bc907108d2ca8ad90edb1b8d753b` retornou `SOL_REVIEW=PASS`, sem
+findings. Sol confirmou ordem dos operandos, trace dos filhos, cardinalidade
+de um resultado por Criterion, NC apenas em FALSE, autenticações preservadas e
+`T4_IN07_COMMISSIONING` ainda bloqueado pela folha `DRT_COVERS`.
+
+Gates no mesmo candidate: 150 testes Python; sete suítes Apps Script; sintaxe
+de todos os módulos/testes JS e `Code.gs` (stdin); duas regenerações
+byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
+`8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`; e
+`git diff --check`.
