@@ -2,7 +2,7 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
-RDE_SCHEMA_VERSION: 0.2.0
+RDE_SCHEMA_VERSION: 0.3.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -102,7 +102,8 @@ As etapas posteriores não poderão:
 
 ENTITY REPRESENTATION
 
-Toda RDE 0.2.0 deverá possuir uma coleção `records` ordenada. A ordem é
+Toda RDE 0.3.0 deverá possuir uma coleção `records` ordenada e uma coleção
+`documentary_associations` ordenada, que pode estar vazia. A ordem de `records` é
 preservada e determinística dentro da RDE finalizada; ela não é identidade e
 nunca poderá ser usada como identidade durante EXECUTION.
 
@@ -163,10 +164,62 @@ quando `records` não estiver vazio; sem registros, a coleção pode ser validad
 sem o catálogo. Falhas são erros estruturais da RDE, nunca resultados
 normativos; nenhuma validação executa Requirement ou Criterion.
 
-RDE 0.1.0 já persistida permanece histórica e imutável. Não migrar nem
-reescrever seus fatos ou relações. Etapas que dependem do envelope exigem
-RDE_SCHEMA_VERSION 0.2.0; 0.1.0 não contém nem simula as relações estruturais
-desta versão.
+RDE 0.1.0 e 0.2.0 já persistidas permanecem históricas e imutáveis. Não
+migrar nem reescrever seus fatos ou relações. A versão 0.2.0 contém somente as
+relações estruturais de registro desta versão e não declara uma associação
+documental vazia como prova de completude. Qualquer consumidor que dependa de
+associações documentais deve exigir RDE 0.3.0; não pode fabricar, completar ou
+simular associações para versões anteriores.
+
+------------------------------------------------------------------------
+
+DOCUMENTARY ASSOCIATIONS
+
+Uma associação documental registra exclusivamente que uma declaração explícita
+na fonte relaciona dois registros documentais. Não declara cobertura de SMSCI,
+validade de DRT, suficiência de evidência, cumprimento de Requirement ou
+resultado normativo.
+
+Cada item de `documentary_associations`, na ordem declarada, possui exatamente:
+
+association_id:
+
+left_record_id:
+
+right_record_id:
+
+source_document:
+
+statement_text:
+
+provenance: (opcional)
+
+`association_id` é opaco e único na coleção. Os endpoints são record_id
+distintos e devem resolver para registros da mesma RDE. `source_document` deve
+resolver para um registro `TYPE DOCUMENT`. `statement_text` preserva o trecho
+documental literal que declara a relação; não é uma conclusão ou paráfrase
+normativa. `provenance`, quando presente, contém apenas localização/origem
+disponível do trecho, sem completar dados ausentes.
+
+Os nomes `left_record_id` e `right_record_id` são papéis estruturais e não
+indicam prioridade, direção ou consequência normativa. Não presumir vínculo
+por nome de arquivo, ordem dos anexos, proximidade física ou textual, parent,
+similaridade, embeddings ou LLM. Um identificador explícito só resolve um
+endpoint se corresponder unicamente a um record_id da mesma RDE; zero ou mais
+de uma correspondência deixam a relação não resolvida e não autorizam criar
+uma associação.
+
+Associações distintas devem ser preservadas quando diferirem em fonte,
+declaração literal ou provenance. Repetição estruturalmente idêntica não é
+permitida. Associações podem formar ciclos: elas não constituem hierarquia e
+não recebem validação de ciclo global. Relações de `parent_record_id`
+continuam sujeitas às regras próprias de hierarquia e ciclo.
+
+Uma ausência de associação não prova inexistência de obrigação normativa ou de
+relação no documento. Association não substitui fatos necessários para
+demonstrar validade, escopo, compatibilidade, temporalidade ou atendimento.
+Por exemplo, o vínculo explícito entre laudo e DRT não atesta por si só
+funcionamento adequado nem satisfação de responsabilidade.
 
 Toda entidade deverá obedecer ao envelope acima e à representação de atributos
 abaixo.
@@ -218,7 +271,7 @@ Nenhum conteúdo adicional deverá ser produzido.
 A etapa EXECUTION utilizará exclusivamente a RDE validada como fonte de
 evidências e relações estruturais.
 
-RDE 0.2.0 → IMMUTABLE EXECUTION VIEW
+RDE 0.2.0/0.3.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:
 
@@ -234,7 +287,12 @@ continuam atributos/fatos; não substituem a identidade estrutural.
 A immutable execution view preserva `contains`, `read` e `provenance`, e
 expõe as relações explícitas por `entityId(ref)`, `parent(ref)`,
 `sourceDocument(ref)`, `referencesByEntity(entity_id)` e
-`children(parent_ref, entity_id opcional)`. As coleções retornadas são
+`children(parent_ref, entity_id opcional)`. Para RDE 0.3.0 expõe também
+`schemaVersion()` e `documentaryAssociations(ref)`, que retorna, na ordem da
+RDE, associações imutáveis incidentes ao registro indicado, com endpoints,
+documento-fonte, declaração literal e provenance disponível. RDE 0.2.0 é
+projetada com `schemaVersion() = 0.2.0` e nenhuma associação; isso não atesta
+completude para consumidores dependentes dessa relação. As coleções retornadas são
 imutáveis e preservam a ordem canônica de `records`.
 
 `read(ref)` retorna somente `attributes` documentais. `record_id`, `entity_id`,

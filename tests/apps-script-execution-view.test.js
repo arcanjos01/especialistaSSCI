@@ -32,7 +32,7 @@ globalThis.testApi = {
 
 const api = context.testApi;
 const fixtureRde = {
-  schema_version: '0.2.0',
+  schema_version: '0.3.0',
   process_id: 'TEST_ONLY_PROCESS',
   source: {
     file_id: 'TEST_ONLY_FILE',
@@ -90,6 +90,14 @@ fixtureRde.records = [
     { marker: 'TEST_ONLY_EVIDENCE' }, { source_location: 'TEST_ONLY evidence' }),
   rdeRecord('R000015', 'TEST_DOCUMENT', null, 'R000015', {})
 ];
+fixtureRde.documentary_associations = [{
+  association_id: 'A000001',
+  left_record_id: 'R000014',
+  right_record_id: 'R000003',
+  source_document: 'R000001',
+  statement_text: 'La evidência e o registro estão associados (declaração literal).',
+  provenance: { page: 2, text_span: 'linha 8' }
+}];
 const originalRdeJson = JSON.stringify(fixtureRde);
 const validatedRde = api.validateRdeStructure_(fixtureRde, {
   processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
@@ -116,11 +124,30 @@ const refs = {
   missing: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'R999999')
 };
 const view = api.projectRdeToExecutionView_(validatedRde, entityCatalog);
+assert.equal(view.schemaVersion(), '0.3.0');
+assert.equal(view.documentaryAssociations(refs.entity).length, 1);
+assert.deepEqual(JSON.parse(JSON.stringify(view.documentaryAssociations(refs.entity)[0])), {
+  associationId: 'A000001',
+  left: { kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000014' },
+  right: { kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000003' },
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R000001' },
+  statementText: 'La evidência e o registro estão associados (declaração literal).',
+  provenance: { page: 2, text_span: 'linha 8' }
+});
+assert.equal(view.documentaryAssociations(refs.document).length, 0);
+assert.equal(Object.isFrozen(view.documentaryAssociations(refs.entity)), true);
+assert.equal(Object.isFrozen(view.documentaryAssociations(refs.entity)[0]), true);
+assert.equal(Object.isFrozen(view.documentaryAssociations(refs.entity)[0].provenance), true);
 assert.equal(view.read(refs.section).LEGIBLE, false);
 assert.equal(JSON.stringify(validatedRde), originalRdeJson);
 assert.throws(() => api.projectRdeToExecutionView_(
   { ...validatedRde, schema_version: '0.1.0' }, entityCatalog
-), /validated RDE 0.2.0/);
+), /validated RDE 0.2.0\/0.3.0/);
+const legacyRde = { ...validatedRde, schema_version: '0.2.0' };
+delete legacyRde.documentary_associations;
+const legacyView = api.projectRdeToExecutionView_(legacyRde, entityCatalog);
+assert.equal(legacyView.schemaVersion(), '0.2.0');
+assert.deepEqual(JSON.parse(JSON.stringify(legacyView.documentaryAssociations(refs.entity))), []);
 assert.equal(Object.isFrozen(view), true);
 assert.equal(Object.keys(view).length, 0);
 for (const forbidden of [
@@ -217,6 +244,11 @@ assert.equal(view.read(refs.entity).label, 'TEST_ONLY entity-1');
 assert.equal(view.read(refs.textValue5).value, 'TEST_ONLY value-5');
 assert.equal(view.provenance(refs.evidence).source_location, 'TEST_ONLY evidence');
 assert.equal(view.provenance(refs.entity).record.marker, 'TEST_ONLY_EVIDENCE');
+validatedRde.documentary_associations[0].statement_text = 'MUTATED';
+validatedRde.documentary_associations[0].provenance.page = 99;
+assert.equal(view.documentaryAssociations(refs.entity)[0].statementText,
+  'La evidência e o registro estão associados (declaração literal).');
+assert.equal(view.documentaryAssociations(refs.entity)[0].provenance.page, 2);
 assert.equal(view.referencesByEntity('TEST_DOCUMENT')[0].identifier, 'R000001');
 assert.equal(view.contains(refs.noIdentifiers), true);
 assert.equal(refs.noIdentifiers.identifier, 'R000015');
@@ -246,6 +278,25 @@ assert.equal(Object.isFrozen(nestedValue.value.nested), true);
 assert.equal(Object.isFrozen(nestedValue.value.items), true);
 assert.equal(Reflect.set(nestedValue.value.nested, 'enabled', false), false);
 assert.equal(Reflect.set(nestedValue.value.items, '0', 'MUTATED'), false);
+const cyclicAssociationView = new api.ImmutableExecutionView([
+  directDocumentEntry,
+  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
+], [
+  { associationId: 'A-CYCLE-1', left: refs.document, right: nestedReference,
+    sourceDocument: refs.document, statementText: 'TEST_ONLY explicit relation 1' },
+  { associationId: 'A-CYCLE-2', left: nestedReference, right: refs.document,
+    sourceDocument: refs.document, statementText: 'TEST_ONLY explicit relation 2' }
+], '0.3.0');
+assert.equal(cyclicAssociationView.documentaryAssociations(refs.document).length, 2);
+assert.equal(cyclicAssociationView.documentaryAssociations(nestedReference).length, 2);
+assert.throws(() => new api.ImmutableExecutionView([
+  directDocumentEntry,
+  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
+], [{
+  associationId: 'A-DANGLING', left: refs.document,
+  right: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'MISSING'),
+  sourceDocument: refs.document, statementText: 'TEST_ONLY'
+}], '0.3.0'), /association reference is missing/);
 assert.throws(() => new api.ImmutableExecutionView([
   directDocumentEntry,
   { ...directDocumentEntry, value: { REQUEST_IDENTIFIER: 'DUPLICATE' } }

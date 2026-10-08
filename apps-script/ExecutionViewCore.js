@@ -82,17 +82,34 @@ function executionViewRecord(view, reference) {
 }
 
 /**
- * Read-only Process Memory over canonical records projected from RDE 0.2.0.
+ * Read-only Process Memory over canonical records projected from RDE 0.2.0/0.3.0.
  * Only attributes are exposed by read(); structural relations use dedicated APIs.
  */
 class ImmutableExecutionView {
-  constructor(projectionEntries) {
+  constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0') {
     if (!Array.isArray(projectionEntries)) {
       throw new ExecutionViewContractError('projectionEntries must be an array');
     }
     if (Object.getOwnPropertySymbols(projectionEntries).length ||
         Object.keys(projectionEntries).length !== projectionEntries.length) {
       throw new ExecutionViewContractError('projectionEntries must be a dense array');
+    }
+    if (!Array.isArray(associationEntries) ||
+        Object.getOwnPropertySymbols(associationEntries).length ||
+        Object.keys(associationEntries).length !== associationEntries.length) {
+      throw new ExecutionViewContractError('associationEntries must be a dense array');
+    }
+    for (let index = 0; index < associationEntries.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(associationEntries, String(index));
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new ExecutionViewContractError('associationEntries must contain data entries');
+      }
+    }
+    if (!['0.2.0', '0.3.0'].includes(schemaVersion)) {
+      throw new ExecutionViewContractError('unsupported execution view schemaVersion');
+    }
+    if (schemaVersion === '0.2.0' && associationEntries.length) {
+      throw new ExecutionViewContractError('RDE 0.2.0 cannot contain documentary associations');
     }
     const records = Object.create(null);
     const orderedReferences = [];
@@ -207,9 +224,91 @@ class ImmutableExecutionView {
       relationState[key] = 2;
     }
     orderedReferences.forEach(reference => visitParent(reference));
+    const documentaryAssociations = [];
+    const associationIds = Object.create(null);
+    const associationSignatures = Object.create(null);
+    associationEntries.forEach((association, index) => {
+      if (!isPlainExecutionObject(association)) {
+        throw new ExecutionViewContractError('association entry must be an object');
+      }
+      const keys = Object.keys(association).sort();
+      const requiredAssociationKeys = [
+        'associationId', 'left', 'right', 'sourceDocument', 'statementText'
+      ];
+      const allowedAssociationKeys = requiredAssociationKeys.concat(['provenance']);
+      if (Object.getOwnPropertySymbols(association).length ||
+          Object.getOwnPropertyNames(association).length !== keys.length ||
+          keys.some(key => !Object.prototype.hasOwnProperty.call(
+            Object.getOwnPropertyDescriptor(association, key), 'value'
+          )) || requiredAssociationKeys.some(key => !keys.includes(key)) ||
+          keys.some(key => !allowedAssociationKeys.includes(key))) {
+        throw new ExecutionViewContractError('association entry has missing or unsupported fields');
+      }
+      if (requiredAssociationKeys.filter(key => key !== 'left' && key !== 'right' &&
+          key !== 'sourceDocument').some(key =>
+        typeof association[key] !== 'string' || !association[key])) {
+        throw new ExecutionViewContractError('association text fields must be non-empty strings');
+      }
+      if (!(association.left instanceof TypedReference) ||
+          !(association.right instanceof TypedReference) ||
+          !(association.sourceDocument instanceof TypedReference) ||
+          association.sourceDocument.kind !== 'DOCUMENT') {
+        throw new ExecutionViewContractError('association references are invalid');
+      }
+      const leftKey = executionReferenceKey(association.left);
+      const rightKey = executionReferenceKey(association.right);
+      const sourceKey = executionReferenceKey(association.sourceDocument);
+      if (leftKey === rightKey) {
+        throw new ExecutionViewContractError('association endpoints must be distinct');
+      }
+      [leftKey, rightKey, sourceKey].forEach(referenceKey => {
+        if (!Object.prototype.hasOwnProperty.call(records, referenceKey)) {
+          throw new ExecutionViewContractError('association reference is missing from the view');
+        }
+      });
+      if (records[sourceKey].reference.kind !== 'DOCUMENT') {
+        throw new ExecutionViewContractError('association source must reference a DOCUMENT');
+      }
+      if (Object.prototype.hasOwnProperty.call(associationIds, association.associationId)) {
+        throw new ExecutionViewContractError('duplicate association id');
+      }
+      associationIds[association.associationId] = true;
+      if (Object.prototype.hasOwnProperty.call(association, 'provenance') &&
+          association.provenance !== null && !isPlainExecutionObject(association.provenance)) {
+        throw new ExecutionViewContractError('association provenance must be an object or null');
+      }
+      const hasProvenance = Object.prototype.hasOwnProperty.call(association, 'provenance');
+      const copiedProvenance = hasProvenance
+        ? immutableExecutionCopy(association.provenance) : undefined;
+      const endpoints = [leftKey, rightKey].sort();
+      const signature = executionCanonicalJson({
+        endpoints,
+        sourceDocument: sourceKey,
+        statementText: association.statementText,
+        hasProvenance,
+        provenance: hasProvenance ? copiedProvenance : null
+      });
+      if (Object.prototype.hasOwnProperty.call(associationSignatures, signature)) {
+        throw new ExecutionViewContractError('duplicate documentary association');
+      }
+      associationSignatures[signature] = true;
+      const projected = {
+        associationId: association.associationId,
+        left: association.left,
+        right: association.right,
+        sourceDocument: association.sourceDocument,
+        statementText: association.statementText
+      };
+      if (hasProvenance) {
+        projected.provenance = copiedProvenance;
+      }
+      documentaryAssociations.push(Object.freeze(projected));
+    });
     EXECUTION_VIEW_RECORDS.set(this, Object.freeze({
       byReference: Object.freeze(records),
-      orderedReferences: Object.freeze(orderedReferences)
+      orderedReferences: Object.freeze(orderedReferences),
+      documentaryAssociations: Object.freeze(documentaryAssociations),
+      schemaVersion
     }));
     Object.freeze(this);
   }
@@ -219,6 +318,23 @@ class ImmutableExecutionView {
     if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
     const key = executionReferenceKey(reference);
     return Object.prototype.hasOwnProperty.call(state.byReference, key);
+  }
+
+  schemaVersion() {
+    const state = EXECUTION_VIEW_RECORDS.get(this);
+    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    return state.schemaVersion;
+  }
+
+  documentaryAssociations(reference) {
+    executionViewRecord(this, reference);
+    const state = EXECUTION_VIEW_RECORDS.get(this);
+    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    const key = executionReferenceKey(reference);
+    return Object.freeze(state.documentaryAssociations.filter(association =>
+      executionReferenceKey(association.left) === key ||
+      executionReferenceKey(association.right) === key
+    ));
   }
 
   read(reference) {
@@ -274,10 +390,20 @@ function isImmutableExecutionView(view) {
   return EXECUTION_VIEW_RECORDS.has(view);
 }
 
-/** Create the closed documentary projection from a validated RDE 0.2.0. */
+function executionCanonicalJson(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(executionCanonicalJson).join(',') + ']';
+  return '{' + Object.keys(value).sort().map(key =>
+    JSON.stringify(key) + ':' + executionCanonicalJson(value[key])
+  ).join(',') + '}';
+}
+
+/** Create the closed documentary projection from a validated RDE 0.2.0/0.3.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
-  if (!rde || rde.schema_version !== '0.2.0' || !Array.isArray(rde.records)) {
-    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0');
+  if (!rde || !['0.2.0', '0.3.0'].includes(rde.schema_version) ||
+      !Array.isArray(rde.records) ||
+      (rde.schema_version === '0.3.0' && !Array.isArray(rde.documentary_associations))) {
+    throw new ExecutionViewContractError('projection requires a validated RDE 0.2.0/0.3.0');
   }
   if (!entityCatalog || typeof entityCatalog !== 'object') {
     throw new ExecutionViewContractError('entityCatalog is required for RDE projection');
@@ -320,5 +446,16 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     }
     return entry;
   });
-  return new ImmutableExecutionView(entries);
+  const associations = rde.schema_version === '0.3.0'
+    ? rde.documentary_associations.map(association => ({
+      associationId: association.association_id,
+      left: referencesByRecordId[association.left_record_id],
+      right: referencesByRecordId[association.right_record_id],
+      sourceDocument: referencesByRecordId[association.source_document],
+      statementText: association.statement_text,
+      ...(Object.prototype.hasOwnProperty.call(association, 'provenance')
+        ? { provenance: association.provenance } : {})
+    }))
+    : [];
+  return new ImmutableExecutionView(entries, associations, rde.schema_version);
 }

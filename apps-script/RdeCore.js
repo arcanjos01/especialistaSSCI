@@ -1,5 +1,6 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.2.0';
+const RDE_SCHEMA_VERSION = '0.3.0';
+const RDE_PREVIOUS_SCHEMA_VERSION = '0.2.0';
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
 const RDE_FAKE_WARNING =
@@ -23,6 +24,7 @@ function buildFakeRde_(input) {
       created_at: input.createdAt
     },
     records: [],
+    documentary_associations: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -55,6 +57,7 @@ function validateRde_(rde, expected) {
     'source',
     'extraction',
     'records',
+    'documentary_associations',
     'extraction_warnings'
   ])) {
     throw new Error('RDE deve ser um objeto JSON.');
@@ -111,6 +114,10 @@ function validateRde_(rde, expected) {
 
   if (!Array.isArray(rde.records) || rde.records.length !== 0) {
     throw new Error('records deve ser uma coleção vazia no extrator fake.');
+  }
+
+  if (!Array.isArray(rde.documentary_associations) || rde.documentary_associations.length !== 0) {
+    throw new Error('documentary_associations deve ser vazia no extrator fake.');
   }
 
   if (
@@ -431,22 +438,206 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
   return true;
 }
 
-/** Valida estrutura RDE 0.2.0 sem executar Requirements ou Criteria. */
+function canonicalRdeJson_(value, active) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return JSON.stringify(value);
+  }
+  if (typeof value !== 'object') {
+    throw makeRdeValidationError_(
+      'RDE_ASSOCIATION_PROVENANCE_INVALID',
+      'documentary_associations.provenance deve conter somente valores JSON.'
+    );
+  }
+  const seen = active || new Set();
+  if (seen.has(value)) {
+    throw makeRdeValidationError_(
+      'RDE_ASSOCIATION_PROVENANCE_INVALID',
+      'documentary_associations.provenance não pode conter ciclos.'
+    );
+  }
+  seen.add(value);
+  let serialized;
+  if (Array.isArray(value)) {
+    if (Object.getOwnPropertySymbols(value).length ||
+        Object.keys(value).length !== value.length ||
+        Object.getOwnPropertyNames(value).length !== value.length + 1) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_PROVENANCE_INVALID',
+        'Arrays em provenance devem conter somente posições indexadas.'
+      );
+    }
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw makeRdeValidationError_(
+          'RDE_ASSOCIATION_PROVENANCE_INVALID',
+          'Arrays em provenance devem conter somente valores de dados.'
+        );
+      }
+    }
+    serialized = '[' + value.map(item => canonicalRdeJson_(item, seen)).join(',') + ']';
+  } else if (isPlainRdeObject_(value)) {
+    if (Object.getOwnPropertySymbols(value).length ||
+        Object.getOwnPropertyNames(value).length !== Object.keys(value).length) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_PROVENANCE_INVALID',
+        'Objetos em provenance devem conter somente campos JSON enumeráveis.'
+      );
+    }
+    Object.keys(value).forEach(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw makeRdeValidationError_(
+          'RDE_ASSOCIATION_PROVENANCE_INVALID',
+          'Provenance não pode conter propriedades calculadas.'
+        );
+      }
+    });
+    serialized = '{' + Object.keys(value).sort().map(key =>
+      JSON.stringify(key) + ':' + canonicalRdeJson_(value[key], seen)
+    ).join(',') + '}';
+  } else {
+    seen.delete(value);
+    throw makeRdeValidationError_(
+      'RDE_ASSOCIATION_PROVENANCE_INVALID',
+      'documentary_associations.provenance deve conter somente objetos simples.'
+    );
+  }
+  seen.delete(value);
+  return serialized;
+}
+
+function validateRdeDocumentaryAssociations_(associations, records, entityCatalog) {
+  if (!Array.isArray(associations)) {
+    throw makeRdeValidationError_(
+      'RDE_ASSOCIATIONS_INVALID',
+      'documentary_associations deve ser um array.'
+    );
+  }
+  const recordsById = Object.create(null);
+  records.forEach(record => { recordsById[record.record_id] = record; });
+  const associationIds = Object.create(null);
+  const structuralAssociations = Object.create(null);
+  associations.forEach((association, index) => {
+    if (!isPlainRdeObject_(association)) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_INVALID',
+        'documentary_associations[' + index + '] deve ser um objeto.'
+      );
+    }
+    const required = [
+      'association_id', 'left_record_id', 'right_record_id', 'source_document', 'statement_text'
+    ];
+    const allowed = required.concat(['provenance']);
+    const keys = Object.keys(association);
+    if (Object.getOwnPropertySymbols(association).length ||
+        Object.getOwnPropertyNames(association).length !== keys.length ||
+        keys.some(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(association, key);
+          return !descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value');
+        }) || required.some(key => !keys.includes(key)) ||
+        keys.some(key => !allowed.includes(key))) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_INVALID',
+        'documentary_associations[' + index + '] tem campos ausentes ou não declarados.'
+      );
+    }
+    required.forEach(key => {
+      if (typeof association[key] !== 'string' || !association[key]) {
+        throw makeRdeValidationError_(
+          'RDE_ASSOCIATION_INVALID',
+          'documentary_associations[' + index + '].' + key + ' deve ser string não vazia.'
+        );
+      }
+    });
+    if (association.left_record_id === association.right_record_id) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_SELF_LINK',
+        'Uma associação documental deve relacionar dois registros distintos.'
+      );
+    }
+    if (!Object.prototype.hasOwnProperty.call(recordsById, association.left_record_id) ||
+        !Object.prototype.hasOwnProperty.call(recordsById, association.right_record_id)) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_ENDPOINT_DANGLING',
+        'Os endpoints da associação devem resolver para registros da mesma RDE.'
+      );
+    }
+    const source = recordsById[association.source_document];
+    if (!source) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_SOURCE_DANGLING',
+        'source_document da associação deve resolver para a mesma RDE.'
+      );
+    }
+    const sourceDefinition = entityCatalog[source.entity_id];
+    if (!sourceDefinition || sourceDefinition.TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_SOURCE_NOT_DOCUMENT',
+        'source_document da associação deve apontar para TYPE DOCUMENT.'
+      );
+    }
+    if (Object.prototype.hasOwnProperty.call(associationIds, association.association_id)) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_ID_DUPLICATE',
+        'association_id duplicado: ' + association.association_id
+      );
+    }
+    associationIds[association.association_id] = true;
+    if (Object.prototype.hasOwnProperty.call(association, 'provenance') &&
+        association.provenance !== null && !isPlainRdeObject_(association.provenance)) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_PROVENANCE_INVALID',
+        'provenance da associação deve ser objeto simples quando informada.'
+      );
+    }
+    const endpoints = [association.left_record_id, association.right_record_id].sort();
+    const signature = canonicalRdeJson_({
+      endpoints,
+      source_document: association.source_document,
+      statement_text: association.statement_text,
+      has_provenance: Object.prototype.hasOwnProperty.call(association, 'provenance'),
+      provenance: Object.prototype.hasOwnProperty.call(association, 'provenance')
+        ? association.provenance : null
+    });
+    if (Object.prototype.hasOwnProperty.call(structuralAssociations, signature)) {
+      throw makeRdeValidationError_(
+        'RDE_ASSOCIATION_DUPLICATE',
+        'Uma associação documental estruturalmente idêntica já foi declarada.'
+      );
+    }
+    structuralAssociations[signature] = true;
+  });
+  return true;
+}
+
+/** Valida estrutura RDE 0.2.0/0.3.0 sem executar Requirements ou Criteria. */
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
   if (rde.schema_version !== RDE_SCHEMA_VERSION) {
-    throw makeRdeValidationError_(
-      'RDE_SCHEMA_VERSION_MISMATCH',
-      'schema_version deve ser ' + RDE_SCHEMA_VERSION + '.'
-    );
+    if (rde.schema_version !== RDE_PREVIOUS_SCHEMA_VERSION) {
+      throw makeRdeValidationError_(
+        'RDE_SCHEMA_VERSION_MISMATCH',
+        'schema_version deve ser ' + RDE_SCHEMA_VERSION + ' ou ' +
+          RDE_PREVIOUS_SCHEMA_VERSION + '.'
+      );
+    }
   }
 
-  if (!hasExactKeys_(rde, [
+  const expectedEnvelopeKeys = [
     'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
-  ])) {
+  ];
+  if (rde.schema_version === RDE_SCHEMA_VERSION) {
+    expectedEnvelopeKeys.push('documentary_associations');
+  }
+  if (!hasExactKeys_(rde, expectedEnvelopeKeys)) {
     throw makeRdeValidationError_(
-      'RDE_ENVELOPE_INVALID', 'O envelope raiz deve obedecer ao schema RDE 0.2.0.'
+      'RDE_ENVELOPE_INVALID',
+      'O envelope raiz não corresponde à versão RDE declarada.'
     );
   }
 
@@ -503,6 +694,10 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   }
 
   validateRdeRecordEnvelope_(rde.records, entityCatalog);
+
+  if (rde.schema_version === RDE_SCHEMA_VERSION) {
+    validateRdeDocumentaryAssociations_(rde.documentary_associations, rde.records, entityCatalog);
+  }
 
   if (!Array.isArray(rde.extraction_warnings)) {
     throw makeRdeValidationError_(

@@ -564,3 +564,40 @@ push e revisão independente. O follow-up
 `SOL_FOLLOWUP_REVIEW=PASS`; `F6-DATE-001=CLOSED`, sem novos achados. Sol
 confirmou que execução, distrato e registro de cancelamento estão separados e
 que nenhum resultado normativo foi introduzido.
+
+## Onda estrutural — associações documentais explícitas na RDE 0.3.0
+
+O bloqueio de pareamento entre documentos pode ser resolvido parcialmente sem
+inferência: o Documento 09-RDE passa a formalizar, na versão 0.3.0, uma coleção
+ordenada `documentary_associations` de declarações documentais literais entre
+dois registros, com documento-fonte e provenance opcional. A pré-revisão Sol
+6.1 da proposta do contrato retornou `SOL_FACT_PROPOSAL_REVIEW=PASS`, sem
+decisão humana. A relação mantém-se FACT-ONLY: afirma somente que a fonte
+explicitamente associa aqueles registros; não determina DRT_COVERS, validade,
+SMSCI, compatibilidade, suficiência, atendimento, funcionamento ou resultado.
+
+A RDE 0.3.0 exige o campo, que pode estar vazio; o validador verifica endpoints
+distintos e resolvidos na mesma RDE, documento-fonte `TYPE DOCUMENT`, IDs
+únicos e ausência de repetição estruturalmente idêntica. Não impõe hierarquia
+nem rejeita ciclos de associações. A ImmutableExecutionView preserva a versão e
+expõe associações tipadas, imutáveis e em ordem de origem. RDE 0.2.0 continua
+legível sem associação fabricada; qualquer futura unidade que dependa dessa
+relação deverá exigir 0.3.0. Identificadores ausentes ou ambíguos não são
+resolvidos por nome de arquivo, ordem, proximidade ou LLM.
+
+Esta onda não altera predicate, Requirement, Criterion, Nonconformity ou
+resultado e não amplia a execução. Cobertura permanece 6/31 Criteria
+produtivos: 24 bloqueados e 1 parcialmente suportado, ainda bloqueado por
+multiplicidade/evidência. O contrato explícito resolve somente a lacuna de
+representação quando a fonte declara a relação; estados/atributos da DRT,
+identidade de produto, cardinalidade e fatos para provar atividade, cobertura,
+regularização e suficiência continuam a exigir contratos/fatos próprios.
+
+A candidata local está em implementação e ainda não foi commitada nem revisada
+no diff efetivo. Gates da rodada: 150 testes Python; sete testes Apps Script;
+`node --check` em todos os módulos/testes e `Code.gs`; duas regenerações
+byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; testes
+focados RDE/view passaram antes da última adição de casos para ciclos e
+endpoint dangling. `git diff --check` passou. Repetirei os gates após concluir
+esses casos e antes do commit/push e revisão Sol do diff.

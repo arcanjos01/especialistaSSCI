@@ -48,19 +48,20 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.2.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.3.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
 );
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.2.0');
+assert.equal(rde.schema_version, '0.3.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
 assert.equal(rde.extraction.provider, 'FAKE_DETERMINISTIC');
 assert.deepEqual(JSON.parse(JSON.stringify(rde.records)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -253,6 +254,58 @@ function validateRecords(records, catalog = entityCatalog) {
 
 assert.doesNotThrow(() => validateRecords(validRecords()));
 assert.doesNotThrow(() => validateRecords([]));
+const legacyStructuralRde = {
+  ...operationalRde,
+  schema_version: '0.2.0',
+  records: validRecords()
+};
+delete legacyStructuralRde.documentary_associations;
+assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
+  legacyStructuralRde);
+const unsupportedAssociationRde = {
+  ...legacyStructuralRde,
+  documentary_associations: []
+};
+expectValidationCode(unsupportedAssociationRde, 'RDE_ENVELOPE_INVALID');
+const associationRecords = [
+  record('R_ASSOC_SOURCE', 'TEST_DOCUMENT', null, 'R_ASSOC_SOURCE', {}),
+  record('R_ASSOC_DRT', 'TEST_ITEM', null, 'R_ASSOC_SOURCE', { LABEL: 'DRT declarada' }),
+  record('R_ASSOC_REPORT', 'TEST_ITEM', null, 'R_ASSOC_SOURCE', { LABEL: 'Laudo declarado' })
+];
+const association = {
+  association_id: 'A000001', left_record_id: 'R_ASSOC_REPORT',
+  right_record_id: 'R_ASSOC_DRT', source_document: 'R_ASSOC_SOURCE',
+  statement_text: 'Laudo associado à DRT (texto documental literal)',
+  provenance: { page: 3, text_span: 'linha 4' }
+};
+assert.doesNotThrow(() => validateRecords(associationRecords, entityCatalog));
+assert.doesNotThrow(() => core.validateRdeStructure_({
+  ...operationalRde, records: associationRecords, documentary_associations: [association]
+}, operationalExpected, entityCatalog));
+function invalidAssociation(candidate, code) {
+  assert.throws(() => core.validateRdeStructure_({
+    ...operationalRde,
+    records: associationRecords,
+    documentary_associations: [candidate]
+  }, operationalExpected, entityCatalog), error => error.code === code);
+}
+invalidAssociation({ ...association, right_record_id: 'R_MISSING' }, 'RDE_ASSOCIATION_ENDPOINT_DANGLING');
+invalidAssociation({ ...association, source_document: 'R_ASSOC_DRT' }, 'RDE_ASSOCIATION_SOURCE_NOT_DOCUMENT');
+invalidAssociation({ ...association, left_record_id: 'R_ASSOC_DRT' }, 'RDE_ASSOCIATION_SELF_LINK');
+invalidAssociation({ ...association, source_document: 'R_MISSING' }, 'RDE_ASSOCIATION_SOURCE_DANGLING');
+invalidAssociation({ ...association, association_id: '' }, 'RDE_ASSOCIATION_INVALID');
+invalidAssociation({ ...association, extra: true }, 'RDE_ASSOCIATION_INVALID');
+invalidAssociation({ ...association, provenance: [] }, 'RDE_ASSOCIATION_PROVENANCE_INVALID');
+assert.throws(() => core.validateRdeStructure_({
+  ...operationalRde,
+  records: associationRecords,
+  documentary_associations: [association, { ...association, association_id: 'A000002' }]
+}, operationalExpected, entityCatalog), error => error.code === 'RDE_ASSOCIATION_DUPLICATE');
+assert.throws(() => core.validateRdeStructure_({
+  ...operationalRde,
+  records: associationRecords,
+  documentary_associations: [association, { ...association, association_id: 'A000001', statement_text: 'Outro texto' }]
+}, operationalExpected, entityCatalog), error => error.code === 'RDE_ASSOCIATION_ID_DUPLICATE');
 const signatureCatalog = {
   SOURCE_REPORT: { TYPE: 'DOCUMENT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   SHP_COMMISSIONING_REPORT: {
