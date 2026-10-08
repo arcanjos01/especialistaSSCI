@@ -438,4 +438,10 @@ executável: permanecem 6/31 Criteria produtivos cobertos, 24 integralmente
 bloqueados e 1 parcialmente suportado mas bloqueado por multiplicidade. Os
 Criteria `T1/T4_DRT_REGISTERED` e `T1/T4_DRT_SIGNED` continuam sem executor até
 que associação responsabilidade↔DRT, cardinalidade/pareamento e semântica de
-estado estejam contratados. Revisão Sol do diff funcional desta onda: pendente.
+estado estejam contratados. O candidate
+`770da61dd6d33e05a79c8a781d6a6d9921b233a3` recebeu
+`SOL_CONTRACT_DIFF_REVIEW=PASS`; Sol registrou o achado LOW `F6-DRT-001` para
+delimitadores `END` redundantes e uma observação INFO sobre combinação
+inconsistente de parte/mecanismo na fixture. Ambos foram corrigidos no
+candidate de follow-up; a revisão independente do diff corrigido está pendente.
+Nenhum finding foi fechado por autorrevisão.

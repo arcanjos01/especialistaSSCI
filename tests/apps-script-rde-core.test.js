@@ -297,13 +297,20 @@ const drtFactFields = {
   COUNCIL_REGISTRATION_STATUS: 'registrada no conselho',
   COUNCIL_ISSUANCE_STATUS: 'emitida; não é rascunho',
   COUNCIL_PAYMENT_STATUS: 'paga',
-  SIGNATURE_PARTY: 'RT',
+  SIGNATURE_PARTY: 'Conselho emissor',
   SIGNATURE_MECHANISM: 'certificação digital do conselho emissor'
 };
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
+  record('R_DRT_RT_SOURCE', 'PPCI', null, 'R_DRT_RT_SOURCE', {}, { page: 1 }),
   record('R_DRT_FACT_DRT', 'DRT', null, 'R_DRT_FACT_DRT',
     { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123' }, { page: 2, field: 'explicitly-labeled' }),
+  record('R_DRT_FACT_ART_RT', 'ART', null, 'R_DRT_RT_SOURCE', {
+    ...drtFactFields,
+    DRT_IDENTIFIER: 'ART 000456',
+    SIGNATURE_PARTY: 'RT',
+    SIGNATURE_MECHANISM: 'assinatura digital do RT'
+  }, { page: 2, field: 'explicitly-labeled' }),
   ...['ART', 'RRT', 'TRT'].map((entityId, index) => record(
     'R_DRT_FACT_' + entityId,
     entityId,

@@ -132,8 +132,6 @@ permanecem ausentes e não são conclusões de autenticidade ou conformidade.
 
 END
 
-END
-
 -------------------------------------------------------------------------------
 
 ENTITY RRT
@@ -162,8 +160,6 @@ permanecem ausentes e não são conclusões de autenticidade ou conformidade.
 
 END
 
-END
-
 -------------------------------------------------------------------------------
 
 ENTITY TRT
@@ -189,8 +185,6 @@ Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
 `SIGNATURE_MECHANISM` seguem a definição comum da entidade `DRT`. Aplicam-se
 somente a fatos explicitamente apresentados neste TRT; dados ausentes
 permanecem ausentes e não são conclusões de autenticidade ou conformidade.
-
-END
 
 END
 
