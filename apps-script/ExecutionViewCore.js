@@ -21,7 +21,9 @@ function isPlainExecutionObject(value) {
   }
   if (Object.prototype.toString.call(value) !== '[object Object]') return false;
   const prototype = Object.getPrototypeOf(value);
-  return prototype === null || Object.getPrototypeOf(prototype) === null;
+  // Execution facts originate in JSON and use an Object prototype. Reject
+  // null-prototype containers, which can hide native Map/Set internal data.
+  return prototype !== null && Object.getPrototypeOf(prototype) === null;
 }
 
 function immutableExecutionCopy(value, active = []) {

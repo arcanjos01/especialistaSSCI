@@ -240,7 +240,10 @@ function isPlainRdeObject_(value) {
   }
   if (Object.prototype.toString.call(value) !== '[object Object]') return false;
   const prototype = Object.getPrototypeOf(value);
-  return prototype === null || Object.getPrototypeOf(prototype) === null;
+  // JSON-parsed RDE objects have an Object prototype; null-prototype containers
+  // are not accepted because native Map/Set values lose their intrinsic tag
+  // when their prototype is removed.
+  return prototype !== null && Object.getPrototypeOf(prototype) === null;
 }
 
 function rdeEntityDefinition_(entityCatalog, entityId) {

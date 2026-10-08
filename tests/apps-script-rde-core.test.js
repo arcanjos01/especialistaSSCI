@@ -494,6 +494,16 @@ assert.throws(() => validateRecords([
   record('R_NATIVE_NUMBER_ATTRS', 'TEST_DOCUMENT', null, 'R_NATIVE_NUMBER_ATTRS',
     boxedNumberWithNullPrototype)
 ]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
+for (const [label, nativeValue] of [
+  ['MAP', new Map([['declared', 'factual value']])],
+  ['SET', new Set(['factual value'])]
+]) {
+  Object.setPrototypeOf(nativeValue, null);
+  assert.throws(() => validateRecords([
+    record('R_NATIVE_' + label + '_ATTRS', 'TEST_DOCUMENT', null,
+      'R_NATIVE_' + label + '_ATTRS', nativeValue)
+  ]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
+}
 let attributeValueGetterCalls = 0;
 const computedAttributeValue = {};
 Object.defineProperty(computedAttributeValue, 'REQUEST_IDENTIFIER', {

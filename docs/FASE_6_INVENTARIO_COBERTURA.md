@@ -711,3 +711,17 @@ byte-idênticas do contrato compilado com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
 `git diff --check`. Commit/push e nova revisão Sol deste candidato ainda
 pendentes; cobertura permanece 6/31 e não houve execução normativa ampliada.
+
+A revisão independente do candidate `e03ed749b3a39d769fb2078467538a97af444818`
+fechou `F6-ASSOC-009`, mas manteve `F6-ASSOC-010` MEDIUM aberto: `Map` e
+`Set` com protótipo removido não expõem tag intrínseca por
+`Object.prototype.toString` e podiam ser convertidos silenciosamente em `{}`.
+Correção local: os helpers agora exigem a cadeia de protótipos dos objetos
+JSON e rejeitam protótipo nulo, além de percorrer descriptors de
+`Symbol.toStringTag` antes da classificação intrínseca. Fixtures cobrem `Map`
+e `Set` sem protótipo na validação RDE e na projeção, além das regressões de
+`Date`, `Number` e getter. Gates completos passaram: 150 Python, sete suítes
+Apps Script, sintaxe JS/`Code.gs`, duas gerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. Este candidato corrigido ainda aguarda commit/push e nova
+revisão independente Sol; cobertura continua 6/31.
