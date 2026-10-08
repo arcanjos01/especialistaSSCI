@@ -170,6 +170,11 @@ Object.defineProperty(toStringTagProjectionRde.documentary_associations[0],
   });
 assert.throws(() => api.projectRdeToExecutionView_(toStringTagProjectionRde, entityCatalog));
 assert.equal(executionToStringTagGetterCalls, 0);
+const nativeDateProjectionRde = JSON.parse(JSON.stringify(validatedRde));
+const nativeDateWithNullPrototype = new Date('2026-10-08T00:00:00.000Z');
+Object.setPrototypeOf(nativeDateWithNullPrototype, null);
+nativeDateProjectionRde.documentary_associations[0].provenance = nativeDateWithNullPrototype;
+assert.throws(() => api.projectRdeToExecutionView_(nativeDateProjectionRde, entityCatalog));
 const prototypeMapRde = JSON.parse(JSON.stringify(validatedRde));
 prototypeMapRde.documentary_associations = [];
 let inheritedMapCalls = 0;

@@ -482,6 +482,18 @@ assert.throws(() => validateRecords([
     computedTagAttributes)
 ]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
 assert.equal(rdeToStringTagGetterCalls, 0);
+const dateWithNullPrototype = new Date('2026-10-08T00:00:00.000Z');
+Object.setPrototypeOf(dateWithNullPrototype, null);
+assert.throws(() => validateRecords([
+  record('R_NATIVE_DATE_ATTRS', 'TEST_DOCUMENT', null, 'R_NATIVE_DATE_ATTRS',
+    dateWithNullPrototype)
+]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
+const boxedNumberWithNullPrototype = new Number(7);
+Object.setPrototypeOf(boxedNumberWithNullPrototype, null);
+assert.throws(() => validateRecords([
+  record('R_NATIVE_NUMBER_ATTRS', 'TEST_DOCUMENT', null, 'R_NATIVE_NUMBER_ATTRS',
+    boxedNumberWithNullPrototype)
+]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
 let attributeValueGetterCalls = 0;
 const computedAttributeValue = {};
 Object.defineProperty(computedAttributeValue, 'REQUEST_IDENTIFIER', {

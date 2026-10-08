@@ -696,3 +696,18 @@ gerações byte-idênticas de `CompiledRuntimeContract.js` com SHA-256
 `git diff --check`. A revisão independente do candidate corrigido e seu
 commit/push ainda estão pendentes. Cobertura permanece 6/31; esta correção de
 integridade não acrescenta predicate nem amplia execução normativa.
+
+A revisão independente do candidate `51a061ad8c6f9ecd0b649ac841bdbab061b0a711`
+confirmou o fechamento de `F6-ASSOC-009`, mas abriu `F6-ASSOC-010` MEDIUM:
+objetos nativos sem protótipo poderiam ser classificados como objetos simples
+e normalizados para `{}`. A correção mantém a classificação intrínseca de
+`Object.prototype.toString` somente depois de percorrer a cadeia de protótipos
+por descriptors próprios e rejeitar qualquer `Symbol.toStringTag`, sem invocar
+accessors. Regressões cobrem getter não executado, `Date` e `Number` encapsulado
+com protótipo removido em validação RDE, e `Date` em provenance de associação
+na projeção. Os gates completos passaram: 150 testes Python, sete suítes
+Apps Script, `node --check` em módulos/testes e `Code.gs`, duas regenerações
+byte-idênticas do contrato compilado com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. Commit/push e nova revisão Sol deste candidato ainda
+pendentes; cobertura permanece 6/31 e não houve execução normativa ampliada.

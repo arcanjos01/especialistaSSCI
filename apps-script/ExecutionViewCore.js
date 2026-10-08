@@ -14,6 +14,12 @@ function executionReferenceKey(reference) {
 
 function isPlainExecutionObject(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  let current = value;
+  while (current !== null) {
+    if (Object.getOwnPropertyDescriptor(current, Symbol.toStringTag)) return false;
+    current = Object.getPrototypeOf(current);
+  }
+  if (Object.prototype.toString.call(value) !== '[object Object]') return false;
   const prototype = Object.getPrototypeOf(value);
   return prototype === null || Object.getPrototypeOf(prototype) === null;
 }
