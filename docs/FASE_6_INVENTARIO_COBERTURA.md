@@ -856,3 +856,12 @@ IR. Os testes demonstram seleção da unidade, materialização positiva dos tr�
 casos, manutenção de Criteria compostos como unsupported, estado `VALIDATED`,
 nenhum resultado/persistência/execução na readiness e RDE não mutada. O fluxo
 de resultados não mudou e `ANALYZED` continua fora da Fase 6.
+
+Candidate `a3d9e0432814c381aca82fff054f48538a6331e4`, revisado por Sol 6.1
+contra `805ee9ce9c483e447fb96634cb17b21c5f2e0716`, recebeu
+`SOL_REVIEW=PASS` sem findings. Sol confirmou a cobertura materializável 9/31,
+a restrição dos Criteria compostos e a preservação das fronteiras read-only.
+Gates no candidate: 150 testes Python, sete suítes Apps Script, sintaxe de
+módulos/testes JS e `Code.gs`, regeneração dupla byte-idêntica (SHA-256
+`8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`) e
+`git diff --check`.
