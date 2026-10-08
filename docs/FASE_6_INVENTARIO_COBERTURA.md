@@ -764,3 +764,18 @@ dupla regeneração byte-idêntica (`77b4e53117788dc784218fe2045c7ca845ca3dcece5
 e `git diff --check` foram executados antes da revisão neste SHA. A onda trata
 somente integridade da RDE/view; cobertura normativa continua 6/31 e nenhuma
 transição para `ANALYZED` foi iniciada.
+
+## Fechamento da integridade da associação documental
+
+O candidate `5c0425c2b97ebb7ad5bfcbd5a4d41b422ea85e40` recebeu
+`SOL_CONTRACT_DIFF_REVIEW=PASS` contra `4cabd534ac050dcad42be5efdee78129d1723247`.
+Sol confirmou `F6-ASSOC-009` e `F6-ASSOC-010` encerrados e não encontrou
+regressões em objetos JSON válidos. A revisão verificou as quatro marcas de
+coleção, buffers, DataView e typed arrays com protótipos substituídos. Gates
+completos passaram no candidate revisado: 150 Python, sete suítes Apps Script,
+sintaxe de todos os módulos/testes JS e `Code.gs`, regeneração dupla
+byte-idêntica com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57` e
+`git diff --check`. Os findings de integridade `F6-ASSOC-001..010` estão
+fechados; nenhuma regra normativa ou resultado foi adicionado. Cobertura segue
+6/31 e a Fase 5B/`ANALYZED` não foi iniciada.
