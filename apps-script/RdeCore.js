@@ -303,7 +303,12 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
     }
     const keys = Object.keys(record).sort();
     const allowed = requiredKeys.concat(['provenance']).sort();
-    if (requiredKeys.some(key => !Object.prototype.hasOwnProperty.call(record, key)) ||
+    if (Object.getOwnPropertySymbols(record).length ||
+        Object.getOwnPropertyNames(record).length !== keys.length ||
+        keys.some(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(record, key);
+          return !descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value');
+        }) || requiredKeys.some(key => !Object.prototype.hasOwnProperty.call(record, key)) ||
         keys.some(key => !allowed.includes(key))) {
       throw makeRdeValidationError_(
         'RDE_RECORD_ENVELOPE_INVALID',
@@ -332,6 +337,14 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
     if (!isPlainRdeObject_(record.attributes)) {
       throw makeRdeValidationError_(
         'RDE_RECORD_ATTRIBUTES_INVALID', 'records[' + index + '].attributes deve ser objeto.'
+      );
+    }
+    try {
+      canonicalRdeJson_(record.attributes);
+    } catch (error) {
+      throw makeRdeValidationError_(
+        'RDE_RECORD_ATTRIBUTES_INVALID',
+        'records[' + index + '].attributes deve conter somente valores JSON de dados.'
       );
     }
     ['record_id', 'entity_id', 'parent_record_id', 'source_document', 'provenance']
@@ -378,6 +391,16 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
       throw makeRdeValidationError_(
         'RDE_RECORD_PROVENANCE_INVALID', 'provenance deve ser objeto quando informado.'
       );
+    }
+    if (Object.prototype.hasOwnProperty.call(record, 'provenance')) {
+      try {
+        canonicalRdeJson_(record.provenance);
+      } catch (error) {
+        throw makeRdeValidationError_(
+          'RDE_RECORD_PROVENANCE_INVALID',
+          'provenance deve conter somente valores JSON de dados.'
+        );
+      }
     }
     recordsById[record.record_id] = record;
     definitionsById[record.record_id] = definition;
@@ -509,7 +532,12 @@ function canonicalRdeJson_(value, active) {
         );
       }
     }
-    serialized = '[' + value.map(item => canonicalRdeJson_(item, seen)).join(',') + ']';
+    const items = [];
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      items.push(canonicalRdeJson_(descriptor.value, seen));
+    }
+    serialized = '[' + items.join(',') + ']';
   } else if (isPlainRdeObject_(value)) {
     if (Object.getOwnPropertySymbols(value).length ||
         Object.getOwnPropertyNames(value).length !== Object.keys(value).length) {

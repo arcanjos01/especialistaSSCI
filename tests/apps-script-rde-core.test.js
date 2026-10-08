@@ -462,6 +462,48 @@ assert.throws(() => validateRecords([
 assert.throws(() => validateRecords([
   record('R000001', 'TEST_ITEM', null, 'R000001', { DECLARED_ENUM: 1 })
 ]), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
+let attributesGetterCalls = 0;
+const recordWithComputedAttributes = { ...record('R_COMPUTED_ATTRS', 'TEST_DOCUMENT', null,
+  'R_COMPUTED_ATTRS', {}) };
+Object.defineProperty(recordWithComputedAttributes, 'attributes', {
+  enumerable: true, get() { attributesGetterCalls += 1; return {}; }
+});
+assert.throws(() => validateRecords([recordWithComputedAttributes]),
+  error => error.code === 'RDE_RECORD_ENVELOPE_INVALID');
+assert.equal(attributesGetterCalls, 0);
+let attributeValueGetterCalls = 0;
+const computedAttributeValue = {};
+Object.defineProperty(computedAttributeValue, 'REQUEST_IDENTIFIER', {
+  enumerable: true, get() { attributeValueGetterCalls += 1; return 'TEST_ONLY'; }
+});
+assert.throws(() => validateRecords([
+  record('R_COMPUTED_ATTR_VALUE', 'TEST_DOCUMENT', null, 'R_COMPUTED_ATTR_VALUE',
+    computedAttributeValue)
+]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
+assert.equal(attributeValueGetterCalls, 0);
+let provenanceGetterCalls = 0;
+const computedProvenance = {};
+Object.defineProperty(computedProvenance, 'page', {
+  enumerable: true, get() { provenanceGetterCalls += 1; return 1; }
+});
+assert.throws(() => validateRecords([
+  record('R_COMPUTED_PROVENANCE', 'TEST_DOCUMENT', null, 'R_COMPUTED_PROVENANCE', {},
+    computedProvenance)
+]), error => error.code === 'RDE_RECORD_PROVENANCE_INVALID');
+assert.equal(provenanceGetterCalls, 0);
+let provenanceArrayMapCalls = 0;
+const provenanceArrayPrototype = Object.create(Array.prototype);
+provenanceArrayPrototype.map = function forgedMap() {
+  provenanceArrayMapCalls += 1;
+  return ['unvalidated provenance'];
+};
+const provenanceArray = ['TEST_ONLY factual location'];
+Object.setPrototypeOf(provenanceArray, provenanceArrayPrototype);
+assert.doesNotThrow(() => validateRecords([
+  record('R_PROVENANCE_ARRAY', 'TEST_DOCUMENT', null, 'R_PROVENANCE_ARRAY', {},
+    { locations: provenanceArray })
+]));
+assert.equal(provenanceArrayMapCalls, 0);
 assert.throws(() => validateRecords([
   record('R000001', 'TEST_ITEM', null, 'R000001', {})
 ], { TEST_ITEM: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['LABEL'] } }),

@@ -667,3 +667,18 @@ revisão Sol dessa correção ainda estão pendentes. Gates locais passaram:
 JS e `Code.gs`; duas gerações byte-idênticas com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
 `git diff --check`. Cobertura continua 6/31.
+
+A revisão estática do candidate `b5ae932c6b83abfd99af52d0cfa08d33bb3b09ae`
+fechou `F6-ASSOC-001..006`, mas abriu `F6-ASSOC-007` MEDIUM (array de
+provenance ainda passava por `map()` herdado) e `F6-ASSOC-008` MEDIUM
+(accessors em campos de record poderiam fornecer novos `attributes` ou
+`provenance` depois de validações). Correção local em andamento: canonicalização
+de arrays usa descriptors/índices próprios, envelope de record rejeita campos
+calculados, e `attributes`/`provenance` são validados recursivamente como dados
+JSON antes de serem lidos pela projeção. Fixtures verificam que getters e
+`map()` herdados não executam. Gates locais deste estado passaram:
+150 testes Python; sete suítes Apps Script; sintaxe de todos os módulos/testes
+JS e `Code.gs`; duas gerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
+`git diff --check`. Commit/push e revisão independente deste candidate ainda
+estão pendentes. Cobertura continua 6/31.
