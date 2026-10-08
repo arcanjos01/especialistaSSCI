@@ -304,7 +304,11 @@ const drtFactFields = {
   PROPERTY_ADDRESS_TEXT: 'Rua demonstrativa, 10, Centro',
   PROPERTY_AREA_TEXT: '120,00 m² (área informada)',
   DECLARED_ACTIVITY_SERVICE_TEXT: 'Execução de sistema preventivo; serviço descrito na DRT',
-  DECLARED_SMSCI_SCOPE_TEXT: 'Sistema preventivo contra incêndio e pânico'
+  DECLARED_SMSCI_SCOPE_TEXT: 'Sistema preventivo contra incêndio e pânico',
+  DRT_ISSUE_DATE_TEXT: 'Data de emissão: 15/03/2026',
+  DRT_DOCUMENT_ROLE_TEXT: 'Designação documental declarada (fixture sintética)',
+  DRT_CANCELLATION_STATUS_TEXT: 'Declaração textual de cancelamento (fixture sintética)',
+  DRT_TERMINATION_SERVICES_TEXT: 'Serviço descrito como realizado (fixture sintética)'
 };
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
@@ -317,7 +321,9 @@ const drtFactRecords = [
     SIGNATURE_PARTY: 'RT',
     SIGNATURE_MECHANISM: 'assinatura digital do RT',
     RT_NAME: 'RT identificado nesta ART',
-    PROPERTY_AREA_TEXT: '85 m²'
+    PROPERTY_AREA_TEXT: '85 m²',
+    DRT_ISSUE_DATE_TEXT: '15/03/2026',
+    DRT_DOCUMENT_ROLE_TEXT: 'ART identificada como DRT de execução'
   }, { page: 2, field: 'explicitly-labeled' }),
   ...['ART', 'RRT', 'TRT'].map((entityId, index) => record(
     'R_DRT_FACT_' + entityId,
@@ -338,12 +344,12 @@ assert.doesNotThrow(() => validateRecords([
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_ART_BAD_TYPE', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { DECLARED_SMSCI_SCOPE_TEXT: 120 }, { page: 2 })
+    { DRT_ISSUE_DATE_TEXT: 20260315 }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_NON_DRT_SIGNATURE', 'PRESSURIZATION_OPERATION_MANUAL', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { DECLARED_ACTIVITY_SERVICE_TEXT: 'Execução declarada' }, { page: 2 })
+    { DRT_TERMINATION_SERVICES_TEXT: 'Serviço explicitamente descrito' }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_UNDECLARED_ENTITY_ATTRIBUTE');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})

@@ -522,3 +522,32 @@ registrados como concluídos: o candidate
 confirmou que apenas `entityCatalog` mudou com os dois atributos nas quatro
 entidades DRT e que os fixtures respeitam o envelope RDE. A cobertura continua
 6/31. O candidato está publicado no branch; ANALYZED não foi iniciado.
+
+## Onda factual — emissão, cancelamento e distrato da DRT
+
+Proposta revisada independentemente antes da alteração:
+`SOL_FACT_PROPOSAL_REVIEW=PASS`. A IN 19, art. 18, parágrafo único,
+alíneas b/c, usa expressamente a data de emissão para as alternativas de
+manutenção (últimos 5 anos) e reforma (últimos 10 anos); a IRV Habite-se,
+Tabela 4, p. 9, reproduz a verificação. A DTZ OP nº 26/2026, art. 74, caput,
+incisos I e II(b), menciona comunicação de revogação/cancelamento, DRT de
+baixa por distrato total ou DRT de distrato de contrato e serviços
+efetivamente realizados e sob responsabilidade.
+
+Foram formalizados como campos opcionais `TEXT` em DRT/ART/RRT/TRT:
+`DRT_ISSUE_DATE_TEXT`, `DRT_DOCUMENT_ROLE_TEXT`,
+`DRT_CANCELLATION_STATUS_TEXT` e `DRT_TERMINATION_SERVICES_TEXT`. Preservam o
+conteúdo e os rótulos literais, sem normalizar datas, inferir papel ou
+cancelamento, ou concluir invalidade perante o CBMSC. A associação da
+comunicação externa do RT à DRT, datas de cancelamento, períodos de execução,
+vínculo entre DRTs sucessivas, continuidade temporal e comparação de prazos
+permanecem fora desta formalização e sem executor.
+
+Nenhum predicate, Requirement, Criterion, Nonconformity ou resultado foi
+alterado; a cobertura continua 6/31 (24 bloqueados e 1 parcialmente
+suportado, ainda bloqueado por multiplicidade). Os gates passaram: 150 testes
+Python, sete testes JS, sintaxe de todos os módulos/testes e `Code.gs`, duas
+gerações byte-idênticas com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. Revisão Sol do diff efetivo e candidato commit/push estão
+pendentes.

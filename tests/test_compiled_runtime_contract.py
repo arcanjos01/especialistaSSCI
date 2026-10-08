@@ -101,6 +101,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             "PROPERTY_AREA_TEXT": "TEXT",
             "DECLARED_ACTIVITY_SERVICE_TEXT": "TEXT",
             "DECLARED_SMSCI_SCOPE_TEXT": "TEXT",
+            "DRT_ISSUE_DATE_TEXT": "TEXT",
+            "DRT_DOCUMENT_ROLE_TEXT": "TEXT",
+            "DRT_CANCELLATION_STATUS_TEXT": "TEXT",
+            "DRT_TERMINATION_SERVICES_TEXT": "TEXT",
         }
         for entity_id in ("DRT", "ART", "RRT", "TRT"):
             with self.subTest(entity=entity_id):

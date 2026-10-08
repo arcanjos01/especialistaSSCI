@@ -93,6 +93,14 @@ ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
 
 ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
 
+ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
+
+ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
+
+ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
+
+ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
+
 DESCRIPTION
 
 COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
@@ -140,6 +148,25 @@ ausente/insuficiente para tratamento posterior. Esses campos FACT-ONLY não
 determinam compatibilidade, cobertura, validade ou satisfação de
 Responsabilidade Técnica, e não associam a DRT a produto técnico.
 
+DRT_ISSUE_DATE_TEXT registra literalmente a data identificada no documento
+como emissão desta DRT; não registra data de execução, período de serviço ou
+data de cancelamento. DRT_DOCUMENT_ROLE_TEXT registra somente a denominação
+documental explícita, por exemplo, DRT de baixa por distrato total ou DRT de
+distrato de contrato. DRT_CANCELLATION_STATUS_TEXT registra somente uma
+declaração explícita, atribuída inequivocamente a esta DRT, de que ela foi
+revogada ou cancelada; não é estado de validade perante o CBMSC.
+DRT_TERMINATION_SERVICES_TEXT registra somente serviços explicitamente
+descritos em distrato como efetivamente realizados e sob responsabilidade.
+As fontes diretas são IN 19, art. 18, parágrafo único, alíneas b/c (data de
+emissão), e DTZ OP nº 26/2026, art. 74, caput e incisos I e II(b) (papel,
+declaração de cancelamento e serviços efetivamente realizados). Os quatro
+campos são opcionais, textuais e literais. Não normalizar datas, inferir
+cancelamento a partir do título, inferir título ou papel a partir da
+atividade, combinar documentos ou declarações conflitantes, nem inferir
+validade, sequência/continuidade da execução, cobertura ou satisfação de
+Responsabilidade Técnica. Informação ausente, ilegível, ambígua ou sem vínculo
+documental inequívoco permanece ausente/insuficiente.
+
 END
 
 -------------------------------------------------------------------------------
@@ -172,6 +199,14 @@ ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
 
 ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
 
+ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
+
+ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
+
+ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
+
+ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -185,6 +220,10 @@ registram somente o que estiver explicitamente apresentado nesta ART.
 `DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
 definições FACT-ONLY comuns da entidade `DRT`; não representam associação
 estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
+`DRT_ISSUE_DATE_TEXT`, `DRT_DOCUMENT_ROLE_TEXT`,
+`DRT_CANCELLATION_STATUS_TEXT` e `DRT_TERMINATION_SERVICES_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não determinam situação ou
+validade normativa da DRT.
 
 END
 
@@ -218,6 +257,14 @@ ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
 
 ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
 
+ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
+
+ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
+
+ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
+
+ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -231,6 +278,10 @@ registram somente o que estiver explicitamente apresentado nesta RRT.
 `DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
 definições FACT-ONLY comuns da entidade `DRT`; não representam associação
 estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
+`DRT_ISSUE_DATE_TEXT`, `DRT_DOCUMENT_ROLE_TEXT`,
+`DRT_CANCELLATION_STATUS_TEXT` e `DRT_TERMINATION_SERVICES_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não determinam situação ou
+validade normativa da DRT.
 
 END
 
@@ -264,6 +315,14 @@ ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
 
 ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
 
+ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
+
+ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
+
+ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
+
+ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -277,6 +336,10 @@ registram somente o que estiver explicitamente apresentado neste TRT.
 `DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
 definições FACT-ONLY comuns da entidade `DRT`; não representam associação
 estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
+`DRT_ISSUE_DATE_TEXT`, `DRT_DOCUMENT_ROLE_TEXT`,
+`DRT_CANCELLATION_STATUS_TEXT` e `DRT_TERMINATION_SERVICES_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não determinam situação ou
+validade normativa da DRT.
 
 END
 
