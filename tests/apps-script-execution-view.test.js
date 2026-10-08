@@ -175,14 +175,19 @@ const nativeDateWithNullPrototype = new Date('2026-10-08T00:00:00.000Z');
 Object.setPrototypeOf(nativeDateWithNullPrototype, null);
 nativeDateProjectionRde.documentary_associations[0].provenance = nativeDateWithNullPrototype;
 assert.throws(() => api.projectRdeToExecutionView_(nativeDateProjectionRde, entityCatalog));
-for (const nativeValue of [
-  new Map([['declared', 'factual value']]),
-  new Set(['factual value'])
+for (const createNativeValue of [
+  () => new Map([['declared', 'factual value']]),
+  () => new Set(['factual value']),
+  () => new WeakMap([[{}, 'factual value']]),
+  () => new WeakSet([{}])
 ]) {
-  Object.setPrototypeOf(nativeValue, null);
-  const nativeValueProjectionRde = JSON.parse(JSON.stringify(validatedRde));
-  nativeValueProjectionRde.documentary_associations[0].provenance = nativeValue;
-  assert.throws(() => api.projectRdeToExecutionView_(nativeValueProjectionRde, entityCatalog));
+  for (const prototype of [null, Object.prototype]) {
+    const nativeValue = createNativeValue();
+    Object.setPrototypeOf(nativeValue, prototype);
+    const nativeValueProjectionRde = JSON.parse(JSON.stringify(validatedRde));
+    nativeValueProjectionRde.documentary_associations[0].provenance = nativeValue;
+    assert.throws(() => api.projectRdeToExecutionView_(nativeValueProjectionRde, entityCatalog));
+  }
 }
 const prototypeMapRde = JSON.parse(JSON.stringify(validatedRde));
 prototypeMapRde.documentary_associations = [];

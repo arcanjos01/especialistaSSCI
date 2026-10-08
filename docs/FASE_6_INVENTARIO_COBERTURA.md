@@ -725,3 +725,17 @@ Apps Script, sintaxe JS/`Code.gs`, duas gerações byte-idênticas com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
 `git diff --check`. Este candidato corrigido ainda aguarda commit/push e nova
 revisão independente Sol; cobertura continua 6/31.
+
+A revisão independente do candidate `f00afbf31b8bfa2969b0394983e95fbb1751eeb6`
+identificou a mesma falha residual em `Map`/`Set` quando o protótipo era
+substituído por `Object.prototype`, mantendo `F6-ASSOC-010` MEDIUM aberto.
+Este candidato acrescenta verificações de marca sem mutação usando os métodos
+nativos `has` de `Map`, `Set`, `WeakMap` e `WeakSet`, antes de inspecionar
+`Symbol.toStringTag`. As fixtures agora testam as quatro coleções com protótipo
+nulo e com `Object.prototype` tanto na validação RDE quanto na projeção de
+provenance; os testes de `Date`, `Number` e getter permanecem. Gates completos
+passaram: 150 testes Python, sete suítes Apps Script, sintaxe de módulos/testes
+JS e `Code.gs`, duas regenerações byte-idênticas do contrato com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. O candidato corrigido ainda aguarda commit/push e revisão
+independente Sol; cobertura permanece 6/31.

@@ -12,8 +12,30 @@ function executionReferenceKey(reference) {
   return JSON.stringify([reference.kind, reference.identifier]);
 }
 
+function hasNativeExecutionCollectionBrand(value) {
+  const probe = {};
+  const checks = [
+    typeof Map === 'function' && [Map.prototype, 'has'],
+    typeof Set === 'function' && [Set.prototype, 'has'],
+    typeof WeakMap === 'function' && [WeakMap.prototype, 'has'],
+    typeof WeakSet === 'function' && [WeakSet.prototype, 'has']
+  ];
+  for (let index = 0; index < checks.length; index += 1) {
+    const check = checks[index];
+    if (!check) continue;
+    try {
+      Object.getOwnPropertyDescriptor(check[0], check[1]).value.call(value, probe);
+      return true;
+    } catch (error) {
+      // The intrinsic brand check rejects ordinary objects without reading them.
+    }
+  }
+  return false;
+}
+
 function isPlainExecutionObject(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (hasNativeExecutionCollectionBrand(value)) return false;
   let current = value;
   while (current !== null) {
     if (Object.getOwnPropertyDescriptor(current, Symbol.toStringTag)) return false;
