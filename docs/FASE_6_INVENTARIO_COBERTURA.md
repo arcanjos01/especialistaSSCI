@@ -484,3 +484,35 @@ módulos/testes e validação sintática de `Code.gs`, duas gerações byte-idê
 com SHA-256 `a4778f934ded0eb46397bce325aeb7a55739ba10d28022f470fca2cee254b5dc`,
 e `git diff --check`. Nenhum Requirement, Criterion, Nonconformity, predicate,
 executor ou resultado foi alterado; ANALYZED não foi iniciado.
+
+## Onda factual — atividade, serviços e escopo declarado na DRT
+
+Proposta revisada independentemente antes da alteração:
+`SOL_FACT_PROPOSAL_REVIEW=PASS`. A IRV Habite-se, Anexo A, Tabela 1, p. 5,
+determina identificar na DRT a descrição das atividades profissionais,
+especificando os serviços, e os SMSCI pelos quais o RT declara
+responsabilidade. Foram formalizados dois fatos textuais em `DRT`, `ART`,
+`RRT` e `TRT`: `DECLARED_ACTIVITY_SERVICE_TEXT` e
+`DECLARED_SMSCI_SCOPE_TEXT`.
+
+Os valores preservam o texto da DRT e seus qualificadores, com provenance no
+registro. A declaração genérica permanece literal; não é expandida pela lista
+do PPCI. Não se resumem nem normalizam atividades/serviços, não se associam
+itens entre si e não se deduz compatibilidade, cobertura, execução,
+regularização, validade, atendimento de RT ou vínculo com produto técnico.
+Se a atribuição à DRT for ambígua ou houver declarações incompatíveis sem
+vínculo documental inequívoco, não selecionar nem concatenar candidatos. A
+RDE atual não representa cardinalidade/vínculos por item; associação entre
+atividade, serviço, SMSCI, profissional, produto e responsabilidade permanece
+`MISSING_EVIDENCE_CONTRACT`.
+
+Esta onda não acrescenta predicate, Requirement, Criterion, Nonconformity ou
+resultado e não aumenta cobertura: permanecem 6/31 Criteria produtivos cobertos
+(24 integralmente bloqueados e 1 parcialmente suportado, ainda bloqueado por
+multiplicidade). A pré-revisão Sol confirmou a fonte e os limites, mas não
+atestou extração confiável nem cobertura executável. Gates locais passaram
+antes do registro final: 150 testes Python, sete testes JS, sintaxe de todos os
+módulos/testes e `Code.gs`, duas gerações byte-idênticas com SHA-256
+`a68906db309d35e3c495f2ccbc25b53393ab520004149b79b2057a4a7fdc79e0`, e
+`git diff --check`. Revisão Sol do diff efetivo e candidato commit/push estão
+pendentes.

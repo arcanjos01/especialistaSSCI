@@ -89,6 +89,10 @@ ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
 
 ATTRIBUTE PROPERTY_AREA_TEXT TEXT
 
+ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
+
+ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
+
 DESCRIPTION
 
 COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
@@ -123,6 +127,19 @@ ambiguidade ou valores incompatíveis, não selecionar, concatenar ou inferir;
 preservar os fatos individualmente com sua provenance e manter a insuficiência
 para tratamento contratual posterior.
 
+DECLARED_ACTIVITY_SERVICE_TEXT registra, como texto documental, a descrição
+das atividades profissionais e dos serviços explicitamente declarados nesta
+DRT. DECLARED_SMSCI_SCOPE_TEXT registra o texto que identifica os SMSCI pelos
+quais o RT declara responsabilidade nesta DRT. A fonte factual é a IRV
+Habite-se, Anexo A, Tabela 1, p. 5. Preservar o trecho e seus
+qualificadores; não resumir, classificar, normalizar, expandir declaração
+genérica, nem associar cada atividade, serviço ou SMSCI entre si. Se a
+atribuição à DRT for ambígua ou houver declarações incompatíveis sem vínculo
+documental inequívoco, não selecionar nem concatenar; manter a informação
+ausente/insuficiente para tratamento posterior. Esses campos FACT-ONLY não
+determinam compatibilidade, cobertura, validade ou satisfação de
+Responsabilidade Técnica, e não associam a DRT a produto técnico.
+
 END
 
 -------------------------------------------------------------------------------
@@ -151,6 +168,10 @@ ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
 
 ATTRIBUTE PROPERTY_AREA_TEXT TEXT
 
+ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
+
+ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -161,6 +182,9 @@ permanecem ausentes e não são conclusões de autenticidade ou conformidade.
 Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
 `PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
 registram somente o que estiver explicitamente apresentado nesta ART.
+`DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não representam associação
+estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
 
 END
 
@@ -190,6 +214,10 @@ ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
 
 ATTRIBUTE PROPERTY_AREA_TEXT TEXT
 
+ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
+
+ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -200,6 +228,9 @@ permanecem ausentes e não são conclusões de autenticidade ou conformidade.
 Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
 `PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
 registram somente o que estiver explicitamente apresentado nesta RRT.
+`DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não representam associação
+estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
 
 END
 
@@ -229,6 +260,10 @@ ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
 
 ATTRIBUTE PROPERTY_AREA_TEXT TEXT
 
+ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
+
+ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
+
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -239,6 +274,9 @@ permanecem ausentes e não são conclusões de autenticidade ou conformidade.
 Os campos `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
 `PROPERTY_AREA_TEXT` seguem as definições factuais comuns da entidade `DRT` e
 registram somente o que estiver explicitamente apresentado neste TRT.
+`DECLARED_ACTIVITY_SERVICE_TEXT` e `DECLARED_SMSCI_SCOPE_TEXT` seguem as
+definições FACT-ONLY comuns da entidade `DRT`; não representam associação
+estruturada entre atividade, serviço, SMSCI, RT ou produto técnico.
 
 END
 

@@ -302,7 +302,9 @@ const drtFactFields = {
   RI_NAME: 'Responsável pelo imóvel',
   RT_NAME: 'Responsável técnico declarado',
   PROPERTY_ADDRESS_TEXT: 'Rua demonstrativa, 10, Centro',
-  PROPERTY_AREA_TEXT: '120,00 m² (área informada)'
+  PROPERTY_AREA_TEXT: '120,00 m² (área informada)',
+  DECLARED_ACTIVITY_SERVICE_TEXT: 'Execução de sistema preventivo; serviço descrito na DRT',
+  DECLARED_SMSCI_SCOPE_TEXT: 'Sistema preventivo contra incêndio e pânico'
 };
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
@@ -336,12 +338,12 @@ assert.doesNotThrow(() => validateRecords([
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_ART_BAD_TYPE', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { PROPERTY_AREA_TEXT: 120 }, { page: 2 })
+    { DECLARED_SMSCI_SCOPE_TEXT: 120 }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_NON_DRT_SIGNATURE', 'PRESSURIZATION_OPERATION_MANUAL', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
-    { RI_NAME: 'Responsável pelo imóvel' }, { page: 2 })
+    { DECLARED_ACTIVITY_SERVICE_TEXT: 'Execução declarada' }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_UNDECLARED_ENTITY_ATTRIBUTE');
 assert.throws(() => validateRecords([
   record('', 'TEST_DOCUMENT', null, '', {})
