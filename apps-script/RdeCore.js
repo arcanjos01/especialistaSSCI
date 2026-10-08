@@ -232,7 +232,7 @@ function requireRdeString_(object, field, path) {
 }
 
 function isPlainRdeObject_(value) {
-  if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const prototype = Object.getPrototypeOf(value);
   return prototype === null || Object.getPrototypeOf(prototype) === null;
 }

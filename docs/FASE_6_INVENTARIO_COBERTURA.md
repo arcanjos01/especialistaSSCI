@@ -682,3 +682,17 @@ JS e `Code.gs`; duas gerações byte-idênticas com SHA-256
 `77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`; e
 `git diff --check`. Commit/push e revisão independente deste candidate ainda
 estão pendentes. Cobertura continua 6/31.
+
+A revisão independente do candidate `a9d986c1a118008a82d0972b4a5d69f61bc226cd`
+fechou `F6-ASSOC-001..008` e abriu `F6-ASSOC-009` MEDIUM: os helpers de
+classificação de objeto consultavam `Object.prototype.toString`, que pode
+invocar um getter de `Symbol.toStringTag` antes da rejeição de símbolos.
+Correção: os dois helpers verificam tipo e cadeia de protótipos sem consultar
+`toStringTag`; fixtures em RDE e projeção confirmam rejeição e zero chamadas do
+getter. Os gates completos desta correção passaram: 150 testes Python, sete
+suítes Apps Script, sintaxe de todos os módulos/testes JS e `Code.gs`, duas
+gerações byte-idênticas de `CompiledRuntimeContract.js` com SHA-256
+`77b4e53117788dc784218fe2045c7ca845ca3dcece5dd6399bfc5ee224979a57`, e
+`git diff --check`. A revisão independente do candidate corrigido e seu
+commit/push ainda estão pendentes. Cobertura permanece 6/31; esta correção de
+integridade não acrescenta predicate nem amplia execução normativa.

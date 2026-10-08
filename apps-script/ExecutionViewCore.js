@@ -13,7 +13,7 @@ function executionReferenceKey(reference) {
 }
 
 function isPlainExecutionObject(value) {
-  if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const prototype = Object.getPrototypeOf(value);
   return prototype === null || Object.getPrototypeOf(prototype) === null;
 }

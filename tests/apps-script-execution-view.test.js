@@ -161,6 +161,15 @@ Object.defineProperty(accessorProjectionRde.documentary_associations[0], 'statem
 });
 assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog),
   error => error && error.code === 'RDE_ASSOCIATION_INVALID');
+let executionToStringTagGetterCalls = 0;
+const toStringTagProjectionRde = JSON.parse(JSON.stringify(validatedRde));
+Object.defineProperty(toStringTagProjectionRde.documentary_associations[0],
+  Symbol.toStringTag, {
+    configurable: true,
+    get() { executionToStringTagGetterCalls += 1; return 'Object'; }
+  });
+assert.throws(() => api.projectRdeToExecutionView_(toStringTagProjectionRde, entityCatalog));
+assert.equal(executionToStringTagGetterCalls, 0);
 const prototypeMapRde = JSON.parse(JSON.stringify(validatedRde));
 prototypeMapRde.documentary_associations = [];
 let inheritedMapCalls = 0;

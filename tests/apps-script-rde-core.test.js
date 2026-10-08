@@ -471,6 +471,17 @@ Object.defineProperty(recordWithComputedAttributes, 'attributes', {
 assert.throws(() => validateRecords([recordWithComputedAttributes]),
   error => error.code === 'RDE_RECORD_ENVELOPE_INVALID');
 assert.equal(attributesGetterCalls, 0);
+let rdeToStringTagGetterCalls = 0;
+const computedTagAttributes = {};
+Object.defineProperty(computedTagAttributes, Symbol.toStringTag, {
+  configurable: true,
+  get() { rdeToStringTagGetterCalls += 1; return 'Object'; }
+});
+assert.throws(() => validateRecords([
+  record('R_COMPUTED_TAG_ATTRS', 'TEST_DOCUMENT', null, 'R_COMPUTED_TAG_ATTRS',
+    computedTagAttributes)
+]), error => error.code === 'RDE_RECORD_ATTRIBUTES_INVALID');
+assert.equal(rdeToStringTagGetterCalls, 0);
 let attributeValueGetterCalls = 0;
 const computedAttributeValue = {};
 Object.defineProperty(computedAttributeValue, 'REQUEST_IDENTIFIER', {
