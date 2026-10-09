@@ -159,7 +159,7 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   });
   if (includeLegacyExecutionDrt) {
     records.push({
-      record_id: 'DOC_DRT', entity_id: 'DRT', parent_record_id: null,
+      record_id: 'DOC_DRT', entity_id: 'PPCI', parent_record_id: null,
       source_document: 'DOC_DRT', attributes: {},
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_DRT_DOCUMENT' }
     });
