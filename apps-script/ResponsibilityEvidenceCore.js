@@ -10,12 +10,47 @@ class ResponsibilityEvidenceIntegrityError extends Error {
 }
 
 const RESPONSIBILITY_BINDING_PROVENANCE = new WeakMap();
+const RESPONSIBILITY_INTRINSIC_APPLY_ = Reflect.apply;
+const RESPONSIBILITY_INTRINSIC_WEAKMAP_GET_ = WeakMap.prototype.get;
+const RESPONSIBILITY_INTRINSIC_WEAKMAP_SET_ = WeakMap.prototype.set;
+const RESPONSIBILITY_INTRINSIC_FREEZE_ = Object.freeze;
+const RESPONSIBILITY_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
+const RESPONSIBILITY_INTRINSIC_IS_ARRAY_ = Array.isArray;
+const RESPONSIBILITY_INTRINSIC_IS_FINITE_ = Number.isFinite;
+const RESPONSIBILITY_INTRINSIC_KEYS_ = Object.keys;
+const RESPONSIBILITY_INTRINSIC_NAMES_ = Object.getOwnPropertyNames;
+const RESPONSIBILITY_INTRINSIC_SYMBOLS_ = Object.getOwnPropertySymbols;
+const RESPONSIBILITY_INTRINSIC_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
+const RESPONSIBILITY_INTRINSIC_DEFINE_ = Object.defineProperty;
+const RESPONSIBILITY_INTRINSIC_CREATE_ = Object.create;
+const RESPONSIBILITY_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const RESPONSIBILITY_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
+const RESPONSIBILITY_INTRINSIC_STRING_INDEX_OF_ = String.prototype.indexOf;
+const RESPONSIBILITY_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
+const RESPONSIBILITY_CANONICAL_PLAN_ = isCanonicalFrozenExecutionPlan;
+
+function responsibilityIntrinsicApply_(method, receiver, args) {
+  return RESPONSIBILITY_INTRINSIC_APPLY_(method, receiver, args);
+}
+
+function responsibilityHasOwn_(value, key) {
+  return responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_HAS_OWN_, value, [key]);
+}
+
+function responsibilityArrayIndexOf_(value, item) {
+  return responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_ARRAY_INDEX_OF_, value, [item]);
+}
+
+function responsibilityStringIndexOf_(value, item) {
+  return responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_STRING_INDEX_OF_, value, [item]);
+}
+
 const RESPONSIBILITY_INTRINSIC_VIEW_SNAPSHOT = (function () {
-  const descriptor = Object.getOwnPropertyDescriptor(
+  const descriptor = RESPONSIBILITY_INTRINSIC_DESCRIPTOR_(
     global, 'snapshotImmutableExecutionViewEntityRecords'
   );
   if (!descriptor ||
-      !Object.prototype.hasOwnProperty.call(descriptor, 'value') ||
+      !responsibilityHasOwn_(descriptor, 'value') ||
       typeof descriptor.value !== 'function' ||
       descriptor.writable !== false ||
       descriptor.configurable !== false) {
@@ -46,7 +81,7 @@ function responsibilityStringContains_(items, candidate) {
 
 function responsibilityFreezeCopy_(value, active = []) {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'number' && RESPONSIBILITY_INTRINSIC_IS_FINITE_(value)) return value;
   responsibilityRequire_(
     value && typeof value === 'object' && !responsibilityIdentityContains_(active, value),
     'binding data must be finite acyclic JSON-like data'
@@ -56,47 +91,47 @@ function responsibilityFreezeCopy_(value, active = []) {
   for (let index = 0; index < active.length; index += 1) next[index] = active[index];
   next[next.length] = value;
 
-  if (Array.isArray(value)) {
+  if (RESPONSIBILITY_INTRINSIC_IS_ARRAY_(value)) {
     responsibilityRequire_(
-      Object.getOwnPropertySymbols(value).length === 0 &&
-      Object.keys(value).length === value.length &&
-      Object.getOwnPropertyNames(value).length === value.length + 1,
+      RESPONSIBILITY_INTRINSIC_SYMBOLS_(value).length === 0 &&
+      RESPONSIBILITY_INTRINSIC_KEYS_(value).length === value.length &&
+      RESPONSIBILITY_INTRINSIC_NAMES_(value).length === value.length + 1,
       'binding arrays must be dense data arrays'
     );
     const copy = [];
     for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      const descriptor = RESPONSIBILITY_INTRINSIC_DESCRIPTOR_(value, String(index));
       responsibilityRequire_(
-        descriptor && Object.prototype.hasOwnProperty.call(descriptor, 'value'),
+        descriptor && responsibilityHasOwn_(descriptor, 'value'),
         'binding arrays cannot contain accessors'
       );
       copy[index] = responsibilityFreezeCopy_(descriptor.value, next);
     }
-    return Object.freeze(copy);
+    return RESPONSIBILITY_INTRINSIC_FREEZE_(copy);
   }
 
   responsibilityRequire_(
-    Object.getOwnPropertySymbols(value).length === 0 &&
-    Object.getOwnPropertyNames(value).length === Object.keys(value).length,
+    RESPONSIBILITY_INTRINSIC_SYMBOLS_(value).length === 0 &&
+    RESPONSIBILITY_INTRINSIC_NAMES_(value).length === RESPONSIBILITY_INTRINSIC_KEYS_(value).length,
     'binding objects must contain only enumerable data fields'
   );
   const copy = {};
-  const keys = Object.keys(value);
+  const keys = RESPONSIBILITY_INTRINSIC_KEYS_(value);
   for (let index = 0; index < keys.length; index += 1) {
     const key = keys[index];
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    const descriptor = RESPONSIBILITY_INTRINSIC_DESCRIPTOR_(value, key);
     responsibilityRequire_(
-      descriptor && Object.prototype.hasOwnProperty.call(descriptor, 'value'),
+      descriptor && responsibilityHasOwn_(descriptor, 'value'),
       'binding objects cannot contain accessors'
     );
-    Object.defineProperty(copy, key, {
+    RESPONSIBILITY_INTRINSIC_DEFINE_(copy, key, {
       value: responsibilityFreezeCopy_(descriptor.value, next),
       enumerable: true,
       writable: false,
       configurable: false
     });
   }
-  return Object.freeze(copy);
+  return RESPONSIBILITY_INTRINSIC_FREEZE_(copy);
 }
 
 function responsibilityIntrinsicViewSnapshot_(view, entityId) {
@@ -105,13 +140,13 @@ function responsibilityIntrinsicViewSnapshot_(view, entityId) {
 
 function responsibilityAuthenticate_(contract, plan, view) {
   responsibilityRequire_(
-    typeof isCanonicalCompiledRuntimeContract === 'function' &&
-    isCanonicalCompiledRuntimeContract(contract),
+    typeof RESPONSIBILITY_CANONICAL_CONTRACT_ === 'function' &&
+    RESPONSIBILITY_CANONICAL_CONTRACT_(contract),
     'canonical compiled runtime contract is required'
   );
   responsibilityRequire_(
-    typeof isCanonicalFrozenExecutionPlan === 'function' &&
-    isCanonicalFrozenExecutionPlan(plan, contract, view),
+    typeof RESPONSIBILITY_CANONICAL_PLAN_ === 'function' &&
+    RESPONSIBILITY_CANONICAL_PLAN_(plan, contract, view),
     'canonical frozen execution plan bound to this view is required'
   );
 }
@@ -125,7 +160,7 @@ function responsibilityRequirementIsActive_(requirement, plan) {
     if (!unit || !unit.requirement || unit.requirement.id !== requirement.requirementId) continue;
     found = true;
     responsibilityRequire_(
-      unit.iterationSource === requirement.forEach && Array.isArray(unit.iterationDomain),
+      unit.iterationSource === requirement.forEach && RESPONSIBILITY_INTRINSIC_IS_ARRAY_(unit.iterationDomain),
       'iterative Requirement has inconsistent frozen domain: ' + requirement.requirementId
     );
     if (unit.iterationDomain.length > 0) active = true;
@@ -138,15 +173,15 @@ function responsibilityRequirementIsActive_(requirement, plan) {
 }
 
 function responsibilityMappingFieldsAreAllowed_(mapping) {
-  const names = Object.getOwnPropertyNames(mapping);
-  if (Object.getOwnPropertySymbols(mapping).length !== 0 ||
+  const names = RESPONSIBILITY_INTRINSIC_NAMES_(mapping);
+  if (RESPONSIBILITY_INTRINSIC_SYMBOLS_(mapping).length !== 0 ||
       names.length < 2 || names.length > 3) return false;
   let hasResponsibility = false;
   let hasCatalog = false;
   for (let index = 0; index < names.length; index += 1) {
     const name = names[index];
-    const descriptor = Object.getOwnPropertyDescriptor(mapping, name);
-    if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) return false;
+    const descriptor = RESPONSIBILITY_INTRINSIC_DESCRIPTOR_(mapping, name);
+    if (!descriptor || !responsibilityHasOwn_(descriptor, 'value')) return false;
     if (name === 'responsibilityId') hasResponsibility = true;
     else if (name === 'catalogIdentifier') hasCatalog = true;
     else if (name !== 'documentaryResponsibilityType') return false;
@@ -157,13 +192,13 @@ function responsibilityMappingFieldsAreAllowed_(mapping) {
 function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
   responsibilityAuthenticate_(contract, plan, view);
   responsibilityRequire_(
-    Array.isArray(plan.APPLICABLE_REQUIREMENTS) &&
-    Object.isFrozen(plan.APPLICABLE_REQUIREMENTS),
+    RESPONSIBILITY_INTRINSIC_IS_ARRAY_(plan.APPLICABLE_REQUIREMENTS) &&
+    RESPONSIBILITY_INTRINSIC_IS_FROZEN_(plan.APPLICABLE_REQUIREMENTS),
     'frozen plan has no immutable APPLICABLE_REQUIREMENTS'
   );
 
   const ordered = [];
-  const byKey = Object.create(null);
+  const byKey = RESPONSIBILITY_INTRINSIC_CREATE_(null);
 
   for (let reqIndex = 0; reqIndex < plan.APPLICABLE_REQUIREMENTS.length; reqIndex += 1) {
     const requirement = plan.APPLICABLE_REQUIREMENTS[reqIndex];
@@ -180,20 +215,20 @@ function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
     if (!responsibilityRequirementIsActive_(requirement, plan)) continue;
 
     const mappings = requirement.responsibilityMappings || [];
-    responsibilityRequire_(Array.isArray(mappings), 'responsibilityMappings must be an array');
+    responsibilityRequire_(RESPONSIBILITY_INTRINSIC_IS_ARRAY_(mappings), 'responsibilityMappings must be an array');
 
     for (let mapIndex = 0; mapIndex < mappings.length; mapIndex += 1) {
       const mapping = mappings[mapIndex];
       responsibilityRequire_(
-        mapping && typeof mapping === 'object' && !Array.isArray(mapping) &&
+        mapping && typeof mapping === 'object' && !RESPONSIBILITY_INTRINSIC_IS_ARRAY_(mapping) &&
         responsibilityMappingFieldsAreAllowed_(mapping),
         'responsibility mapping has unsupported fields'
       );
       responsibilityRequire_(
         typeof mapping.responsibilityId === 'string' && mapping.responsibilityId &&
         typeof mapping.catalogIdentifier === 'string' && mapping.catalogIdentifier &&
-        mapping.responsibilityId.indexOf('UNRESOLVED_ATTRIBUTE') === -1 &&
-        mapping.catalogIdentifier.indexOf('UNRESOLVED_ATTRIBUTE') === -1,
+        responsibilityStringIndexOf_(mapping.responsibilityId, 'UNRESOLVED_ATTRIBUTE') === -1 &&
+        responsibilityStringIndexOf_(mapping.catalogIdentifier, 'UNRESOLVED_ATTRIBUTE') === -1,
         'unresolved or invalid responsibility mapping cannot enter the resolved domain'
       );
       if (mapping.documentaryResponsibilityType !== undefined) {
@@ -205,7 +240,7 @@ function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
       }
 
       const key = mapping.responsibilityId + '\u0000' + mapping.catalogIdentifier;
-      if (!Object.prototype.hasOwnProperty.call(byKey, key)) {
+      if (!responsibilityHasOwn_(byKey, key)) {
         const item = {
           responsibilityId: mapping.responsibilityId,
           catalogIdentifier: mapping.catalogIdentifier,
@@ -257,7 +292,7 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
   );
 
   const evidence = [];
-  const entityIds = Object.keys(contract.entityCatalog || {});
+  const entityIds = RESPONSIBILITY_INTRINSIC_KEYS_(contract.entityCatalog || {});
   for (let entityIndex = 0; entityIndex < entityIds.length; entityIndex += 1) {
     const entityId = entityIds[entityIndex];
     const definition = contract.entityCatalog[entityId];
@@ -268,21 +303,21 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
       continue;
     }
     responsibilityRequire_(
-      Array.isArray(definition.ATTRIBUTES) &&
-      definition.ATTRIBUTES.indexOf('RESPONSIBILITY_TYPE') !== -1 &&
+      RESPONSIBILITY_INTRINSIC_IS_ARRAY_(definition.ATTRIBUTES) &&
+      responsibilityArrayIndexOf_(definition.ATTRIBUTES, 'RESPONSIBILITY_TYPE') !== -1 &&
       definition.ATTRIBUTE_TYPES &&
       definition.ATTRIBUTE_TYPES.RESPONSIBILITY_TYPE === 'ENUM',
       'concrete DRT form lacks inherited RESPONSIBILITY_TYPE contract: ' + entityId
     );
 
     const records = responsibilityIntrinsicViewSnapshot_(view, entityId);
-    responsibilityRequire_(Array.isArray(records) && Object.isFrozen(records),
+    responsibilityRequire_(RESPONSIBILITY_INTRINSIC_IS_ARRAY_(records) && RESPONSIBILITY_INTRINSIC_IS_FROZEN_(records),
       'intrinsic execution-view snapshot must be immutable');
 
     for (let recordIndex = 0; recordIndex < records.length; recordIndex += 1) {
       const record = records[recordIndex];
       responsibilityRequire_(
-        record && Object.isFrozen(record) &&
+        record && RESPONSIBILITY_INTRINSIC_IS_FROZEN_(record) &&
         record.entityId === entityId &&
         record.reference && record.reference.kind === 'DOCUMENT' &&
         record.sourceDocument && record.sourceDocument.kind === 'DOCUMENT' &&
@@ -300,7 +335,7 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
         entityId,
         reference: record.reference,
         sourceDocument: record.sourceDocument,
-        provenance: Object.prototype.hasOwnProperty.call(record, 'provenance')
+        provenance: responsibilityHasOwn_(record, 'provenance')
           ? record.provenance : null,
         selectionFact: {
           attribute: 'RESPONSIBILITY_TYPE',
@@ -320,21 +355,23 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
     evidence
   });
 
-  RESPONSIBILITY_BINDING_PROVENANCE.set(binding, Object.freeze({ contract, plan, view }));
+  responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_WEAKMAP_SET_, RESPONSIBILITY_BINDING_PROVENANCE,
+    [binding, RESPONSIBILITY_INTRINSIC_FREEZE_({ contract, plan, view })]);
   return binding;
 }
 
 function isCanonicalResponsibilityEvidenceBinding(binding, contract, plan, view) {
-  const source = RESPONSIBILITY_BINDING_PROVENANCE.get(binding);
+  const source = responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_WEAKMAP_GET_,
+    RESPONSIBILITY_BINDING_PROVENANCE, [binding]);
   return !!source &&
     source.contract === contract &&
     source.plan === plan &&
     source.view === view &&
-    Object.isFrozen(binding) &&
-    typeof isCanonicalCompiledRuntimeContract === 'function' &&
-    isCanonicalCompiledRuntimeContract(contract) &&
-    typeof isCanonicalFrozenExecutionPlan === 'function' &&
-    isCanonicalFrozenExecutionPlan(plan, contract, view);
+    RESPONSIBILITY_INTRINSIC_IS_FROZEN_(binding) &&
+    typeof RESPONSIBILITY_CANONICAL_CONTRACT_ === 'function' &&
+    RESPONSIBILITY_CANONICAL_CONTRACT_(contract) &&
+    typeof RESPONSIBILITY_CANONICAL_PLAN_ === 'function' &&
+    RESPONSIBILITY_CANONICAL_PLAN_(plan, contract, view);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -346,25 +383,25 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-Object.defineProperty(global, 'ResponsibilityEvidenceIntegrityError', {
+RESPONSIBILITY_INTRINSIC_DEFINE_(global, 'ResponsibilityEvidenceIntegrityError', {
   value: ResponsibilityEvidenceIntegrityError,
   enumerable: true,
   writable: false,
   configurable: false
 });
-Object.defineProperty(global, 'resolvedRequiredTechnicalResponsibilities', {
+RESPONSIBILITY_INTRINSIC_DEFINE_(global, 'resolvedRequiredTechnicalResponsibilities', {
   value: resolvedRequiredTechnicalResponsibilities,
   enumerable: true,
   writable: false,
   configurable: false
 });
-Object.defineProperty(global, 'materializeResponsibilityEvidenceBinding', {
+RESPONSIBILITY_INTRINSIC_DEFINE_(global, 'materializeResponsibilityEvidenceBinding', {
   value: materializeResponsibilityEvidenceBinding,
   enumerable: true,
   writable: false,
   configurable: false
 });
-Object.defineProperty(global, 'isCanonicalResponsibilityEvidenceBinding', {
+RESPONSIBILITY_INTRINSIC_DEFINE_(global, 'isCanonicalResponsibilityEvidenceBinding', {
   value: isCanonicalResponsibilityEvidenceBinding,
   enumerable: false,
   writable: false,

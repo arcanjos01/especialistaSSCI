@@ -427,6 +427,124 @@ try {
 }
 assertNoRt002ForRde(freezeAttackRde, 'patched Object.freeze');
 
+const inconsistentProxyRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const inconsistentProxyRecord = inconsistentProxyRde.records.find(record => record.entity_id === 'ART');
+const inconsistentProxyAttributes = inconsistentProxyRecord.attributes;
+inconsistentProxyRecord.attributes = new Proxy(inconsistentProxyAttributes, {
+  get(target, key, receiver) {
+    return Reflect.get(target, key, receiver);
+  },
+  getOwnPropertyDescriptor(target, key) {
+    const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
+    if (key === 'RESPONSIBILITY_TYPE') {
+      return { ...descriptor, value: 'EXECUCAO' };
+    }
+    return descriptor;
+  }
+});
+assert.throws(
+  () => api.projectRdeToExecutionView_(inconsistentProxyRde, contract.entityCatalog),
+  /inconsistent proxy properties/
+);
+assert.equal(inconsistentProxyAttributes.RESPONSIBILITY_TYPE, 'VISTORIA_ENSAIO');
+
+const rdeDefinitionHelperDescriptor = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(globalThis, 'rdeEntityDefinition_')",
+  context
+);
+assert.equal(rdeDefinitionHelperDescriptor.writable, false);
+assert.equal(rdeDefinitionHelperDescriptor.configurable, false);
+assert.throws(() => vm.runInContext(`
+  'use strict';
+  rdeEntityDefinition_ = function () { return { TYPE: 'DOCUMENT', ABSTRACT: false }; };
+`, context), /read only|assign/i);
+const concreteDrtRde = makeRde([], [{
+  entityId: 'DRT', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' }
+}]);
+assert.throws(
+  () => api.projectRdeToExecutionView_(concreteDrtRde, contract.entityCatalog),
+  error => error && error.code === 'RDE_ABSTRACT_ENTITY'
+);
+
+const hiddenAttributeRde = makeRde([], [{
+  entityId: 'ART', attributes: {
+    RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO', UNDECLARED_TEST_FACT: 'TEST_ONLY'
+  }
+}]);
+const hiddenAttributes = hiddenAttributeRde.records.find(record => record.entity_id === 'ART').attributes;
+context.__nativeObjectKeys = vm.runInContext('Object.keys', context);
+context.__nativeObjectNames = vm.runInContext('Object.getOwnPropertyNames', context);
+try {
+  vm.runInContext(`
+    Object.keys = function (value) {
+      const keys = __nativeObjectKeys(value);
+      return keys.indexOf('UNDECLARED_TEST_FACT') !== -1
+        ? keys.filter(key => key !== 'UNDECLARED_TEST_FACT')
+        : keys;
+    };
+    Object.getOwnPropertyNames = function (value) {
+      const names = __nativeObjectNames(value);
+      return names.indexOf('UNDECLARED_TEST_FACT') !== -1
+        ? names.filter(key => key !== 'UNDECLARED_TEST_FACT')
+        : names;
+    };
+  `, context);
+  assert.throws(
+    () => api.projectRdeToExecutionView_(hiddenAttributeRde, contract.entityCatalog),
+    /undeclared or has an incompatible type/
+  );
+} finally {
+  vm.runInContext(`
+    Object.keys = __nativeObjectKeys;
+    Object.getOwnPropertyNames = __nativeObjectNames;
+  `, context);
+  delete context.__nativeObjectKeys;
+  delete context.__nativeObjectNames;
+}
+
+const fakeCanonicalBinding = vm.runInContext(`Object.freeze({
+  responsibility: Object.freeze({
+    responsibilityId: 'RT_002_EXECUCAO_DE_OBRA',
+    catalogIdentifier: 'RT-002',
+    documentaryResponsibilityType: 'EXECUCAO',
+    requirementIds: Object.freeze(['REQ_T1_DRT_REQUIRED'])
+  }),
+  evidence: Object.freeze([Object.freeze({
+    entityId: 'ART',
+    reference: Object.freeze({ kind: 'DOCUMENT', identifier: 'DRT_0' }),
+    sourceDocument: Object.freeze({ kind: 'DOCUMENT', identifier: 'DRT_0' }),
+    provenance: null,
+    selectionFact: Object.freeze({ attribute: 'RESPONSIBILITY_TYPE', value: 'EXECUCAO' })
+  })])
+})`, context);
+context.__fakeCanonicalBinding = fakeCanonicalBinding;
+context.__canonicalContract = contract;
+context.__canonicalPlan = base.plan;
+context.__canonicalView = base.view;
+context.__nativeWeakMapGet = vm.runInContext('WeakMap.prototype.get', context);
+try {
+  vm.runInContext(`
+    WeakMap.prototype.get = function (key) {
+      if (key === __fakeCanonicalBinding) {
+        return { contract: __canonicalContract, plan: __canonicalPlan, view: __canonicalView };
+      }
+      return __nativeWeakMapGet.call(this, key);
+    };
+  `, context);
+  assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
+    fakeCanonicalBinding, contract, base.plan, base.view
+  ), false);
+} finally {
+  vm.runInContext('WeakMap.prototype.get = __nativeWeakMapGet;', context);
+  delete context.__fakeCanonicalBinding;
+  delete context.__canonicalContract;
+  delete context.__canonicalPlan;
+  delete context.__canonicalView;
+  delete context.__nativeWeakMapGet;
+}
+
 const originalWeakMapGet = vm.runInContext('WeakMap.prototype.get', context);
 context.__originalWeakMapGet = originalWeakMapGet;
 try {

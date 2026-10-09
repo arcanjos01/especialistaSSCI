@@ -3,6 +3,32 @@ const RDE_SCHEMA_VERSION = '0.5.0';
 const RDE_PREVIOUS_SCHEMA_VERSION = '0.4.0';
 const RDE_LEGACY_SCHEMA_VERSION = '0.3.0';
 const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
+const RDE_INTRINSIC_GET_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
+const RDE_INTRINSIC_DEFINE_PROPERTY_ = Object.defineProperty;
+
+function lockRdeValidationHelpers_() {
+  const names = [
+    'isSupportedRdeSchemaVersion_', 'hasExactKeys_', 'validateRde_',
+    'parseAndValidateRdeJson_', 'makeRdeValidationError_', 'isIso8601DateTime_',
+    'requireRdeObject_', 'requireRdeString_', 'hasNativeNonJsonBrand_',
+    'isPlainRdeObject_', 'rdeEntityDefinition_', 'validateRdeRecordEnvelope_',
+    'canonicalRdeJson_', 'validateRdeDocumentaryAssociations_',
+    'validateRdeDrtDeclarationItems_', 'validateRdeDocumentaryDateItems_',
+    'validateRdeStructure_', 'parseAndValidateOperationalRdeJson_',
+    'validateSourceHash_', 'sha256Hex_'
+  ];
+  for (let index = 0; index < names.length; index += 1) {
+    const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(globalThis, names[index]);
+    if (descriptor && typeof descriptor.value === 'function') {
+      RDE_INTRINSIC_DEFINE_PROPERTY_(globalThis, names[index], {
+        value: descriptor.value,
+        enumerable: descriptor.enumerable,
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+}
 function isSupportedRdeSchemaVersion_(version) {
   return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION ||
     version === RDE_LEGACY_SCHEMA_VERSION || version === RDE_HISTORICAL_SCHEMA_VERSION;
@@ -1183,3 +1209,5 @@ function sha256Hex_(bytes) {
     return value.toString(16).padStart(2, '0');
   }).join('');
 }
+
+lockRdeValidationHelpers_();

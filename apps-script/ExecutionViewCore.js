@@ -253,6 +253,11 @@ const {
             'projection arrays must contain data values'
           );
         }
+        if (value[index] !== descriptor.value) {
+          throw new executionViewContractError_(
+            'projection values cannot contain inconsistent proxy properties'
+          );
+        }
         copy[index] = immutableExecutionCopy(descriptor.value, nextActive);
       }
       return executionViewFreeze_(copy);
@@ -277,6 +282,11 @@ const {
         if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
           throw new executionViewContractError_(
             'projection objects must contain data values'
+          );
+        }
+        if (value[key] !== descriptor.value) {
+          throw new executionViewContractError_(
+            'projection values cannot contain inconsistent proxy properties'
           );
         }
         executionViewDefineProperty_(copy, key, {
@@ -341,6 +351,66 @@ const {
         );
       }
       assertStrictExecutionJsonValue(descriptor.value, nextActive);
+    }
+  }
+
+  function executionViewValidateRdeEntityFacts_(records, entityCatalog) {
+    for (let index = 0; index < records.length; index += 1) {
+      const record = records[index];
+      const entityDescriptor = executionViewGetOwnPropertyDescriptor_(entityCatalog, record.entity_id);
+      if (!entityDescriptor || !executionViewHasOwn_(entityDescriptor, 'value')) {
+        throw new executionViewContractError_('canonical entity definition is missing: ' + record.entity_id);
+      }
+      const definition = entityDescriptor.value;
+      if (!isPlainExecutionObject(definition) ||
+          typeof definition.TYPE !== 'string' || !definition.TYPE ||
+          !executionViewArrayIsArray_(definition.ATTRIBUTES) ||
+          !isPlainExecutionObject(definition.ATTRIBUTE_TYPES) ||
+          (definition.ABSTRACT !== undefined && typeof definition.ABSTRACT !== 'boolean')) {
+        throw new executionViewContractError_('canonical entity definition is invalid: ' + record.entity_id);
+      }
+      if (definition.ABSTRACT === true) {
+        throw new executionViewContractError_('abstract entity cannot materialize an RDE record: ' + record.entity_id);
+      }
+      const declared = executionViewCreate_(null);
+      for (let attributeIndex = 0; attributeIndex < definition.ATTRIBUTES.length; attributeIndex += 1) {
+        const attribute = definition.ATTRIBUTES[attributeIndex];
+        if (typeof attribute !== 'string' || !attribute || executionViewHasOwn_(declared, attribute)) {
+          throw new executionViewContractError_('canonical entity attributes are invalid: ' + record.entity_id);
+        }
+        declared[attribute] = true;
+      }
+      const attributeTypeKeys = executionViewKeys_(definition.ATTRIBUTE_TYPES);
+      if (attributeTypeKeys.length !== definition.ATTRIBUTES.length) {
+        throw new executionViewContractError_('canonical entity attribute types are incomplete: ' + record.entity_id);
+      }
+      for (let typeIndex = 0; typeIndex < attributeTypeKeys.length; typeIndex += 1) {
+        const typeKey = attributeTypeKeys[typeIndex];
+        if (!executionViewHasOwn_(declared, typeKey) ||
+            !executionViewListIncludes_(['BOOLEAN', 'DATE', 'ENUM', 'TEXT'],
+              definition.ATTRIBUTE_TYPES[typeKey])) {
+          throw new executionViewContractError_('canonical entity attribute type is invalid: ' + record.entity_id);
+        }
+      }
+      if (!isPlainExecutionObject(record.attributes)) {
+        throw new executionViewContractError_('RDE attributes must be a plain JSON object');
+      }
+      const attributes = executionViewKeys_(record.attributes);
+      for (let attributeIndex = 0; attributeIndex < attributes.length; attributeIndex += 1) {
+        const attribute = attributes[attributeIndex];
+        const value = record.attributes[attribute];
+        const type = definition.ATTRIBUTE_TYPES[attribute];
+        if (!executionViewHasOwn_(declared, attribute) ||
+            executionViewListIncludes_([
+              'record_id', 'entity_id', 'parent_record_id', 'source_document', 'provenance'
+            ], attribute) ||
+            !(type === 'BOOLEAN' ? typeof value === 'boolean' :
+              executionViewListIncludes_(['DATE', 'ENUM', 'TEXT'], type) && typeof value === 'string')) {
+          throw new executionViewContractError_(
+            'RDE attribute is undeclared or has an incompatible type: ' + record.entity_id + '.' + attribute
+          );
+        }
+      }
     }
   }
 
@@ -963,6 +1033,10 @@ class ImmutableExecutionView {
 
 /** Create the closed documentary projection from a validated RDE 0.2.0 through 0.5.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
+  // Snapshot caller-owned input once, then validate and project that immutable data.
+  // This prevents a Proxy from supplying one fact to validation and another to Process Memory.
+  rde = immutableExecutionCopy(rde);
+  entityCatalog = immutableExecutionCopy(entityCatalog);
   if (!rde || typeof rde !== 'object' || executionViewArrayIsArray_(rde)) {
     throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.5.0');
   }
@@ -1000,6 +1074,7 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     throw new executionViewContractError_('entityCatalog is required for RDE projection');
   }
   executionViewValidateRdeRecordEnvelope_(rde.records, entityCatalog);
+  executionViewValidateRdeEntityFacts_(rde.records, entityCatalog);
   if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     executionViewValidateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
