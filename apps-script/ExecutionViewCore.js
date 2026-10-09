@@ -739,6 +739,8 @@ function isImmutableExecutionView(view) {
   const intrinsicFreeze = Object.freeze;
   const intrinsicIsFrozen = Object.isFrozen;
   const intrinsicStringify = JSON.stringify;
+  const intrinsicApply = Reflect.apply;
+  const intrinsicWeakMapGet = WeakMap.prototype.get;
   const IntrinsicExecutionViewContractError = ExecutionViewContractError;
 
   function intrinsicReferenceKey(reference) {
@@ -749,7 +751,7 @@ function isImmutableExecutionView(view) {
     if (typeof entityId !== 'string' || !entityId) {
       throw new IntrinsicExecutionViewContractError('entityId must be a non-empty string');
     }
-    const state = intrinsicRecordsByView.get(view);
+    const state = intrinsicApply(intrinsicWeakMapGet, intrinsicRecordsByView, [view]);
     if (!state) {
       throw new IntrinsicExecutionViewContractError('invalid execution view receiver');
     }

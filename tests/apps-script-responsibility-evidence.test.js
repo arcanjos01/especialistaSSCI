@@ -222,6 +222,59 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   binding, contract, base.plan, base.view
 ), true);
 
+const originalExecutionHelpers = {
+  executionReferenceKey: vm.runInContext('executionReferenceKey', context),
+  immutableExecutionCopy: vm.runInContext('immutableExecutionCopy', context),
+  isPlainExecutionObject: vm.runInContext('isPlainExecutionObject', context),
+  hasNativeExecutionNonJsonBrand: vm.runInContext('hasNativeExecutionNonJsonBrand', context)
+};
+context.__originalExecutionHelpers = originalExecutionHelpers;
+try {
+  vm.runInContext(`
+    executionReferenceKey = function () { return 'FORGED_KEY'; };
+    immutableExecutionCopy = function () {
+      return Object.freeze({ RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' });
+    };
+    isPlainExecutionObject = function () { return false; };
+    hasNativeExecutionNonJsonBrand = function () { return true; };
+  `, context);
+  const bindingWithForgedGlobalHelpers = api.materializeResponsibilityEvidenceBinding(
+    contract, base.plan, base.view, 'RT-002'
+  );
+  assert.equal(bindingWithForgedGlobalHelpers.evidence.length, 2);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(
+      bindingWithForgedGlobalHelpers.evidence.map(item => item.entityId)
+    )),
+    ['ART', 'TRT']
+  );
+} finally {
+  vm.runInContext(`
+    executionReferenceKey = __originalExecutionHelpers.executionReferenceKey;
+    immutableExecutionCopy = __originalExecutionHelpers.immutableExecutionCopy;
+    isPlainExecutionObject = __originalExecutionHelpers.isPlainExecutionObject;
+    hasNativeExecutionNonJsonBrand =
+      __originalExecutionHelpers.hasNativeExecutionNonJsonBrand;
+  `, context);
+  delete context.__originalExecutionHelpers;
+}
+
+const originalWeakMapGet = vm.runInContext('WeakMap.prototype.get', context);
+context.__originalWeakMapGet = originalWeakMapGet;
+try {
+  vm.runInContext(`
+    WeakMap.prototype.get = function () {
+      throw new Error('forged WeakMap.prototype.get must not be consulted');
+    };
+  `, context);
+  const snapshotWithForgedWeakMapPrototype = snapshotDescriptor.value(base.view, 'ART');
+  assert.equal(snapshotWithForgedWeakMapPrototype.length, 1);
+  assert.equal(snapshotWithForgedWeakMapPrototype[0].entityId, 'ART');
+} finally {
+  vm.runInContext('WeakMap.prototype.get = __originalWeakMapGet', context);
+  delete context.__originalWeakMapGet;
+}
+
 const missing = prepare([], [
   { entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' } }
 ]);

@@ -10,6 +10,21 @@ class ResponsibilityEvidenceIntegrityError extends Error {
 }
 
 const RESPONSIBILITY_BINDING_PROVENANCE = new WeakMap();
+const RESPONSIBILITY_INTRINSIC_VIEW_SNAPSHOT = (function () {
+  const descriptor = Object.getOwnPropertyDescriptor(
+    global, 'snapshotImmutableExecutionViewEntityRecords'
+  );
+  if (!descriptor ||
+      !Object.prototype.hasOwnProperty.call(descriptor, 'value') ||
+      typeof descriptor.value !== 'function' ||
+      descriptor.writable !== false ||
+      descriptor.configurable !== false) {
+    throw new ResponsibilityEvidenceIntegrityError(
+      'intrinsic immutable execution-view snapshot is required'
+    );
+  }
+  return descriptor.value;
+})();
 
 function responsibilityRequire_(condition, message) {
   if (!condition) throw new ResponsibilityEvidenceIntegrityError(message);
@@ -85,18 +100,7 @@ function responsibilityFreezeCopy_(value, active = []) {
 }
 
 function responsibilityIntrinsicViewSnapshot_(view, entityId) {
-  const descriptor = Object.getOwnPropertyDescriptor(
-    global, 'snapshotImmutableExecutionViewEntityRecords'
-  );
-  responsibilityRequire_(
-    descriptor &&
-    Object.prototype.hasOwnProperty.call(descriptor, 'value') &&
-    typeof descriptor.value === 'function' &&
-    descriptor.writable === false &&
-    descriptor.configurable === false,
-    'intrinsic immutable execution-view snapshot is required'
-  );
-  return descriptor.value(view, entityId);
+  return RESPONSIBILITY_INTRINSIC_VIEW_SNAPSHOT(view, entityId);
 }
 
 function responsibilityAuthenticate_(contract, plan, view) {
