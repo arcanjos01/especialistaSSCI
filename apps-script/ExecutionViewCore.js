@@ -22,7 +22,6 @@ const {
   const executionViewWeakMapGet_ = WeakMap.prototype.get;
   const executionViewWeakMapSet_ = WeakMap.prototype.set;
   const executionViewWeakMapHas_ = WeakMap.prototype.has;
-  const executionViewArrayPush_ = Array.prototype.push;
   const executionViewArrayIncludes_ = Array.prototype.includes;
   const executionViewArraySort_ = Array.prototype.sort;
   const executionViewArrayConcat_ = Array.prototype.concat;
@@ -70,7 +69,11 @@ const {
       : null;
 
   function executionViewPush_(array, value) {
-    return executionViewReflectApply_(executionViewArrayPush_, array, [value]);
+    const nextIndex = array.length;
+    executionViewDefineProperty_(array, nextIndex, {
+      value, enumerable: true, writable: true, configurable: true,
+    });
+    return nextIndex + 1;
   }
 
   function executionViewTextIncludes_(value, fragment) {

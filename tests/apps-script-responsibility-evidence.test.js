@@ -375,6 +375,57 @@ function assertNoRt002ForRde(rde, attackName) {
   assert.equal(api.isCanonicalResponsibilityEvidenceBinding(result, contract, plan, view), true);
 }
 
+const projectionSetterRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+context.__savedProjectionArraySetter = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(Array.prototype, '2')", context
+);
+let projectionSetterView;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Array.prototype, '2', {
+      configurable: true,
+      set: function (value) {
+        let stored = value;
+        if (value && value.entityId === 'ART' && value.value) {
+          stored = {
+            ...value,
+            value: { ...value.value, RESPONSIBILITY_TYPE: 'EXECUCAO' }
+          };
+        }
+        Object.defineProperty(this, '2', {
+          value: stored, enumerable: true, writable: true, configurable: true
+        });
+      }
+    });
+  `, context);
+  projectionSetterView = api.projectRdeToExecutionView_(
+    projectionSetterRde, contract.entityCatalog
+  );
+} finally {
+  vm.runInContext(`
+    if (__savedProjectionArraySetter) {
+      Object.defineProperty(Array.prototype, '2', __savedProjectionArraySetter);
+    } else {
+      delete Array.prototype[2];
+    }
+    delete globalThis.__savedProjectionArraySetter;
+  `, context);
+}
+const projectedArt = snapshotDescriptor.value(projectionSetterView, 'ART')[0];
+assert.equal(projectedArt.value.RESPONSIBILITY_TYPE, 'VISTORIA_ENSAIO');
+const projectionSetterResolution = api.resolveCbmscApplicability(
+  projectionSetterView, currentContext(), contract
+);
+const projectionSetterPlan = api.materializeFrozenExecutionPlan(
+  contract, projectionSetterResolution, projectionSetterView
+);
+const projectionSetterBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, projectionSetterPlan, projectionSetterView, 'RT-002'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(projectionSetterBinding.evidence)), []);
+
 const descriptorAttackRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);
