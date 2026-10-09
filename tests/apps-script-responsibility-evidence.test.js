@@ -19,6 +19,7 @@ for (const relativePath of [
 }
 vm.runInContext(`globalThis.api = {
   COMPILED_RUNTIME_CONTRACT,
+  TypedReference,
   createCurrentSubmissionContext,
   projectRdeToExecutionView_,
   resolveCbmscApplicability,
