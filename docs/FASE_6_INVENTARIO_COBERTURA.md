@@ -1008,3 +1008,14 @@ preservados e nenhum contrato normativo ou cobertura foi acrescentado. Os gates
 no candidate passaram: 150 testes Python, sete suítes Apps Script, sintaxe JS e
 Code.gs, `git diff --check` e regeneração byte-idêntica do runtime compilado
 (SHA-256 `d810712fe6a527386f8db1f93b85defc5e40ddfb564c246f1263c0b6602139f4`).
+
+
+## Closeout — ResponsibilityEvidenceBinding / ImmutableExecutionView
+
+Esta onda da Fase 6 foi concluída no functional candidate `87daa0c8d4d1823bc1260c14f644aa1b734d1f1c`, sobre a árvore funcional derivada da revisão iniciada em `b165e8077092374e8145ab5ffe8ac4366a0734f6`. A revisão Sol independente final comparou `b24dc194a3f26dbb57236d226ccccdde45243f31` → `87daa0c8d4d1823bc1260c14f644aa1b734d1f1c` e retornou `SOL_REVIEW=PASS`. O SHA final do closeout é o commit que contém esta seção.
+
+Achados da onda fechados após revisão independente: `F6-001`, `F6-001R1`, `F6-001R2`, `F6-001R3`, `F6-002`, `F6-002R1` e `F6-003`. As regressões adversariais cobrem proveniência e catálogo canônico, adulteração de helpers e intrínsecos, iteradores/species, setters herdados em arrays, projeção factual ART e acumulação privada de evidências. `NOVOS_ACHADOS=0` na revisão final.
+
+Gates no functional candidate: 137 testes Python; oito suítes Apps Script; sintaxe de todos os `apps-script/*.js` e `Code.gs`; regeneração byte-idêntica de `CompiledRuntimeContract.js`; release build; phase guards; `git diff --check`. SHA-256 do runtime: `0aa193089407300efec8e7f9872ec358a71d9ab2c3ad37a843bde2a353248344`.
+
+Cobertura antes/depois: `9/31` → `9/31` (`COVERAGE_GAIN=0`). Nenhum Criterion integral foi fechado por esta infraestrutura; KB permanece em `5.16.0`. `FASE_6_STATUS=PARTIAL`; `PROMOTION=NOT_AUTHORIZED`. Próxima ação autorizada: continuar a cobertura progressiva da Fase 6 dentro dos contratos normativos existentes. Fase 7, processos reais, EXTRACTION real e OpenAI Decisions não foram iniciados.

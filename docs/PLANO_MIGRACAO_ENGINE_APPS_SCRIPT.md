@@ -728,3 +728,13 @@ necessária, retornar à **Fase 5B** para implementar e revisar a transição
 
 Não iniciar processo real, relatório operacional, EXTRACTION real por LLM ou
 OpenAI Decisions sem autorização específica.
+
+
+### Checkpoint da Fase 6 — binding de evidência
+
+- Status: Fase 6 permanece parcial; esta onda de `ResponsibilityEvidenceBinding` / `ImmutableExecutionView` está fechada.
+- Functional candidate: `87daa0c8d4d1823bc1260c14f644aa1b734d1f1c`; revisão Sol independente final `PASS` (`b24dc194a3f26dbb57236d226ccccdde45243f31` → candidate). O SHA final é o commit que contém este checkpoint.
+- Fechados: `F6-001`, `F6-001R1`, `F6-001R2`, `F6-001R3`, `F6-002`, `F6-002R1`, `F6-003`; findings novos abertos: 0.
+- Gates: 137 testes Python, oito suítes Apps Script, sintaxe JS/Code.gs, runtime byte-idêntico (SHA-256 `0aa193089407300efec8e7f9872ec358a71d9ab2c3ad37a843bde2a353248344`), release build, guards e diff check — todos PASS.
+- Cobertura: `9/31` antes e depois; ganho 0; KB `5.16.0`.
+- Próxima ação autorizada: continuar Fase 6 progressiva. Fase 7 e promoção operacional permanecem não autorizadas; Fase 5B somente após o checkpoint previsto no plano.
