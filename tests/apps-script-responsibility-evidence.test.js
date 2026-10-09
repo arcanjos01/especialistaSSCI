@@ -46,6 +46,19 @@ for (const name of [
 assert.equal(vm.runInContext("typeof responsibilityRequire_", context), 'undefined');
 assert.equal(vm.runInContext("typeof responsibilityFreezeCopy_", context), 'undefined');
 
+assert.throws(
+  () => vm.runInContext('EXECUTION_VIEW_RECORDS', context),
+  /not defined/
+);
+assert.throws(
+  () => vm.runInContext('executionViewRecords_', context),
+  /not defined/
+);
+assert.throws(
+  () => vm.runInContext('executionViewStateSet_', context),
+  /not defined/
+);
+
 assert.equal(
   vm.runInContext("Object.isFrozen(ImmutableExecutionView.prototype)", context),
   true
