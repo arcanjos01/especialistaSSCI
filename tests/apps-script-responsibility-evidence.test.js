@@ -663,6 +663,57 @@ const planSpeciesBinding = api.materializeResponsibilityEvidenceBinding(
 assert.equal(planSpeciesBinding.responsibility.documentaryResponsibilityType, 'EXECUCAO');
 assert.deepEqual(JSON.parse(JSON.stringify(planSpeciesBinding.evidence)), []);
 
+const arraySetterRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const arraySetterView = api.projectRdeToExecutionView_(arraySetterRde, contract.entityCatalog);
+const arraySetterResolution = api.resolveCbmscApplicability(
+  arraySetterView, currentContext(), contract
+);
+context.__savedArrayZeroSetter = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(Array.prototype, '0')", context
+);
+let arraySetterPlan;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Array.prototype, '0', {
+      configurable: true,
+      set: function (value) {
+        let stored = value;
+        if (value && value.responsibilityMappings) {
+          stored = JSON.parse(JSON.stringify(value));
+          for (let index = 0; index < stored.responsibilityMappings.length; index += 1) {
+            const mapping = stored.responsibilityMappings[index];
+            if (mapping.catalogIdentifier === 'RT-002') {
+              mapping.documentaryResponsibilityType = 'VISTORIA_ENSAIO';
+            }
+          }
+        }
+        Object.defineProperty(this, '0', {
+          value: stored, enumerable: true, writable: true, configurable: true
+        });
+      }
+    });
+  `, context);
+  arraySetterPlan = api.materializeFrozenExecutionPlan(
+    contract, arraySetterResolution, arraySetterView
+  );
+} finally {
+  vm.runInContext(`
+    if (__savedArrayZeroSetter) {
+      Object.defineProperty(Array.prototype, '0', __savedArrayZeroSetter);
+    } else {
+      delete Array.prototype[0];
+    }
+    delete globalThis.__savedArrayZeroSetter;
+  `, context);
+}
+const arraySetterBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, arraySetterPlan, arraySetterView, 'RT-002'
+);
+assert.equal(arraySetterBinding.responsibility.documentaryResponsibilityType, 'EXECUCAO');
+assert.deepEqual(JSON.parse(JSON.stringify(arraySetterBinding.evidence)), []);
+
 const iteratorPoisonRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);

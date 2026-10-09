@@ -34,7 +34,6 @@ const PLAN_INTRINSIC_SET_SIZE_GET_ = Object.getOwnPropertyDescriptor(Set.prototy
 const PLAN_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
 const PLAN_INTRINSIC_ARRAY_FIND_ = Array.prototype.find;
 const PLAN_INTRINSIC_ARRAY_INCLUDES_ = Array.prototype.includes;
-const PLAN_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
 const PLAN_INTRINSIC_ARRAY_SORT_ = Array.prototype.sort;
 const PLAN_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
 const PLAN_INTRINSIC_ARRAY_JOIN_ = Array.prototype.join;
@@ -89,7 +88,9 @@ function planIncludes_(array, value) {
   return planApply_(PLAN_INTRINSIC_ARRAY_INCLUDES_, array, [value]);
 }
 function planPush_(array, value) {
-  return planApply_(PLAN_INTRINSIC_ARRAY_PUSH_, array, [value]);
+  const nextIndex = array.length;
+  planSetIndex_(array, nextIndex, value);
+  return nextIndex + 1;
 }
 function planSort_(array) {
   return planApply_(PLAN_INTRINSIC_ARRAY_SORT_, array, []);

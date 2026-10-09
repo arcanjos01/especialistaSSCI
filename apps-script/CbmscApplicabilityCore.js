@@ -12,7 +12,6 @@ const CBMSC_INTRINSIC_DEFINE_ = Object.defineProperty;
 const CBMSC_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
 const CBMSC_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
 const CBMSC_INTRINSIC_ARRAY_SOME_ = Array.prototype.some;
-const CBMSC_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
 const CBMSC_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
 const CBMSC_INTRINSIC_SET_ = Set;
 const CBMSC_INTRINSIC_SET_HAS_ = Set.prototype.has;
@@ -74,7 +73,9 @@ function cbmscConcat_(array, other) {
   return result;
 }
 function cbmscPush_(array, value) {
-  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_PUSH_, array, [value]);
+  const nextIndex = array.length;
+  cbmscSetIndex_(array, nextIndex, value);
+  return nextIndex + 1;
 }
 function cbmscIndexOf_(array, value) {
   return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_INDEX_OF_, array, [value]);
