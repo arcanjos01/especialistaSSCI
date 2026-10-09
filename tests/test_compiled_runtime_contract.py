@@ -43,7 +43,7 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.13.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.14.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
             "3.8.0",
@@ -55,6 +55,14 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["03_table1.txt"],
             "3.4.0",
+        )
+        self.assertEqual(
+            self.contract["knowledgeBase"]["documentVersions"]["08_execution_pipeline.txt"],
+            "4.17.0",
+        )
+        self.assertEqual(
+            self.contract["knowledgeBase"]["documentVersions"]["09_Especificacao_da_RDE.txt"],
+            "1.5.0",
         )
 
     def test_runtime_contract_uses_private_identity_brand_and_locked_global(self):

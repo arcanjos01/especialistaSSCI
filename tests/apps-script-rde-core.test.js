@@ -349,20 +349,22 @@ assert.throws(() => core.validateRdeStructure_({
 const declarationRecords = [
   record('R_DECL_SOURCE', 'TEST_DOCUMENT', null, 'R_DECL_SOURCE', {}),
   record('R_DECL_OTHER_SOURCE', 'TEST_DOCUMENT', null, 'R_DECL_OTHER_SOURCE', {}),
-  record('R_DECL_DRT', 'TEST_DRT', null, 'R_DECL_SOURCE', {})
+  record('R_DECL_DRT', 'ART', null, 'R_DECL_DRT', {})
 ];
 const declaration = {
   declaration_id: 'D000001',
   drt_record_id: 'R_DECL_DRT',
   activity_service_text: 'execução de instalação',
   smsci_scope_text: 'sistema de hidrantes',
-  source_document: 'R_DECL_SOURCE',
+  source_document: 'R_DECL_DRT',
   source_text: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
   provenance: { page: 2, row: 4 }
 };
 const declarationCatalog = {
   ...entityCatalog,
-  TEST_DRT: { TYPE: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} }
+  ART: compiledContract.entityCatalog.ART,
+  RRT: compiledContract.entityCatalog.RRT,
+  TRT: compiledContract.entityCatalog.TRT
 };
 const declarationRde = {
   ...operationalRde,
@@ -372,6 +374,28 @@ const declarationRde = {
 assert.doesNotThrow(() => core.validateRdeStructure_(
   declarationRde, operationalExpected, declarationCatalog
 ));
+for (const concreteEntityId of ['ART', 'RRT', 'TRT']) {
+  const recordId = 'R_DECL_' + concreteEntityId;
+  const concreteRde = {
+    ...operationalRde,
+    records: [
+      record(recordId, concreteEntityId, null, recordId, {
+        RESPONSIBILITY_TYPE: 'EXECUCAO'
+      })
+    ],
+    drt_declaration_items: [{
+      declaration_id: 'D_' + concreteEntityId,
+      drt_record_id: recordId,
+      activity_service_text: 'execução',
+      smsci_scope_text: 'sistema de hidrantes',
+      source_document: recordId,
+      source_text: 'Atividade: execução; sistema: sistema de hidrantes.'
+    }]
+  };
+  assert.doesNotThrow(() => core.validateRdeStructure_(
+    concreteRde, operationalExpected, compiledContract.entityCatalog
+  ), concreteEntityId);
+}
 function invalidDeclaration(candidate, code) {
   assert.throws(() => core.validateRdeStructure_({
     ...declarationRde, drt_declaration_items: [candidate]
@@ -388,7 +412,7 @@ invalidDeclaration({ ...declaration, drt_record_id: 'R_DECL_SOURCE' },
   'RDE_DRT_DECLARATION_DRT_TYPE_INVALID');
 invalidDeclaration({ ...declaration, drt_record_id: 'R_MISSING' },
   'RDE_DRT_DECLARATION_DRT_DANGLING');
-invalidDeclaration({ ...declaration, source_document: 'R_DECL_DRT' },
+invalidDeclaration({ ...declaration, source_document: 'R_MISSING' },
   'RDE_DRT_DECLARATION_SOURCE_INVALID');
 invalidDeclaration({ ...declaration, source_document: 'R_DECL_OTHER_SOURCE' },
   'RDE_DRT_DECLARATION_SOURCE_MISMATCH');

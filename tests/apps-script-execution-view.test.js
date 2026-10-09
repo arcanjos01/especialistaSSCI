@@ -54,7 +54,7 @@ const entityCatalog = {
     TYPE: 'DOCUMENT', ATTRIBUTES: ['REQUEST_IDENTIFIER', 'PROTOCOL_IDENTIFIER'],
     ATTRIBUTE_TYPES: { REQUEST_IDENTIFIER: 'TEXT', PROTOCOL_IDENTIFIER: 'TEXT' }
   },
-  TEST_DRT: { TYPE: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
+  ART: { TYPE: 'DOCUMENT', EXTENDS: 'DRT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   TEST_REPORT: { TYPE: 'TEST_REPORT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   TEST_SECTION: { TYPE: 'DOCUMENT_SECTION', ATTRIBUTES: ['LEGIBLE'], ATTRIBUTE_TYPES: { LEGIBLE: 'BOOLEAN' } },
   TEST_ENTITY: { TYPE: 'DOCUMENTARY_EVIDENCE', ATTRIBUTES: ['label'], ATTRIBUTE_TYPES: { label: 'TEXT' } },
@@ -158,7 +158,7 @@ const declarationRde = {
   schema_version: '0.4.0',
   records: [
     rdeRecord('R_DRT_SOURCE', 'TEST_DOCUMENT', null, 'R_DRT_SOURCE', {}),
-    rdeRecord('R_DRT_RECORD', 'TEST_DRT', null, 'R_DRT_SOURCE', {})
+    rdeRecord('R_DRT_RECORD', 'ART', null, 'R_DRT_RECORD', {})
   ],
   documentary_associations: [],
   drt_declaration_items: [{
@@ -166,7 +166,7 @@ const declarationRde = {
     drt_record_id: 'R_DRT_RECORD',
     activity_service_text: 'execução de instalação',
     smsci_scope_text: 'sistema de hidrantes',
-    source_document: 'R_DRT_SOURCE',
+    source_document: 'R_DRT_RECORD',
     source_text: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
     provenance: { page: 2, row: 4 }
   }, {
@@ -174,7 +174,7 @@ const declarationRde = {
     drt_record_id: 'R_DRT_RECORD',
     activity_service_text: 'vistoria de funcionamento',
     smsci_scope_text: 'alarme de incêndio',
-    source_document: 'R_DRT_SOURCE',
+    source_document: 'R_DRT_RECORD',
     source_text: 'Atividade: vistoria de funcionamento; sistema: alarme de incêndio.'
   }]
 };
@@ -183,29 +183,29 @@ const validatedDeclarationRde = api.validateRdeStructure_(declarationRde, {
   processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
 }, entityCatalog);
 const declarationView = api.projectRdeToExecutionView_(validatedDeclarationRde, entityCatalog);
-const drtRef = new api.TypedReference('DRT', 'R_DRT_RECORD');
+const drtRef = new api.TypedReference('DOCUMENT', 'R_DRT_RECORD');
 assert.equal(declarationView.schemaVersion(), '0.4.0');
 assert.deepEqual(JSON.parse(JSON.stringify(declarationView.drtDeclarationItems(drtRef))), [{
   declarationId: 'D000001',
-  drt: { kind: 'DRT', identifier: 'R_DRT_RECORD' },
+  drt: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
   activityServiceText: 'execução de instalação',
   smsciScopeText: 'sistema de hidrantes',
-  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
   sourceText: 'Atividade: execução de instalação; sistema: sistema de hidrantes.',
   provenance: { page: 2, row: 4 }
 }, {
   declarationId: 'D000002',
-  drt: { kind: 'DRT', identifier: 'R_DRT_RECORD' },
+  drt: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
   activityServiceText: 'vistoria de funcionamento',
   smsciScopeText: 'alarme de incêndio',
-  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
   sourceText: 'Atividade: vistoria de funcionamento; sistema: alarme de incêndio.'
 }]);
 assert.equal(Object.isFrozen(declarationView.drtDeclarationItems(drtRef)), true);
 assert.equal(Object.isFrozen(declarationView.drtDeclarationItems(drtRef)[0].provenance), true);
 assert.throws(() => declarationView.drtDeclarationItems(
   new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
-), /requires a DRT reference/);
+), /requires a concrete ART, RRT or TRT DOCUMENT reference/);
 assert.equal(JSON.stringify(declarationRde), declarationSnapshot);
 const dateRde = {
   ...declarationRde,
@@ -249,7 +249,7 @@ assert.throws(() => dateView.documentaryDateItems(
 ), /requires a TEST_REPORT reference/);
 assert.equal(JSON.stringify(dateRde), dateSnapshot);
 const directSourceRef = new api.TypedReference('DOCUMENT', 'DIRECT_SOURCE');
-const directDrtRef = new api.TypedReference('DRT', 'DIRECT_DRT');
+const directDrtRef = new api.TypedReference('DOCUMENT', 'DIRECT_DRT');
 const directReportRef = new api.TypedReference('TEST_REPORT', 'DIRECT_REPORT');
 const directProjectionEntries = [
   {
@@ -257,8 +257,8 @@ const directProjectionEntries = [
     sourceDocument: directSourceRef, value: {}
   },
   {
-    reference: directDrtRef, entityId: 'TEST_DRT', parent: null,
-    sourceDocument: directSourceRef, value: {}
+    reference: directDrtRef, entityId: 'ART', parent: null,
+    sourceDocument: directDrtRef, value: {}
   }, {
     reference: directReportRef, entityId: 'TEST_REPORT', parent: null,
     sourceDocument: directSourceRef, value: {}
@@ -269,7 +269,7 @@ const directDeclaration = {
   drt: directDrtRef,
   activityServiceText: 'execução de instalação',
   smsciScopeText: 'sistema de hidrantes',
-  sourceDocument: directSourceRef,
+  sourceDocument: directDrtRef,
   sourceText: 'Atividade: execução de instalação; sistema: sistema de hidrantes.'
 };
 const directView = new api.ImmutableExecutionView(

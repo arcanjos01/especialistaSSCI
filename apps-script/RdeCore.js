@@ -865,10 +865,13 @@ function validateRdeDrtDeclarationItems_(items, records, entityCatalog) {
       );
     }
     const drtDefinition = entityCatalog[drt.entity_id];
-    if (!drtDefinition || drtDefinition.TYPE !== 'DRT') {
+    if (!drtDefinition ||
+        drtDefinition.TYPE !== 'DOCUMENT' ||
+        drtDefinition.EXTENDS !== 'DRT' ||
+        drtDefinition.ABSTRACT === true) {
       throw makeRdeValidationError_(
         'RDE_DRT_DECLARATION_DRT_TYPE_INVALID',
-        'drt_record_id deve resolver para entidade TYPE DRT.'
+        'drt_record_id deve resolver para documento concreto TYPE DOCUMENT EXTENDS DRT.'
       );
     }
     const source = recordsById[item.source_document];

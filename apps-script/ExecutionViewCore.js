@@ -484,7 +484,7 @@ class ImmutableExecutionView {
           !declaration.sourceText.includes(declaration.smsciScopeText)) {
         throw new ExecutionViewContractError('declaration literals must occur in sourceText');
       }
-      if (!(declaration.drt instanceof TypedReference) || declaration.drt.kind !== 'DRT' ||
+      if (!(declaration.drt instanceof TypedReference) || declaration.drt.kind !== 'DOCUMENT' ||
           !(declaration.sourceDocument instanceof TypedReference) ||
           declaration.sourceDocument.kind !== 'DOCUMENT') {
         throw new ExecutionViewContractError('declaration references are invalid');
@@ -495,7 +495,16 @@ class ImmutableExecutionView {
           !Object.prototype.hasOwnProperty.call(records, sourceKey)) {
         throw new ExecutionViewContractError('declaration reference is missing from the view');
       }
-      if (executionReferenceKey(records[drtKey].sourceDocument) !== sourceKey) {
+      const drtRecord = records[drtKey];
+      if ((drtRecord.entityId !== 'ART' &&
+           drtRecord.entityId !== 'RRT' &&
+           drtRecord.entityId !== 'TRT') ||
+          drtRecord.reference.kind !== 'DOCUMENT') {
+        throw new ExecutionViewContractError(
+          'declaration DRT must reference a concrete ART, RRT or TRT document'
+        );
+      }
+      if (executionReferenceKey(drtRecord.sourceDocument) !== sourceKey) {
         throw new ExecutionViewContractError('declaration source must match the DRT source');
       }
       if (Object.prototype.hasOwnProperty.call(declarationIds, declaration.declarationId)) {
@@ -645,8 +654,11 @@ class ImmutableExecutionView {
 
   drtDeclarationItems(reference) {
     const record = executionViewRecord(this, reference);
-    if (record.reference.kind !== 'DRT') {
-      throw new ExecutionViewContractError('drtDeclarationItems requires a DRT reference');
+    if (record.reference.kind !== 'DOCUMENT' ||
+        (record.entityId !== 'ART' && record.entityId !== 'RRT' && record.entityId !== 'TRT')) {
+      throw new ExecutionViewContractError(
+        'drtDeclarationItems requires a concrete ART, RRT or TRT DOCUMENT reference'
+      );
     }
     const state = EXECUTION_VIEW_RECORDS.get(this);
     if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
@@ -722,43 +734,59 @@ function isImmutableExecutionView(view) {
   return EXECUTION_VIEW_RECORDS.has(view);
 }
 
-function snapshotImmutableExecutionViewEntityRecords_(view, entityId) {
-  if (typeof entityId !== 'string' || !entityId) {
-    throw new ExecutionViewContractError('entityId must be a non-empty string');
-  }
-  const state = EXECUTION_VIEW_RECORDS.get(view);
-  if (!state) {
-    throw new ExecutionViewContractError('invalid execution view receiver');
-  }
-  const result = [];
-  for (let index = 0; index < state.orderedReferences.length; index += 1) {
-    const reference = state.orderedReferences[index];
-    const record = state.byReference[executionReferenceKey(reference)];
-    if (record.entityId !== entityId) continue;
-    const item = {
-      reference: Object.freeze({
-        kind: record.reference.kind,
-        identifier: record.reference.identifier
-      }),
-      entityId: record.entityId,
-      sourceDocument: Object.freeze({
-        kind: record.sourceDocument.kind,
-        identifier: record.sourceDocument.identifier
-      }),
-      value: immutableExecutionCopy(record.value)
-    };
-    if (record.hasProvenance) {
-      item.provenance = immutableExecutionCopy(record.provenance);
-    }
-    Object.freeze(item);
-    result[result.length] = item;
-  }
-  return Object.freeze(result);
-}
-
 (function (global) {
-  const intrinsicSnapshot = snapshotImmutableExecutionViewEntityRecords_;
-  Object.freeze(ImmutableExecutionView.prototype);
+  const intrinsicRecordsByView = EXECUTION_VIEW_RECORDS;
+  const intrinsicFreeze = Object.freeze;
+  const intrinsicIsFrozen = Object.isFrozen;
+  const intrinsicStringify = JSON.stringify;
+  const IntrinsicExecutionViewContractError = ExecutionViewContractError;
+
+  function intrinsicReferenceKey(reference) {
+    return intrinsicStringify([reference.kind, reference.identifier]);
+  }
+
+  function intrinsicSnapshot(view, entityId) {
+    if (typeof entityId !== 'string' || !entityId) {
+      throw new IntrinsicExecutionViewContractError('entityId must be a non-empty string');
+    }
+    const state = intrinsicRecordsByView.get(view);
+    if (!state) {
+      throw new IntrinsicExecutionViewContractError('invalid execution view receiver');
+    }
+    const result = [];
+    for (let index = 0; index < state.orderedReferences.length; index += 1) {
+      const reference = state.orderedReferences[index];
+      const record = state.byReference[intrinsicReferenceKey(reference)];
+      if (record.entityId !== entityId) continue;
+      if ((record.value && typeof record.value === 'object' &&
+           !intrinsicIsFrozen(record.value)) ||
+          (record.hasProvenance && record.provenance &&
+           typeof record.provenance === 'object' &&
+           !intrinsicIsFrozen(record.provenance))) {
+        throw new IntrinsicExecutionViewContractError(
+          'intrinsic execution-view state must remain immutable'
+        );
+      }
+      const item = {
+        reference: intrinsicFreeze({
+          kind: record.reference.kind,
+          identifier: record.reference.identifier
+        }),
+        entityId: record.entityId,
+        sourceDocument: intrinsicFreeze({
+          kind: record.sourceDocument.kind,
+          identifier: record.sourceDocument.identifier
+        }),
+        value: record.value
+      };
+      if (record.hasProvenance) item.provenance = record.provenance;
+      intrinsicFreeze(item);
+      result[result.length] = item;
+    }
+    return intrinsicFreeze(result);
+  }
+
+  intrinsicFreeze(ImmutableExecutionView.prototype);
   Object.defineProperty(global, 'snapshotImmutableExecutionViewEntityRecords', {
     value: intrinsicSnapshot,
     enumerable: false,

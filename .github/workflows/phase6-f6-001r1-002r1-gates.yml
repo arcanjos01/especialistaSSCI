@@ -1,0 +1,57 @@
+name: phase6-f6-001r1-002r1-gates
+on:
+  push:
+    branches: [feature/apps-script-engine-core]
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Python contract suite
+        run: python -m unittest discover -s tests -p 'test*.py'
+      - name: Apps Script suites
+        run: |
+          set -euo pipefail
+          for test_file in tests/apps-script-*.test.js; do
+            node "$test_file"
+          done
+      - name: JavaScript syntax
+        run: |
+          set -euo pipefail
+          for source_file in apps-script/*.js; do
+            node --check "$source_file"
+          done
+          node --check < apps-script/Code.gs
+      - name: Runtime regeneration is byte-identical
+        run: |
+          set -euo pipefail
+          cp apps-script/CompiledRuntimeContract.js /tmp/runtime-before.js
+          python tools/build_knowledge_base_release.py --write-runtime-contract
+          cmp /tmp/runtime-before.js apps-script/CompiledRuntimeContract.js
+          sha256sum apps-script/CompiledRuntimeContract.js
+          git diff --exit-code -- apps-script/CompiledRuntimeContract.js
+      - name: Release build
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/ssci-kb-release
+          python tools/build_knowledge_base_release.py /tmp/ssci-kb-release
+          test "$(find /tmp/ssci-kb-release -maxdepth 1 -type f -name '*.txt' | wc -l)" -eq 10
+      - name: Architectural phase guards
+        run: |
+          set -euo pipefail
+          grep -q 'NEXT_AUTHORIZED_PHASE=FASE_6' docs/PLANO_MIGRACAO_ENGINE_APPS_SCRIPT.md
+          grep -q 'VALIDATED_TO_ANALYZED=PENDENTE' docs/PLANO_MIGRACAO_ENGINE_APPS_SCRIPT.md
+      - name: Diff hygiene
+        run: git diff --check HEAD^ HEAD

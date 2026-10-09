@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.16.0
+# DOCUMENT_VERSION: 4.17.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.13.0
+KNOWLEDGE_BASE_VERSION: 5.14.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -24,9 +24,9 @@ DOCUMENT_SET:
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.3.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.16.0
-09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.4.0
+06_reports.txt: DOCUMENT_VERSION 3.4.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.17.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.5.0
 
 END DOCUMENT_SET.
 
@@ -545,7 +545,10 @@ contract, frozen execution plan and ImmutableExecutionView.
  The bridge shall consume
 documentary records through an intrinsic view snapshot bound to the private
 ImmutableExecutionView state; mutable or replaced prototype methods are not an
-authorized evidence source. The binding may
+authorized evidence source. The intrinsic snapshot must capture every helper and
+runtime intrinsic it depends on at module initialization, so later reassignment
+of global helper bindings cannot alter which private records or facts are
+returned. The binding may
 contain zero or more concrete DRT references and their documentary provenance.
 It shall not modify the RDE or the plan, and shall not select evidence by
 filename, order, proximity, similarity or plausibility. The same concrete DRT

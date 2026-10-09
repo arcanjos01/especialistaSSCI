@@ -156,6 +156,32 @@ function prepare(codes = [], drts = []) {
   return { rde, view, resolution, plan };
 }
 
+for (const entityId of ['ART', 'RRT', 'TRT']) {
+  const declarationRde = makeRde([], [{
+    entityId,
+    attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' }
+  }]);
+  declarationRde.schema_version = '0.4.0';
+  declarationRde.documentary_associations = [];
+  declarationRde.drt_declaration_items = [{
+    declaration_id: 'DECL_' + entityId,
+    drt_record_id: 'DRT_0',
+    activity_service_text: 'execução',
+    smsci_scope_text: 'sistema de hidrantes',
+    source_document: 'DRT_0',
+    source_text: 'Atividade: execução; sistema: sistema de hidrantes.'
+  }];
+  const declarationView = api.projectRdeToExecutionView_(
+    declarationRde, contract.entityCatalog
+  );
+  const declarationRef = new api.TypedReference('DOCUMENT', 'DRT_0');
+  const items = declarationView.drtDeclarationItems(declarationRef);
+  assert.equal(items.length, 1, entityId);
+  assert.equal(items[0].drt.kind, 'DOCUMENT', entityId);
+  assert.equal(items[0].sourceDocument.identifier, 'DRT_0', entityId);
+  assert.equal(Object.isFrozen(items), true, entityId);
+}
+
 const base = prepare([], [
   {
     entityId: 'ART',

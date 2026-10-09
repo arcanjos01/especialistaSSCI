@@ -263,8 +263,12 @@ source_text:
 provenance: (opcional)
 
 `declaration_id` é opaco e único na coleção. `drt_record_id` resolve para um
-registro `TYPE DRT` da mesma RDE. `source_document` resolve para `TYPE DOCUMENT`
-e deve corresponder ao documento de origem da DRT. Os três campos de texto são
+documento concreto ART, RRT ou TRT da mesma RDE, cada qual declarado como
+`TYPE DOCUMENT` e `EXTENDS DRT`. A referência tipada correspondente usa kind
+`DOCUMENT`, não `DRT`; `DRT` permanece somente o contrato abstrato herdado.
+`source_document` resolve para `TYPE DOCUMENT` e deve corresponder ao documento
+de origem da DRT. Quando ART/RRT/TRT for documento autônomo, esse documento de
+origem é o próprio `drt_record_id`. Os três campos de texto são
 strings literais não vazias; `activity_service_text` e `smsci_scope_text`
 devem ocorrer literalmente em `source_text`. `source_text` preserva a unidade
 documental explícita (por exemplo, declaração, linha de tabela ou entrada de
