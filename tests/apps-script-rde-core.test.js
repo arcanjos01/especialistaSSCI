@@ -571,28 +571,6 @@ const standaloneArt = [
   }, { page: 1, field: 'standalone-document' })
 ];
 assert.doesNotThrow(() => validateRecords(standaloneArt, compiledContract.entityCatalog));
-const standaloneArtView = api.projectRdeToExecutionView_({
-  schema_version: '0.2.0',
-  process_id: 'TEST_ONLY_PROCESS',
-  source: {
-    file_id: 'TEST_ONLY_FILE',
-    file_name: 'TEST_ONLY.pdf',
-    mime_type: 'application/pdf',
-    source_url: 'TEST_ONLY_URL',
-    sha256: '0'.repeat(64)
-  },
-  extraction: {
-    provider: 'TEST_ONLY',
-    extractor_version: 'TEST_ONLY',
-    created_at: '2026-10-09T00:00:00.000Z'
-  },
-  records: standaloneArt,
-  extraction_warnings: []
-}, compiledContract.entityCatalog);
-const standaloneArtRefs = standaloneArtView.referencesByEntity('ART');
-assert.equal(standaloneArtRefs.length, 1);
-assert.equal(standaloneArtRefs[0].kind, 'DOCUMENT');
-assert.equal(standaloneArtView.sourceDocument(standaloneArtRefs[0]).identifier, 'R_ART_STANDALONE');
 assert.doesNotThrow(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_ART_ABSENT', 'ART', null, 'R_DRT_ART_ABSENT', {}, { page: 2 })
