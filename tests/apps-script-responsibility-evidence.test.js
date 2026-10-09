@@ -167,8 +167,8 @@ const binding = api.materializeResponsibilityEvidenceBinding(
 assert.equal(Object.isFrozen(binding), true);
 assert.equal(Object.isFrozen(binding.evidence), true);
 assert.equal(binding.evidence.length, 2);
-assert.deepEqual(binding.evidence.map(item => item.entityId), ['ART', 'TRT']);
-assert.deepEqual(binding.evidence.map(item => item.selectionFact.value), ['EXECUCAO', 'EXECUCAO']);
+assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.entityId))), ['ART', 'TRT']);
+assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.selectionFact.value))), ['EXECUCAO', 'EXECUCAO']);
 assert.equal(binding.evidence.every(item => item.reference.kind === 'DRT'), true);
 assert.equal(binding.evidence.every(item => item.sourceDocument.kind === 'DOCUMENT'), true);
 assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
@@ -222,6 +222,6 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
 base.rde.records.find(item => item.record_id === 'DRT_0').attributes.RESPONSIBILITY_TYPE =
   'VISTORIA_ENSAIO';
 assert.equal(binding.evidence.length, 2);
-assert.deepEqual(binding.evidence.map(item => item.selectionFact.value), ['EXECUCAO', 'EXECUCAO']);
+assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.selectionFact.value))), ['EXECUCAO', 'EXECUCAO']);
 
 console.log('apps-script-responsibility-evidence: PASS');
