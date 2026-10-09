@@ -49,6 +49,15 @@ class RtCatalogContractTests(unittest.TestCase):
             self.assertTrue(REQUIRED_FIELDS <= fields, f"{identifier}: {REQUIRED_FIELDS - fields}")
             self.assertIn("NORMATIVE_SOURCES:", entry)
 
+    def test_rt002_exposes_only_the_authorized_documentary_responsibility_type(self):
+        self.assertRegex(
+            self.entries["RT-002"],
+            r"(?m)^DRT_RESPONSIBILITY_TYPE: EXECUCAO$",
+        )
+        for identifier, entry in self.entries.items():
+            if identifier != "RT-002":
+                self.assertNotIn("DRT_RESPONSIBILITY_TYPE:", entry)
+
     def test_execution_and_regularization_are_separate_routes(self):
         for identifier in ("RT-002", "RT-003"):
             entry = " ".join(self.entries[identifier].split())

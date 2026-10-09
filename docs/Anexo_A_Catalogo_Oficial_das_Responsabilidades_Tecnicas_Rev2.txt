@@ -235,6 +235,7 @@ representada internamente como escopo agregado da documentação de execução.
 PURPOSE: Documentar a responsabilidade pela execução dos SMSCI do PPCI. Uma
 DRT pode abranger os sistemas e medidas, ressalvados os que exigem RT específico.
 NATURE: EXECUÇÃO.
+DRT_RESPONSIBILITY_TYPE: EXECUCAO
 APPLICABLE_SMSCI: Todos os SMSCI previstos no PPCI, ressalvadas as exigências
 de RT específico da IN técnica aplicável.
 QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. A habilitação
@@ -469,14 +470,12 @@ NORMATIVE_SOURCES:
   IN 18, art. 14, I–II; ausência de identidade explícita entre declarante e
   titular DRT em IN 18, art. 14; separação conceitual no Documento 11, §§ 4–8.
 OBSERVATIONS: A Base ligava historicamente RT-007 ao Relatório de Conformidade
-e à declaração CMAR, mas nenhuma fonte liga esses produtos a RT-007 de
-verificação final. O mapping agregado do Relatório de Conformidade foi
-reconciliado para RT-002 nos Requirements e Criteria correspondentes, conforme
-IN 01, art. 65 e Anexo I; a associação de RT-003 pode ocorrer por SMSCI
-documentalmente assumido sem duplicar produto ou obrigação. Permanece
-`UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPINGS` para CMAR, cuja IN 18,
-art. 14, I–II exige declaração do RT e DRT de instalação/execução, mas não
-identifica se declarante e titular da DRT são a mesma pessoa.
+e à declaração CMAR. Esses mappings foram retirados dos Requirements correntes:
+o Relatório de Conformidade permanece reconciliado em RT-002, e a declaração
+CMAR permanece obrigação documental do RT prevista na IN 18, art. 14, sem
+criar DRT autônoma de avaliação. RT-007 permanece associado somente à
+verificação final elétrica quando houver fonte expressa; não inferir identidade
+entre o declarante CMAR e o titular de outra DRT.
 
 ### RT-014
 
@@ -569,10 +568,8 @@ NORMATIVE_SOURCES:
 - OBSERVATIONS (checklist e atribuição do instalador): IN 09, art. 122,
   III–IV; IN 01 Parte 1, art. 108, § 4º, somente para escopo de laudos/ensaios/
   inspeções/mensurações; Documento 11, §§ 4–8.
-OBSERVATIONS: O uso atual de RT-015 no Requirement do checklist de habite-se
-(art. 122, IV) não demonstra relação normativa com a manutenção do art. 123, I.
-`UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPING` e
-`UNRESOLVED_ATTRIBUTE DRT_REQUIREMENT_FOR_CHECKLIST`: a lacuna limita somente
-a associação do checklist. O art. 122, IV, atribui fornecimento da lista aos
-responsáveis pela instalação; não confundir essa lista com o laudo de manutenção
-anual do art. 123, I.
+OBSERVATIONS: O mapping REQ_IN09_CHECKLIST -> RT-015 foi retirado dos
+Requirements correntes. O checklist de habite-se do art. 122, IV permanece
+obrigação documental referente à lista de verificações fornecida pelos
+responsáveis pela instalação, sem DRT de manutenção autônoma inferida. RT-015
+permanece restrita ao escopo de manutenção e laudo anual do art. 123, I.

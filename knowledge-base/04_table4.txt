@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.2
+# VERSION 3.3
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -48,24 +48,6 @@ MANUAL_REVIEW
 END
 
 -------------------------------------------------------------------------------
-
-CRITERION T4_DRT_PROFESSIONAL_REGULARITY
-
-TABLE 4
-
-REQUIREMENT REQ_T1_DRT_PROFESSIONAL_REGULARITY
-
-CONTEXT EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
-
-ASSERT RESPONSIBILITY_EVIDENCE_PROFESSIONAL_REGULARITY(
-    REQUIRED_TECHNICAL_RESPONSIBILITY
-)
-
-FAIL NC_T4_019
-
-MANUAL_REVIEW "Verificação manual requerida da regularidade profissional da DRT emitida por conselho de outra UF."
-
-END
 
 ###############################################################################
 # IN07

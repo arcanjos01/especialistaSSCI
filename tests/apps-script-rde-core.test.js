@@ -503,6 +503,8 @@ assert.throws(() => validateRecords([
     { SIGNATURE_MECHANISM: false }, { page: 2 })
 ], signatureCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 const drtFactFields = {
+  COUNCIL_STATE: 'SC',
+  RESPONSIBILITY_TYPE: 'EXECUCAO',
   DRT_IDENTIFIER: 'ART 000123',
   COUNCIL_REGISTRATION_STATUS: 'registrada no conselho',
   COUNCIL_ISSUANCE_STATUS: 'emitida; não é rascunho',
@@ -520,17 +522,17 @@ const drtFactFields = {
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_RT_SOURCE', 'PPCI', null, 'R_DRT_RT_SOURCE', {}, { page: 1 }),
-  record('R_DRT_FACT_DRT', 'DRT', null, 'R_DRT_FACT_DRT',
+  record('R_DRT_FACT_DRT', 'ART', null, 'R_DRT_SOURCE',
     { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123',
       DRT_DOCUMENT_ROLE_TEXT: 'DRT de execução (fixture sintética)' },
     { page: 2, field: 'explicitly-labeled' }),
-  record('R_DRT_FACT_DISTRATO', 'DRT', null, 'R_DRT_FACT_DISTRATO', {
+  record('R_DRT_FACT_DISTRATO', 'RRT', null, 'R_DRT_SOURCE', {
     DRT_IDENTIFIER: 'DRT 000124',
     DRT_ISSUE_DATE_TEXT: 'Data de emissão: 16/03/2026',
     DRT_DOCUMENT_ROLE_TEXT: 'DRT de distrato de contrato (fixture sintética)',
     DRT_TERMINATION_SERVICES_TEXT: 'Serviços efetivamente realizados e sob responsabilidade (fixture sintética)'
   }, { page: 3, field: 'explicitly-labeled' }),
-  record('R_DRT_FACT_CANCELLED', 'DRT', null, 'R_DRT_FACT_CANCELLED', {
+  record('R_DRT_FACT_CANCELLED', 'TRT', null, 'R_DRT_SOURCE', {
     DRT_IDENTIFIER: 'DRT 000125',
     DRT_DOCUMENT_ROLE_TEXT: 'DRT com declaração de situação (fixture sintética)',
     DRT_CANCELLATION_STATUS_TEXT: 'Esta DRT foi revogada ou cancelada (fixture sintética)'
@@ -556,6 +558,11 @@ const drtFactRecords = [
 ];
 const drtFactSnapshot = JSON.stringify(drtFactRecords);
 assert.doesNotThrow(() => validateRecords(drtFactRecords, compiledContract.entityCatalog));
+assert.throws(() => validateRecords([
+  record('R_DRT_SOURCE_ABSTRACT', 'PPCI', null, 'R_DRT_SOURCE_ABSTRACT', {}, { page: 1 }),
+  record('R_DRT_ABSTRACT', 'DRT', null, 'R_DRT_SOURCE_ABSTRACT',
+    { RESPONSIBILITY_TYPE: 'EXECUCAO' }, { page: 2 })
+], compiledContract.entityCatalog), error => error.code === 'RDE_ABSTRACT_ENTITY');
 assert.equal(JSON.stringify(drtFactRecords), drtFactSnapshot);
 assert.doesNotThrow(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),

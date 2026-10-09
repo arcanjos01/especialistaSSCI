@@ -319,7 +319,7 @@ function rdeEntityDefinition_(entityCatalog, entityId) {
         definition.ATTRIBUTES.slice().sort().join('\u0000') ||
       Object.values(definition.ATTRIBUTE_TYPES).some(type =>
         !['BOOLEAN', 'DATE', 'ENUM', 'TEXT'].includes(type)
-      )) {
+      ) || (definition.ABSTRACT !== undefined && typeof definition.ABSTRACT !== 'boolean')) {
     throw makeRdeValidationError_(
       'RDE_ENTITY_CATALOG_INVALID', 'Definição estrutural inválida para ' + entityId + '.'
     );
@@ -429,6 +429,12 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
     if (entityCatalog && !definition) {
       throw makeRdeValidationError_(
         'RDE_UNKNOWN_ENTITY_ID', 'entity_id não declarado: ' + record.entity_id
+      );
+    }
+    if (definition && definition.ABSTRACT === true) {
+      throw makeRdeValidationError_(
+        'RDE_ABSTRACT_ENTITY',
+        'entity_id abstrato não pode materializar registro concreto: ' + record.entity_id
       );
     }
     if (definition) {

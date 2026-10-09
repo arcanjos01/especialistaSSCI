@@ -86,7 +86,7 @@ def validate_counters(executed, passed, failed, not_applicable, manual_review):
 
 CATALOG = parse_nonconformities(NONCONFORMITIES)
 ACTIONABLE = fail_references(TABLE1, TABLE4)
-NON_IRV_EXCEPTIONS = {"NC_T1_009", "NC_T4_019"}
+NON_IRV_EXCEPTIONS = set()
 
 EXPECTED = {
     "NC_T1_001": ("1", "Documentos a serem apresentados conforme o artigo 108 da IN 1, parte 1", "É necessário apresentar o(s) seguinte (s) documento (s) conforme previsto no artigo 108 da IN 01, parte 1:"),
@@ -134,13 +134,13 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             self.assertEqual(CATALOG[nc_id]["DESCRIPTION_POLICY"], "MINIMAL_IF_NEEDED")
 
     def test_b_actionable_coverage_and_explicit_non_irv_exceptions(self):
-        self.assertEqual(len(ACTIONABLE), 31)
-        self.assertEqual(len(set(ACTIONABLE)), 31)
+        self.assertEqual(len(ACTIONABLE), 29)
+        self.assertEqual(len(set(ACTIONABLE)), 29)
         mapped_actionable = {nc_id for nc_id in ACTIONABLE if "IRV_TABLE" in CATALOG[nc_id]}
         self.assertEqual(len(mapped_actionable), 29)
         self.assertEqual(set(ACTIONABLE) - mapped_actionable, NON_IRV_EXCEPTIONS)
-        self.assertIn("fonte CONFEA_CREA", NONCONFORMITIES)
-        self.assertIn("Nenhum texto aproximado deve ser criado", NONCONFORMITIES)
+        self.assertNotIn("CONFEA_CREA", NONCONFORMITIES)
+        self.assertEqual(set(ACTIONABLE), mapped_actionable)
 
     def test_c_in8_produces_two_distinct_pending_entries(self):
         pending, human = project(["NC_T4_002", "NC_T4_003"])
@@ -308,11 +308,11 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         for forbidden in ("STATUS: APROVADO", "STATUS: REPROVADO", "STATUS: INDEFERIDO"):
             self.assertNotIn(forbidden, operational)
 
-    def test_l_non_irv_fail_is_preserved_for_human_treatment(self):
-        pending, human = project(["NC_T1_009", "NC_T4_019", "NC_T4_002"])
-        self.assertEqual(len(pending), 1)
-        self.assertEqual(human, ["NC_T1_009", "NC_T4_019"])
-        self.assertIn("do not convert the\nFAIL to MANUAL_REVIEW", PIPELINE)
+    def test_l_unsupported_professional_regularity_is_not_an_active_nonconformity(self):
+        self.assertNotIn("NC_T1_009", CATALOG)
+        self.assertNotIn("NC_T4_019", CATALOG)
+        self.assertNotIn("T1_DRT_PROFESSIONAL_REGULARITY", TABLE1)
+        self.assertNotIn("T4_DRT_PROFESSIONAL_REGULARITY", TABLE4)
 
     def test_m_report_and_pipeline_keep_projection_after_consolidation(self):
         self.assertIn("2. PENDÊNCIAS PARA LANÇAMENTO NO e-SCI", REPORTS)
@@ -354,9 +354,9 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
             "08_execution_pipeline.txt", "09_Especificacao_da_RDE.txt",
         }
         self.assertEqual({path.name for path in KB.glob("*.txt")}, expected_files)
-        self.assertEqual(len(CATALOG), 32)
-        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 12)
-        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 24)
+        self.assertEqual(len(CATALOG), 30)
+        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE1, re.MULTILINE)), 11)
+        self.assertEqual(len(re.findall(r"^CRITERION ", TABLE4, re.MULTILINE)), 23)
 
 
 if __name__ == "__main__":

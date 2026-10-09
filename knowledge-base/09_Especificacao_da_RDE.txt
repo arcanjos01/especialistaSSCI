@@ -136,6 +136,20 @@ EXECUTION.
 em `01_entities.txt`. Não é atributo documental e não pode ser criado durante
 EXECUTION.
 
+`DRT` é uma entidade abstrata de contrato documental e não pode aparecer
+como `entity_id` de um registro concreto. ART, RRT, TRT e outros subtipos
+explicitamente declarados com `TYPE DRT` usam os atributos comuns herdados de
+DRT. A herança é estrutural: um subtipo não pode redefinir um atributo herdado
+com tipo incompatível. Essa composição não cria fatos ausentes.
+
+`RESPONSIBILITY_TYPE` somente pode ser materializado quando a natureza estiver
+documentalmente identificada na própria DRT e deve preservar o token canônico
+autorizado pelo contrato de extração. `COUNCIL_STATE`,
+`COUNCIL_REGISTRATION_STATUS`, `COUNCIL_ISSUANCE_STATUS` e
+`COUNCIL_PAYMENT_STATUS` permanecem fatos documentais separados; não geram,
+isoladamente, conclusão de regularidade profissional, habilitação ou
+conformidade.
+
 `parent_record_id` é obrigatório. É `null` para um registro raiz `DOCUMENT`;
 em `DOCUMENT_SECTION` aponta para o registro `DOCUMENT` pai; em
 `DOCUMENTARY_EVIDENCE`, aponta para o registro `DOCUMENT_SECTION` pai quando

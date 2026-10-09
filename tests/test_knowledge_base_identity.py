@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.11.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.12.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",

@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.14.0
+# DOCUMENT_VERSION: 4.15.0
 ###############################################################################
 
 ###############################################################################
@@ -11,22 +11,22 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.11.0
+KNOWLEDGE_BASE_VERSION: 5.12.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.2.0
-01_entities.txt: DOCUMENT_VERSION 3.6.0
-02_requirements.txt: DOCUMENT_VERSION 3.4.0
+00_engine.txt: DOCUMENT_VERSION 4.3.0
+01_entities.txt: DOCUMENT_VERSION 3.7.0
+02_requirements.txt: DOCUMENT_VERSION 3.5.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
-03_table1.txt: DOCUMENT_VERSION 3.3.0
-04_table4.txt: DOCUMENT_VERSION 3.2.0
-05_nonconformities.txt: DOCUMENT_VERSION 3.1.0
-06_reports.txt: DOCUMENT_VERSION 3.1.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.14.0
-09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.2.0
+03_table1.txt: DOCUMENT_VERSION 3.4.0
+04_table4.txt: DOCUMENT_VERSION 3.3.0
+05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
+06_reports.txt: DOCUMENT_VERSION 3.2.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.15.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.3.0
 
 END DOCUMENT_SET.
 
@@ -523,6 +523,37 @@ internal to the Criterion and preserves aggregate result semantics. In
 particular, T1_DRT_SMSCI_COVERAGE remains one planned unit with multiple
 internal bindings and one aggregate result; it may produce at most one
 NC_T1_002 when its declared Criterion result is FAIL.
+
+EACH_REQUIRED_TECHNICAL_RESPONSIBILITY is a context-domain token, not a
+documentary fact and not a new UNIT_KEY source. Immediately before execution
+of a Criterion that declares this CONTEXT, the execution bridge derives an
+ordered resolved responsibility domain only from explicit
+REQUIRED_TECHNICAL_RESPONSIBILITY -> CATALOG_IDENTIFIER mappings present in
+APPLICABLE_REQUIREMENTS. A generic EACH_REQUIRED_TECHNICAL_RESPONSIBILITY
+declaration never creates a responsibility by itself. A Requirement whose
+FOR_EACH domain is empty contributes no mapped responsibility.
+
+A mapping identified by a canonical source as UNRESOLVED_ATTRIBUTE is not a
+member of this resolved domain and shall not be represented in
+02_requirements.txt as a resolved Requirement-to-RT mapping. An unresolved
+mapping shall not be converted into TRUE, FALSE, UNKNOWN, NOT_APPLICABLE,
+MANUAL_REVIEW, PASS, FAIL or any Nonconformity.
+
+For a resolved responsibility, the bridge may materialize a transient,
+immutable ResponsibilityEvidenceBinding authenticated to the exact compiled
+contract, frozen execution plan and ImmutableExecutionView. The binding may
+contain zero or more concrete DRT references and their documentary provenance.
+It shall not modify the RDE or the plan, and shall not select evidence by
+filename, order, proximity, similarity or plausibility. The same concrete DRT
+may participate in more than one responsibility only when the declared
+catalog/contract permits that reuse.
+
+When execution support for an EACH_REQUIRED_TECHNICAL_RESPONSIBILITY Criterion
+is later enabled, evaluations over the resolved responsibility domain remain
+internal to the single planned Criterion unit. Aggregate semantics are
+universal: FALSE takes precedence over MANUAL_REVIEW, which takes precedence
+over UNKNOWN; TRUE is produced only when every evaluated responsibility is
+TRUE. NOT_APPLICABLE shall not be used to encode an unresolved mapping.
 
 No list parallel to PLANNED_EXECUTION_UNITS shall be introduced merely to
 duplicate its expected, selected or executed Criteria.

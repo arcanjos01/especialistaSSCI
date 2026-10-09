@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.6
+# VERSION 3.7
 ###############################################################################
 
 ###############################################################################
@@ -63,11 +63,12 @@ ENTITY DRT
 
 TYPE DOCUMENT
 
+ABSTRACT TRUE
+
 ATTRIBUTE COUNCIL_STATE TEXT
 
 ATTRIBUTE RESPONSIBILITY_TYPE ENUM
 
-ATTRIBUTE PROFESSIONAL_REGULARITY ENUM
 
 ATTRIBUTE DRT_IDENTIFIER TEXT
 
@@ -103,13 +104,24 @@ ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
 
 DESCRIPTION
 
-COUNCIL_STATE identifica a UF do conselho profissional emissor da DRT.
-RESPONSIBILITY_TYPE registra a natureza declarada na DRT.
-PROFESSIONAL_REGULARITY registra o resultado documental da verificação de
-regularidade profissional: REGULAR, IRREGULAR ou MANUAL_REVIEW.
+DRT é um contrato abstrato de evidência documental. Registros concretos devem
+usar uma forma documental declarada, como ART, RRT ou TRT, ou outro subtipo
+canônico explicitamente definido como TYPE DRT. O entity_id DRT não representa
+um documento concreto extraível.
 
-Esses atributos qualificam exclusivamente a validade documental da DRT na
-Tabela 1; não criam uma nova responsabilidade técnica.
+COUNCIL_STATE identifica somente a UF explicitamente indicada para o conselho
+emissor e não produz efeito normativo automático. RESPONSIBILITY_TYPE registra
+somente a natureza documental explicitamente identificada na DRT. Os campos
+COUNCIL_REGISTRATION_STATUS, COUNCIL_ISSUANCE_STATUS e
+COUNCIL_PAYMENT_STATUS preservam, separadamente, fatos documentais relativos
+ao registro, emissão e pagamento perante o conselho, conforme a verificação de
+autenticidade/validade da IRV. Nenhum desses fatos constitui, isoladamente,
+conclusão sobre regularidade profissional ou habilitação profissional.
+
+ART, RRT e TRT herdam este contrato comum de atributos por TYPE DRT; a Base não
+mantém cópias independentes desses atributos em cada forma concreta. Esses
+atributos qualificam somente a evidência documental e não criam uma nova
+responsabilidade técnica.
 
 Os atributos factuais adicionais abaixo registram somente informação
 explicitamente apresentada na DRT correspondente. Quando não identificada,
@@ -196,38 +208,6 @@ ENTITY ART
 
 TYPE DRT
 
-ATTRIBUTE DRT_IDENTIFIER TEXT
-
-ATTRIBUTE COUNCIL_REGISTRATION_STATUS TEXT
-
-ATTRIBUTE COUNCIL_ISSUANCE_STATUS TEXT
-
-ATTRIBUTE COUNCIL_PAYMENT_STATUS TEXT
-
-ATTRIBUTE SIGNATURE_PARTY TEXT
-
-ATTRIBUTE SIGNATURE_MECHANISM TEXT
-
-ATTRIBUTE RI_NAME TEXT
-
-ATTRIBUTE RT_NAME TEXT
-
-ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
-
-ATTRIBUTE PROPERTY_AREA_TEXT TEXT
-
-ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
-
-ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
-
-ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
-
-ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
-
-ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
-
-ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
-
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -254,38 +234,6 @@ ENTITY RRT
 
 TYPE DRT
 
-ATTRIBUTE DRT_IDENTIFIER TEXT
-
-ATTRIBUTE COUNCIL_REGISTRATION_STATUS TEXT
-
-ATTRIBUTE COUNCIL_ISSUANCE_STATUS TEXT
-
-ATTRIBUTE COUNCIL_PAYMENT_STATUS TEXT
-
-ATTRIBUTE SIGNATURE_PARTY TEXT
-
-ATTRIBUTE SIGNATURE_MECHANISM TEXT
-
-ATTRIBUTE RI_NAME TEXT
-
-ATTRIBUTE RT_NAME TEXT
-
-ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
-
-ATTRIBUTE PROPERTY_AREA_TEXT TEXT
-
-ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
-
-ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
-
-ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
-
-ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
-
-ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
-
-ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
-
 DESCRIPTION
 
 Os atributos FACT-ONLY de `DRT_IDENTIFIER`, `COUNCIL_REGISTRATION_STATUS`,
@@ -311,38 +259,6 @@ END
 ENTITY TRT
 
 TYPE DRT
-
-ATTRIBUTE DRT_IDENTIFIER TEXT
-
-ATTRIBUTE COUNCIL_REGISTRATION_STATUS TEXT
-
-ATTRIBUTE COUNCIL_ISSUANCE_STATUS TEXT
-
-ATTRIBUTE COUNCIL_PAYMENT_STATUS TEXT
-
-ATTRIBUTE SIGNATURE_PARTY TEXT
-
-ATTRIBUTE SIGNATURE_MECHANISM TEXT
-
-ATTRIBUTE RI_NAME TEXT
-
-ATTRIBUTE RT_NAME TEXT
-
-ATTRIBUTE PROPERTY_ADDRESS_TEXT TEXT
-
-ATTRIBUTE PROPERTY_AREA_TEXT TEXT
-
-ATTRIBUTE DECLARED_ACTIVITY_SERVICE_TEXT TEXT
-
-ATTRIBUTE DECLARED_SMSCI_SCOPE_TEXT TEXT
-
-ATTRIBUTE DRT_ISSUE_DATE_TEXT TEXT
-
-ATTRIBUTE DRT_DOCUMENT_ROLE_TEXT TEXT
-
-ATTRIBUTE DRT_CANCELLATION_STATUS_TEXT TEXT
-
-ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
 
 DESCRIPTION
 

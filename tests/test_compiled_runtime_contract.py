@@ -43,18 +43,18 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.11.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.12.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
-            "3.6.0",
+            "3.7.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
-            "3.4.0",
+            "3.5.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["03_table1.txt"],
-            "3.3.0",
+            "3.4.0",
         )
 
     def test_runtime_contract_uses_private_identity_brand_and_locked_global(self):
@@ -107,6 +107,8 @@ class CompiledRuntimeContractTests(unittest.TestCase):
                     entity["ATTRIBUTE_TYPES"]["SIGNATURE_MECHANISM"], "TEXT"
                 )
         drt_fact_attributes = {
+            "COUNCIL_STATE": "TEXT",
+            "RESPONSIBILITY_TYPE": "ENUM",
             "DRT_IDENTIFIER": "TEXT",
             "COUNCIL_REGISTRATION_STATUS": "TEXT",
             "COUNCIL_ISSUANCE_STATUS": "TEXT",
@@ -130,6 +132,11 @@ class CompiledRuntimeContractTests(unittest.TestCase):
                 self.assertTrue(set(drt_fact_attributes).issubset(entity["ATTRIBUTES"]))
                 for attribute, attribute_type in drt_fact_attributes.items():
                     self.assertEqual(entity["ATTRIBUTE_TYPES"][attribute], attribute_type)
+        self.assertTrue(self.contract["entityCatalog"]["DRT"]["ABSTRACT"])
+        self.assertNotIn(
+            "PROFESSIONAL_REGULARITY",
+            self.contract["entityCatalog"]["DRT"]["ATTRIBUTES"],
+        )
         self.assertEqual(
             self.contract["entityCatalog"]["PRESSURIZATION_OPERATION_MANUAL"],
             {
@@ -154,8 +161,8 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             [item["criterionId"] for item in criteria],
             [item[0] for source in criteria_texts for item in self.builder.parse_criteria(source)],
         )
-        self.assertEqual(len(requirements), 30)
-        self.assertEqual(len(criteria), 36)
+        self.assertEqual(len(requirements), 29)
+        self.assertEqual(len(criteria), 34)
 
     def test_conformity_report_uses_aggregated_execution_responsibility(self):
         requirement_text = self.builder.REQUIREMENTS.read_text(encoding="utf-8")
@@ -192,6 +199,29 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(requirement["validate"], ["TECHNICAL_PRODUCT_ATTRIBUTE"])
         self.assertEqual(requirement["technicalProduct"], "CONFORMITY_REPORT")
         self.assertEqual(requirement["evidenceAttributes"], ["SIGNED"])
+
+    def test_responsibility_domain_and_resolved_mappings_are_compiled(self):
+        by_id = {item["requirementId"]: item for item in self.contract["requirements"]}
+        self.assertEqual(
+            by_id["REQ_T1_DRT_REQUIRED"]["responsibilityMappings"],
+            [{
+                "responsibilityId": "RT_002_EXECUCAO_DE_OBRA",
+                "catalogIdentifier": "RT-002",
+                "documentaryResponsibilityType": "EXECUCAO",
+            }],
+        )
+        self.assertEqual(
+            by_id["REQ_T1_DRT_REGISTERED"]["responsibilityDomain"],
+            "EACH_REQUIRED_TECHNICAL_RESPONSIBILITY",
+        )
+        self.assertNotIn("responsibilityMappings", by_id["REQ_IN09_CHECKLIST"])
+        self.assertNotIn("responsibilityMappings", by_id["REQ_IN18_CMAR"])
+        self.assertNotIn("REQ_T1_DRT_PROFESSIONAL_REGULARITY", by_id)
+        criterion_ids = {item["criterionId"] for item in self.contract["criteria"]}
+        self.assertNotIn("T1_DRT_PROFESSIONAL_REGULARITY", criterion_ids)
+        self.assertNotIn("T4_DRT_PROFESSIONAL_REGULARITY", criterion_ids)
+        self.assertNotIn("NC_T1_009", self.contract["nonconformities"])
+        self.assertNotIn("NC_T4_019", self.contract["nonconformities"])
 
     def test_pilot_criterion_assert_ir_is_exactly_source_derived(self):
         pilot = next(
