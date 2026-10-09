@@ -177,9 +177,13 @@ const duckTypedView = {
   sourceDocument(reference) { return reference; }
 };
 assertBlocker(() => api.selectCurrentComprovante(duckTypedView, operationalContext()));
-const forgedView = Object.assign(
-  Object.create(api.ImmutableExecutionView.prototype), duckTypedView
-);
+const forgedView = Object.create(api.ImmutableExecutionView.prototype);
+Object.defineProperties(forgedView, {
+  referencesByEntity: { value: duckTypedView.referencesByEntity, enumerable: true },
+  entityId: { value: duckTypedView.entityId, enumerable: true },
+  read: { value: duckTypedView.read, enumerable: true },
+  sourceDocument: { value: duckTypedView.sourceDocument, enumerable: true }
+});
 assertBlocker(() => api.selectCurrentComprovante(forgedView, operationalContext()));
 assertBlocker(() => selectId([
   matching('TEST_ONLY_DUPLICATE_A'), matching('TEST_ONLY_DUPLICATE_B')

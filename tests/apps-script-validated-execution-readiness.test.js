@@ -304,22 +304,21 @@ assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.executionCalls, 0);
 
 const viewPrototype = vm.runInContext('ImmutableExecutionView.prototype', context);
+assert.equal(Object.isFrozen(viewPrototype), true);
 const originalReferencesByEntity = viewPrototype.referencesByEntity;
-viewPrototype.referencesByEntity = function (entityId) {
-  if (entityId === 'GAS_OWNER_MANUAL') return {};
-  return originalReferencesByEntity.call(this, entityId);
-};
-const integrityFailureAdapters = makeAdapters();
-try {
-  assert.throws(() => api.prepareValidatedExecutionReadiness(
-    processRecord.processId, currentSubmissionContext(), integrityFailureAdapters.adapters
-  ), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR' &&
-    /invalid entity reference collection/.test(error.message));
-} finally {
-  viewPrototype.referencesByEntity = originalReferencesByEntity;
-}
-assert.equal(integrityFailureAdapters.counts.writes, 0);
-assert.equal(integrityFailureAdapters.counts.executionCalls, 0);
+assert.equal(Reflect.set(
+  viewPrototype,
+  'referencesByEntity',
+  function () { return {}; }
+), false);
+assert.equal(viewPrototype.referencesByEntity, originalReferencesByEntity);
+const hardenedPrototypeAdapters = makeAdapters();
+const hardenedPrototypeResult = api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), hardenedPrototypeAdapters.adapters
+);
+assert.equal(hardenedPrototypeResult.outcome, 'READY');
+assert.equal(hardenedPrototypeAdapters.counts.writes, 0);
+assert.equal(hardenedPrototypeAdapters.counts.executionCalls, 0);
 
 const analyzedAdapters = makeAdapters({ status: 'ANALYZED' });
 const alreadyAnalyzed = api.prepareValidatedExecutionReadiness(
