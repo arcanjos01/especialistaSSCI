@@ -231,23 +231,27 @@ const originalExecutionHelpers = {
 context.__originalExecutionHelpers = originalExecutionHelpers;
 try {
   vm.runInContext(`
-    executionReferenceKey = function () { return 'FORGED_KEY'; };
     immutableExecutionCopy = function () {
       return Object.freeze({ RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' });
     };
     isPlainExecutionObject = function () { return false; };
     hasNativeExecutionNonJsonBrand = function () { return true; };
   `, context);
-  const bindingWithForgedGlobalHelpers = api.materializeResponsibilityEvidenceBinding(
+  const bindingWithForgedCopyHelpers = api.materializeResponsibilityEvidenceBinding(
     contract, base.plan, base.view, 'RT-002'
   );
-  assert.equal(bindingWithForgedGlobalHelpers.evidence.length, 2);
+  assert.equal(bindingWithForgedCopyHelpers.evidence.length, 2);
   assert.deepEqual(
     JSON.parse(JSON.stringify(
-      bindingWithForgedGlobalHelpers.evidence.map(item => item.entityId)
+      bindingWithForgedCopyHelpers.evidence.map(item => item.entityId)
     )),
     ['ART', 'TRT']
   );
+
+  vm.runInContext("executionReferenceKey = function () { return 'FORGED_KEY'; };", context);
+  const snapshotWithForgedReferenceKey = snapshotDescriptor.value(base.view, 'ART');
+  assert.equal(snapshotWithForgedReferenceKey.length, 1);
+  assert.equal(snapshotWithForgedReferenceKey[0].entityId, 'ART');
 } finally {
   vm.runInContext(`
     executionReferenceKey = __originalExecutionHelpers.executionReferenceKey;
