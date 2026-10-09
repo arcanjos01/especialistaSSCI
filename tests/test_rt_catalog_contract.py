@@ -49,6 +49,22 @@ class RtCatalogContractTests(unittest.TestCase):
             self.assertTrue(REQUIRED_FIELDS <= fields, f"{identifier}: {REQUIRED_FIELDS - fields}")
             self.assertIn("NORMATIVE_SOURCES:", entry)
 
+    def test_documentary_responsibility_type_is_part_of_formal_schema_and_source_map(self):
+        self.assertIn(
+            "DRT_RESPONSIBILITY_TYPE (quando houver formalização documental explícita)",
+            self.text,
+        )
+        self.assertIn(
+            "DRT_RESPONSIBILITY_TYPE\n    Token canônico de máquina",
+            self.text,
+        )
+        rt002 = self.entries["RT-002"]
+        self.assertIn(
+            "- DRT_RESPONSIBILITY_TYPE: EXECUCAO é DERIVED_BY_DIRECT_FORMALIZATION",
+            rt002,
+        )
+        self.assertIn("IN 01 Parte 1,\n  art. 108, III", rt002)
+
     def test_rt002_exposes_only_the_authorized_documentary_responsibility_type(self):
         self.assertRegex(
             self.entries["RT-002"],

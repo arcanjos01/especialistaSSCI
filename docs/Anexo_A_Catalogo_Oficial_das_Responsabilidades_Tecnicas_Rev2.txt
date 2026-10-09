@@ -1,6 +1,6 @@
 ANEXO A – Catálogo Oficial Interno das Responsabilidades Técnicas
 
-# versão 2.2
+# versão 2.3
 
 Status: Documento Normativo Interno da Base de Conhecimento
 
@@ -87,6 +87,8 @@ PURPOSE
 
 NATURE
 
+DRT_RESPONSIBILITY_TYPE (quando houver formalização documental explícita)
+
 APPLICABLE_SMSCI
 
 QUALIFIED_PROFESSIONALS
@@ -130,6 +132,15 @@ NATURE
     Classificação funcional da responsabilidade (execução, inspeção,
     ensaio, avaliação, comissionamento, manutenção, regularização ou
     outra prevista).
+
+DRT_RESPONSIBILITY_TYPE
+    Token canônico de máquina usado exclusivamente para associar uma
+    Responsabilidade Técnica a um RESPONSIBILITY_TYPE documental explícito
+    da DRT. É campo opcional, somente pode ser materializado por fonte
+    expressa ou DERIVED_BY_DIRECT_FORMALIZATION de uma natureza documental
+    expressa, e deve possuir fonte indicada nominalmente em NORMATIVE_SOURCES.
+    Não pode ser inferido do IDENTIFIER, DESCRIPTION, nome de ENTITY,
+    Requirement, Criterion ou comportamento do runtime.
 
 APPLICABLE_SMSCI
     Sistemas e Medidas de Segurança Contra Incêndio aos quais a
@@ -264,6 +275,11 @@ NORMATIVE_SOURCES:
   Git; IDs internos, não códigos normativos CBMSC.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
   IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- DRT_RESPONSIBILITY_TYPE: EXECUCAO é DERIVED_BY_DIRECT_FORMALIZATION da
+  natureza documental de execução expressamente exigida pela IN 01 Parte 1,
+  art. 108, III, e verificada pela IRV Habite-se, Anexo A/Tabela 1. O token
+  existe somente como chave canônica de associação factual e não cria nova
+  obrigação, atividade ou conclusão normativa.
 - QUALIFIED_PROFESSIONALS: placeholder genérico adotado conforme a delimitação
   da decisão F6-DEC-001; as fontes acima não são usadas para inventar uma lista
   profissional por RT, e a habilitação concreta segue legislação e conselho.

@@ -353,6 +353,7 @@ def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
     declarations: dict[str, dict[str, object]] = {}
     for entity_id, block in _blocks(text, "ENTITY"):
         entity_type = _single_field(block, "TYPE", entity_id, required=True)
+        extends = _single_field(block, "EXTENDS", entity_id)
         attributes: dict[str, str] = {}
         for name, value_type in re.findall(r"^ATTRIBUTE\s+(\S+)\s+(\S+)\s*$", block, re.M):
             if name in attributes:
@@ -365,13 +366,28 @@ def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
             raise ValueError(f"ABSTRACT inválido em {entity_id}")
         declarations[entity_id] = {
             "TYPE": entity_type,
+            "EXTENDS": extends,
             "OWN_ATTRIBUTE_TYPES": attributes,
             "ABSTRACT": abstract == "TRUE",
             "OFFICIAL_ESCI_CODE": _single_field(block, "OFFICIAL_ESCI_CODE", entity_id),
-            "APPLICABILITY_TARGET_CLASS": _single_field(block, "APPLICABILITY_TARGET_CLASS", entity_id),
+            "APPLICABILITY_TARGET_CLASS": _single_field(
+                block, "APPLICABILITY_TARGET_CLASS", entity_id
+            ),
         }
 
+    for entity_id, declaration in declarations.items():
+        extends = declaration["EXTENDS"]
+        if extends is not None:
+            if extends == entity_id or extends not in declarations:
+                raise ValueError(f"EXTENDS inválido em {entity_id}: {extends}")
+            if declaration["TYPE"] != declarations[extends]["TYPE"]:
+                raise ValueError(
+                    f"EXTENDS deve preservar TYPE estrutural em {entity_id}: "
+                    f"{declaration['TYPE']} != {declarations[extends]['TYPE']}"
+                )
+
     resolved: dict[str, dict[str, object]] = {}
+
     def resolve(entity_id: str, active: tuple[str, ...] = ()) -> dict[str, object]:
         if entity_id in resolved:
             return resolved[entity_id]
@@ -379,19 +395,27 @@ def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
             raise ValueError("herança de ENTITY cíclica: " + " -> ".join((*active, entity_id)))
         declaration = declarations[entity_id]
         attribute_types: dict[str, str] = {}
-        parent = declaration["TYPE"]
-        if parent != entity_id and parent in declarations:
+        parent = declaration["EXTENDS"]
+        if parent is None:
+            implicit_parent = declaration["TYPE"]
+            if implicit_parent != entity_id and implicit_parent in declarations:
+                parent = implicit_parent
+        if parent is not None:
             attribute_types.update(resolve(parent, (*active, entity_id))["ATTRIBUTE_TYPES"])
         for name, value_type in declaration["OWN_ATTRIBUTE_TYPES"].items():
             inherited = attribute_types.get(name)
             if inherited is not None and inherited != value_type:
-                raise ValueError(f"ATTRIBUTE herdado com tipo incompatível em {entity_id}: {name}")
+                raise ValueError(
+                    f"ATTRIBUTE herdado com tipo incompatível em {entity_id}: {name}"
+                )
             attribute_types[name] = value_type
         item: dict[str, object] = {
             "TYPE": declaration["TYPE"],
             "ATTRIBUTES": list(attribute_types),
             "ATTRIBUTE_TYPES": attribute_types,
         }
+        if declaration["EXTENDS"] is not None:
+            item["EXTENDS"] = declaration["EXTENDS"]
         if declaration["OFFICIAL_ESCI_CODE"] is not None:
             item["OFFICIAL_ESCI_CODE"] = declaration["OFFICIAL_ESCI_CODE"]
         if declaration["APPLICABILITY_TARGET_CLASS"] is not None:
@@ -400,6 +424,7 @@ def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
             item["ABSTRACT"] = True
         resolved[entity_id] = item
         return item
+
     return {entity_id: resolve(entity_id) for entity_id in declarations}
 
 
@@ -420,52 +445,20 @@ def _parse_rt_catalog_types(text: str) -> dict[str, str | None]:
         if len(values) > 1:
             raise ValueError(f"DRT_RESPONSIBILITY_TYPE ambíguo em {identifier}")
         value = values[0] if values else None
-        if value is not None and not re.fullmatch(r"[A-Z][A-Z0-9_]*", value):
-            raise ValueError(f"DRT_RESPONSIBILITY_TYPE inválido em {identifier}")
+        if value is not None:
+            if not re.fullmatch(r"[A-Z][A-Z0-9_]*", value):
+                raise ValueError(f"DRT_RESPONSIBILITY_TYPE inválido em {identifier}")
+            source_map = re.search(
+                r"^NORMATIVE_SOURCES:\s*(.*?)(?=^[A-Z_]+:|\Z)",
+                block,
+                re.M | re.S,
+            )
+            if source_map is None or "DRT_RESPONSIBILITY_TYPE" not in source_map.group(1):
+                raise ValueError(
+                    f"DRT_RESPONSIBILITY_TYPE sem source map em NORMATIVE_SOURCES: {identifier}"
+                )
         result[identifier] = value
     return result
-
-
-def _parse_requirement_responsibility_contract(
-    block: str, identifier: str, rt_catalog_types: dict[str, str | None],
-) -> tuple[str | None, list[dict[str, str]]]:
-    declarations = list(re.finditer(r"^REQUIRED_TECHNICAL_RESPONSIBILITY\s+(\S+)\s*$", block, re.M))
-    domains: list[str] = []
-    mappings: list[dict[str, str]] = []
-    consumed_catalogs = 0
-    for index, declaration in enumerate(declarations):
-        responsibility = declaration.group(1)
-        end = declarations[index + 1].start() if index + 1 < len(declarations) else len(block)
-        segment = block[declaration.end():end]
-        catalog_ids = re.findall(r"^CATALOG_IDENTIFIER\s+(\S+)\s*$", segment, re.M)
-        if responsibility == "EACH_REQUIRED_TECHNICAL_RESPONSIBILITY":
-            if catalog_ids:
-                raise ValueError(f"CATALOG_IDENTIFIER não pode acompanhar domínio genérico em {identifier}")
-            domains.append(responsibility)
-            continue
-        if "UNRESOLVED_ATTRIBUTE" in responsibility:
-            raise ValueError(f"mapping não resolvido não pode integrar Requirement: {identifier}")
-        if len(catalog_ids) != 1:
-            raise ValueError(f"CATALOG_IDENTIFIER ausente ou ambíguo para {responsibility} em {identifier}")
-        catalog_identifier = catalog_ids[0]
-        consumed_catalogs += 1
-        if "UNRESOLVED_ATTRIBUTE" in catalog_identifier:
-            raise ValueError(f"mapping não resolvido não pode integrar Requirement: {identifier}")
-        if catalog_identifier not in rt_catalog_types:
-            raise ValueError(f"CATALOG_IDENTIFIER inexistente em {identifier}: {catalog_identifier}")
-        mapping: dict[str, str] = {
-            "responsibilityId": responsibility,
-            "catalogIdentifier": catalog_identifier,
-        }
-        documentary_type = rt_catalog_types[catalog_identifier]
-        if documentary_type is not None:
-            mapping["documentaryResponsibilityType"] = documentary_type
-        mappings.append(mapping)
-    if len(_field_list(block, "CATALOG_IDENTIFIER")) != consumed_catalogs:
-        raise ValueError(f"CATALOG_IDENTIFIER órfão em {identifier}")
-    if len(domains) > 1 or (domains and mappings):
-        raise ValueError(f"domínio de responsabilidade ambíguo em {identifier}")
-    return (domains[0] if domains else None), mappings
 
 
 def _parse_nonconformities(text: str) -> dict[str, dict[str, str]]:

@@ -45,6 +45,36 @@ for (const name of [
 assert.equal(vm.runInContext("typeof responsibilityRequire_", context), 'undefined');
 assert.equal(vm.runInContext("typeof responsibilityFreezeCopy_", context), 'undefined');
 
+assert.equal(
+  vm.runInContext("Object.isFrozen(ImmutableExecutionView.prototype)", context),
+  true
+);
+for (const methodName of [
+  'contains', 'read', 'entityId', 'sourceDocument', 'referencesByEntity', 'provenance'
+]) {
+  const descriptor = vm.runInContext(
+    "Object.getOwnPropertyDescriptor(ImmutableExecutionView.prototype, " +
+      JSON.stringify(methodName) + ")",
+    context
+  );
+  assert.equal(descriptor.writable, false, methodName);
+  assert.equal(descriptor.configurable, false, methodName);
+}
+const snapshotDescriptor = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(globalThis, 'snapshotImmutableExecutionViewEntityRecords')",
+  context
+);
+assert.equal(typeof snapshotDescriptor.value, 'function');
+assert.equal(snapshotDescriptor.writable, false);
+assert.equal(snapshotDescriptor.configurable, false);
+assert.equal(
+  vm.runInContext(
+    "Reflect.set(ImmutableExecutionView.prototype, 'referencesByEntity', function(){ return []; })",
+    context
+  ),
+  false
+);
+
 function currentContext() {
   return api.createCurrentSubmissionContext({
     protocolIdentifier: 'TEST_ONLY_PROTOCOL',
@@ -89,21 +119,11 @@ function makeRde(codes = [], drts = []) {
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_' + index }
   }));
 
-  if (drts.length) {
-    records.push({
-      record_id: 'DRT_SOURCE',
-      entity_id: 'PPCI',
-      parent_record_id: null,
-      source_document: 'DRT_SOURCE',
-      attributes: {},
-      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_SOURCE' }
-    });
-  }
   drts.forEach((drt, index) => records.push({
     record_id: 'DRT_' + index,
     entity_id: drt.entityId,
     parent_record_id: null,
-    source_document: 'DRT_SOURCE',
+    source_document: 'DRT_' + index,
     attributes: drt.attributes,
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_' + index }
   }));
@@ -169,7 +189,7 @@ assert.equal(Object.isFrozen(binding.evidence), true);
 assert.equal(binding.evidence.length, 2);
 assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.entityId))), ['ART', 'TRT']);
 assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.selectionFact.value))), ['EXECUCAO', 'EXECUCAO']);
-assert.equal(binding.evidence.every(item => item.reference.kind === 'DRT'), true);
+assert.equal(binding.evidence.every(item => item.reference.kind === 'DOCUMENT'), true);
 assert.equal(binding.evidence.every(item => item.sourceDocument.kind === 'DOCUMENT'), true);
 assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   binding, contract, base.plan, base.view

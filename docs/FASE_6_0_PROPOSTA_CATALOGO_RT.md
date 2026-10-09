@@ -53,6 +53,8 @@ PURPOSE=`Registrar a responsabilidade de execução apresentada para os SMSCI do
 
 NATURE=`EXECUÇÃO.` — `EXPLICIT_SOURCE` (mesmas fontes). `REGULARIZAÇÃO` não é natureza equivalente nem atividade intercambiável: pode substituir a DRT de execução somente na condição composta da IN 01, art. 108, § 6º; registrar em campo próprio de alternativa condicional, não como OR simples.
 
+DRT_RESPONSIBILITY_TYPE=`EXECUCAO` — `DERIVED_BY_DIRECT_FORMALIZATION` da natureza documental de execução expressa na IN 01, art. 108, III, e verificada pela IRV Habite-se, Anexo A/Tabela 1. É token de máquina para associação factual; não é fonte normativa autônoma nem pode ser inferido do ID RT-002 ou do runtime.
+
 APPLICABLE_SMSCI=`Todos os SMSCI previstos no PPCI como escopo agregado, ressalvados os sistemas/medidas para os quais IN específica exige RT específico.` — `EXPLICIT_SOURCE` (IN 01, art. 108, III; IRV, Tabela 1). A seleção concreta dos sistemas decorre do PPCI e dos contratos de applicability, não de uma lista inventada neste catálogo.
 
 QUALIFIED_PROFESSIONALS=`NORMATIVELY_AUTHORIZED_PROFESSIONAL` — `DERIVED_BY_DIRECT_FORMALIZATION` (não enumerar profissões; habilitação concreta segue legislação profissional e conselho competente).

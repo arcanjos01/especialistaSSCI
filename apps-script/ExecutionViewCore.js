@@ -722,6 +722,51 @@ function isImmutableExecutionView(view) {
   return EXECUTION_VIEW_RECORDS.has(view);
 }
 
+function snapshotImmutableExecutionViewEntityRecords_(view, entityId) {
+  if (typeof entityId !== 'string' || !entityId) {
+    throw new ExecutionViewContractError('entityId must be a non-empty string');
+  }
+  const state = EXECUTION_VIEW_RECORDS.get(view);
+  if (!state) {
+    throw new ExecutionViewContractError('invalid execution view receiver');
+  }
+  const result = [];
+  for (let index = 0; index < state.orderedReferences.length; index += 1) {
+    const reference = state.orderedReferences[index];
+    const record = state.byReference[executionReferenceKey(reference)];
+    if (record.entityId !== entityId) continue;
+    const item = {
+      reference: Object.freeze({
+        kind: record.reference.kind,
+        identifier: record.reference.identifier
+      }),
+      entityId: record.entityId,
+      sourceDocument: Object.freeze({
+        kind: record.sourceDocument.kind,
+        identifier: record.sourceDocument.identifier
+      }),
+      value: immutableExecutionCopy(record.value)
+    };
+    if (record.hasProvenance) {
+      item.provenance = immutableExecutionCopy(record.provenance);
+    }
+    Object.freeze(item);
+    result[result.length] = item;
+  }
+  return Object.freeze(result);
+}
+
+(function (global) {
+  const intrinsicSnapshot = snapshotImmutableExecutionViewEntityRecords_;
+  Object.freeze(ImmutableExecutionView.prototype);
+  Object.defineProperty(global, 'snapshotImmutableExecutionViewEntityRecords', {
+    value: intrinsicSnapshot,
+    enumerable: false,
+    writable: false,
+    configurable: false
+  });
+})(globalThis);
+
 function executionCanonicalJson(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(executionCanonicalJson).join(',') + ']';

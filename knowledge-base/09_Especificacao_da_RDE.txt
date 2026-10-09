@@ -137,10 +137,12 @@ em `01_entities.txt`. Não é atributo documental e não pode ser criado durante
 EXECUTION.
 
 `DRT` é uma entidade abstrata de contrato documental e não pode aparecer
-como `entity_id` de um registro concreto. ART, RRT, TRT e outros subtipos
-explicitamente declarados com `TYPE DRT` usam os atributos comuns herdados de
-DRT. A herança é estrutural: um subtipo não pode redefinir um atributo herdado
-com tipo incompatível. Essa composição não cria fatos ausentes.
+como `entity_id` de um registro concreto. ART, RRT e TRT são formas concretas
+com `TYPE DOCUMENT` e `EXTENDS DRT`: herdam os atributos comuns de DRT sem
+alterar o tipo estrutural DOCUMENT. Por isso uma ART/RRT/TRT autônoma pode ser
+raiz e apontar `source_document` para o próprio `record_id`, exatamente como
+qualquer outro DOCUMENT. A herança é estrutural: uma entidade não pode redefinir
+atributo herdado com tipo incompatível. Essa composição não cria fatos ausentes.
 
 `RESPONSIBILITY_TYPE` somente pode ser materializado quando a natureza estiver
 documentalmente identificada na própria DRT e deve preservar o token canônico

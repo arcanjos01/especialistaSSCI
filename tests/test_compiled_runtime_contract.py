@@ -43,10 +43,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.12.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.13.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
-            "3.7.0",
+            "3.8.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
@@ -137,6 +137,12 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             "PROFESSIONAL_REGULARITY",
             self.contract["entityCatalog"]["DRT"]["ATTRIBUTES"],
         )
+        self.assertEqual(self.contract["entityCatalog"]["DRT"]["TYPE"], "DOCUMENT")
+        for entity_id in ("ART", "RRT", "TRT"):
+            with self.subTest(concrete_drt=entity_id):
+                entity = self.contract["entityCatalog"][entity_id]
+                self.assertEqual(entity["TYPE"], "DOCUMENT")
+                self.assertEqual(entity["EXTENDS"], "DRT")
         self.assertEqual(
             self.contract["entityCatalog"]["PRESSURIZATION_OPERATION_MANUAL"],
             {
@@ -199,6 +205,21 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(requirement["validate"], ["TECHNICAL_PRODUCT_ATTRIBUTE"])
         self.assertEqual(requirement["technicalProduct"], "CONFORMITY_REPORT")
         self.assertEqual(requirement["evidenceAttributes"], ["SIGNED"])
+
+    def test_rt002_runtime_token_requires_formal_catalog_source_map(self):
+        catalog = self.builder.RT_CATALOG.read_text(encoding="utf-8")
+        parsed = self.builder._parse_rt_catalog_types(catalog)
+        self.assertEqual(parsed["RT-002"], "EXECUCAO")
+        without_source_map = catalog.replace(
+            "- DRT_RESPONSIBILITY_TYPE: EXECUCAO é DERIVED_BY_DIRECT_FORMALIZATION da\n"
+            "  natureza documental de execução expressamente exigida pela IN 01 Parte 1,\n"
+            "  art. 108, III, e verificada pela IRV Habite-se, Anexo A/Tabela 1. O token\n"
+            "  existe somente como chave canônica de associação factual e não cria nova\n"
+            "  obrigação, atividade ou conclusão normativa.\n",
+            "",
+        )
+        with self.assertRaisesRegex(ValueError, "sem source map"):
+            self.builder._parse_rt_catalog_types(without_source_map)
 
     def test_responsibility_domain_and_resolved_mappings_are_compiled(self):
         by_id = {item["requirementId"]: item for item in self.contract["requirements"]}

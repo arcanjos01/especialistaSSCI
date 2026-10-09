@@ -522,22 +522,22 @@ const drtFactFields = {
 const drtFactRecords = [
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
   record('R_DRT_RT_SOURCE', 'PPCI', null, 'R_DRT_RT_SOURCE', {}, { page: 1 }),
-  record('R_DRT_FACT_DRT', 'ART', null, 'R_DRT_SOURCE',
+  record('R_DRT_FACT_DRT', 'ART', null, 'R_DRT_FACT_DRT',
     { ...drtFactFields, DRT_IDENTIFIER: 'DRT 000123',
       DRT_DOCUMENT_ROLE_TEXT: 'DRT de execução (fixture sintética)' },
     { page: 2, field: 'explicitly-labeled' }),
-  record('R_DRT_FACT_DISTRATO', 'RRT', null, 'R_DRT_SOURCE', {
+  record('R_DRT_FACT_DISTRATO', 'RRT', null, 'R_DRT_FACT_DISTRATO', {
     DRT_IDENTIFIER: 'DRT 000124',
     DRT_ISSUE_DATE_TEXT: 'Data de emissão: 16/03/2026',
     DRT_DOCUMENT_ROLE_TEXT: 'DRT de distrato de contrato (fixture sintética)',
     DRT_TERMINATION_SERVICES_TEXT: 'Serviços efetivamente realizados e sob responsabilidade (fixture sintética)'
   }, { page: 3, field: 'explicitly-labeled' }),
-  record('R_DRT_FACT_CANCELLED', 'TRT', null, 'R_DRT_SOURCE', {
+  record('R_DRT_FACT_CANCELLED', 'TRT', null, 'R_DRT_FACT_CANCELLED', {
     DRT_IDENTIFIER: 'DRT 000125',
     DRT_DOCUMENT_ROLE_TEXT: 'DRT com declaração de situação (fixture sintética)',
     DRT_CANCELLATION_STATUS_TEXT: 'Esta DRT foi revogada ou cancelada (fixture sintética)'
   }, { page: 4, field: 'explicitly-labeled' }),
-  record('R_DRT_FACT_ART_RT', 'ART', null, 'R_DRT_RT_SOURCE', {
+  record('R_DRT_FACT_ART_RT', 'ART', null, 'R_DRT_FACT_ART_RT', {
     ...drtFactFields,
     DRT_IDENTIFIER: 'ART 000456',
     SIGNATURE_PARTY: 'RT',
@@ -551,7 +551,7 @@ const drtFactRecords = [
     'R_DRT_FACT_' + entityId,
     entityId,
     null,
-    'R_DRT_SOURCE',
+    'R_DRT_FACT_' + entityId,
     { ...drtFactFields, DRT_IDENTIFIER: entityId + ' 000123' },
     { page: index + 3, field: 'explicitly-labeled' }
   ))
@@ -564,13 +564,42 @@ assert.throws(() => validateRecords([
     { RESPONSIBILITY_TYPE: 'EXECUCAO' }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_ABSTRACT_ENTITY');
 assert.equal(JSON.stringify(drtFactRecords), drtFactSnapshot);
+const standaloneArt = [
+  record('R_ART_STANDALONE', 'ART', null, 'R_ART_STANDALONE', {
+    RESPONSIBILITY_TYPE: 'EXECUCAO',
+    DRT_IDENTIFIER: 'ART STANDALONE'
+  }, { page: 1, field: 'standalone-document' })
+];
+assert.doesNotThrow(() => validateRecords(standaloneArt, compiledContract.entityCatalog));
+const standaloneArtView = api.projectRdeToExecutionView_({
+  schema_version: '0.2.0',
+  process_id: 'TEST_ONLY_PROCESS',
+  source: {
+    file_id: 'TEST_ONLY_FILE',
+    file_name: 'TEST_ONLY.pdf',
+    mime_type: 'application/pdf',
+    source_url: 'TEST_ONLY_URL',
+    sha256: '0'.repeat(64)
+  },
+  extraction: {
+    provider: 'TEST_ONLY',
+    extractor_version: 'TEST_ONLY',
+    created_at: '2026-10-09T00:00:00.000Z'
+  },
+  records: standaloneArt,
+  extraction_warnings: []
+}, compiledContract.entityCatalog);
+const standaloneArtRefs = standaloneArtView.referencesByEntity('ART');
+assert.equal(standaloneArtRefs.length, 1);
+assert.equal(standaloneArtRefs[0].kind, 'DOCUMENT');
+assert.equal(standaloneArtView.sourceDocument(standaloneArtRefs[0]).identifier, 'R_ART_STANDALONE');
 assert.doesNotThrow(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
-  record('R_DRT_ART_ABSENT', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE', {}, { page: 2 })
+  record('R_DRT_ART_ABSENT', 'ART', null, 'R_DRT_ART_ABSENT', {}, { page: 2 })
 ], compiledContract.entityCatalog));
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE', 'PPCI', null, 'R_DRT_SOURCE', {}, { page: 1 }),
-  record('R_DRT_ART_BAD_TYPE', 'ART', 'R_DRT_SOURCE', 'R_DRT_SOURCE',
+  record('R_DRT_ART_BAD_TYPE', 'ART', null, 'R_DRT_ART_BAD_TYPE',
     { DRT_ISSUE_DATE_TEXT: 20260315 }, { page: 2 })
 ], compiledContract.entityCatalog), error => error.code === 'RDE_ATTRIBUTE_VALUE_TYPE_INVALID');
 assert.throws(() => validateRecords([

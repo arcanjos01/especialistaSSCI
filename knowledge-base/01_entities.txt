@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.7
+# VERSION 3.8
 ###############################################################################
 
 ###############################################################################
@@ -105,9 +105,10 @@ ATTRIBUTE DRT_TERMINATION_SERVICES_TEXT TEXT
 DESCRIPTION
 
 DRT é um contrato abstrato de evidência documental. Registros concretos devem
-usar uma forma documental declarada, como ART, RRT ou TRT, ou outro subtipo
-canônico explicitamente definido como TYPE DRT. O entity_id DRT não representa
-um documento concreto extraível.
+usar uma forma documental declarada, como ART, RRT ou TRT. Essas formas
+concretas preservam TYPE DOCUMENT e declaram EXTENDS DRT para herdar o contrato
+comum sem perder a capacidade de representar o próprio documento-fonte. O
+entity_id DRT não representa um documento concreto extraível.
 
 COUNCIL_STATE identifica somente a UF explicitamente indicada para o conselho
 emissor e não produz efeito normativo automático. RESPONSIBILITY_TYPE registra
@@ -118,8 +119,10 @@ ao registro, emissão e pagamento perante o conselho, conforme a verificação d
 autenticidade/validade da IRV. Nenhum desses fatos constitui, isoladamente,
 conclusão sobre regularidade profissional ou habilitação profissional.
 
-ART, RRT e TRT herdam este contrato comum de atributos por TYPE DRT; a Base não
-mantém cópias independentes desses atributos em cada forma concreta. Esses
+ART, RRT e TRT herdam este contrato comum de atributos por EXTENDS DRT; a Base
+não mantém cópias independentes desses atributos em cada forma concreta. TYPE
+permanece DOCUMENT nessas entidades porque ART/RRT/TRT podem ser, elas próprias,
+o documento-fonte autônomo da RDE. Esses
 atributos qualificam somente a evidência documental e não criam uma nova
 responsabilidade técnica.
 
@@ -206,7 +209,9 @@ END
 
 ENTITY ART
 
-TYPE DRT
+TYPE DOCUMENT
+
+EXTENDS DRT
 
 DESCRIPTION
 
@@ -232,7 +237,9 @@ END
 
 ENTITY RRT
 
-TYPE DRT
+TYPE DOCUMENT
+
+EXTENDS DRT
 
 DESCRIPTION
 
@@ -258,7 +265,9 @@ END
 
 ENTITY TRT
 
-TYPE DRT
+TYPE DOCUMENT
+
+EXTENDS DRT
 
 DESCRIPTION
 
