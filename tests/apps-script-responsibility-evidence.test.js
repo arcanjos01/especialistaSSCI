@@ -559,6 +559,30 @@ assert.equal(
 );
 assert.deepEqual(JSON.parse(JSON.stringify(planMapBinding.evidence)), []);
 
+const planPushRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const planPushView = api.projectRdeToExecutionView_(planPushRde, contract.entityCatalog);
+const planPushResolution = api.resolveCbmscApplicability(
+  planPushView, currentContext(), contract
+);
+context.__nativeArrayPush = vm.runInContext('Array.prototype.push', context);
+let planPushPlan;
+try {
+  vm.runInContext(`
+    Array.prototype.push = function () { return this.length; };
+  `, context);
+  planPushPlan = api.materializeFrozenExecutionPlan(
+    contract, planPushResolution, planPushView
+  );
+} finally {
+  vm.runInContext('Array.prototype.push = __nativeArrayPush;', context);
+  delete context.__nativeArrayPush;
+}
+assert.ok(planPushPlan.APPLICABLE_REQUIREMENTS.length > 0);
+assert.ok(planPushPlan.PLANNED_EXECUTION_UNITS.length > 0);
+assert.equal(api.isCanonicalFrozenExecutionPlan(planPushPlan, contract, planPushView), true);
+
 const inconsistentProxyRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);

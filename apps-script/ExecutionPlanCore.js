@@ -320,7 +320,7 @@ function applicableRequirements_(contract, resolution, indexes) {
         source.in19DocumentationRegime !== regime) continue;
     planRequire_(planMapHas_(indexes.requirementById, source.requirementId),
       'applicable Requirement is absent from compiled contract');
-    result.push(source);
+    planPush_(result, source);
   }
   return result;
 }
@@ -365,8 +365,8 @@ function expectedPlannedUnits_(contract, resolution, applicable, worklist, index
           'unknown ITERATION_SOURCE: ' + block.iterationSource);
         iterationDomain = planSlice_(worklist);
       }
-      expectedKeys.push(indexUnit.unitKey);
-      units.push({
+      planPush_(expectedKeys, indexUnit.unitKey);
+      planPush_(units, {
         unitKey: indexUnit.unitKey,
         requirement: { id: requirement.requirementId },
         criterion: { id: criterion.criterionId },
