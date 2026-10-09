@@ -19,6 +19,7 @@ for (const relativePath of [
 }
 vm.runInContext(`globalThis.api = {
   COMPILED_RUNTIME_CONTRACT,
+  isCanonicalCompiledRuntimeContract,
   TypedReference,
   createCurrentSubmissionContext,
   projectRdeToExecutionView_,
@@ -481,6 +482,83 @@ assert.equal(
 );
 assertNoRt002ForRde(prototypeMutationValidatedRde, 'Array.prototype.forEach mutation before RDE validation');
 
+const applicabilityMapRde = makeRde(['IGC']);
+const applicabilityMapView = api.projectRdeToExecutionView_(
+  applicabilityMapRde, contract.entityCatalog
+);
+context.__officialTargetArray = contract.officialEsciTargets;
+context.__nativeArrayMap = vm.runInContext('Array.prototype.map', context);
+let applicabilityMapResolution;
+try {
+  vm.runInContext(`
+    const planAttackNativeMap = __nativeArrayMap;
+    Array.prototype.map = function (callback, receiver) {
+      const result = Reflect.apply(planAttackNativeMap, this, [callback, receiver]);
+      if (this === __officialTargetArray) {
+        const gasDecision = result.find(item => item.target === 'SMSCI_GAS');
+        const ielDecision = result.find(item => item.target === 'SMSCI_IEL');
+        ielDecision.decision = 'POSITIVE';
+        ielDecision.itemReferences = gasDecision.itemReferences;
+        ielDecision.itemTraces = gasDecision.itemTraces;
+      }
+      return result;
+    };
+  `, context);
+  applicabilityMapResolution = api.resolveCbmscApplicability(
+    applicabilityMapView, currentContext(), contract
+  );
+} finally {
+  vm.runInContext('Array.prototype.map = __nativeArrayMap;', context);
+  delete context.__officialTargetArray;
+  delete context.__nativeArrayMap;
+}
+assert.equal(
+  applicabilityMapResolution.officialDecisions.find(item => item.target === 'SMSCI_IEL').decision,
+  'NEGATIVE'
+);
+
+const planMapRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const planMapView = api.projectRdeToExecutionView_(planMapRde, contract.entityCatalog);
+const planMapResolution = api.resolveCbmscApplicability(
+  planMapView, currentContext(), contract
+);
+context.__nativeArrayMap = vm.runInContext('Array.prototype.map', context);
+let planMapPlan;
+try {
+  vm.runInContext(`
+    const requirementPlanAttackMap = __nativeArrayMap;
+    Array.prototype.map = function (callback, receiver) {
+      const result = Reflect.apply(requirementPlanAttackMap, this, [callback, receiver]);
+      for (let index = 0; index < result.length; index += 1) {
+        const requirement = result[index];
+        if (!requirement || !Array.isArray(requirement.responsibilityMappings)) continue;
+        for (let mappingIndex = 0; mappingIndex < requirement.responsibilityMappings.length;
+            mappingIndex += 1) {
+          const mapping = requirement.responsibilityMappings[mappingIndex];
+          if (mapping.catalogIdentifier === 'RT-002') {
+            mapping.documentaryResponsibilityType = 'VISTORIA_ENSAIO';
+          }
+        }
+      }
+      return result;
+    };
+  `, context);
+  planMapPlan = api.materializeFrozenExecutionPlan(contract, planMapResolution, planMapView);
+} finally {
+  vm.runInContext('Array.prototype.map = __nativeArrayMap;', context);
+  delete context.__nativeArrayMap;
+}
+const planMapBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, planMapPlan, planMapView, 'RT-002'
+);
+assert.equal(
+  planMapBinding.responsibility.documentaryResponsibilityType,
+  'EXECUCAO'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(planMapBinding.evidence)), []);
+
 const inconsistentProxyRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);
@@ -564,17 +642,9 @@ const forgedCatalogRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' }
 }]);
 const forgedCatalogView = api.projectRdeToExecutionView_(forgedCatalogRde, forgedCatalog);
-const forgedCatalogResolution = api.resolveCbmscApplicability(
-  forgedCatalogView, currentContext(), contract
-);
-const forgedCatalogPlan = api.materializeFrozenExecutionPlan(
-  contract, forgedCatalogResolution, forgedCatalogView
-);
 assert.throws(
-  () => api.materializeResponsibilityEvidenceBinding(
-    contract, forgedCatalogPlan, forgedCatalogView, 'RT-002'
-  ),
-  error => error instanceof api.ResponsibilityEvidenceIntegrityError
+  () => api.resolveCbmscApplicability(forgedCatalogView, currentContext(), contract),
+  error => error && /canonical contract entity catalog/.test(error.message)
 );
 
 const unabstractedDrtCatalog = vm.runInContext(
@@ -650,9 +720,23 @@ const fakeCanonicalResolution = vm.runInContext(`Object.freeze({
   officialDecisions: Object.freeze([]),
   derivedDecisions: Object.freeze([])
 })`, context);
+const forgedCanonicalContract = vm.runInContext(`(() => {
+  const clone = JSON.parse(JSON.stringify(COMPILED_RUNTIME_CONTRACT));
+  for (let requirementIndex = 0; requirementIndex < clone.requirements.length;
+      requirementIndex += 1) {
+    const mappings = clone.requirements[requirementIndex].responsibilityMappings || [];
+    for (let mappingIndex = 0; mappingIndex < mappings.length; mappingIndex += 1) {
+      if (mappings[mappingIndex].catalogIdentifier === 'RT-002') {
+        mappings[mappingIndex].documentaryResponsibilityType = 'VISTORIA_ENSAIO';
+      }
+    }
+  }
+  return clone;
+})()`, context);
 context.__fakeCanonicalBinding = fakeCanonicalBinding;
 context.__fakeCanonicalPlan = fakeCanonicalPlan;
 context.__fakeCanonicalResolution = fakeCanonicalResolution;
+context.__forgedCanonicalContract = forgedCanonicalContract;
 context.__canonicalContract = contract;
 context.__canonicalPlan = base.plan;
 context.__canonicalResolution = base.resolution;
@@ -696,6 +780,39 @@ try {
   delete context.__canonicalResolution;
   delete context.__canonicalView;
   delete context.__nativeWeakMapGet;
+}
+
+const forgedContractRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const forgedContractView = api.projectRdeToExecutionView_(
+  forgedContractRde, forgedCanonicalContract.entityCatalog
+);
+context.__forgedCanonicalContract = forgedCanonicalContract;
+context.__nativeWeakSetHas = vm.runInContext('WeakSet.prototype.has', context);
+try {
+  vm.runInContext(`
+    WeakSet.prototype.has = function (candidate) {
+      return candidate === __forgedCanonicalContract ||
+        Reflect.apply(__nativeWeakSetHas, this, [candidate]);
+    };
+  `, context);
+  assert.equal(api.isCanonicalCompiledRuntimeContract(forgedCanonicalContract), false);
+  assert.throws(() => {
+    const forgedResolution = api.resolveCbmscApplicability(
+      forgedContractView, currentContext(), forgedCanonicalContract
+    );
+    const forgedPlan = api.materializeFrozenExecutionPlan(
+      forgedCanonicalContract, forgedResolution, forgedContractView
+    );
+    return api.materializeResponsibilityEvidenceBinding(
+      forgedCanonicalContract, forgedPlan, forgedContractView, 'RT-002'
+    );
+  });
+} finally {
+  vm.runInContext('WeakSet.prototype.has = __nativeWeakSetHas;', context);
+  delete context.__forgedCanonicalContract;
+  delete context.__nativeWeakSetHas;
 }
 
 const weakMapSetAttackRde = makeRde([], [{

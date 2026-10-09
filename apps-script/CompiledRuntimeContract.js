@@ -10,12 +10,15 @@
   }
   var canonical = freeze(value);
   var canonicalContracts = new WeakSet();
-  canonicalContracts.add(canonical);
+  var weakSetAdd = WeakSet.prototype.add;
+  var weakSetHas = WeakSet.prototype.has;
+  var apply = Reflect.apply;
+  apply(weakSetAdd, canonicalContracts, [canonical]);
   Object.defineProperty(global, 'COMPILED_RUNTIME_CONTRACT', {
     value: canonical, enumerable: true, writable: false, configurable: false
   });
   Object.defineProperty(global, 'isCanonicalCompiledRuntimeContract', {
-    value: function (candidate) { return canonicalContracts.has(candidate); },
+    value: function (candidate) { return apply(weakSetHas, canonicalContracts, [candidate]); },
     enumerable: false, writable: false, configurable: false
   });
   if (typeof module !== 'undefined' && module.exports) {

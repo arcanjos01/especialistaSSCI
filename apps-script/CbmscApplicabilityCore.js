@@ -7,8 +7,67 @@ const CBMSC_INTRINSIC_WEAKMAP_GET_ = WeakMap.prototype.get;
 const CBMSC_INTRINSIC_WEAKMAP_SET_ = WeakMap.prototype.set;
 const CBMSC_INTRINSIC_FREEZE_ = Object.freeze;
 const CBMSC_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
+const CBMSC_INTRINSIC_KEYS_ = Object.keys;
+const CBMSC_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const CBMSC_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
+const CBMSC_INTRINSIC_ARRAY_MAP_ = Array.prototype.map;
+const CBMSC_INTRINSIC_ARRAY_FILTER_ = Array.prototype.filter;
+const CBMSC_INTRINSIC_ARRAY_SOME_ = Array.prototype.some;
+const CBMSC_INTRINSIC_ARRAY_SLICE_ = Array.prototype.slice;
+const CBMSC_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
+const CBMSC_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
+const CBMSC_INTRINSIC_ARRAY_CONCAT_ = Array.prototype.concat;
+const CBMSC_INTRINSIC_SET_ = Set;
+const CBMSC_INTRINSIC_SET_HAS_ = Set.prototype.has;
+const CBMSC_INTRINSIC_SET_ADD_ = Set.prototype.add;
+const CBMSC_INTRINSIC_MAP_ = Map;
+const CBMSC_INTRINSIC_MAP_HAS_ = Map.prototype.has;
+const CBMSC_INTRINSIC_MAP_SET_ = Map.prototype.set;
+const CBMSC_INTRINSIC_MAP_GET_ = Map.prototype.get;
+const CBMSC_INTRINSIC_STRING_TRIM_ = String.prototype.trim;
 const CBMSC_IS_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
 const CBMSC_IS_IMMUTABLE_VIEW_ = isImmutableExecutionView;
+const CBMSC_VIEW_CATALOG_AUTHENTICATOR_ = isExecutionViewBackedByEntityCatalog_;
+
+function cbmscArrayApply_(intrinsic, array, args) {
+  return CBMSC_INTRINSIC_APPLY_(intrinsic, array, args);
+}
+function cbmscForEach_(array, callback) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_FOR_EACH_, array, [callback]);
+}
+function cbmscMap_(array, callback) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_MAP_, array, [callback]);
+}
+function cbmscFilter_(array, callback) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_FILTER_, array, [callback]);
+}
+function cbmscSome_(array, callback) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_SOME_, array, [callback]);
+}
+function cbmscSlice_(array) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_SLICE_, array, []);
+}
+function cbmscPush_(array, value) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_PUSH_, array, [value]);
+}
+function cbmscIndexOf_(array, value) {
+  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_INDEX_OF_, array, [value]);
+}
+function cbmscSetHas_(set, value) {
+  return CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_SET_HAS_, set, [value]);
+}
+function cbmscSetAdd_(set, value) {
+  return CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_SET_ADD_, set, [value]);
+}
+function cbmscMapHas_(map, key) {
+  return CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_MAP_HAS_, map, [key]);
+}
+function cbmscMapSet_(map, key, value) {
+  return CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_MAP_SET_, map, [key, value]);
+}
+function cbmscMapGet_(map, key) {
+  return CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_MAP_GET_, map, [key]);
+}
 
 class ApplicabilityBlocker extends Error {
   constructor(message) {
@@ -26,19 +85,19 @@ const CBMSC_IN19_REVIEW_DERIVED = 'SMSCI_IN19_APPLICABILITY_REVIEW';
 const CBMSC_IN19_TRANSITION_DATE = '2024-04-24';
 
 function cbmscDeepFreeze_(value, seen) {
-  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  if (!value || typeof value !== 'object' || CBMSC_INTRINSIC_IS_FROZEN_(value)) return value;
   const active = seen || [];
-  if (active.indexOf(value) >= 0) throw new ApplicabilityBlocker('cyclic applicability result');
-  const next = active.concat([value]);
-  Object.keys(value).forEach(key => cbmscDeepFreeze_(value[key], next));
-  return Object.freeze(value);
+  if (cbmscIndexOf_(active, value) >= 0) throw new ApplicabilityBlocker('cyclic applicability result');
+  const next = cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_CONCAT_, active, [[value]]);
+  cbmscForEach_(CBMSC_INTRINSIC_KEYS_(value), key => cbmscDeepFreeze_(value[key], next));
+  return CBMSC_INTRINSIC_FREEZE_(value);
 }
 
 function cbmscReferenceSnapshot_(reference) {
   if (!(reference instanceof TypedReference) || !reference.kind || !reference.identifier) {
     throw new ApplicabilityBlocker('incomplete documentary reference');
   }
-  return Object.freeze({ kind: reference.kind, identifier: reference.identifier });
+  return CBMSC_INTRINSIC_FREEZE_({ kind: reference.kind, identifier: reference.identifier });
 }
 
 function cbmscTraceRecord_(view, reference, expectedEntity, selectedDocument) {
@@ -60,8 +119,9 @@ function cbmscTraceRecord_(view, reference, expectedEntity, selectedDocument) {
 }
 
 function cbmscRequiredField_(object, field) {
-  if (!Object.prototype.hasOwnProperty.call(object, field) || object[field] == null ||
-      (typeof object[field] === 'string' && object[field].trim() === '')) {
+  if (!CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_HAS_OWN_, object, [field]) || object[field] == null ||
+      (typeof object[field] === 'string' &&
+       CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_STRING_TRIM_, object[field], []) === '')) {
     throw new ApplicabilityBlocker('required documentary fact is absent: ' + field);
   }
   return object[field];
@@ -73,18 +133,18 @@ function validateCbmscRuntimeContract_(contract) {
       contract.officialEsciTargets.length !== 28) {
     throw new ApplicabilityBlocker('compiled applicability contract is invalid');
   }
-  const codes = new Set();
-  const targets = new Set();
-  const canonicalTargets = Object.keys(contract.entityCatalog).filter(entityId => {
+  const codes = new CBMSC_INTRINSIC_SET_();
+  const targets = new CBMSC_INTRINSIC_SET_();
+  const canonicalTargets = cbmscFilter_(CBMSC_INTRINSIC_KEYS_(contract.entityCatalog), entityId => {
     const entity = contract.entityCatalog[entityId];
     return entity && entity.APPLICABILITY_TARGET_CLASS === 'OFFICIAL_ESCI_SCOPE';
   });
   if (canonicalTargets.length !== 28) {
     throw new ApplicabilityBlocker('canonical entity catalog does not declare exactly 28 official targets');
   }
-  contract.officialEsciTargets.forEach(entry => {
+  cbmscForEach_(contract.officialEsciTargets, entry => {
     if (!entry || typeof entry.code !== 'string' || typeof entry.entityId !== 'string' ||
-        codes.has(entry.code) || targets.has(entry.entityId)) {
+        cbmscSetHas_(codes, entry.code) || cbmscSetHas_(targets, entry.entityId)) {
       throw new ApplicabilityBlocker('compiled official target map is invalid');
     }
     const entity = contract.entityCatalog[entry.entityId];
@@ -92,10 +152,10 @@ function validateCbmscRuntimeContract_(contract) {
         entity.APPLICABILITY_TARGET_CLASS !== 'OFFICIAL_ESCI_SCOPE') {
       throw new ApplicabilityBlocker('compiled official target map conflicts with entity catalog');
     }
-    codes.add(entry.code);
-    targets.add(entry.entityId);
+    cbmscSetAdd_(codes, entry.code);
+    cbmscSetAdd_(targets, entry.entityId);
   });
-  if (canonicalTargets.some(entityId => !targets.has(entityId))) {
+  if (cbmscSome_(canonicalTargets, entityId => !cbmscSetHas_(targets, entityId))) {
     throw new ApplicabilityBlocker('official target map omits a canonical target');
   }
 }
@@ -137,30 +197,30 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     throw new ApplicabilityBlocker('authorized section is not an explicit child of selected comprovante');
   }
   const sectionAttributes = view.read(sectionReference);
-  ['STRUCTURALLY_COMPLETE', 'LEGIBLE', 'VERIFIABLE'].forEach(field => {
+  cbmscForEach_(['STRUCTURALLY_COMPLETE', 'LEGIBLE', 'VERIFIABLE'], field => {
     if (sectionAttributes[field] !== true) {
       throw new ApplicabilityBlocker('authorized section guard failed: ' + field);
     }
   });
 
   const itemReferences = view.children(sectionReference, CBMSC_ITEM_ENTITY);
-  const itemTracesByCode = new Map();
-  itemReferences.forEach(itemReference => {
+  const itemTracesByCode = new CBMSC_INTRINSIC_MAP_();
+  cbmscForEach_(itemReferences, itemReference => {
     const trace = cbmscTraceRecord_(view, itemReference, CBMSC_ITEM_ENTITY, selectedDocument);
     if (view.parent(itemReference).identifier !== sectionReference.identifier) {
       throw new ApplicabilityBlocker('applicability item is not an explicit child of authorized section');
     }
     const attributes = view.read(itemReference);
     const code = cbmscRequiredField_(attributes, 'OFFICIAL_ESCI_CODE');
-    if (!compiledContract.officialEsciTargets.some(entry => entry.code === code)) {
+    if (!cbmscSome_(compiledContract.officialEsciTargets, entry => entry.code === code)) {
       throw new ApplicabilityBlocker('unknown OFFICIAL_ESCI_CODE: ' + code);
     }
-    if (!itemTracesByCode.has(code)) itemTracesByCode.set(code, []);
-    itemTracesByCode.get(code).push({ ...trace, attributes });
+    if (!cbmscMapHas_(itemTracesByCode, code)) cbmscMapSet_(itemTracesByCode, code, []);
+    cbmscPush_(cbmscMapGet_(itemTracesByCode, code), { ...trace, attributes });
   });
 
-  const officialDecisions = compiledContract.officialEsciTargets.map(entry => {
-    const matchingItems = itemTracesByCode.get(entry.code) || [];
+  const officialDecisions = cbmscMap_(compiledContract.officialEsciTargets, entry => {
+    const matchingItems = cbmscMapGet_(itemTracesByCode, entry.code) || [];
     return {
       target: entry.entityId,
       decision: matchingItems.length ? 'POSITIVE' : 'NEGATIVE',
@@ -169,8 +229,8 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
       code: entry.code,
       selectedDocument: documentTrace,
       section: sectionTrace,
-      itemReferences: matchingItems.map(item => item.reference),
-      itemTraces: matchingItems.map(item => ({
+      itemReferences: cbmscMap_(matchingItems, item => item.reference),
+      itemTraces: cbmscMap_(matchingItems, item => ({
         reference: item.reference,
         sourceDocument: item.sourceDocument,
         provenance: item.provenance,
@@ -178,17 +238,17 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     };
   });
   if (officialDecisions.length !== 28 ||
-      new Set(officialDecisions.map(item => item.target)).size !== 28 ||
-      officialDecisions.some(item => !item.selectedDocument || !item.section || !item.rule)) {
+      new Set(cbmscMap_(officialDecisions, item => item.target)).size !== 28 ||
+      cbmscSome_(officialDecisions, item => !item.selectedDocument || !item.section || !item.rule)) {
     throw new ApplicabilityBlocker('official applicability decision set is incomplete');
   }
 
   const byTarget = Object.create(null);
-  officialDecisions.forEach(decision => { byTarget[decision.target] = decision; });
+  cbmscForEach_(officialDecisions, decision => { byTarget[decision.target] = decision; });
   const derivedDecisions = [];
   const aiPositive = byTarget.SMSCI_AI.decision === 'POSITIVE';
   const daiPositive = byTarget.SMSCI_DAI.decision === 'POSITIVE';
-  derivedDecisions.push({
+  cbmscPush_(derivedDecisions, {
     target: CBMSC_SDAI_DERIVED,
     decision: aiPositive || daiPositive ? 'POSITIVE' : 'NEGATIVE',
     rule: '02a_applicability: SMSCI_AI positive OR SMSCI_DAI positive',
@@ -197,7 +257,7 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     section: sectionTrace,
   });
   const ielPositive = byTarget.SMSCI_IEL.decision === 'POSITIVE';
-  derivedDecisions.push({
+  cbmscPush_(derivedDecisions, {
     target: CBMSC_IN19_REVIEW_DERIVED,
     decision: ielPositive ? 'NEGATIVE' : 'POSITIVE',
     rule: '02a_applicability: SMSCI_IEL positive => negative review scope; complete negative => positive review scope',
@@ -206,12 +266,13 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     section: sectionTrace,
   });
 
-  const positiveOfficialTargets = officialDecisions
-    .filter(decision => decision.decision === 'POSITIVE')
-    .map(decision => decision.target);
-  const processSmsci = positiveOfficialTargets.slice();
-  derivedDecisions.filter(decision => decision.decision === 'POSITIVE')
-    .forEach(decision => processSmsci.push(decision.target));
+  const positiveOfficialTargets = cbmscMap_(
+    cbmscFilter_(officialDecisions, decision => decision.decision === 'POSITIVE'),
+    decision => decision.target
+  );
+  const processSmsci = cbmscSlice_(positiveOfficialTargets);
+  cbmscForEach_(cbmscFilter_(derivedDecisions, decision => decision.decision === 'POSITIVE'),
+    decision => cbmscPush_(processSmsci, decision.target));
   let in19DocumentationRegime;
   let in19RegimeTrace;
   if (ielPositive) {
@@ -246,6 +307,15 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     if (typeof CBMSC_IS_CANONICAL_CONTRACT_ !== 'function' ||
         !CBMSC_IS_CANONICAL_CONTRACT_(contract)) {
       throw new ApplicabilityBlocker('canonical compiled runtime contract is required');
+    }
+  }
+
+  function requireCanonicalViewCatalog_(view, contract) {
+    if (typeof CBMSC_VIEW_CATALOG_AUTHENTICATOR_ !== 'function' ||
+        !CBMSC_VIEW_CATALOG_AUTHENTICATOR_(view, contract.entityCatalog)) {
+      throw new ApplicabilityBlocker(
+        'execution view must originate from the canonical contract entity catalog'
+      );
     }
   }
 
@@ -289,6 +359,7 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
 
   function canonicalResolver(view, currentSubmissionContext, compiledContract) {
     requireCanonicalContract_(compiledContract);
+    requireCanonicalViewCatalog_(view, compiledContract);
     const resolution = internalResolver(view, currentSubmissionContext, compiledContract);
     if (!CBMSC_INTRINSIC_IS_FROZEN_(resolution) ||
         !resolutionReferencesBelongToView_(resolution, view)) {
@@ -306,6 +377,8 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     if (!source || source.view !== view || source.contract !== contract ||
         typeof CBMSC_IS_CANONICAL_CONTRACT_ !== 'function' ||
         !CBMSC_IS_CANONICAL_CONTRACT_(contract) ||
+        typeof CBMSC_VIEW_CATALOG_AUTHENTICATOR_ !== 'function' ||
+        !CBMSC_VIEW_CATALOG_AUTHENTICATOR_(view, contract.entityCatalog) ||
         !CBMSC_IS_IMMUTABLE_VIEW_(view) || !CBMSC_INTRINSIC_IS_FROZEN_(resolution)) {
       return false;
     }

@@ -17,15 +17,84 @@ const PLAN_INTRINSIC_FREEZE_ = Object.freeze;
 const PLAN_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
 const PLAN_INTRINSIC_ARRAY_IS_ARRAY_ = Array.isArray;
 const PLAN_INTRINSIC_DEFINE_ = Object.defineProperty;
+const PLAN_INTRINSIC_KEYS_ = Object.keys;
+const PLAN_INTRINSIC_CREATE_ = Object.create;
+const PLAN_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const PLAN_INTRINSIC_STRINGIFY_ = JSON.stringify;
+const PLAN_INTRINSIC_MAP_ = Map;
+const PLAN_INTRINSIC_MAP_GET_ = Map.prototype.get;
+const PLAN_INTRINSIC_MAP_SET_ = Map.prototype.set;
+const PLAN_INTRINSIC_MAP_HAS_ = Map.prototype.has;
+const PLAN_INTRINSIC_MAP_FOR_EACH_ = Map.prototype.forEach;
+const PLAN_INTRINSIC_SET_ = Set;
+const PLAN_INTRINSIC_SET_HAS_ = Set.prototype.has;
+const PLAN_INTRINSIC_SET_ADD_ = Set.prototype.add;
+const PLAN_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
+const PLAN_INTRINSIC_ARRAY_MAP_ = Array.prototype.map;
+const PLAN_INTRINSIC_ARRAY_FILTER_ = Array.prototype.filter;
+const PLAN_INTRINSIC_ARRAY_FIND_ = Array.prototype.find;
+const PLAN_INTRINSIC_ARRAY_SLICE_ = Array.prototype.slice;
+const PLAN_INTRINSIC_ARRAY_CONCAT_ = Array.prototype.concat;
+const PLAN_INTRINSIC_ARRAY_INCLUDES_ = Array.prototype.includes;
+const PLAN_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
+const PLAN_INTRINSIC_ARRAY_SORT_ = Array.prototype.sort;
+const PLAN_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
 const PLAN_IS_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
 const PLAN_IS_CANONICAL_RESOLUTION_ = isCanonicalCbmscApplicabilityResolution;
+
+function planApply_(intrinsic, receiver, args) {
+  return PLAN_INTRINSIC_APPLY_(intrinsic, receiver, args);
+}
+function planForEach_(array, callback) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_FOR_EACH_, array, [callback]);
+}
+function planMap_(array, callback) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_MAP_, array, [callback]);
+}
+function planFilter_(array, callback) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_FILTER_, array, [callback]);
+}
+function planFind_(array, callback) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_FIND_, array, [callback]);
+}
+function planSlice_(array) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_SLICE_, array, []);
+}
+function planConcat_(array, other) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_CONCAT_, array, [other]);
+}
+function planIncludes_(array, value) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_INCLUDES_, array, [value]);
+}
+function planPush_(array, value) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_PUSH_, array, [value]);
+}
+function planSort_(array) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_SORT_, array, []);
+}
+function planIndexOf_(array, value) {
+  return planApply_(PLAN_INTRINSIC_ARRAY_INDEX_OF_, array, [value]);
+}
+function planHasOwn_(value, key) {
+  return planApply_(PLAN_INTRINSIC_HAS_OWN_, value, [key]);
+}
+function planMapGet_(map, key) { return planApply_(PLAN_INTRINSIC_MAP_GET_, map, [key]); }
+function planMapSet_(map, key, value) { return planApply_(PLAN_INTRINSIC_MAP_SET_, map, [key, value]); }
+function planMapHas_(map, key) { return planApply_(PLAN_INTRINSIC_MAP_HAS_, map, [key]); }
+function planMapValues_(map) {
+  const values = [];
+  planApply_(PLAN_INTRINSIC_MAP_FOR_EACH_, map, [value => planPush_(values, value)]);
+  return values;
+}
+function planSetHas_(set, value) { return planApply_(PLAN_INTRINSIC_SET_HAS_, set, [value]); }
+function planSetAdd_(set, value) { return planApply_(PLAN_INTRINSIC_SET_ADD_, set, [value]); }
 
 function planFreeze_(value, seen) {
   if (!value || typeof value !== 'object' || PLAN_INTRINSIC_IS_FROZEN_(value)) return value;
   const active = seen || [];
-  if (active.indexOf(value) >= 0) throw new ExecutionIntegrityError('cyclic execution plan');
-  const next = active.concat([value]);
-  Object.keys(value).forEach(key => planFreeze_(value[key], next));
+  if (planIndexOf_(active, value) >= 0) throw new ExecutionIntegrityError('cyclic execution plan');
+  const next = planConcat_(active, [value]);
+  planForEach_(PLAN_INTRINSIC_KEYS_(value), key => planFreeze_(value[key], next));
   return PLAN_INTRINSIC_FREEZE_(value);
 }
 
@@ -33,11 +102,13 @@ function planClone_(value, active) {
   if (value === null || typeof value !== 'object') return value;
   if (value instanceof TypedReference) return { kind: value.kind, identifier: value.identifier };
   const ancestors = active || [];
-  if (ancestors.indexOf(value) >= 0) throw new ExecutionIntegrityError('cyclic input in execution plan');
-  const next = ancestors.concat([value]);
-  if (Array.isArray(value)) return value.map(item => planClone_(item, next));
+  if (planIndexOf_(ancestors, value) >= 0) throw new ExecutionIntegrityError('cyclic input in execution plan');
+  const next = planConcat_(ancestors, [value]);
+  if (PLAN_INTRINSIC_ARRAY_IS_ARRAY_(value)) return planMap_(value, item => planClone_(item, next));
   const copy = {};
-  Object.keys(value).sort().forEach(key => { copy[key] = planClone_(value[key], next); });
+  planForEach_(planSort_(PLAN_INTRINSIC_KEYS_(value)), key => {
+    copy[key] = planClone_(value[key], next);
+  });
   return copy;
 }
 
@@ -47,12 +118,12 @@ function planRequire_(condition, message) {
 
 function planIndexes_(contract) {
   planRequire_(contract && contract.contractVersion === 1, 'compiled contract version is invalid');
-  const requirementById = new Map();
-  (contract.requirements || []).forEach(item => {
+  const requirementById = new PLAN_INTRINSIC_MAP_();
+  planForEach_(contract.requirements || [], item => {
     planRequire_(item && typeof item.requirementId === 'string' &&
-      !requirementById.has(item.requirementId), 'duplicate or invalid Requirement metadata');
-    requirementById.set(item.requirementId, item);
-    planRequire_(['1', '4'].includes(item.table),
+      !planMapHas_(requirementById, item.requirementId), 'duplicate or invalid Requirement metadata');
+    planMapSet_(requirementById, item.requirementId, item);
+    planRequire_(planIncludes_(['1', '4'], item.table),
       'Requirement TABLE is invalid: ' + item.requirementId);
     if (item.smsci !== undefined) {
       const target = contract.entityCatalog && contract.entityCatalog[item.smsci];
@@ -60,16 +131,16 @@ function planIndexes_(contract) {
         'Requirement SMSCI metadata is unresolved: ' + item.requirementId);
     }
     if (item.in19DocumentationRegime !== undefined) {
-      planRequire_(['CURRENT', 'LEGACY', 'UNRESOLVED'].includes(item.in19DocumentationRegime),
+      planRequire_(planIncludes_(['CURRENT', 'LEGACY', 'UNRESOLVED'], item.in19DocumentationRegime),
         'Requirement IN19 regime metadata is invalid: ' + item.requirementId);
     }
   });
-  const criterionById = new Map();
-  (contract.criteria || []).forEach(item => {
+  const criterionById = new PLAN_INTRINSIC_MAP_();
+  planForEach_(contract.criteria || [], item => {
     planRequire_(item && typeof item.criterionId === 'string' &&
-      !criterionById.has(item.criterionId), 'duplicate or invalid Criterion metadata');
-    criterionById.set(item.criterionId, item);
-    planRequire_(['1', '4'].includes(item.table),
+      !planMapHas_(criterionById, item.criterionId), 'duplicate or invalid Criterion metadata');
+    planMapSet_(criterionById, item.criterionId, item);
+    planRequire_(planIncludes_(['1', '4'], item.table),
       'Criterion TABLE is invalid: ' + item.criterionId);
     if (item.appliesTo !== undefined) {
       const target = contract.entityCatalog && contract.entityCatalog[item.appliesTo];
@@ -78,32 +149,32 @@ function planIndexes_(contract) {
     }
   });
   const nonconformities = contract.nonconformities || {};
-  const indexByRequirement = new Map();
-  (contract.compiledExecutionIndex || []).forEach(block => {
-    planRequire_(block && requirementById.has(block.requirementId) &&
-      !indexByRequirement.has(block.requirementId), 'invalid or duplicate compiled Requirement block');
-    indexByRequirement.set(block.requirementId, block);
+  const indexByRequirement = new PLAN_INTRINSIC_MAP_();
+  planForEach_(contract.compiledExecutionIndex || [], block => {
+    planRequire_(block && planMapHas_(requirementById, block.requirementId) &&
+      !planMapHas_(indexByRequirement, block.requirementId), 'invalid or duplicate compiled Requirement block');
+    planMapSet_(indexByRequirement, block.requirementId, block);
   });
   planRequire_(requirementById.size === indexByRequirement.size,
     'compiled index has missing or extra Requirement blocks');
-  planRequire_(canonicalPlanJson_(Array.from(indexByRequirement.keys())) ===
-    canonicalPlanJson_(Array.from(requirementById.keys())),
+  planRequire_(canonicalPlanJson_(planMap_(planMapValues_(indexByRequirement), block => block.requirementId)) ===
+    canonicalPlanJson_(planMap_(planMapValues_(requirementById), item => item.requirementId)),
   'compiled Requirement order differs from canonical metadata');
-  const indexedCriteria = new Set();
-  for (const requirement of requirementById.values()) {
-    const indexBlock = indexByRequirement.get(requirement.requirementId);
+  const indexedCriteria = new PLAN_INTRINSIC_SET_();
+  for (const requirement of planMapValues_(requirementById)) {
+    const indexBlock = planMapGet_(indexByRequirement, requirement.requirementId);
     planRequire_(indexBlock, 'compiled index missing Requirement: ' + requirement.requirementId);
     for (const ncId of requirement.nonconformities || []) {
-      planRequire_(Object.prototype.hasOwnProperty.call(nonconformities, ncId) &&
+      planRequire_(planHasOwn_(nonconformities, ncId) &&
         nonconformities[ncId].REF_REQUIREMENT === requirement.requirementId,
       'invalid Requirement Nonconformity reference: ' + ncId);
     }
-    const seenKeys = new Set();
-    (indexBlock.units || []).forEach(unit => {
-      planRequire_(unit && typeof unit.unitKey === 'string' && !seenKeys.has(unit.unitKey),
+    const seenKeys = new PLAN_INTRINSIC_SET_();
+    planForEach_(indexBlock.units || [], unit => {
+      planRequire_(unit && typeof unit.unitKey === 'string' && !planSetHas_(seenKeys, unit.unitKey),
         'duplicate or invalid UNIT_KEY in compiled index');
-      seenKeys.add(unit.unitKey);
-      const criterion = criterionById.get(unit.criterionId);
+      planSetAdd_(seenKeys, unit.unitKey);
+      const criterion = planMapGet_(criterionById, unit.criterionId);
       planRequire_(unit.requirementId === requirement.requirementId && criterion &&
         criterion.requirementId === requirement.requirementId &&
         unit.unitKey === 'UNIT_KEY (' + requirement.requirementId + ', ' + criterion.criterionId + ')',
@@ -112,9 +183,9 @@ function planIndexes_(contract) {
         planRequire_(requirement.smsci === criterion.appliesTo,
           'Criterion APPLIES_TO differs from associated Requirement SMSCI: ' + criterion.criterionId);
       }
-      planRequire_(!indexedCriteria.has(criterion.criterionId),
+      planRequire_(!planSetHas_(indexedCriteria, criterion.criterionId),
         'Criterion appears more than once in compiled index: ' + criterion.criterionId);
-      indexedCriteria.add(criterion.criterionId);
+      planSetAdd_(indexedCriteria, criterion.criterionId);
       planRequire_(criterion.forEach === (requirement.forEach || null),
         'Criterion FOR_EACH differs from Requirement: ' + criterion.criterionId);
       for (const ncId of criterion.failNonconformities || []) {
@@ -127,48 +198,53 @@ function planIndexes_(contract) {
   }
   planRequire_(indexedCriteria.size === criterionById.size,
     'compiled index has missing or extra Criterion metadata');
-  for (const criterion of criterionById.values()) {
-    planRequire_(requirementById.has(criterion.requirementId),
+  const criteria = planMapValues_(criterionById);
+  for (let index = 0; index < criteria.length; index += 1) {
+    const criterion = criteria[index];
+    planRequire_(planMapHas_(requirementById, criterion.requirementId),
       'Criterion references missing Requirement: ' + criterion.criterionId);
   }
-  for (const ncId of Object.keys(nonconformities)) {
+  const nonconformityIds = PLAN_INTRINSIC_KEYS_(nonconformities);
+  for (let index = 0; index < nonconformityIds.length; index += 1) {
+    const ncId = nonconformityIds[index];
     const nc = nonconformities[ncId];
-    planRequire_(requirementById.has(nc.REF_REQUIREMENT) && criterionById.has(nc.REF_CRITERION) &&
-      criterionById.get(nc.REF_CRITERION).requirementId === nc.REF_REQUIREMENT &&
-      nc.TABLE === criterionById.get(nc.REF_CRITERION).table,
+    planRequire_(planMapHas_(requirementById, nc.REF_REQUIREMENT) &&
+      planMapHas_(criterionById, nc.REF_CRITERION) &&
+      planMapGet_(criterionById, nc.REF_CRITERION).requirementId === nc.REF_REQUIREMENT &&
+      nc.TABLE === planMapGet_(criterionById, nc.REF_CRITERION).table,
     'Nonconformity reference is unresolved: ' + ncId);
   }
   return { requirementById, criterionById, indexByRequirement };
 }
 
 function applicableRequirements_(contract, resolution, indexes) {
-  planRequire_(resolution && Array.isArray(resolution.PROCESS_SMSCI),
+  planRequire_(resolution && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(resolution.PROCESS_SMSCI),
     'applicability resolution has no complete PROCESS.SMSCI');
   const officialTargets = contract.officialEsciTargets || [];
   planRequire_(officialTargets.length === 28 &&
     (resolution.officialDecisions || []).length === 28,
     'applicability resolution is not complete for all official targets');
   const decisions = resolution.officialDecisions;
-  const officialTargetsInOrder = officialTargets.map(item => item.entityId);
-  planRequire_(new Set(officialTargetsInOrder).size === 28 &&
-    canonicalPlanJson_(decisions.map(item => item.target)) === canonicalPlanJson_(officialTargetsInOrder),
+  const officialTargetsInOrder = planMap_(officialTargets, item => item.entityId);
+  planRequire_(new PLAN_INTRINSIC_SET_(officialTargetsInOrder).size === 28 &&
+    canonicalPlanJson_(planMap_(decisions, item => item.target)) === canonicalPlanJson_(officialTargetsInOrder),
   'official decisions have missing, extra, duplicate or reordered targets');
   const positiveOfficial = [];
-  decisions.forEach((decision, index) => {
+  planForEach_(decisions, (decision, index) => {
     const target = officialTargets[index];
     const documentRef = decision.selectedDocument && decision.selectedDocument.reference;
     const sectionRef = decision.section && decision.section.reference;
-    planRequire_(['POSITIVE', 'NEGATIVE'].includes(decision.decision) &&
+    planRequire_(planIncludes_(['POSITIVE', 'NEGATIVE'], decision.decision) &&
       decision.code === target.code && documentRef && documentRef.kind === 'DOCUMENT' &&
       sectionRef && sectionRef.kind === 'DOCUMENT_SECTION' &&
       decision.rule && decision.source === 'OFFICIAL_ESCI_CODE' &&
-      Array.isArray(decision.itemReferences) && Array.isArray(decision.itemTraces),
+      PLAN_INTRINSIC_ARRAY_IS_ARRAY_(decision.itemReferences) && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(decision.itemTraces),
     'official decision trace is incomplete: ' + target.entityId);
     planRequire_(decision.itemReferences.length === decision.itemTraces.length &&
       (decision.decision !== 'POSITIVE' || decision.itemReferences.length > 0) &&
       (decision.decision !== 'NEGATIVE' || decision.itemReferences.length === 0),
     'official decision evidence trace disagrees with its decision: ' + target.entityId);
-    decision.itemTraces.forEach((trace, traceIndex) => {
+    planForEach_(decision.itemTraces, (trace, traceIndex) => {
       const itemReference = decision.itemReferences[traceIndex];
       planRequire_(trace && itemReference && itemReference.kind === 'DOCUMENTARY_EVIDENCE' &&
       typeof itemReference.identifier === 'string' && trace.reference &&
@@ -178,15 +254,15 @@ function applicableRequirements_(contract, resolution, indexes) {
       trace.sourceDocument.identifier === documentRef.identifier,
       'official decision item trace is incomplete: ' + target.entityId);
     });
-    if (decision.decision === 'POSITIVE') positiveOfficial.push(target.entityId);
+    if (decision.decision === 'POSITIVE') planPush_(positiveOfficial, target.entityId);
   });
   const derived = resolution.derivedDecisions || [];
   const expectedDerivedTargets = ['SMSCI_SDAI', 'SMSCI_IN19_APPLICABILITY_REVIEW'];
-  planRequire_(canonicalPlanJson_(derived.map(item => item.target)) ===
+  planRequire_(canonicalPlanJson_(planMap_(derived, item => item.target)) ===
     canonicalPlanJson_(expectedDerivedTargets), 'derived applicability decisions are incomplete');
-  derived.forEach(item => planRequire_(
-    ['POSITIVE', 'NEGATIVE'].includes(item.decision) && item.rule &&
-      Array.isArray(item.sourceDecisions) && item.selectedDocument && item.section,
+  planForEach_(derived, item => planRequire_(
+    planIncludes_(['POSITIVE', 'NEGATIVE'], item.decision) && item.rule &&
+      PLAN_INTRINSIC_ARRAY_IS_ARRAY_(item.sourceDecisions) && item.selectedDocument && item.section,
     'derived applicability trace is incomplete: ' + item.target
   ));
   planRequire_(resolution.selectedComprovante &&
@@ -200,32 +276,32 @@ function applicableRequirements_(contract, resolution, indexes) {
     contextProvenance.sourceKind.length > 0 && typeof contextProvenance.sourceReference === 'string' &&
     contextProvenance.sourceReference.length > 0,
   'current submission operational provenance is incomplete');
-  const decisionByTarget = new Map(decisions.map(item => [item.target, item]));
-  const derivedByTarget = new Map(derived.map(item => [item.target, item]));
-  const expectedSdai = decisionByTarget.get('SMSCI_AI').decision === 'POSITIVE' ||
-    decisionByTarget.get('SMSCI_DAI').decision === 'POSITIVE' ? 'POSITIVE' : 'NEGATIVE';
-  const expectedReview = decisionByTarget.get('SMSCI_IEL').decision === 'POSITIVE'
+  const decisionByTarget = new PLAN_INTRINSIC_MAP_(planMap_(decisions, item => [item.target, item]));
+  const derivedByTarget = new PLAN_INTRINSIC_MAP_(planMap_(derived, item => [item.target, item]));
+  const expectedSdai = planMapGet_(decisionByTarget, 'SMSCI_AI').decision === 'POSITIVE' ||
+    planMapGet_(decisionByTarget, 'SMSCI_DAI').decision === 'POSITIVE' ? 'POSITIVE' : 'NEGATIVE';
+  const expectedReview = planMapGet_(decisionByTarget, 'SMSCI_IEL').decision === 'POSITIVE'
     ? 'NEGATIVE' : 'POSITIVE';
-  planRequire_(derivedByTarget.get('SMSCI_SDAI').decision === expectedSdai &&
-    canonicalPlanJson_(derivedByTarget.get('SMSCI_SDAI').sourceDecisions) ===
+  planRequire_(planMapGet_(derivedByTarget, 'SMSCI_SDAI').decision === expectedSdai &&
+    canonicalPlanJson_(planMapGet_(derivedByTarget, 'SMSCI_SDAI').sourceDecisions) ===
       canonicalPlanJson_(['SMSCI_AI', 'SMSCI_DAI']),
   'SMSCI_SDAI derivation is inconsistent with AI/DAI decisions');
-  planRequire_(derivedByTarget.get('SMSCI_IN19_APPLICABILITY_REVIEW').decision === expectedReview &&
-    canonicalPlanJson_(derivedByTarget.get('SMSCI_IN19_APPLICABILITY_REVIEW').sourceDecisions) ===
+  planRequire_(planMapGet_(derivedByTarget, 'SMSCI_IN19_APPLICABILITY_REVIEW').decision === expectedReview &&
+    canonicalPlanJson_(planMapGet_(derivedByTarget, 'SMSCI_IN19_APPLICABILITY_REVIEW').sourceDecisions) ===
       canonicalPlanJson_(['SMSCI_IEL']),
   'IN19 applicability-review derivation is inconsistent with IEL decision');
   const processTargets = resolution.PROCESS_SMSCI;
-  const processSet = new Set(processTargets);
+  const processSet = new PLAN_INTRINSIC_SET_(processTargets);
   planRequire_(processSet.size === processTargets.length, 'PROCESS.SMSCI contains duplicate targets');
-  const expectedProcess = positiveOfficial.concat(
-    derived.filter(item => item.decision === 'POSITIVE').map(item => item.target)
+  const expectedProcess = planConcat_(positiveOfficial,
+    planMap_(planFilter_(derived, item => item.decision === 'POSITIVE'), item => item.target)
   );
   planRequire_(canonicalPlanJson_(processTargets) === canonicalPlanJson_(expectedProcess),
     'PROCESS.SMSCI does not equal the complete positive official and derived scopes');
   const regime = resolution.IN19_DOCUMENTATION_REGIME;
-  const ielPositive = decisions.find(item => item.target === 'SMSCI_IEL').decision === 'POSITIVE';
+  const ielPositive = planFind_(decisions, item => item.target === 'SMSCI_IEL').decision === 'POSITIVE';
   if (ielPositive) {
-    planRequire_(['CURRENT', 'LEGACY'].includes(regime), 'positive SMSCI_IEL requires CURRENT or LEGACY');
+    planRequire_(planIncludes_(['CURRENT', 'LEGACY'], regime), 'positive SMSCI_IEL requires CURRENT or LEGACY');
     planRequire_(resolution.IN19_DOCUMENTATION_REGIME_TRACE &&
       resolution.IN19_DOCUMENTATION_REGIME_TRACE.source === 'REQUEST_DATE' &&
       resolution.IN19_DOCUMENTATION_REGIME_TRACE.decision === regime &&
@@ -239,10 +315,10 @@ function applicableRequirements_(contract, resolution, indexes) {
   }
   const result = [];
   for (const source of contract.requirements) {
-    if (source.smsci && !processSet.has(source.smsci)) continue;
+    if (source.smsci && !planSetHas_(processSet, source.smsci)) continue;
     if (source.in19DocumentationRegime !== undefined &&
         source.in19DocumentationRegime !== regime) continue;
-    planRequire_(indexes.requirementById.has(source.requirementId),
+    planRequire_(planMapHas_(indexes.requirementById, source.requirementId),
       'applicable Requirement is absent from compiled contract');
     result.push(source);
   }
@@ -250,24 +326,23 @@ function applicableRequirements_(contract, resolution, indexes) {
 }
 
 function worklistSmsci_(contract, resolution) {
-  const positive = new Set(resolution.PROCESS_SMSCI);
-  return contract.officialEsciTargets
-    .filter(target => positive.has(target.entityId))
-    .map(target => target.entityId);
+  const positive = new PLAN_INTRINSIC_SET_(resolution.PROCESS_SMSCI);
+  return planMap_(planFilter_(contract.officialEsciTargets,
+    target => planSetHas_(positive, target.entityId)), target => target.entityId);
 }
 
 function expectedPlannedUnits_(contract, resolution, applicable, worklist, indexes) {
-  const processSet = new Set(resolution.PROCESS_SMSCI);
+  const processSet = new PLAN_INTRINSIC_SET_(resolution.PROCESS_SMSCI);
   const units = [];
   const expectedKeys = [];
   for (const requirement of applicable) {
-    const block = indexes.indexByRequirement.get(requirement.requirementId);
-    planRequire_(block && Array.isArray(block.units) && block.units.length,
+    const block = planMapGet_(indexes.indexByRequirement, requirement.requirementId);
+    planRequire_(block && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(block.units) && block.units.length,
       'compiled index block is empty or missing: ' + requirement.requirementId);
     planRequire_(block.iterationSource === (requirement.forEach || null),
       'ITERATION_SOURCE differs from Requirement FOR_EACH: ' + requirement.requirementId);
     for (const indexUnit of block.units) {
-      const criterion = indexes.criterionById.get(indexUnit.criterionId);
+      const criterion = planMapGet_(indexes.criterionById, indexUnit.criterionId);
       planRequire_(criterion && criterion.requirementId === requirement.requirementId,
         'Criterion association mismatch: ' + indexUnit.unitKey);
       planRequire_(criterion.table === '1' || criterion.table === '4',
@@ -275,20 +350,20 @@ function expectedPlannedUnits_(contract, resolution, applicable, worklist, index
       if (criterion.appliesTo !== undefined) {
         planRequire_(requirement.smsci === criterion.appliesTo,
           'APPLIES_TO differs from associated Requirement SMSCI: ' + criterion.criterionId);
-        planRequire_(processSet.has(criterion.appliesTo),
+        planRequire_(planSetHas_(processSet, criterion.appliesTo),
           'APPLIES_TO is inconsistent with PROCESS.SMSCI: ' + criterion.criterionId);
       }
       const unitRequirementNCs = requirement.nonconformities || [];
       const criterionNCs = criterion.failNonconformities || [];
       for (const ncId of [...unitRequirementNCs, ...criterionNCs]) {
-        planRequire_(Object.prototype.hasOwnProperty.call(contract.nonconformities, ncId),
+        planRequire_(planHasOwn_(contract.nonconformities, ncId),
           'Nonconformity reference is absent: ' + ncId);
       }
       let iterationDomain = null;
       if (block.iterationSource !== null) {
         planRequire_(block.iterationSource === 'WORKLIST.SMSCI',
           'unknown ITERATION_SOURCE: ' + block.iterationSource);
-        iterationDomain = worklist.slice();
+        iterationDomain = planSlice_(worklist);
       }
       expectedKeys.push(indexUnit.unitKey);
       units.push({
@@ -298,15 +373,15 @@ function expectedPlannedUnits_(contract, resolution, applicable, worklist, index
         requirementTable: requirement.table,
         criterionTable: criterion.table,
         context: criterion.context === undefined ? null : criterion.context,
-        validate: (requirement.validate || []).slice(),
-        criterionValidate: (criterion.validate || []).slice(),
+        validate: planSlice_(requirement.validate || []),
+        criterionValidate: planSlice_(criterion.validate || []),
         appliesTo: criterion.appliesTo === undefined ? null : criterion.appliesTo,
         iterationSource: block.iterationSource,
         iterationDomain,
-        plannedBindings: iterationDomain === null ? [] : iterationDomain.map(target => ({ target })),
+        plannedBindings: iterationDomain === null ? [] : planMap_(iterationDomain, target => ({ target })),
         nonconformityReferences: {
-          requirement: unitRequirementNCs.slice(),
-          criterionFail: criterionNCs.slice(),
+          requirement: planSlice_(unitRequirementNCs),
+          criterionFail: planSlice_(criterionNCs),
         },
       });
     }
@@ -318,10 +393,10 @@ function expectedPlannedUnits_(contract, resolution, applicable, worklist, index
 }
 
 function canonicalPlanJson_(value) {
-  if (Array.isArray(value)) return '[' + value.map(canonicalPlanJson_).join(',') + ']';
+  if (PLAN_INTRINSIC_ARRAY_IS_ARRAY_(value)) return '[' + planMap_(value, canonicalPlanJson_).join(',') + ']';
   if (value && typeof value === 'object') {
-    return '{' + Object.keys(value).sort().map(key =>
-      JSON.stringify(key) + ':' + canonicalPlanJson_(value[key])
+    return '{' + planMap_(planSort_(PLAN_INTRINSIC_KEYS_(value)), key =>
+      PLAN_INTRINSIC_STRINGIFY_(key) + ':' + canonicalPlanJson_(value[key])
     ).join(',') + '}';
   }
   return JSON.stringify(value);
@@ -330,22 +405,23 @@ function canonicalPlanJson_(value) {
 /** Public integrity gate also used to reject missing, extra, duplicate or altered units. */
 function validateExecutionPlanIntegrity(contract, resolution, applicableIds, worklist, plannedUnits) {
   const indexes = planIndexes_(contract);
-  planRequire_(Array.isArray(applicableIds) && Array.isArray(worklist) && Array.isArray(plannedUnits),
+  planRequire_(PLAN_INTRINSIC_ARRAY_IS_ARRAY_(applicableIds) &&
+    PLAN_INTRINSIC_ARRAY_IS_ARRAY_(worklist) && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(plannedUnits),
     'plan integrity inputs must be arrays');
-  const applicable = applicableIds.map(id => {
-    const requirement = indexes.requirementById.get(id);
+  const applicable = planMap_(applicableIds, id => {
+    const requirement = planMapGet_(indexes.requirementById, id);
     planRequire_(requirement, 'Requirement does not exist: ' + id);
     return requirement;
   });
-  const expectedApplicable = applicableRequirements_(contract, resolution, indexes)
-    .map(item => item.requirementId);
+  const expectedApplicable = planMap_(applicableRequirements_(contract, resolution, indexes),
+    item => item.requirementId);
   planRequire_(canonicalPlanJson_(applicableIds) === canonicalPlanJson_(expectedApplicable),
     'APPLICABLE_REQUIREMENTS is missing, extra or out of canonical order');
   const expectedWorklist = worklistSmsci_(contract, resolution);
   planRequire_(canonicalPlanJson_(worklist) === canonicalPlanJson_(expectedWorklist),
     'WORKLIST.SMSCI is missing, extra or out of canonical order');
   const expected = expectedPlannedUnits_(contract, resolution, applicable, worklist, indexes);
-  const actualKeys = plannedUnits.map(unit => unit && unit.unitKey);
+  const actualKeys = planMap_(plannedUnits, unit => unit && unit.unitKey);
   planRequire_(new Set(actualKeys).size === actualKeys.length,
     'PLANNED_EXECUTION_UNITS contains duplicate UNIT_KEY');
   planRequire_(canonicalPlanJson_(actualKeys) === canonicalPlanJson_(expected.expectedKeys),
@@ -359,7 +435,7 @@ function validateExecutionPlanIntegrity(contract, resolution, applicableIds, wor
 function materializeFrozenExecutionPlanInternal_(contract, resolution) {
   const indexes = planIndexes_(contract);
   const applicable = applicableRequirements_(contract, resolution, indexes);
-  const applicableIds = applicable.map(item => item.requirementId);
+  const applicableIds = planMap_(applicable, item => item.requirementId);
   const worklist = worklistSmsci_(contract, resolution);
   const materialized = expectedPlannedUnits_(contract, resolution, applicable, worklist, indexes);
   validateExecutionPlanIntegrity(
@@ -369,16 +445,18 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
     selectedComprovante: planClone_(resolution.selectedComprovante),
     officialDecisions: planClone_(resolution.officialDecisions),
     derivedDecisions: planClone_(resolution.derivedDecisions),
-    PROCESS_SMSCI: resolution.PROCESS_SMSCI.slice(),
+    PROCESS_SMSCI: planSlice_(resolution.PROCESS_SMSCI),
     ...(resolution.IN19_DOCUMENTATION_REGIME === undefined ? {} : {
       IN19_DOCUMENTATION_REGIME: resolution.IN19_DOCUMENTATION_REGIME,
       IN19_DOCUMENTATION_REGIME_TRACE: planClone_(resolution.IN19_DOCUMENTATION_REGIME_TRACE),
     }),
-    APPLICABLE_REQUIREMENTS: applicable.map(item => planClone_(item)),
+    APPLICABLE_REQUIREMENTS: planMap_(applicable, item => planClone_(item)),
     WORKLIST_SMSCI: worklist,
     PLANNED_EXECUTION_UNITS: materialized.units,
-    ITERATION_DOMAINS: materialized.units.filter(unit => unit.iterationDomain !== null)
-      .map(unit => ({ unitKey: unit.unitKey, source: unit.iterationSource, values: unit.iterationDomain.slice() })),
+    ITERATION_DOMAINS: planMap_(planFilter_(materialized.units,
+      unit => unit.iterationDomain !== null), unit => ({
+      unitKey: unit.unitKey, source: unit.iterationSource, values: planSlice_(unit.iterationDomain)
+    })),
   };
   return planFreeze_(plan);
 }
