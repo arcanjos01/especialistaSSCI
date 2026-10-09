@@ -559,6 +559,51 @@ assert.equal(
 );
 assert.deepEqual(JSON.parse(JSON.stringify(planMapBinding.evidence)), []);
 
+const iteratorPoisonRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const iteratorPoisonView = api.projectRdeToExecutionView_(iteratorPoisonRde, contract.entityCatalog);
+const iteratorPoisonResolution = api.resolveCbmscApplicability(
+  iteratorPoisonView, currentContext(), contract
+);
+context.__nativeArrayIterator = vm.runInContext('Array.prototype[Symbol.iterator]', context);
+let iteratorPoisonPlan;
+try {
+  vm.runInContext(`
+    const canonicalRequirementArray = COMPILED_RUNTIME_CONTRACT.requirements;
+    const forgedApplicableRequirement = JSON.parse(JSON.stringify(
+      canonicalRequirementArray.find(item => item.responsibilityMappings &&
+        item.responsibilityMappings.some(mapping => mapping.catalogIdentifier === 'RT-002'))
+    ));
+    forgedApplicableRequirement.responsibilityMappings.forEach(mapping => {
+      if (mapping.catalogIdentifier === 'RT-002') {
+        mapping.documentaryResponsibilityType = 'VISTORIA_ENSAIO';
+      }
+    });
+    const iteratorPayload = [forgedApplicableRequirement];
+    Array.prototype[Symbol.iterator] = function () {
+      if (this === canonicalRequirementArray) {
+        return Reflect.apply(__nativeArrayIterator, iteratorPayload, []);
+      }
+      return Reflect.apply(__nativeArrayIterator, this, []);
+    };
+  `, context);
+  iteratorPoisonPlan = api.materializeFrozenExecutionPlan(
+    contract, iteratorPoisonResolution, iteratorPoisonView
+  );
+} finally {
+  vm.runInContext('Array.prototype[Symbol.iterator] = __nativeArrayIterator;', context);
+  delete context.__nativeArrayIterator;
+}
+const iteratorPoisonBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, iteratorPoisonPlan, iteratorPoisonView, 'RT-002'
+);
+assert.equal(
+  iteratorPoisonBinding.responsibility.documentaryResponsibilityType,
+  'EXECUCAO'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(iteratorPoisonBinding.evidence)), []);
+
 const planPushRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);
