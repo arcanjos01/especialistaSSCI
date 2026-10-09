@@ -316,7 +316,7 @@ const hardenedPrototypeAdapters = makeAdapters();
 const hardenedPrototypeResult = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(), hardenedPrototypeAdapters.adapters
 );
-assert.equal(hardenedPrototypeResult.outcome, 'READY');
+assert.equal(hardenedPrototypeResult.outcome, prepared.outcome);
 assert.equal(hardenedPrototypeAdapters.counts.writes, 0);
 assert.equal(hardenedPrototypeAdapters.counts.executionCalls, 0);
 
