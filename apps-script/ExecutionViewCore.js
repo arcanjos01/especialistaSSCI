@@ -2,10 +2,12 @@
 
 class ExecutionViewContractError extends Error {}
 class ExecutionViewLookupError extends ExecutionViewContractError {}
+const EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_ = isCanonicalValidatedExecutionRde_;
 
 const {
   ImmutableExecutionView,
   isImmutableExecutionView,
+  isExecutionViewBackedByEntityCatalog_,
   snapshotImmutableExecutionViewEntityRecords_,
   projectRdeToExecutionView_
 } = (function () {
@@ -442,7 +444,7 @@ function executionViewRecord(view, reference) {
  */
 class ImmutableExecutionView {
   constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0',
-    declarationEntries = [], documentaryDateEntries = [], constructionToken) {
+    declarationEntries = [], documentaryDateEntries = [], entityCatalogIdentity, constructionToken) {
     if (constructionToken !== executionViewConstructionToken_) {
       throw new executionViewContractError_(
         'ImmutableExecutionView can only be created from an RDE projection'
@@ -875,6 +877,7 @@ class ImmutableExecutionView {
       documentaryAssociations: executionViewFreeze_(documentaryAssociations),
       drtDeclarationItems: executionViewFreeze_(drtDeclarationItems),
       documentaryDateItems: executionViewFreeze_(documentaryDateItems),
+      entityCatalogIdentity,
       schemaVersion
     }));
     executionViewFreeze_(this);
@@ -986,6 +989,11 @@ class ImmutableExecutionView {
     return executionViewStateHas_(view);
   }
 
+  function isExecutionViewBackedByEntityCatalog_(view, entityCatalog) {
+    const state = executionViewStateGet_(view);
+    return !!state && state.entityCatalogIdentity === entityCatalog;
+  }
+
   function intrinsicReferenceKey_(reference) {
     return executionViewStringify_([reference.kind, reference.identifier]);
   }
@@ -1033,8 +1041,16 @@ class ImmutableExecutionView {
 
 /** Create the closed documentary projection from a validated RDE 0.2.0 through 0.5.0. */
 function projectRdeToExecutionView_(rde, entityCatalog) {
-  // Snapshot caller-owned input once, then validate and project that immutable data.
-  // This prevents a Proxy from supplying one fact to validation and another to Process Memory.
+  if (typeof EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_ !== 'function' ||
+      !EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_(rde)) {
+    throw new executionViewContractError_(
+      'projection requires a structurally validated RDE parsed from JSON'
+    );
+  }
+  // Only parser-authenticated, deeply frozen JSON can cross this boundary. A
+  // caller-supplied Proxy cannot be safely inspected in JavaScript: its traps
+  // can agree on a forged value while its target retains another fact.
+  const entityCatalogIdentity = entityCatalog;
   rde = immutableExecutionCopy(rde);
   entityCatalog = immutableExecutionCopy(entityCatalog);
   if (!rde || typeof rde !== 'object' || executionViewArrayIsArray_(rde)) {
@@ -1075,6 +1091,20 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
   }
   executionViewValidateRdeRecordEnvelope_(rde.records, entityCatalog);
   executionViewValidateRdeEntityFacts_(rde.records, entityCatalog);
+  if (executionViewHasOwn_(entityCatalog, 'DRT')) {
+    const drtDefinition = entityCatalog.DRT;
+    if (!drtDefinition || drtDefinition.TYPE !== 'DOCUMENT' || drtDefinition.ABSTRACT !== true) {
+      throw new executionViewContractError_('DRT must remain an abstract DOCUMENT entity');
+    }
+  }
+  for (const concreteDrtId of ['ART', 'RRT', 'TRT']) {
+    if (!executionViewHasOwn_(entityCatalog, concreteDrtId)) continue;
+    const concreteDrt = entityCatalog[concreteDrtId];
+    if (!concreteDrt || concreteDrt.TYPE !== 'DOCUMENT' || concreteDrt.EXTENDS !== 'DRT' ||
+        concreteDrt.ABSTRACT === true) {
+      throw new executionViewContractError_(concreteDrtId + ' must be a concrete DOCUMENT extending DRT');
+    }
+  }
   if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     executionViewValidateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
@@ -1198,7 +1228,8 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     }
   }
   return new ImmutableExecutionView(
-    entries, associations, schemaVersion, declarations, dates, executionViewConstructionToken_
+    entries, associations, schemaVersion, declarations, dates, entityCatalogIdentity,
+    executionViewConstructionToken_
   );
 }
 
@@ -1206,6 +1237,7 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
   return executionViewFreeze_({
     ImmutableExecutionView,
     isImmutableExecutionView,
+    isExecutionViewBackedByEntityCatalog_,
     snapshotImmutableExecutionViewEntityRecords_,
     projectRdeToExecutionView_
   });
@@ -1213,6 +1245,12 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
 
 Object.defineProperty(globalThis, 'snapshotImmutableExecutionViewEntityRecords', {
   value: snapshotImmutableExecutionViewEntityRecords_,
+  enumerable: false,
+  writable: false,
+  configurable: false
+});
+Object.defineProperty(globalThis, 'isExecutionViewBackedByEntityCatalog_', {
+  value: isExecutionViewBackedByEntityCatalog_,
   enumerable: false,
   writable: false,
   configurable: false

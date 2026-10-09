@@ -21,6 +21,7 @@ vm.runInContext(`globalThis.api = {
   TypedReference,
   ImmutableExecutionView,
   projectRdeToExecutionView_,
+  parseAndValidateOperationalRdeJson_,
   createCurrentSubmissionContext,
   resolveCbmscApplicability,
   isCanonicalCbmscApplicabilityResolution,
@@ -96,7 +97,7 @@ function makeRde({ codes = [], requestDate = '2026-01-28', flags = {},
     attributes: document,
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_OTHER' }
   }));
-  return {
+  const rde = {
     schema_version: '0.2.0', process_id: 'TEST_ONLY_PROCESS',
     source: {
       file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf', mime_type: 'application/pdf',
@@ -109,6 +110,9 @@ function makeRde({ codes = [], requestDate = '2026-01-28', flags = {},
     records,
     extraction_warnings: []
   };
+  return api.parseAndValidateOperationalRdeJson_(JSON.stringify(rde), {
+    processId: rde.process_id, sourceFileId: rde.source.file_id
+  }, contract.entityCatalog);
 }
 
 function resolve(options = {}, submission = currentContext()) {

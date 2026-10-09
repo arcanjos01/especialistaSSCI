@@ -28,6 +28,7 @@ const RESPONSIBILITY_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
 const RESPONSIBILITY_INTRINSIC_STRING_INDEX_OF_ = String.prototype.indexOf;
 const RESPONSIBILITY_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
 const RESPONSIBILITY_CANONICAL_PLAN_ = isCanonicalFrozenExecutionPlan;
+const RESPONSIBILITY_VIEW_CATALOG_AUTHENTICATOR_ = isExecutionViewBackedByEntityCatalog_;
 
 function responsibilityIntrinsicApply_(method, receiver, args) {
   return RESPONSIBILITY_INTRINSIC_APPLY_(method, receiver, args);
@@ -148,6 +149,11 @@ function responsibilityAuthenticate_(contract, plan, view) {
     typeof RESPONSIBILITY_CANONICAL_PLAN_ === 'function' &&
     RESPONSIBILITY_CANONICAL_PLAN_(plan, contract, view),
     'canonical frozen execution plan bound to this view is required'
+  );
+  responsibilityRequire_(
+    typeof RESPONSIBILITY_VIEW_CATALOG_AUTHENTICATOR_ === 'function' &&
+    RESPONSIBILITY_VIEW_CATALOG_AUTHENTICATOR_(view, contract.entityCatalog),
+    'execution view must originate from the canonical contract entity catalog'
   );
 }
 

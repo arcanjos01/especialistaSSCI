@@ -20,6 +20,7 @@ globalThis.api = {
   TypedReference,
   ImmutableExecutionView,
   projectRdeToExecutionView_,
+  parseAndValidateOperationalRdeJson_,
   CurrentSubmissionContextContractError,
   createCurrentSubmissionContext,
   selectCurrentComprovante
@@ -62,8 +63,11 @@ function makeView(records) {
     })),
     extraction_warnings: []
   };
+  const authenticatedRde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(rde), {
+    processId: rde.process_id, sourceFileId: rde.source.file_id
+  }, api.COMPILED_RUNTIME_CONTRACT.entityCatalog);
   return api.projectRdeToExecutionView_(
-    rde, api.COMPILED_RUNTIME_CONTRACT.entityCatalog
+    authenticatedRde, api.COMPILED_RUNTIME_CONTRACT.entityCatalog
   );
 }
 

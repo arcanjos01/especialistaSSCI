@@ -2,6 +2,14 @@
 'use strict';
 /** CBMSC-specific, pre-Engine applicability over immutable Process Memory. */
 
+const CBMSC_INTRINSIC_APPLY_ = Reflect.apply;
+const CBMSC_INTRINSIC_WEAKMAP_GET_ = WeakMap.prototype.get;
+const CBMSC_INTRINSIC_WEAKMAP_SET_ = WeakMap.prototype.set;
+const CBMSC_INTRINSIC_FREEZE_ = Object.freeze;
+const CBMSC_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
+const CBMSC_IS_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
+const CBMSC_IS_IMMUTABLE_VIEW_ = isImmutableExecutionView;
+
 class ApplicabilityBlocker extends Error {
   constructor(message) {
     super(message);
@@ -235,8 +243,8 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
   const internalResolver = resolveCbmscApplicabilityInternal_;
 
   function requireCanonicalContract_(contract) {
-    if (typeof isCanonicalCompiledRuntimeContract !== 'function' ||
-        !isCanonicalCompiledRuntimeContract(contract)) {
+    if (typeof CBMSC_IS_CANONICAL_CONTRACT_ !== 'function' ||
+        !CBMSC_IS_CANONICAL_CONTRACT_(contract)) {
       throw new ApplicabilityBlocker('canonical compiled runtime contract is required');
     }
   }
@@ -282,22 +290,23 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
   function canonicalResolver(view, currentSubmissionContext, compiledContract) {
     requireCanonicalContract_(compiledContract);
     const resolution = internalResolver(view, currentSubmissionContext, compiledContract);
-    if (!Object.isFrozen(resolution) ||
+    if (!CBMSC_INTRINSIC_IS_FROZEN_(resolution) ||
         !resolutionReferencesBelongToView_(resolution, view)) {
       throw new ApplicabilityBlocker(
         'canonical resolver produced an invalid applicability result'
       );
     }
-    provenance.set(resolution, Object.freeze({ view, contract: compiledContract }));
+    CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_WEAKMAP_SET_, provenance,
+      [resolution, CBMSC_INTRINSIC_FREEZE_({ view, contract: compiledContract })]);
     return resolution;
   }
 
   function canonicalResolutionVerifier(resolution, view, contract) {
-    const source = provenance.get(resolution);
+    const source = CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_WEAKMAP_GET_, provenance, [resolution]);
     if (!source || source.view !== view || source.contract !== contract ||
-        typeof isCanonicalCompiledRuntimeContract !== 'function' ||
-        !isCanonicalCompiledRuntimeContract(contract) ||
-        !isImmutableExecutionView(view) || !Object.isFrozen(resolution)) {
+        typeof CBMSC_IS_CANONICAL_CONTRACT_ !== 'function' ||
+        !CBMSC_IS_CANONICAL_CONTRACT_(contract) ||
+        !CBMSC_IS_IMMUTABLE_VIEW_(view) || !CBMSC_INTRINSIC_IS_FROZEN_(resolution)) {
       return false;
     }
     return resolutionReferencesBelongToView_(resolution, view);

@@ -173,9 +173,14 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
       'RDE_MISSING', 'validated RDE content is missing');
     let rde;
     try {
-      rde = JSON.parse(rdeContent);
+      rde = global.parseAndValidateOperationalRdeJson_(rdeContent, {
+        processId,
+        sourceFileId: processRecord.sourceFileId,
+      }, global.COMPILED_RUNTIME_CONTRACT.entityCatalog);
     } catch (error) {
-      throw new ValidatedExecutionReadinessError('RDE_INVALID', 'validated RDE is not valid JSON');
+      throw new ValidatedExecutionReadinessError(
+        'RDE_INVALID', error && error.message ? error.message : 'validated RDE is not valid JSON'
+      );
     }
 
     const contract = global.COMPILED_RUNTIME_CONTRACT;
@@ -184,16 +189,6 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
     'COMPILED_CONTRACT_INVALID', 'canonical compiled runtime contract is required');
 
     const originalRdeSnapshot = readinessSnapshot_(rde);
-    try {
-      global.validateRdeStructure_(rde, {
-        processId,
-        sourceFileId: processRecord.sourceFileId,
-      }, contract.entityCatalog);
-    } catch (error) {
-      throw new ValidatedExecutionReadinessError(
-        'RDE_INVALID', error && error.message ? error.message : 'validated RDE failed structural validation'
-      );
-    }
     readinessRequire_(rde.schema_version === processRecord.rdeVersion,
       'RDE_VERSION_MISMATCH', 'validated RDE schema_version does not match registry RDE_VERSION');
 

@@ -5,6 +5,14 @@ const RDE_LEGACY_SCHEMA_VERSION = '0.3.0';
 const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
 const RDE_INTRINSIC_GET_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
 const RDE_INTRINSIC_DEFINE_PROPERTY_ = Object.defineProperty;
+const RDE_INTRINSIC_JSON_PARSE_ = JSON.parse;
+const RDE_INTRINSIC_KEYS_ = Object.keys;
+const RDE_INTRINSIC_FREEZE_ = Object.freeze;
+const RDE_INTRINSIC_IS_ARRAY_ = Array.isArray;
+const RDE_INTRINSIC_APPLY_ = Reflect.apply;
+const RDE_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const RDE_INTRINSIC_WEAKSET_ADD_ = WeakSet.prototype.add;
+const RDE_INTRINSIC_WEAKSET_HAS_ = WeakSet.prototype.has;
 
 function lockRdeValidationHelpers_() {
   const names = [
@@ -626,7 +634,7 @@ function canonicalRdeJson_(value, active) {
     }
     for (let index = 0; index < value.length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      if (!descriptor || !RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_HAS_OWN_, descriptor, ['value'])) {
         throw makeRdeValidationError_(
           'RDE_ASSOCIATION_PROVENANCE_INVALID',
           'Arrays em provenance devem conter somente valores de dados.'
@@ -1161,20 +1169,56 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   return rde;
 }
 
-function parseAndValidateOperationalRdeJson_(content, expected, entityCatalog) {
-  let rde;
+(function installValidatedExecutionRdeBoundary_(global) {
+  'use strict';
+  const validatedRdes = new WeakSet();
+  const weakSetAdd = RDE_INTRINSIC_WEAKSET_ADD_;
+  const weakSetHas = RDE_INTRINSIC_WEAKSET_HAS_;
+  const apply = RDE_INTRINSIC_APPLY_;
 
-  try {
-    rde = JSON.parse(content);
-  } catch (error) {
-    throw makeRdeValidationError_(
-      'RDE_INVALID_JSON',
-      'O arquivo da RDE não contém JSON válido.'
-    );
+  function freezeJsonTree(value) {
+    if (!value || typeof value !== 'object' || RDE_INTRINSIC_IS_ARRAY_(value) && value.length === 0) {
+      return RDE_INTRINSIC_FREEZE_(value);
+    }
+    const keys = RDE_INTRINSIC_KEYS_(value);
+    for (let index = 0; index < keys.length; index += 1) {
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(value, keys[index]);
+      if (!descriptor || !apply(RDE_INTRINSIC_HAS_OWN_, descriptor, ['value'])) {
+        throw makeRdeValidationError_('RDE_INVALID_DATA', 'RDE parsed data cannot contain accessors.');
+      }
+      freezeJsonTree(descriptor.value);
+    }
+    return RDE_INTRINSIC_FREEZE_(value);
   }
 
-  return validateRdeStructure_(rde, expected, entityCatalog);
-}
+  function parseAndValidateOperationalRdeJson_(content, expected, entityCatalog) {
+    let rde;
+    try {
+      rde = RDE_INTRINSIC_JSON_PARSE_(content);
+    } catch (error) {
+      throw makeRdeValidationError_(
+        'RDE_INVALID_JSON',
+        'O arquivo da RDE não contém JSON válido.'
+      );
+    }
+    freezeJsonTree(rde);
+    // Freeze the parser-owned JSON before legacy structural helpers inspect it.
+    // Even if a mutable Array/Object intrinsic is patched, its callbacks cannot
+    // rewrite documentary facts between parsing and view projection.
+    validateRdeStructure_(rde, expected, entityCatalog);
+    apply(weakSetAdd, validatedRdes, [rde]);
+    return rde;
+  }
+
+  RDE_INTRINSIC_DEFINE_PROPERTY_(global, 'parseAndValidateOperationalRdeJson_', {
+    value: parseAndValidateOperationalRdeJson_, enumerable: true,
+    writable: false, configurable: false
+  });
+  RDE_INTRINSIC_DEFINE_PROPERTY_(global, 'isCanonicalValidatedExecutionRde_', {
+    value: function (candidate) { return apply(weakSetHas, validatedRdes, [candidate]); },
+    enumerable: false, writable: false, configurable: false
+  });
+})(globalThis);
 
 function validateSourceHash_(expectedHash, actualHash) {
   if (

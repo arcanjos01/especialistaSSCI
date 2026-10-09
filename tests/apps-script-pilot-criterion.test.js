@@ -22,6 +22,7 @@ vm.runInContext(
   'TypedReference,' +
   'EngineResult,' +
   'projectRdeToExecutionView_,' +
+  'parseAndValidateOperationalRdeJson_,' +
   'createCurrentSubmissionContext,' +
   'resolveCbmscApplicability,' +
   'materializeFrozenExecutionPlan,' +
@@ -229,7 +230,10 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
 }
 
 function prepare(options) {
-  const rde = makeRde(options);
+  const rawRde = makeRde(options);
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(rawRde), {
+    processId: rawRde.process_id, sourceFileId: rawRde.source.file_id
+  }, contract.entityCatalog);
   const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
   const resolution = api.resolveCbmscApplicability(
     view, currentContext(options && options.requestDate), contract
@@ -445,6 +449,7 @@ for (const relativePath of [
 vm.runInContext(
   'globalThis.api = {' +
   'COMPILED_RUNTIME_CONTRACT, TypedReference, projectRdeToExecutionView_,' +
+  'parseAndValidateOperationalRdeJson_,' +
   'createCurrentSubmissionContext, resolveCbmscApplicability,' +
   'materializeFrozenExecutionPlan, executePlannedCriterion' +
   '};',
@@ -464,8 +469,13 @@ mismatchedRde.records.push({
   source_document: 'DOC_SHP', attributes: { SIGNATURE_MECHANISM: 'ICP-Brasil / PAdES' },
   provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SHP_1_FACT' }
 });
+const mismatchedValidatedRde = mismatchedApi.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(mismatchedRde), { processId: mismatchedRde.process_id,
+    sourceFileId: mismatchedRde.source.file_id },
+  mismatchedApi.COMPILED_RUNTIME_CONTRACT.entityCatalog
+);
 const mismatchedView = mismatchedApi.projectRdeToExecutionView_(
-  mismatchedRde, mismatchedApi.COMPILED_RUNTIME_CONTRACT.entityCatalog
+  mismatchedValidatedRde, mismatchedApi.COMPILED_RUNTIME_CONTRACT.entityCatalog
 );
 const mismatchedSubmissionContext = mismatchedApi.createCurrentSubmissionContext({
   protocolIdentifier: 'TEST_ONLY_PROTOCOL', requestDate: '2026-01-28',

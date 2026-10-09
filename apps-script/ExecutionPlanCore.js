@@ -10,13 +10,23 @@ class ExecutionIntegrityError extends Error {
   }
 }
 
+const PLAN_INTRINSIC_APPLY_ = Reflect.apply;
+const PLAN_INTRINSIC_WEAKMAP_GET_ = WeakMap.prototype.get;
+const PLAN_INTRINSIC_WEAKMAP_SET_ = WeakMap.prototype.set;
+const PLAN_INTRINSIC_FREEZE_ = Object.freeze;
+const PLAN_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
+const PLAN_INTRINSIC_ARRAY_IS_ARRAY_ = Array.isArray;
+const PLAN_INTRINSIC_DEFINE_ = Object.defineProperty;
+const PLAN_IS_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
+const PLAN_IS_CANONICAL_RESOLUTION_ = isCanonicalCbmscApplicabilityResolution;
+
 function planFreeze_(value, seen) {
-  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  if (!value || typeof value !== 'object' || PLAN_INTRINSIC_IS_FROZEN_(value)) return value;
   const active = seen || [];
   if (active.indexOf(value) >= 0) throw new ExecutionIntegrityError('cyclic execution plan');
   const next = active.concat([value]);
   Object.keys(value).forEach(key => planFreeze_(value[key], next));
-  return Object.freeze(value);
+  return PLAN_INTRINSIC_FREEZE_(value);
 }
 
 function planClone_(value, active) {
@@ -378,16 +388,16 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
   const internalMaterializer = materializeFrozenExecutionPlanInternal_;
 
   function canonicalMaterializer(contract, resolution, view) {
-    planRequire_(typeof isCanonicalCompiledRuntimeContract === 'function' &&
-      isCanonicalCompiledRuntimeContract(contract),
+    planRequire_(typeof PLAN_IS_CANONICAL_CONTRACT_ === 'function' &&
+      PLAN_IS_CANONICAL_CONTRACT_(contract),
     'canonical compiled runtime contract is required');
-    planRequire_(typeof isCanonicalCbmscApplicabilityResolution === 'function' &&
-      isCanonicalCbmscApplicabilityResolution(resolution, view, contract),
+    planRequire_(typeof PLAN_IS_CANONICAL_RESOLUTION_ === 'function' &&
+      PLAN_IS_CANONICAL_RESOLUTION_(resolution, view, contract),
     'canonical applicability resolution is required');
     const frozenPlan = internalMaterializer(contract, resolution);
-    planRequire_(Object.isFrozen(frozenPlan) &&
-      Array.isArray(frozenPlan.PLANNED_EXECUTION_UNITS) &&
-      Object.isFrozen(frozenPlan.PLANNED_EXECUTION_UNITS),
+    planRequire_(PLAN_INTRINSIC_IS_FROZEN_(frozenPlan) &&
+      PLAN_INTRINSIC_ARRAY_IS_ARRAY_(frozenPlan.PLANNED_EXECUTION_UNITS) &&
+      PLAN_INTRINSIC_IS_FROZEN_(frozenPlan.PLANNED_EXECUTION_UNITS),
     'canonical materializer produced an unfrozen execution plan');
     planRequire_(canonicalPlanJson_(frozenPlan.PROCESS_SMSCI) ===
       canonicalPlanJson_(resolution.PROCESS_SMSCI) &&
@@ -395,25 +405,26 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
       frozenPlan.selectedComprovante.kind === resolution.selectedComprovante.kind &&
       frozenPlan.selectedComprovante.identifier === resolution.selectedComprovante.identifier,
     'canonical materializer output differs from applicability resolution');
-    provenance.set(frozenPlan, Object.freeze({ contract, resolution, view }));
+    PLAN_INTRINSIC_APPLY_(PLAN_INTRINSIC_WEAKMAP_SET_, provenance,
+      [frozenPlan, PLAN_INTRINSIC_FREEZE_({ contract, resolution, view })]);
     return frozenPlan;
   }
 
   function canonicalPlanVerifier(plan, contract, view) {
-    const source = provenance.get(plan);
+    const source = PLAN_INTRINSIC_APPLY_(PLAN_INTRINSIC_WEAKMAP_GET_, provenance, [plan]);
     return !!source && source.contract === contract && source.view === view &&
-      typeof isCanonicalCompiledRuntimeContract === 'function' &&
-      isCanonicalCompiledRuntimeContract(contract) &&
-      typeof isCanonicalCbmscApplicabilityResolution === 'function' &&
-      isCanonicalCbmscApplicabilityResolution(source.resolution, view, contract) &&
-      Object.isFrozen(plan) && Array.isArray(plan.PLANNED_EXECUTION_UNITS) &&
-      Object.isFrozen(plan.PLANNED_EXECUTION_UNITS);
+      typeof PLAN_IS_CANONICAL_CONTRACT_ === 'function' &&
+      PLAN_IS_CANONICAL_CONTRACT_(contract) &&
+      typeof PLAN_IS_CANONICAL_RESOLUTION_ === 'function' &&
+      PLAN_IS_CANONICAL_RESOLUTION_(source.resolution, view, contract) &&
+      PLAN_INTRINSIC_IS_FROZEN_(plan) && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(plan.PLANNED_EXECUTION_UNITS) &&
+      PLAN_INTRINSIC_IS_FROZEN_(plan.PLANNED_EXECUTION_UNITS);
   }
 
-  Object.defineProperty(global, 'materializeFrozenExecutionPlan', {
+  PLAN_INTRINSIC_DEFINE_(global, 'materializeFrozenExecutionPlan', {
     value: canonicalMaterializer, enumerable: true, writable: false, configurable: false
   });
-  Object.defineProperty(global, 'isCanonicalFrozenExecutionPlan', {
+  PLAN_INTRINSIC_DEFINE_(global, 'isCanonicalFrozenExecutionPlan', {
     value: canonicalPlanVerifier, enumerable: false, writable: false, configurable: false
   });
 
@@ -427,10 +438,10 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
   }
 })(globalThis);
 
-Object.defineProperty(global, 'ExecutionIntegrityError', {
+PLAN_INTRINSIC_DEFINE_(global, 'ExecutionIntegrityError', {
   value: ExecutionIntegrityError, enumerable: true, writable: false, configurable: false
 });
-Object.defineProperty(global, 'validateExecutionPlanIntegrity', {
+PLAN_INTRINSIC_DEFINE_(global, 'validateExecutionPlanIntegrity', {
   value: validateExecutionPlanIntegrity, enumerable: true, writable: false, configurable: false
 });
 })(globalThis);

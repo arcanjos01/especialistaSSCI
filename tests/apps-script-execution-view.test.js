@@ -16,6 +16,7 @@ vm.runInContext(`
 globalThis.testApi = {
   RDE_SCHEMA_VERSION,
   validateRdeStructure_,
+  parseAndValidateOperationalRdeJson_,
   EngineResult,
   ArgumentKind,
   TypedReference,
@@ -108,10 +109,11 @@ fixtureRde.documentary_associations = [{
   provenance: { page: 2, text_span: 'linha 8' }
 }];
 const originalRdeJson = JSON.stringify(fixtureRde);
-const validatedRde = api.validateRdeStructure_(fixtureRde, {
+const validatedRde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(fixtureRde), {
   processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
 }, entityCatalog);
-assert.equal(validatedRde, fixtureRde);
+assert.notEqual(validatedRde, fixtureRde);
+assert.equal(Object.isFrozen(validatedRde), true);
 assert.equal(JSON.stringify(fixtureRde), originalRdeJson);
 
 const refs = {
@@ -151,15 +153,17 @@ assert.equal(view.read(refs.section).LEGIBLE, false);
 assert.equal(JSON.stringify(validatedRde), originalRdeJson);
 assert.throws(() => api.projectRdeToExecutionView_(
   { ...validatedRde, schema_version: '0.1.0' }, entityCatalog
-), /validated RDE 0.2.0 through 0.5.0/);
+), /parsed from JSON/);
 const legacyRde = { ...validatedRde, schema_version: '0.2.0' };
 delete legacyRde.documentary_associations;
-const legacyView = api.projectRdeToExecutionView_(legacyRde, entityCatalog);
+const legacyView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(legacyRde), { processId: legacyRde.process_id, sourceFileId: legacyRde.source.file_id }, entityCatalog
+), entityCatalog);
 assert.equal(legacyView.schemaVersion(), '0.2.0');
 assert.deepEqual(JSON.parse(JSON.stringify(legacyView.documentaryAssociations(refs.entity))), []);
 assert.throws(() => api.projectRdeToExecutionView_({
   ...legacyRde, documentary_associations: []
-}, entityCatalog), /cannot declare documentary associations/);
+}, entityCatalog), /parsed from JSON/);
 const declarationRde = {
   ...fixtureRde,
   schema_version: '0.4.0',
@@ -186,7 +190,7 @@ const declarationRde = {
   }]
 };
 const declarationSnapshot = JSON.stringify(declarationRde);
-const validatedDeclarationRde = api.validateRdeStructure_(declarationRde, {
+const validatedDeclarationRde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(declarationRde), {
   processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
 }, entityCatalog);
 const declarationView = api.projectRdeToExecutionView_(validatedDeclarationRde, entityCatalog);
@@ -233,9 +237,9 @@ const dateRde = {
   }]
 };
 const dateSnapshot = JSON.stringify(dateRde);
-const dateView = api.projectRdeToExecutionView_(api.validateRdeStructure_(dateRde, {
-  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
-}, entityCatalog), entityCatalog);
+const dateView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(dateRde), { processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE' }, entityCatalog
+), entityCatalog);
 const testReportRef = new api.TypedReference('TEST_REPORT', 'R_TEST_REPORT');
 assert.equal(dateView.schemaVersion(), '0.5.0');
 assert.deepEqual(JSON.parse(JSON.stringify(dateView.documentaryDateItems(testReportRef))), [{
@@ -292,20 +296,26 @@ assert.throws(() => new api.ImmutableExecutionView(
 ), /only be created from an RDE projection/);
 const badDeclarationRde = JSON.parse(JSON.stringify(declarationRde));
 badDeclarationRde.drt_declaration_items[0].drt_record_id = 'R_DRT_SOURCE';
-assert.throws(() => api.projectRdeToExecutionView_(badDeclarationRde, entityCatalog),
+assert.throws(() => api.parseAndValidateOperationalRdeJson_(JSON.stringify(badDeclarationRde), {
+  processId: badDeclarationRde.process_id, sourceFileId: badDeclarationRde.source.file_id
+}, entityCatalog),
   error => error && error.code === 'RDE_DRT_DECLARATION_DRT_TYPE_INVALID');
 const missingV4Collection = { ...declarationRde };
 delete missingV4Collection.drt_declaration_items;
-assert.throws(() => api.projectRdeToExecutionView_(missingV4Collection, entityCatalog));
+assert.throws(() => api.parseAndValidateOperationalRdeJson_(JSON.stringify(missingV4Collection), {
+  processId: missingV4Collection.process_id, sourceFileId: missingV4Collection.source.file_id
+}, entityCatalog));
 const malformedProjectionRde = JSON.parse(JSON.stringify(validatedRde));
 malformedProjectionRde.documentary_associations[0].DRT_COVERS = true;
-assert.throws(() => api.projectRdeToExecutionView_(malformedProjectionRde, entityCatalog),
+assert.throws(() => api.parseAndValidateOperationalRdeJson_(JSON.stringify(malformedProjectionRde), {
+  processId: malformedProjectionRde.process_id, sourceFileId: malformedProjectionRde.source.file_id
+}, entityCatalog),
   error => error && error.code === 'RDE_ASSOCIATION_INVALID');
 const accessorProjectionRde = JSON.parse(JSON.stringify(validatedRde));
 Object.defineProperty(accessorProjectionRde.documentary_associations[0], 'statement_text', {
   enumerable: true, get() { return 'must not be evaluated'; }
 });
-assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog));
+assert.throws(() => api.projectRdeToExecutionView_(accessorProjectionRde, entityCatalog), /parsed from JSON/);
 let executionToStringTagGetterCalls = 0;
 const toStringTagProjectionRde = JSON.parse(JSON.stringify(validatedRde));
 Object.defineProperty(toStringTagProjectionRde.documentary_associations[0],
@@ -313,13 +323,13 @@ Object.defineProperty(toStringTagProjectionRde.documentary_associations[0],
     configurable: true,
     get() { executionToStringTagGetterCalls += 1; return 'Object'; }
   });
-assert.throws(() => api.projectRdeToExecutionView_(toStringTagProjectionRde, entityCatalog));
+assert.throws(() => api.projectRdeToExecutionView_(toStringTagProjectionRde, entityCatalog), /parsed from JSON/);
 assert.equal(executionToStringTagGetterCalls, 0);
 const nativeDateProjectionRde = JSON.parse(JSON.stringify(validatedRde));
 const nativeDateWithNullPrototype = new Date('2026-10-08T00:00:00.000Z');
 Object.setPrototypeOf(nativeDateWithNullPrototype, null);
 nativeDateProjectionRde.documentary_associations[0].provenance = nativeDateWithNullPrototype;
-assert.throws(() => api.projectRdeToExecutionView_(nativeDateProjectionRde, entityCatalog));
+assert.throws(() => api.projectRdeToExecutionView_(nativeDateProjectionRde, entityCatalog), /parsed from JSON/);
 for (const createNativeValue of [
   () => new Map([['declared', 'factual value']]),
   () => new Set(['factual value']),
@@ -334,7 +344,7 @@ for (const createNativeValue of [
     Object.setPrototypeOf(nativeValue, prototype);
     const nativeValueProjectionRde = JSON.parse(JSON.stringify(validatedRde));
     nativeValueProjectionRde.documentary_associations[0].provenance = nativeValue;
-    assert.throws(() => api.projectRdeToExecutionView_(nativeValueProjectionRde, entityCatalog));
+    assert.throws(() => api.projectRdeToExecutionView_(nativeValueProjectionRde, entityCatalog), /parsed from JSON/);
   }
 }
 const prototypeMapRde = JSON.parse(JSON.stringify(validatedRde));
@@ -349,10 +359,10 @@ associationArrayPrototype.map = function forgedMap() {
   }];
 };
 Object.setPrototypeOf(prototypeMapRde.documentary_associations, associationArrayPrototype);
-api.validateRdeStructure_(prototypeMapRde, {
-  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
-}, entityCatalog);
-const prototypeMapView = api.projectRdeToExecutionView_(prototypeMapRde, entityCatalog);
+const prototypeMapView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(prototypeMapRde), { processId: prototypeMapRde.process_id,
+    sourceFileId: prototypeMapRde.source.file_id }, entityCatalog
+), entityCatalog);
 assert.equal(inheritedMapCalls, 0);
 assert.deepEqual(JSON.parse(JSON.stringify(
   prototypeMapView.documentaryAssociations(refs.document)
@@ -368,10 +378,10 @@ recordArrayPrototype.map = function forgedMap() {
   return [];
 };
 Object.setPrototypeOf(prototypeRecordsRde.records, recordArrayPrototype);
-api.validateRdeStructure_(prototypeRecordsRde, {
-  processId: 'TEST_ONLY_PROCESS', sourceFileId: 'TEST_ONLY_FILE'
-}, entityCatalog);
-const prototypeRecordsView = api.projectRdeToExecutionView_(prototypeRecordsRde, entityCatalog);
+const prototypeRecordsView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(prototypeRecordsRde), { processId: prototypeRecordsRde.process_id,
+    sourceFileId: prototypeRecordsRde.source.file_id }, entityCatalog
+), entityCatalog);
 assert.equal(inheritedRecordMethods, 0);
 assert.equal(prototypeRecordsView.referencesByEntity('TEST_DOCUMENT').length, 2);
 let rootAssociationReads = 0;
@@ -387,7 +397,7 @@ Object.defineProperty(rootAssociationAccessor, 'documentary_associations', {
     }];
   }
 });
-assert.throws(() => api.projectRdeToExecutionView_(rootAssociationAccessor, entityCatalog));
+assert.throws(() => api.projectRdeToExecutionView_(rootAssociationAccessor, entityCatalog), /parsed from JSON/);
 assert.equal(rootAssociationReads, 0);
 assert.equal(Object.isFrozen(view), true);
 assert.equal(Object.keys(view).length, 0);
