@@ -426,6 +426,53 @@ const projectionSetterBinding = api.materializeResponsibilityEvidenceBinding(
 );
 assert.deepEqual(JSON.parse(JSON.stringify(projectionSetterBinding.evidence)), []);
 
+const bindingSetterInput = prepare([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+context.__savedBindingArraySetter = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(Array.prototype, '0')", context
+);
+let bindingSetterResult;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Array.prototype, '0', {
+      configurable: true,
+      set: function (value) {
+        let stored = value;
+        if (value && value.entityId === 'ART' && value.value) {
+          stored = {
+            ...value,
+            value: { ...value.value, RESPONSIBILITY_TYPE: 'EXECUCAO' }
+          };
+        }
+        Object.defineProperty(this, '0', {
+          value: stored, enumerable: true, writable: true, configurable: true
+        });
+      }
+    });
+  `, context);
+  bindingSetterResult = api.materializeResponsibilityEvidenceBinding(
+    contract, bindingSetterInput.plan, bindingSetterInput.view, 'RT-002'
+  );
+} finally {
+  vm.runInContext(`
+    if (__savedBindingArraySetter) {
+      Object.defineProperty(Array.prototype, '0', __savedBindingArraySetter);
+    } else {
+      delete Array.prototype[0];
+    }
+    delete globalThis.__savedBindingArraySetter;
+  `, context);
+}
+assert.deepEqual(JSON.parse(JSON.stringify(bindingSetterResult.evidence)), []);
+assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
+  bindingSetterResult, contract, bindingSetterInput.plan, bindingSetterInput.view
+), true);
+assert.equal(
+  snapshotDescriptor.value(bindingSetterInput.view, 'ART')[0].value.RESPONSIBILITY_TYPE,
+  'VISTORIA_ENSAIO'
+);
+
 const descriptorAttackRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);

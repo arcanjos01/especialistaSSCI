@@ -141,8 +141,14 @@ const {
 
   function executionViewAppend_(items, value) {
     const copy = [];
-    for (let index = 0; index < items.length; index += 1) copy[index] = items[index];
-    copy[copy.length] = value;
+    for (let index = 0; index < items.length; index += 1) {
+      executionViewDefineProperty_(copy, index, {
+        value: items[index], enumerable: true, writable: true, configurable: true,
+      });
+    }
+    executionViewDefineProperty_(copy, copy.length, {
+      value, enumerable: true, writable: true, configurable: true,
+    });
     return copy;
   }
 
@@ -263,7 +269,10 @@ const {
             'projection values cannot contain inconsistent proxy properties'
           );
         }
-        copy[index] = immutableExecutionCopy(descriptor.value, nextActive);
+        executionViewDefineProperty_(copy, index, {
+          value: immutableExecutionCopy(descriptor.value, nextActive),
+          enumerable: true, writable: true, configurable: true,
+        });
       }
       return executionViewFreeze_(copy);
     }
@@ -1037,7 +1046,7 @@ class ImmutableExecutionView {
       };
       if (record.hasProvenance) item.provenance = record.provenance;
       executionViewFreeze_(item);
-      result[result.length] = item;
+      executionViewPush_(result, item);
     }
     return executionViewFreeze_(result);
   }

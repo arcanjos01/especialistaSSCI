@@ -46,6 +46,18 @@ function responsibilityStringIndexOf_(value, item) {
   return responsibilityIntrinsicApply_(RESPONSIBILITY_INTRINSIC_STRING_INDEX_OF_, value, [item]);
 }
 
+function responsibilitySetIndex_(array, index, value) {
+  RESPONSIBILITY_INTRINSIC_DEFINE_(array, index, {
+    value, enumerable: true, writable: true, configurable: true,
+  });
+}
+
+function responsibilityAppend_(array, value) {
+  const nextIndex = array.length;
+  responsibilitySetIndex_(array, nextIndex, value);
+  return nextIndex + 1;
+}
+
 const RESPONSIBILITY_INTRINSIC_VIEW_SNAPSHOT = (function () {
   const descriptor = RESPONSIBILITY_INTRINSIC_DESCRIPTOR_(
     global, 'snapshotImmutableExecutionViewEntityRecords'
@@ -89,8 +101,10 @@ function responsibilityFreezeCopy_(value, active = []) {
   );
 
   const next = [];
-  for (let index = 0; index < active.length; index += 1) next[index] = active[index];
-  next[next.length] = value;
+  for (let index = 0; index < active.length; index += 1) {
+    responsibilitySetIndex_(next, index, active[index]);
+  }
+  responsibilityAppend_(next, value);
 
   if (RESPONSIBILITY_INTRINSIC_IS_ARRAY_(value)) {
     responsibilityRequire_(
@@ -106,7 +120,7 @@ function responsibilityFreezeCopy_(value, active = []) {
         descriptor && responsibilityHasOwn_(descriptor, 'value'),
         'binding arrays cannot contain accessors'
       );
-      copy[index] = responsibilityFreezeCopy_(descriptor.value, next);
+      responsibilitySetIndex_(copy, index, responsibilityFreezeCopy_(descriptor.value, next));
     }
     return RESPONSIBILITY_INTRINSIC_FREEZE_(copy);
   }
@@ -256,7 +270,7 @@ function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
           item.documentaryResponsibilityType = mapping.documentaryResponsibilityType;
         }
         byKey[key] = item;
-        ordered[ordered.length] = item;
+        responsibilityAppend_(ordered, item);
       } else {
         const item = byKey[key];
         responsibilityRequire_(
@@ -264,7 +278,7 @@ function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
           'duplicate responsibility mapping has conflicting documentary type'
         );
         if (!responsibilityStringContains_(item.requirementIds, requirement.requirementId)) {
-          item.requirementIds[item.requirementIds.length] = requirement.requirementId;
+          responsibilityAppend_(item.requirementIds, requirement.requirementId);
         }
       }
     }
@@ -337,7 +351,7 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
         continue;
       }
 
-      evidence[evidence.length] = {
+      responsibilityAppend_(evidence, {
         entityId,
         reference: record.reference,
         sourceDocument: record.sourceDocument,
@@ -347,7 +361,7 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
           attribute: 'RESPONSIBILITY_TYPE',
           value: facts.RESPONSIBILITY_TYPE
         }
-      };
+      });
     }
   }
 
