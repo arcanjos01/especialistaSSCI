@@ -461,6 +461,56 @@ def _parse_rt_catalog_types(text: str) -> dict[str, str | None]:
     return result
 
 
+
+def _parse_requirement_responsibility_contract(
+    block: str, identifier: str, rt_catalog_types: dict[str, str | None],
+) -> tuple[str | None, list[dict[str, str]]]:
+    declarations = list(re.finditer(
+        r"^REQUIRED_TECHNICAL_RESPONSIBILITY\s+(\S+)\s*$", block, re.M
+    ))
+    domains: list[str] = []
+    mappings: list[dict[str, str]] = []
+    consumed_catalogs = 0
+    for index, declaration in enumerate(declarations):
+        responsibility = declaration.group(1)
+        end = declarations[index + 1].start() if index + 1 < len(declarations) else len(block)
+        segment = block[declaration.end():end]
+        catalog_ids = re.findall(r"^CATALOG_IDENTIFIER\s+(\S+)\s*$", segment, re.M)
+        if responsibility == "EACH_REQUIRED_TECHNICAL_RESPONSIBILITY":
+            if catalog_ids:
+                raise ValueError(
+                    f"CATALOG_IDENTIFIER não pode acompanhar domínio genérico em {identifier}"
+                )
+            domains.append(responsibility)
+            continue
+        if "UNRESOLVED_ATTRIBUTE" in responsibility:
+            raise ValueError(f"mapping não resolvido não pode integrar Requirement: {identifier}")
+        if len(catalog_ids) != 1:
+            raise ValueError(
+                f"CATALOG_IDENTIFIER ausente ou ambíguo para {responsibility} em {identifier}"
+            )
+        catalog_identifier = catalog_ids[0]
+        consumed_catalogs += 1
+        if "UNRESOLVED_ATTRIBUTE" in catalog_identifier:
+            raise ValueError(f"mapping não resolvido não pode integrar Requirement: {identifier}")
+        if catalog_identifier not in rt_catalog_types:
+            raise ValueError(
+                f"CATALOG_IDENTIFIER inexistente em {identifier}: {catalog_identifier}"
+            )
+        mapping: dict[str, str] = {
+            "responsibilityId": responsibility,
+            "catalogIdentifier": catalog_identifier,
+        }
+        documentary_type = rt_catalog_types[catalog_identifier]
+        if documentary_type is not None:
+            mapping["documentaryResponsibilityType"] = documentary_type
+        mappings.append(mapping)
+    if len(_field_list(block, "CATALOG_IDENTIFIER")) != consumed_catalogs:
+        raise ValueError(f"CATALOG_IDENTIFIER órfão em {identifier}")
+    if len(domains) > 1 or (domains and mappings):
+        raise ValueError(f"domínio de responsabilidade ambíguo em {identifier}")
+    return (domains[0] if domains else None), mappings
+
 def _parse_nonconformities(text: str) -> dict[str, dict[str, str]]:
     return {
         identifier: {
