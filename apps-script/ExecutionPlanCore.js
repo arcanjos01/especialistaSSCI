@@ -32,11 +32,7 @@ const PLAN_INTRINSIC_SET_HAS_ = Set.prototype.has;
 const PLAN_INTRINSIC_SET_ADD_ = Set.prototype.add;
 const PLAN_INTRINSIC_SET_SIZE_GET_ = Object.getOwnPropertyDescriptor(Set.prototype, 'size').get;
 const PLAN_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
-const PLAN_INTRINSIC_ARRAY_MAP_ = Array.prototype.map;
-const PLAN_INTRINSIC_ARRAY_FILTER_ = Array.prototype.filter;
 const PLAN_INTRINSIC_ARRAY_FIND_ = Array.prototype.find;
-const PLAN_INTRINSIC_ARRAY_SLICE_ = Array.prototype.slice;
-const PLAN_INTRINSIC_ARRAY_CONCAT_ = Array.prototype.concat;
 const PLAN_INTRINSIC_ARRAY_INCLUDES_ = Array.prototype.includes;
 const PLAN_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
 const PLAN_INTRINSIC_ARRAY_SORT_ = Array.prototype.sort;
@@ -52,20 +48,42 @@ function planApply_(intrinsic, receiver, args) {
 function planForEach_(array, callback) {
   return planApply_(PLAN_INTRINSIC_ARRAY_FOR_EACH_, array, [callback]);
 }
+function planSetIndex_(array, index, value) {
+  PLAN_INTRINSIC_DEFINE_(array, index, {
+    value, enumerable: true, writable: true, configurable: true,
+  });
+}
 function planMap_(array, callback) {
-  return planApply_(PLAN_INTRINSIC_ARRAY_MAP_, array, [callback]);
+  const result = [];
+  result.length = array.length;
+  for (let index = 0; index < array.length; index += 1) {
+    if (!planHasOwn_(array, index)) continue;
+    planSetIndex_(result, index, callback(array[index], index, array));
+  }
+  return result;
 }
 function planFilter_(array, callback) {
-  return planApply_(PLAN_INTRINSIC_ARRAY_FILTER_, array, [callback]);
+  const result = [];
+  for (let index = 0; index < array.length; index += 1) {
+    if (planHasOwn_(array, index) && callback(array[index], index, array)) {
+      planSetIndex_(result, result.length, array[index]);
+    }
+  }
+  return result;
 }
 function planFind_(array, callback) {
   return planApply_(PLAN_INTRINSIC_ARRAY_FIND_, array, [callback]);
 }
 function planSlice_(array) {
-  return planApply_(PLAN_INTRINSIC_ARRAY_SLICE_, array, []);
+  return planMap_(array, value => value);
 }
 function planConcat_(array, other) {
-  return planApply_(PLAN_INTRINSIC_ARRAY_CONCAT_, array, [other]);
+  const result = planSlice_(array);
+  for (let index = 0; index < other.length; index += 1) {
+    if (planHasOwn_(other, index)) planSetIndex_(result, result.length, other[index]);
+    else result.length += 1;
+  }
+  return result;
 }
 function planIncludes_(array, value) {
   return planApply_(PLAN_INTRINSIC_ARRAY_INCLUDES_, array, [value]);

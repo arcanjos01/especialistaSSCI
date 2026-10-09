@@ -517,6 +517,59 @@ assert.equal(
   'NEGATIVE'
 );
 
+const applicabilitySpeciesRde = makeRde(['IGC']);
+const applicabilitySpeciesView = api.projectRdeToExecutionView_(
+  applicabilitySpeciesRde, contract.entityCatalog
+);
+context.__savedArraySpecies = vm.runInContext(
+  'Object.getOwnPropertyDescriptor(Array, Symbol.species)', context
+);
+context.__nativeReflectDefineProperty = vm.runInContext('Reflect.defineProperty', context);
+let applicabilitySpeciesResolution;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Array, Symbol.species, {
+      configurable: true,
+      value: function () {
+        return new Proxy([], {
+          defineProperty: function (target, key, descriptor) {
+            const decision = descriptor.value;
+            if (decision && decision.target === 'SMSCI_IEL') {
+              let sourceDecision;
+              for (let index = 0; index < target.length; index += 1) {
+                if (target[index] && target[index].decision === 'POSITIVE') {
+                  sourceDecision = target[index];
+                  break;
+                }
+              }
+              if (sourceDecision) {
+                decision.decision = 'POSITIVE';
+                decision.itemReferences = sourceDecision.itemReferences;
+                decision.itemTraces = sourceDecision.itemTraces;
+              }
+            }
+            return Reflect.apply(__nativeReflectDefineProperty, Reflect,
+              [target, key, descriptor]);
+          }
+        });
+      }
+    });
+  `, context);
+  applicabilitySpeciesResolution = api.resolveCbmscApplicability(
+    applicabilitySpeciesView, currentContext(), contract
+  );
+} finally {
+  vm.runInContext(`
+    Object.defineProperty(Array, Symbol.species, __savedArraySpecies);
+    delete globalThis.__savedArraySpecies;
+    delete globalThis.__nativeReflectDefineProperty;
+  `, context);
+}
+assert.equal(
+  applicabilitySpeciesResolution.officialDecisions.find(item => item.target === 'SMSCI_IEL').decision,
+  'NEGATIVE'
+);
+
 const planMapRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);
@@ -558,6 +611,57 @@ assert.equal(
   'EXECUCAO'
 );
 assert.deepEqual(JSON.parse(JSON.stringify(planMapBinding.evidence)), []);
+
+const planSpeciesRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const planSpeciesView = api.projectRdeToExecutionView_(planSpeciesRde, contract.entityCatalog);
+const planSpeciesResolution = api.resolveCbmscApplicability(
+  planSpeciesView, currentContext(), contract
+);
+context.__savedArraySpecies = vm.runInContext(
+  'Object.getOwnPropertyDescriptor(Array, Symbol.species)', context
+);
+context.__nativeReflectDefineProperty = vm.runInContext('Reflect.defineProperty', context);
+let planSpeciesPlan;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Array, Symbol.species, {
+      configurable: true,
+      value: function () {
+        return new Proxy([], {
+          defineProperty: function (target, key, descriptor) {
+            const requirement = descriptor.value;
+            if (requirement && Array.isArray(requirement.responsibilityMappings)) {
+              for (let index = 0; index < requirement.responsibilityMappings.length; index += 1) {
+                const mapping = requirement.responsibilityMappings[index];
+                if (mapping.catalogIdentifier === 'RT-002') {
+                  mapping.documentaryResponsibilityType = 'VISTORIA_ENSAIO';
+                }
+              }
+            }
+            return Reflect.apply(__nativeReflectDefineProperty, Reflect,
+              [target, key, descriptor]);
+          }
+        });
+      }
+    });
+  `, context);
+  planSpeciesPlan = api.materializeFrozenExecutionPlan(
+    contract, planSpeciesResolution, planSpeciesView
+  );
+} finally {
+  vm.runInContext(`
+    Object.defineProperty(Array, Symbol.species, __savedArraySpecies);
+    delete globalThis.__savedArraySpecies;
+    delete globalThis.__nativeReflectDefineProperty;
+  `, context);
+}
+const planSpeciesBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, planSpeciesPlan, planSpeciesView, 'RT-002'
+);
+assert.equal(planSpeciesBinding.responsibility.documentaryResponsibilityType, 'EXECUCAO');
+assert.deepEqual(JSON.parse(JSON.stringify(planSpeciesBinding.evidence)), []);
 
 const iteratorPoisonRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }

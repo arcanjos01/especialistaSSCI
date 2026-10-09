@@ -8,15 +8,12 @@ const CBMSC_INTRINSIC_WEAKMAP_SET_ = WeakMap.prototype.set;
 const CBMSC_INTRINSIC_FREEZE_ = Object.freeze;
 const CBMSC_INTRINSIC_IS_FROZEN_ = Object.isFrozen;
 const CBMSC_INTRINSIC_KEYS_ = Object.keys;
+const CBMSC_INTRINSIC_DEFINE_ = Object.defineProperty;
 const CBMSC_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
 const CBMSC_INTRINSIC_ARRAY_FOR_EACH_ = Array.prototype.forEach;
-const CBMSC_INTRINSIC_ARRAY_MAP_ = Array.prototype.map;
-const CBMSC_INTRINSIC_ARRAY_FILTER_ = Array.prototype.filter;
 const CBMSC_INTRINSIC_ARRAY_SOME_ = Array.prototype.some;
-const CBMSC_INTRINSIC_ARRAY_SLICE_ = Array.prototype.slice;
 const CBMSC_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
 const CBMSC_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
-const CBMSC_INTRINSIC_ARRAY_CONCAT_ = Array.prototype.concat;
 const CBMSC_INTRINSIC_SET_ = Set;
 const CBMSC_INTRINSIC_SET_HAS_ = Set.prototype.has;
 const CBMSC_INTRINSIC_SET_ADD_ = Set.prototype.add;
@@ -35,17 +32,46 @@ function cbmscArrayApply_(intrinsic, array, args) {
 function cbmscForEach_(array, callback) {
   return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_FOR_EACH_, array, [callback]);
 }
+function cbmscSetIndex_(array, index, value) {
+  CBMSC_INTRINSIC_DEFINE_(array, index, {
+    value, enumerable: true, writable: true, configurable: true,
+  });
+}
 function cbmscMap_(array, callback) {
-  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_MAP_, array, [callback]);
+  const result = [];
+  result.length = array.length;
+  for (let index = 0; index < array.length; index += 1) {
+    if (!CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_HAS_OWN_, array, [index])) continue;
+    cbmscSetIndex_(result, index, callback(array[index], index, array));
+  }
+  return result;
 }
 function cbmscFilter_(array, callback) {
-  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_FILTER_, array, [callback]);
+  const result = [];
+  for (let index = 0; index < array.length; index += 1) {
+    if (CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_HAS_OWN_, array, [index]) &&
+        callback(array[index], index, array)) {
+      cbmscSetIndex_(result, result.length, array[index]);
+    }
+  }
+  return result;
 }
 function cbmscSome_(array, callback) {
   return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_SOME_, array, [callback]);
 }
 function cbmscSlice_(array) {
-  return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_SLICE_, array, []);
+  return cbmscMap_(array, value => value);
+}
+function cbmscConcat_(array, other) {
+  const result = cbmscSlice_(array);
+  for (let index = 0; index < other.length; index += 1) {
+    if (CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_HAS_OWN_, other, [index])) {
+      cbmscSetIndex_(result, result.length, other[index]);
+    } else {
+      result.length += 1;
+    }
+  }
+  return result;
 }
 function cbmscPush_(array, value) {
   return cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_PUSH_, array, [value]);
@@ -88,7 +114,7 @@ function cbmscDeepFreeze_(value, seen) {
   if (!value || typeof value !== 'object' || CBMSC_INTRINSIC_IS_FROZEN_(value)) return value;
   const active = seen || [];
   if (cbmscIndexOf_(active, value) >= 0) throw new ApplicabilityBlocker('cyclic applicability result');
-  const next = cbmscArrayApply_(CBMSC_INTRINSIC_ARRAY_CONCAT_, active, [[value]]);
+  const next = cbmscConcat_(active, [value]);
   cbmscForEach_(CBMSC_INTRINSIC_KEYS_(value), key => cbmscDeepFreeze_(value[key], next));
   return CBMSC_INTRINSIC_FREEZE_(value);
 }
