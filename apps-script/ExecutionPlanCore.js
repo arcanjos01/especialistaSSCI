@@ -105,7 +105,7 @@ function planClone_(value, active) {
   if (planIndexOf_(ancestors, value) >= 0) throw new ExecutionIntegrityError('cyclic input in execution plan');
   const next = planConcat_(ancestors, [value]);
   if (PLAN_INTRINSIC_ARRAY_IS_ARRAY_(value)) return planMap_(value, item => planClone_(item, next));
-  const copy = {};
+  const copy = PLAN_INTRINSIC_CREATE_(null);
   planForEach_(planSort_(PLAN_INTRINSIC_KEYS_(value)), key => {
     copy[key] = planClone_(value[key], next);
   });

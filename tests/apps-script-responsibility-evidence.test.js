@@ -583,6 +583,54 @@ assert.ok(planPushPlan.APPLICABLE_REQUIREMENTS.length > 0);
 assert.ok(planPushPlan.PLANNED_EXECUTION_UNITS.length > 0);
 assert.equal(api.isCanonicalFrozenExecutionPlan(planPushPlan, contract, planPushView), true);
 
+const prototypePoisonRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const prototypePoisonView = api.projectRdeToExecutionView_(prototypePoisonRde, contract.entityCatalog);
+const prototypePoisonResolution = api.resolveCbmscApplicability(
+  prototypePoisonView, currentContext(), contract
+);
+context.__savedMappingSetter = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(Object.prototype, 'documentaryResponsibilityType')",
+  context
+);
+let prototypePoisonPlan;
+try {
+  vm.runInContext(`
+    Object.defineProperty(Object.prototype, 'documentaryResponsibilityType', {
+      configurable: true,
+      set: function () {
+        Object.defineProperty(this, 'documentaryResponsibilityType', {
+          value: 'VISTORIA_ENSAIO', enumerable: true, writable: true, configurable: true
+        });
+      }
+    });
+  `, context);
+  prototypePoisonPlan = api.materializeFrozenExecutionPlan(
+    contract, prototypePoisonResolution, prototypePoisonView
+  );
+} finally {
+  vm.runInContext(`
+    if (__savedMappingSetter) {
+      Object.defineProperty(Object.prototype, 'documentaryResponsibilityType', __savedMappingSetter);
+    } else {
+      delete Object.prototype.documentaryResponsibilityType;
+    }
+    delete globalThis.__savedMappingSetter;
+  `, context);
+}
+const prototypePoisonMapping = prototypePoisonPlan.APPLICABLE_REQUIREMENTS
+  .flatMap(requirement => requirement.responsibilityMappings || [])
+  .find(mapping => mapping.catalogIdentifier === 'RT-002');
+assert.equal(prototypePoisonMapping.documentaryResponsibilityType, 'EXECUCAO');
+const prototypePoisonBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, prototypePoisonPlan, prototypePoisonView, 'RT-002'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(prototypePoisonBinding.evidence)), []);
+assert.equal(api.isCanonicalFrozenExecutionPlan(
+  prototypePoisonPlan, contract, prototypePoisonView
+), true);
+
 const inconsistentProxyRde = makeRde([], [{
   entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
 }]);
