@@ -31,6 +31,13 @@ globalThis.testApi = {
 };`, context);
 
 const api = context.testApi;
+const projectionGlobalDescriptor = vm.runInContext(
+  "Object.getOwnPropertyDescriptor(globalThis, 'projectRdeToExecutionView_')",
+  context
+);
+assert.equal(typeof projectionGlobalDescriptor.value, 'function');
+assert.equal(projectionGlobalDescriptor.writable, false);
+assert.equal(projectionGlobalDescriptor.configurable, false);
 const fixtureRde = {
   schema_version: '0.3.0',
   process_id: 'TEST_ONLY_PROCESS',
@@ -272,71 +279,17 @@ const directDeclaration = {
   sourceDocument: directDrtRef,
   sourceText: 'Atividade: execução de instalação; sistema: sistema de hidrantes.'
 };
-const directView = new api.ImmutableExecutionView(
+// Public construction must not authenticate arbitrary caller-supplied Process Memory.
+assert.throws(() => new api.ImmutableExecutionView(
   directProjectionEntries, [], '0.4.0', [directDeclaration]
-);
-assert.equal(directView.drtDeclarationItems(directDrtRef).length, 1);
-const directDate = {
-  dateItemId: 'DIRECT_DATE', product: directReportRef,
-  dateLabelText: 'Data de emissão', dateText: '2026-04-03',
-  sourceDocument: directSourceRef, sourceText: 'Data de emissão: 2026-04-03'
-};
-const directDateView = new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.5.0', [], [directDate]
-);
-assert.equal(directDateView.documentaryDateItems(directReportRef).length, 1);
-assert.equal(Object.isFrozen(
-  directDateView.documentaryDateItems(directReportRef)[0].product
-), true);
-assert.equal(Object.isFrozen(
-  directDateView.documentaryDateItems(directReportRef)[0].sourceDocument
-), true);
-for (const referenceField of ['product', 'sourceDocument']) {
-  const forgedReference = Object.create(api.TypedReference.prototype);
-  forgedReference.kind = referenceField === 'product' ? 'TEST_REPORT' : 'DOCUMENT';
-  forgedReference.identifier = referenceField === 'product' ? 'DIRECT_REPORT' : 'DIRECT_SOURCE';
-  assert.throws(() => new api.ImmutableExecutionView(
-    directProjectionEntries, [], '0.5.0', [], [{ ...directDate, [referenceField]: forgedReference }]
-  ), /immutable TypedReference/);
-}
-let forgedReferenceGetterCalls = 0;
-const accessorReference = Object.create(api.TypedReference.prototype);
-Object.defineProperty(accessorReference, 'kind', { value: 'TEST_REPORT', enumerable: true });
-Object.defineProperty(accessorReference, 'identifier', {
-  enumerable: true, get() { forgedReferenceGetterCalls += 1; return 'DIRECT_REPORT'; }
-});
-Object.freeze(accessorReference);
+), /only be created from an RDE projection/);
 assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.5.0', [], [{ ...directDate, product: accessorReference }]
-), /reference fields are invalid/);
-assert.equal(forgedReferenceGetterCalls, 0);
-const hiddenDateArray = [{ ...directDate }];
-Object.defineProperty(hiddenDateArray, 'extra', { value: 'hidden' });
-assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.5.0', [], hiddenDateArray
-), /documentaryDateEntries must be a dense array/);
-assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.4.0', [], [directDate]
-), /only RDE 0.5.0/);
-const hiddenDeclarationArray = [{ ...directDeclaration }];
-Object.defineProperty(hiddenDeclarationArray, 'extra', { value: 'hidden' });
-assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.4.0', hiddenDeclarationArray
-), /declarationEntries must be a dense array/);
-const hiddenDeclarationProvenance = { ...directDeclaration, provenance: { page: 1 } };
-Object.defineProperty(hiddenDeclarationProvenance.provenance, 'hiddenOrigin', {
-  value: 'UNDOCUMENTED'
-});
-assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.4.0', [hiddenDeclarationProvenance]
-), /declaration provenance/);
-const accessorDeclarationProvenance = { ...directDeclaration, provenance: {} };
-Object.defineProperty(accessorDeclarationProvenance.provenance, 'source', {
-  enumerable: true, get() { throw new Error('must not be evaluated'); }
-});
-assert.throws(() => new api.ImmutableExecutionView(
-  directProjectionEntries, [], '0.4.0', [accessorDeclarationProvenance]
-), /declaration provenance/);
+  directProjectionEntries, [], '0.5.0', [], [{
+    dateItemId: 'DIRECT_DATE', product: directReportRef,
+    dateLabelText: 'Data de emissão', dateText: '2026-04-03',
+    sourceDocument: directSourceRef, sourceText: 'Data de emissão: 2026-04-03'
+  }]
+), /only be created from an RDE projection/);
 const badDeclarationRde = JSON.parse(JSON.stringify(declarationRde));
 badDeclarationRde.drt_declaration_items[0].drt_record_id = 'R_DRT_SOURCE';
 assert.throws(() => api.projectRdeToExecutionView_(badDeclarationRde, entityCatalog),
@@ -543,105 +496,16 @@ assert.equal(view.referencesByEntity('TEST_DOCUMENT')[0].identifier, 'R000001');
 assert.equal(view.contains(refs.noIdentifiers), true);
 assert.equal(refs.noIdentifiers.identifier, 'R000015');
 
-const directDocumentEntry = {
-  reference: refs.document, entityId: 'TEST_DOCUMENT', parent: null,
-  sourceDocument: refs.document, value: { REQUEST_IDENTIFIER: 'DIRECT' }
-};
-const directItemEntry = (reference, value, provenance, parent = null) => {
-  const item = {
-    reference, entityId: 'TEST_VALUE', parent,
-    sourceDocument: refs.document, value
-  };
-  if (provenance !== undefined) item.provenance = provenance;
-  return item;
-};
-const nestedInput = { value: { nested: { enabled: true }, items: ['TEST_ONLY'] } };
-const nestedReference = new api.TypedReference('DOCUMENTARY_EVIDENCE', 'DIRECT_NESTED');
-const nestedView = new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(nestedReference, nestedInput)
-]);
-nestedInput.value.nested.enabled = false;
-const nestedValue = nestedView.read(nestedReference);
-assert.equal(nestedValue.value.nested.enabled, true);
-assert.equal(Object.isFrozen(nestedValue.value.nested), true);
-assert.equal(Object.isFrozen(nestedValue.value.items), true);
-assert.equal(Reflect.set(nestedValue.value.nested, 'enabled', false), false);
-assert.equal(Reflect.set(nestedValue.value.items, '0', 'MUTATED'), false);
-const cyclicAssociationView = new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
-], [
-  { associationId: 'A-CYCLE-1', left: refs.document, right: nestedReference,
-    sourceDocument: refs.document, statementText: 'TEST_ONLY explicit relation 1' },
-  { associationId: 'A-CYCLE-2', left: nestedReference, right: refs.document,
-    sourceDocument: refs.document, statementText: 'TEST_ONLY explicit relation 2' }
-], '0.3.0');
-assert.equal(cyclicAssociationView.documentaryAssociations(refs.document).length, 2);
-assert.equal(cyclicAssociationView.documentaryAssociations(nestedReference).length, 2);
-let inheritedForEachCalls = 0;
-const associationArrayWithForEach = [];
-const associationForEachPrototype = Object.create(Array.prototype);
-associationForEachPrototype.forEach = function forgedForEach() {
-  inheritedForEachCalls += 1;
-};
-Object.setPrototypeOf(associationArrayWithForEach, associationForEachPrototype);
-const safeEmptyAssociationView = new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
-], associationArrayWithForEach, '0.3.0');
-assert.equal(inheritedForEachCalls, 0);
-assert.deepEqual(JSON.parse(JSON.stringify(
-  safeEmptyAssociationView.documentaryAssociations(refs.document)
-)), []);
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(nestedReference, { value: 'TEST_ONLY' })
-], [{
-  associationId: 'A-DANGLING', left: refs.document,
-  right: new api.TypedReference('DOCUMENTARY_EVIDENCE', 'MISSING'),
-  sourceDocument: refs.document, statementText: 'TEST_ONLY'
-}], '0.3.0'), /association reference is missing/);
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  { ...directDocumentEntry, value: { REQUEST_IDENTIFIER: 'DUPLICATE' } }
-]), /duplicate reference/);
-assert.throws(() => new api.ImmutableExecutionView([
-  { ...directDocumentEntry, reference: { kind: 'DOCUMENT', identifier: 'fake' } }
-]), /TypedReference/);
-assert.throws(() => view.contains({ kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000003' }), /TypedReference/);
+// A caller cannot authenticate fabricated projection entries through the constructor.
+assert.throws(() => new api.ImmutableExecutionView([{
+  reference: refs.document,
+  entityId: 'TEST_DOCUMENT',
+  parent: null,
+  sourceDocument: refs.document,
+  value: { REQUEST_IDENTIFIER: 'FABRICATED' }
+}]), /only be created from an RDE projection/);
 assert.throws(() => new api.TypedReference('', 'malformed'), /reference kind/);
-const cyclic = [];
-cyclic.push(cyclic);
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'cycle'), { value: cyclic })
-]), /cyclic projection values/);
-const cyclicObject = { nested: {} };
-cyclicObject.nested.parent = cyclicObject;
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'object-cycle'), cyclicObject)
-]), /cyclic projection values/);
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'provenance-cycle'),
-    { value: 'TEST_ONLY' }, cyclicObject)
-]), /cyclic projection values/);
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  directItemEntry(new api.TypedReference('DOCUMENTARY_EVIDENCE', 'dangling-parent'),
-    { value: 1 }, undefined, new api.TypedReference('DOCUMENT_SECTION', 'missing'))
-]), /missing from the view/);
-const cycleA = new api.TypedReference('CONCEPT', 'R000020');
-const cycleB = new api.TypedReference('CONCEPT', 'R000021');
-assert.throws(() => new api.ImmutableExecutionView([
-  directDocumentEntry,
-  { reference: cycleA, entityId: 'TEST_NODE', parent: cycleB,
-    sourceDocument: refs.document, value: {} },
-  { reference: cycleB, entityId: 'TEST_NODE', parent: cycleA,
-    sourceDocument: refs.document, value: {} }
-]), /cyclic parent relation/);
+assert.throws(() => view.contains({ kind: 'DOCUMENTARY_EVIDENCE', identifier: 'R000003' }), /TypedReference/);
 
 let resolverView;
 const resolver = {

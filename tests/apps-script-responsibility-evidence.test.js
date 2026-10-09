@@ -275,6 +275,32 @@ try {
   const sourcePreservationView = api.projectRdeToExecutionView_(
     sourcePreservationRde, contract.entityCatalog
   );
+  const forgedProjectionEntries = [];
+  for (const entityId of Object.keys(contract.entityCatalog)) {
+    for (const reference of sourcePreservationView.referencesByEntity(entityId)) {
+      const parent = sourcePreservationView.parent(reference);
+      const sourceDocument = sourcePreservationView.sourceDocument(reference);
+      const entry = {
+        reference: new api.TypedReference(reference.kind, reference.identifier),
+        entityId,
+        parent: parent ? new api.TypedReference(parent.kind, parent.identifier) : null,
+        sourceDocument: new api.TypedReference(sourceDocument.kind, sourceDocument.identifier),
+        value: JSON.parse(JSON.stringify(sourcePreservationView.read(reference)))
+      };
+      const provenance = sourcePreservationView.provenance(reference);
+      if (provenance !== undefined) entry.provenance = JSON.parse(JSON.stringify(provenance));
+      forgedProjectionEntries.push(entry);
+    }
+  }
+  forgedProjectionEntries.find(entry => entry.entityId === 'ART').value.RESPONSIBILITY_TYPE =
+    'EXECUCAO';
+  assert.throws(
+    () => new (vm.runInContext('ImmutableExecutionView', context))(
+      forgedProjectionEntries, [], '0.2.0'
+    ),
+    /only be created from an RDE projection/
+  );
+
   const sourcePreservationSnapshot = snapshotDescriptor.value(
     sourcePreservationView, 'ART'
   );
@@ -316,6 +342,90 @@ try {
     delete globalThis.immutableExecutionCopy;
   `, context);
 }
+
+function assertNoRt002ForRde(rde, attackName) {
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const snapshot = snapshotDescriptor.value(view, 'ART');
+  assert.equal(snapshot.length, 1, attackName);
+  assert.equal(snapshot[0].value.RESPONSIBILITY_TYPE, 'VISTORIA_ENSAIO', attackName);
+  const resolution = api.resolveCbmscApplicability(view, currentContext(), contract);
+  const plan = api.materializeFrozenExecutionPlan(contract, resolution, view);
+  const result = api.materializeResponsibilityEvidenceBinding(
+    contract, plan, view, 'RT-002'
+  );
+  assert.deepEqual(JSON.parse(JSON.stringify(result.evidence)), [], attackName);
+  assert.equal(api.isCanonicalResponsibilityEvidenceBinding(result, contract, plan, view), true);
+}
+
+const descriptorAttackRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+const nativeGetOwnPropertyDescriptor = vm.runInContext(
+  'Object.getOwnPropertyDescriptor', context
+);
+context.__descriptorAttackRde = descriptorAttackRde;
+context.__nativeGetOwnPropertyDescriptor = nativeGetOwnPropertyDescriptor;
+try {
+  vm.runInContext(`
+    const artIndex = __descriptorAttackRde.records.findIndex(record => record.entity_id === 'ART');
+    Object.getOwnPropertyDescriptor = function (object, key) {
+      if (object === __descriptorAttackRde.records && key === String(artIndex)) {
+        const record = __nativeGetOwnPropertyDescriptor(object, key).value;
+        return {
+          value: { ...record, attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } },
+          writable: true, enumerable: true, configurable: true
+        };
+      }
+      return __nativeGetOwnPropertyDescriptor(object, key);
+    };
+  `, context);
+  assertNoRt002ForRde(descriptorAttackRde, 'patched Object.getOwnPropertyDescriptor');
+} finally {
+  vm.runInContext('Object.getOwnPropertyDescriptor = __nativeGetOwnPropertyDescriptor;', context);
+  delete context.__descriptorAttackRde;
+  delete context.__nativeGetOwnPropertyDescriptor;
+}
+
+const pushAttackRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+context.__pushAttackRde = pushAttackRde;
+vm.runInContext('globalThis.__nativeArrayPush = Array.prototype.push;', context);
+try {
+  vm.runInContext(`
+    const nativePush = Array.prototype.push;
+    Array.prototype.push = function (entry) {
+      if (entry && entry.entityId === 'ART' && entry.value) {
+        entry.value.RESPONSIBILITY_TYPE = 'EXECUCAO';
+      }
+      return nativePush.apply(this, arguments);
+    };
+  `, context);
+  assertNoRt002ForRde(pushAttackRde, 'patched Array.prototype.push');
+} finally {
+  vm.runInContext('Array.prototype.push = __nativeArrayPush;', context);
+  delete context.__pushAttackRde;
+  delete context.__nativeArrayPush;
+}
+
+const freezeAttackRde = makeRde([], [{
+  entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
+context.__nativeObjectFreeze = vm.runInContext('Object.freeze', context);
+try {
+  vm.runInContext('Object.freeze = function (value) { return value; };', context);
+  const freezeAttackView = api.projectRdeToExecutionView_(
+    freezeAttackRde, contract.entityCatalog
+  );
+  const artReference = freezeAttackView.referencesByEntity('ART')[0];
+  assert.equal(Object.isFrozen(artReference), true);
+  assert.equal(Reflect.set(artReference, 'identifier', 'FORGED_DOCUMENT'), false);
+  assert.equal(freezeAttackView.referencesByEntity('ART')[0].identifier, 'DRT_0');
+} finally {
+  vm.runInContext('Object.freeze = __nativeObjectFreeze;', context);
+  delete context.__nativeObjectFreeze;
+}
+assertNoRt002ForRde(freezeAttackRde, 'patched Object.freeze');
 
 const originalWeakMapGet = vm.runInContext('WeakMap.prototype.get', context);
 context.__originalWeakMapGet = originalWeakMapGet;

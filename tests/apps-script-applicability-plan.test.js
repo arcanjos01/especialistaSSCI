@@ -128,26 +128,12 @@ function assertIntegrityError(action) {
 }
 
 function makeDirectView(sectionAttributes) {
-  const document = new api.TypedReference('DOCUMENT', 'TEST_ONLY_DIRECT_DOCUMENT');
-  const section = new api.TypedReference('DOCUMENT_SECTION', 'TEST_ONLY_DIRECT_SECTION');
-  return new api.ImmutableExecutionView([
-    {
-      reference: document,
-      entityId: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
-      parent: null,
-      sourceDocument: document,
-      value: { PROTOCOL_IDENTIFIER: 'TEST_ONLY_PROTOCOL', REQUEST_DATE: '2026-01-28' },
-      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_DOCUMENT' }
-    },
-    {
-      reference: section,
-      entityId: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA',
-      parent: document,
-      sourceDocument: document,
-      value: sectionAttributes,
-      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SECTION' }
-    }
-  ]);
+  const flags = {};
+  for (const field of ['STRUCTURALLY_COMPLETE', 'LEGIBLE', 'VERIFIABLE']) {
+    flags[field] = Object.prototype.hasOwnProperty.call(sectionAttributes, field)
+      ? sectionAttributes[field] : 'MISSING';
+  }
+  return api.projectRdeToExecutionView_(makeRde({ flags }), contract.entityCatalog);
 }
 
 assert.equal(contract.officialEsciTargets.length, 28);

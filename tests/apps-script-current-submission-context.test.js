@@ -6,7 +6,9 @@ const vm = require('node:vm');
 const context = {};
 vm.createContext(context);
 for (const relativePath of [
+  '../apps-script/CompiledRuntimeContract.js',
   '../apps-script/EngineCore.js',
+  '../apps-script/RdeCore.js',
   '../apps-script/ExecutionViewCore.js',
   '../apps-script/CurrentSubmissionContextCore.js'
 ]) {
@@ -14,8 +16,10 @@ for (const relativePath of [
 }
 vm.runInContext(`
 globalThis.api = {
+  COMPILED_RUNTIME_CONTRACT,
   TypedReference,
   ImmutableExecutionView,
+  projectRdeToExecutionView_,
   CurrentSubmissionContextContractError,
   createCurrentSubmissionContext,
   selectCurrentComprovante
@@ -35,24 +39,32 @@ const operationalContext = overrides => api.createCurrentSubmissionContext({
   ...(overrides || {})
 });
 
-function documentEntry(recordId, attributes, provenance = {}) {
-  const reference = new api.TypedReference('DOCUMENT', recordId);
-  return {
-    reference,
-    entityId: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
-    parent: null,
-    sourceDocument: reference,
-    value: attributes,
-    provenance
-  };
-}
-
 function makeView(records) {
-  return new api.ImmutableExecutionView(records.map(record => documentEntry(
-    record.recordId,
-    record.attributes,
-    record.provenance
-  )));
+  const rde = {
+    schema_version: '0.2.0',
+    process_id: 'TEST_ONLY_TECHNICAL_PROCESS',
+    source: {
+      file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf',
+      mime_type: 'application/pdf', source_url: 'TEST_ONLY_URL',
+      sha256: '0'.repeat(64)
+    },
+    extraction: {
+      provider: 'TEST_ONLY', extractor_version: 'TEST_ONLY',
+      created_at: '2026-10-06T12:00:00.000Z'
+    },
+    records: records.map(record => ({
+      record_id: record.recordId,
+      entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
+      parent_record_id: null,
+      source_document: record.recordId,
+      attributes: record.attributes,
+      ...(record.provenance ? { provenance: record.provenance } : {})
+    })),
+    extraction_warnings: []
+  };
+  return api.projectRdeToExecutionView_(
+    rde, api.COMPILED_RUNTIME_CONTRACT.entityCatalog
+  );
 }
 
 function assertBlocker(action) {
@@ -128,7 +140,7 @@ assertBlocker(() => api.createCurrentSubmissionContext({
 assert.equal(selectId([matching()]), 'TEST_ONLY_CURRENT');
 assertBlocker(() => selectId([{
   recordId: 'TEST_ONLY_PROCESS_ID_ONLY',
-  attributes: { PROCESS_ID: 'TEST_ONLY_TECHNICAL_PROCESS' }
+  attributes: { REQUEST_DATE: '2026-01-28' }
 }]));
 assertBlocker(() => selectId([{
   recordId: 'TEST_ONLY_REQUEST_IDENTIFIER_ONLY',
