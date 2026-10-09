@@ -3,182 +3,6 @@
 class ExecutionViewContractError extends Error {}
 class ExecutionViewLookupError extends ExecutionViewContractError {}
 
-function executionReferenceKey(reference) {
-  if (!(reference instanceof TypedReference)) {
-    throw new ExecutionViewContractError('reference must be a TypedReference');
-  }
-  return JSON.stringify([reference.kind, reference.identifier]);
-}
-
-function copyImmutableExecutionReference(reference, expectedKind) {
-  if (!(reference instanceof TypedReference) ||
-      Object.getPrototypeOf(reference) !== TypedReference.prototype ||
-      !Object.isFrozen(reference) || Object.getOwnPropertySymbols(reference).length ||
-      Object.getOwnPropertyNames(reference).length !== 2) {
-    throw new ExecutionViewContractError('documentary date reference must be an immutable TypedReference');
-  }
-  const kindDescriptor = Object.getOwnPropertyDescriptor(reference, 'kind');
-  const identifierDescriptor = Object.getOwnPropertyDescriptor(reference, 'identifier');
-  if (!kindDescriptor || !Object.prototype.hasOwnProperty.call(kindDescriptor, 'value') ||
-      !identifierDescriptor || !Object.prototype.hasOwnProperty.call(identifierDescriptor, 'value') ||
-      typeof kindDescriptor.value !== 'string' || !kindDescriptor.value.trim() ||
-      typeof identifierDescriptor.value !== 'string' || !identifierDescriptor.value.trim() ||
-      kindDescriptor.value !== expectedKind) {
-    throw new ExecutionViewContractError('documentary date reference fields are invalid');
-  }
-  return new TypedReference(kindDescriptor.value, identifierDescriptor.value);
-}
-
-function hasNativeExecutionNonJsonBrand(value) {
-  const probe = {};
-  const checks = [
-    typeof Map === 'function' && [Map.prototype, 'has'],
-    typeof Set === 'function' && [Set.prototype, 'has'],
-    typeof WeakMap === 'function' && [WeakMap.prototype, 'has'],
-    typeof WeakSet === 'function' && [WeakSet.prototype, 'has']
-  ];
-  for (let index = 0; index < checks.length; index += 1) {
-    const check = checks[index];
-    if (!check) continue;
-    try {
-      Object.getOwnPropertyDescriptor(check[0], check[1]).value.call(value, probe);
-      return true;
-    } catch (error) {
-      // The intrinsic brand check rejects ordinary objects without reading them.
-    }
-  }
-  if (typeof ArrayBuffer === 'function' && ArrayBuffer.isView(value)) return true;
-  const bufferTypes = [
-    typeof ArrayBuffer === 'function' && ArrayBuffer,
-    typeof SharedArrayBuffer === 'function' && SharedArrayBuffer
-  ];
-  for (let index = 0; index < bufferTypes.length; index += 1) {
-    const bufferType = bufferTypes[index];
-    if (!bufferType) continue;
-    const getter = Object.getOwnPropertyDescriptor(bufferType.prototype, 'byteLength').get;
-    try {
-      getter.call(value);
-      return true;
-    } catch (error) {
-      // The intrinsic getter rejects values without the corresponding buffer slots.
-    }
-  }
-  if (typeof DataView === 'function') {
-    const getter = Object.getOwnPropertyDescriptor(DataView.prototype, 'byteLength').get;
-    try {
-      getter.call(value);
-      return true;
-    } catch (error) {
-      // The intrinsic getter rejects values without DataView internal slots.
-    }
-  }
-  return false;
-}
-
-function isPlainExecutionObject(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  if (hasNativeExecutionNonJsonBrand(value)) return false;
-  let current = value;
-  while (current !== null) {
-    if (Object.getOwnPropertyDescriptor(current, Symbol.toStringTag)) return false;
-    current = Object.getPrototypeOf(current);
-  }
-  if (Object.prototype.toString.call(value) !== '[object Object]') return false;
-  const prototype = Object.getPrototypeOf(value);
-  // Execution facts originate in JSON and use an Object prototype. Reject
-  // null-prototype containers, which can hide native Map/Set internal data.
-  return prototype !== null && Object.getPrototypeOf(prototype) === null;
-}
-
-function immutableExecutionCopy(value, active = []) {
-  if (value instanceof TypedReference) return value;
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-
-  if (Array.isArray(value)) {
-    if (active.includes(value)) {
-      throw new ExecutionViewContractError('cyclic projection values are not supported');
-    }
-    if (Object.getOwnPropertySymbols(value).length || Object.keys(value).length !== value.length) {
-      throw new ExecutionViewContractError('projection arrays must contain only indexed values');
-    }
-    const nextActive = active.concat([value]);
-    const copy = [];
-    for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('projection arrays must contain data values');
-      }
-      copy.push(immutableExecutionCopy(descriptor.value, nextActive));
-    }
-    return Object.freeze(copy);
-  }
-
-  if (isPlainExecutionObject(value)) {
-    if (active.includes(value)) {
-      throw new ExecutionViewContractError('cyclic projection values are not supported');
-    }
-    if (Object.getOwnPropertySymbols(value).length) {
-      throw new ExecutionViewContractError('projection objects cannot contain symbol keys');
-    }
-    const nextActive = active.concat([value]);
-    const copy = {};
-    Object.keys(value).sort().forEach(key => {
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('projection objects must contain data values');
-      }
-      Object.defineProperty(copy, key, {
-        value: immutableExecutionCopy(descriptor.value, nextActive),
-        enumerable: true,
-        writable: false,
-        configurable: false
-      });
-    });
-    return Object.freeze(copy);
-  }
-
-  throw new ExecutionViewContractError(
-    'projection values must be JSON-like values or TypedReference'
-  );
-}
-
-function assertStrictExecutionJsonValue(value, active = []) {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
-      (typeof value === 'number' && Number.isFinite(value))) return;
-  if (!value || typeof value !== 'object' || active.includes(value)) {
-    throw new ExecutionViewContractError('declaration provenance must be strict JSON data');
-  }
-  active.push(value);
-  if (Array.isArray(value)) {
-    const keys = Object.keys(value);
-    if (Object.getOwnPropertySymbols(value).length || keys.length !== value.length ||
-        Object.getOwnPropertyNames(value).length !== value.length + 1) {
-      throw new ExecutionViewContractError('declaration provenance arrays must be dense JSON arrays');
-    }
-    for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('declaration provenance cannot contain accessors');
-      }
-      assertStrictExecutionJsonValue(descriptor.value, active);
-    }
-  } else {
-    if (!isPlainExecutionObject(value) || Object.getOwnPropertySymbols(value).length ||
-        Object.getOwnPropertyNames(value).length !== Object.keys(value).length) {
-      throw new ExecutionViewContractError('declaration provenance must contain plain JSON objects');
-    }
-    Object.keys(value).forEach(key => {
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('declaration provenance cannot contain accessors');
-      }
-      assertStrictExecutionJsonValue(descriptor.value, active);
-    });
-  }
-  active.pop();
-}
-
 const {
   ImmutableExecutionView,
   isImmutableExecutionView,
@@ -187,6 +11,9 @@ const {
   'use strict';
 
   const executionViewRecords_ = new WeakMap();
+  const executionViewTypedReference_ = TypedReference;
+  const executionViewContractError_ = ExecutionViewContractError;
+  const executionViewLookupError_ = ExecutionViewLookupError;
   const executionViewReflectApply_ = Reflect.apply;
   const executionViewWeakMapGet_ = WeakMap.prototype.get;
   const executionViewWeakMapSet_ = WeakMap.prototype.set;
@@ -194,6 +21,256 @@ const {
   const executionViewFreeze_ = Object.freeze;
   const executionViewIsFrozen_ = Object.isFrozen;
   const executionViewStringify_ = JSON.stringify;
+  const executionViewArrayIsArray_ = Array.isArray;
+  const executionViewNumberIsFinite_ = Number.isFinite;
+  const executionViewGetPrototypeOf_ = Object.getPrototypeOf;
+  const executionViewGetOwnPropertyDescriptor_ = Object.getOwnPropertyDescriptor;
+  const executionViewGetOwnPropertyNames_ = Object.getOwnPropertyNames;
+  const executionViewGetOwnPropertySymbols_ = Object.getOwnPropertySymbols;
+  const executionViewKeys_ = Object.keys;
+  const executionViewCreate_ = Object.create;
+  const executionViewDefineProperty_ = Object.defineProperty;
+  const executionViewHasOwnProperty_ = Object.prototype.hasOwnProperty;
+  const executionViewObjectToString_ = Object.prototype.toString;
+  const executionViewSymbolToStringTag_ = Symbol.toStringTag;
+  const executionViewMapHas_ = typeof Map === 'function' ? Map.prototype.has : null;
+  const executionViewSetHas_ = typeof Set === 'function' ? Set.prototype.has : null;
+  const executionViewWeakSetHas_ = typeof WeakSet === 'function' ? WeakSet.prototype.has : null;
+  const executionViewArrayBufferIsView_ =
+    typeof ArrayBuffer === 'function' ? ArrayBuffer.isView : null;
+  const executionViewArrayBufferByteLength_ =
+    typeof ArrayBuffer === 'function'
+      ? Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength').get
+      : null;
+  const executionViewSharedArrayBufferByteLength_ =
+    typeof SharedArrayBuffer === 'function'
+      ? Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype, 'byteLength').get
+      : null;
+  const executionViewDataViewByteLength_ =
+    typeof DataView === 'function'
+      ? Object.getOwnPropertyDescriptor(DataView.prototype, 'byteLength').get
+      : null;
+
+  function executionViewHasOwn_(object, key) {
+    return executionViewReflectApply_(executionViewHasOwnProperty_, object, [key]);
+  }
+
+  function executionViewIdentityContains_(items, value) {
+    for (let index = 0; index < items.length; index += 1) {
+      if (items[index] === value) return true;
+    }
+    return false;
+  }
+
+  function executionViewAppend_(items, value) {
+    const copy = [];
+    for (let index = 0; index < items.length; index += 1) copy[index] = items[index];
+    copy[copy.length] = value;
+    return copy;
+  }
+
+  function executionReferenceKey(reference) {
+    if (!(reference instanceof executionViewTypedReference_)) {
+      throw new executionViewContractError_('reference must be a TypedReference');
+    }
+    return executionViewStringify_([reference.kind, reference.identifier]);
+  }
+
+  function copyImmutableExecutionReference(reference, expectedKind) {
+    if (!(reference instanceof executionViewTypedReference_) ||
+        executionViewGetPrototypeOf_(reference) !== executionViewTypedReference_.prototype ||
+        !executionViewIsFrozen_(reference) ||
+        executionViewGetOwnPropertySymbols_(reference).length ||
+        executionViewGetOwnPropertyNames_(reference).length !== 2) {
+      throw new executionViewContractError_(
+        'documentary date reference must be an immutable TypedReference'
+      );
+    }
+    const kindDescriptor = executionViewGetOwnPropertyDescriptor_(reference, 'kind');
+    const identifierDescriptor = executionViewGetOwnPropertyDescriptor_(reference, 'identifier');
+    if (!kindDescriptor || !executionViewHasOwn_(kindDescriptor, 'value') ||
+        !identifierDescriptor || !executionViewHasOwn_(identifierDescriptor, 'value') ||
+        typeof kindDescriptor.value !== 'string' || !kindDescriptor.value.trim() ||
+        typeof identifierDescriptor.value !== 'string' || !identifierDescriptor.value.trim() ||
+        kindDescriptor.value !== expectedKind) {
+      throw new executionViewContractError_('documentary date reference fields are invalid');
+    }
+    return new executionViewTypedReference_(
+      kindDescriptor.value, identifierDescriptor.value
+    );
+  }
+
+  function hasNativeExecutionNonJsonBrand(value) {
+    const probe = {};
+    const brandChecks = [
+      executionViewMapHas_,
+      executionViewSetHas_,
+      executionViewWeakMapHas_,
+      executionViewWeakSetHas_
+    ];
+    for (let index = 0; index < brandChecks.length; index += 1) {
+      const check = brandChecks[index];
+      if (!check) continue;
+      try {
+        executionViewReflectApply_(check, value, [probe]);
+        return true;
+      } catch (error) {
+        // Intrinsic brand checks reject ordinary objects without reading them.
+      }
+    }
+    if (executionViewArrayBufferIsView_ &&
+        executionViewReflectApply_(executionViewArrayBufferIsView_, ArrayBuffer, [value])) {
+      return true;
+    }
+    const byteLengthGetters = [
+      executionViewArrayBufferByteLength_,
+      executionViewSharedArrayBufferByteLength_,
+      executionViewDataViewByteLength_
+    ];
+    for (let index = 0; index < byteLengthGetters.length; index += 1) {
+      const getter = byteLengthGetters[index];
+      if (!getter) continue;
+      try {
+        executionViewReflectApply_(getter, value, []);
+        return true;
+      } catch (error) {
+        // Intrinsic getters reject values without the corresponding internal slots.
+      }
+    }
+    return false;
+  }
+
+  function isPlainExecutionObject(value) {
+    if (!value || typeof value !== 'object' || executionViewArrayIsArray_(value)) return false;
+    if (hasNativeExecutionNonJsonBrand(value)) return false;
+    let current = value;
+    while (current !== null) {
+      if (executionViewGetOwnPropertyDescriptor_(current, executionViewSymbolToStringTag_)) {
+        return false;
+      }
+      current = executionViewGetPrototypeOf_(current);
+    }
+    if (executionViewReflectApply_(executionViewObjectToString_, value, []) !== '[object Object]') {
+      return false;
+    }
+    const prototype = executionViewGetPrototypeOf_(value);
+    return prototype !== null && executionViewGetPrototypeOf_(prototype) === null;
+  }
+
+  function immutableExecutionCopy(value, active = []) {
+    if (value instanceof executionViewTypedReference_) return value;
+    if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+    if (typeof value === 'number' && executionViewNumberIsFinite_(value)) return value;
+
+    if (executionViewArrayIsArray_(value)) {
+      if (executionViewIdentityContains_(active, value)) {
+        throw new executionViewContractError_('cyclic projection values are not supported');
+      }
+      if (executionViewGetOwnPropertySymbols_(value).length ||
+          executionViewKeys_(value).length !== value.length) {
+        throw new executionViewContractError_(
+          'projection arrays must contain only indexed values'
+        );
+      }
+      const nextActive = executionViewAppend_(active, value);
+      const copy = [];
+      for (let index = 0; index < value.length; index += 1) {
+        const descriptor = executionViewGetOwnPropertyDescriptor_(value, String(index));
+        if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+          throw new executionViewContractError_(
+            'projection arrays must contain data values'
+          );
+        }
+        copy[index] = immutableExecutionCopy(descriptor.value, nextActive);
+      }
+      return executionViewFreeze_(copy);
+    }
+
+    if (isPlainExecutionObject(value)) {
+      if (executionViewIdentityContains_(active, value)) {
+        throw new executionViewContractError_('cyclic projection values are not supported');
+      }
+      if (executionViewGetOwnPropertySymbols_(value).length) {
+        throw new executionViewContractError_(
+          'projection objects cannot contain symbol keys'
+        );
+      }
+      const nextActive = executionViewAppend_(active, value);
+      const copy = {};
+      const keys = executionViewKeys_(value);
+      keys.sort();
+      for (let index = 0; index < keys.length; index += 1) {
+        const key = keys[index];
+        const descriptor = executionViewGetOwnPropertyDescriptor_(value, key);
+        if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+          throw new executionViewContractError_(
+            'projection objects must contain data values'
+          );
+        }
+        executionViewDefineProperty_(copy, key, {
+          value: immutableExecutionCopy(descriptor.value, nextActive),
+          enumerable: true,
+          writable: false,
+          configurable: false
+        });
+      }
+      return executionViewFreeze_(copy);
+    }
+
+    throw new executionViewContractError_(
+      'projection values must be JSON-like values or TypedReference'
+    );
+  }
+
+  function assertStrictExecutionJsonValue(value, active = []) {
+    if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
+        (typeof value === 'number' && executionViewNumberIsFinite_(value))) return;
+    if (!value || typeof value !== 'object' ||
+        executionViewIdentityContains_(active, value)) {
+      throw new executionViewContractError_(
+        'declaration provenance must be strict JSON data'
+      );
+    }
+    const nextActive = executionViewAppend_(active, value);
+    if (executionViewArrayIsArray_(value)) {
+      const keys = executionViewKeys_(value);
+      if (executionViewGetOwnPropertySymbols_(value).length ||
+          keys.length !== value.length ||
+          executionViewGetOwnPropertyNames_(value).length !== value.length + 1) {
+        throw new executionViewContractError_(
+          'declaration provenance arrays must be dense JSON arrays'
+        );
+      }
+      for (let index = 0; index < value.length; index += 1) {
+        const descriptor = executionViewGetOwnPropertyDescriptor_(value, String(index));
+        if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+          throw new executionViewContractError_(
+            'declaration provenance cannot contain accessors'
+          );
+        }
+        assertStrictExecutionJsonValue(descriptor.value, nextActive);
+      }
+      return;
+    }
+    if (!isPlainExecutionObject(value) ||
+        executionViewGetOwnPropertySymbols_(value).length ||
+        executionViewGetOwnPropertyNames_(value).length !==
+          executionViewKeys_(value).length) {
+      throw new executionViewContractError_(
+        'declaration provenance must contain plain JSON objects'
+      );
+    }
+    const keys = executionViewKeys_(value);
+    for (let index = 0; index < keys.length; index += 1) {
+      const descriptor = executionViewGetOwnPropertyDescriptor_(value, keys[index]);
+      if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+        throw new executionViewContractError_(
+          'declaration provenance cannot contain accessors'
+        );
+      }
+      assertStrictExecutionJsonValue(descriptor.value, nextActive);
+    }
+  }
 
   function executionViewStateGet_(view) {
     return executionViewReflectApply_(executionViewWeakMapGet_, executionViewRecords_, [view]);
@@ -209,10 +286,10 @@ const {
 
 function executionViewRecord(view, reference) {
   const state = executionViewStateGet_(view);
-  if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+  if (!state) throw new executionViewContractError_('invalid execution view receiver');
   const key = executionReferenceKey(reference);
   if (!Object.prototype.hasOwnProperty.call(state.byReference, key)) {
-    throw new ExecutionViewLookupError('reference not found: ' + reference.kind + ':' + reference.identifier);
+    throw new executionViewLookupError_('reference not found: ' + reference.kind + ':' + reference.identifier);
   }
   return state.byReference[key];
 }
@@ -225,58 +302,58 @@ class ImmutableExecutionView {
   constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0',
     declarationEntries = [], documentaryDateEntries = []) {
     if (!Array.isArray(projectionEntries)) {
-      throw new ExecutionViewContractError('projectionEntries must be an array');
+      throw new executionViewContractError_('projectionEntries must be an array');
     }
     if (Object.getOwnPropertySymbols(projectionEntries).length ||
         Object.keys(projectionEntries).length !== projectionEntries.length) {
-      throw new ExecutionViewContractError('projectionEntries must be a dense array');
+      throw new executionViewContractError_('projectionEntries must be a dense array');
     }
     if (!Array.isArray(associationEntries) ||
         Object.getOwnPropertySymbols(associationEntries).length ||
         Object.keys(associationEntries).length !== associationEntries.length) {
-      throw new ExecutionViewContractError('associationEntries must be a dense array');
+      throw new executionViewContractError_('associationEntries must be a dense array');
     }
     for (let index = 0; index < associationEntries.length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(associationEntries, String(index));
       if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('associationEntries must contain data entries');
+        throw new executionViewContractError_('associationEntries must contain data entries');
       }
     }
     if (!Array.isArray(declarationEntries) ||
         Object.getOwnPropertySymbols(declarationEntries).length ||
         Object.keys(declarationEntries).length !== declarationEntries.length ||
         Object.getOwnPropertyNames(declarationEntries).length !== declarationEntries.length + 1) {
-      throw new ExecutionViewContractError('declarationEntries must be a dense array');
+      throw new executionViewContractError_('declarationEntries must be a dense array');
     }
     for (let index = 0; index < declarationEntries.length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(declarationEntries, String(index));
       if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('declarationEntries must contain data entries');
+        throw new executionViewContractError_('declarationEntries must contain data entries');
       }
     }
     if (!Array.isArray(documentaryDateEntries) ||
         Object.getOwnPropertySymbols(documentaryDateEntries).length ||
         Object.keys(documentaryDateEntries).length !== documentaryDateEntries.length ||
         Object.getOwnPropertyNames(documentaryDateEntries).length !== documentaryDateEntries.length + 1) {
-      throw new ExecutionViewContractError('documentaryDateEntries must be a dense array');
+      throw new executionViewContractError_('documentaryDateEntries must be a dense array');
     }
     for (let index = 0; index < documentaryDateEntries.length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(documentaryDateEntries, String(index));
       if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
-        throw new ExecutionViewContractError('documentaryDateEntries must contain data entries');
+        throw new executionViewContractError_('documentaryDateEntries must contain data entries');
       }
     }
     if (!['0.2.0', '0.3.0', '0.4.0', '0.5.0'].includes(schemaVersion)) {
-      throw new ExecutionViewContractError('unsupported execution view schemaVersion');
+      throw new executionViewContractError_('unsupported execution view schemaVersion');
     }
     if (schemaVersion === '0.2.0' && associationEntries.length) {
-      throw new ExecutionViewContractError('RDE 0.2.0 cannot contain documentary associations');
+      throw new executionViewContractError_('RDE 0.2.0 cannot contain documentary associations');
     }
     if (schemaVersion !== '0.4.0' && schemaVersion !== '0.5.0' && declarationEntries.length) {
-      throw new ExecutionViewContractError('RDE 0.2.0/0.3.0 cannot contain DRT declaration items');
+      throw new executionViewContractError_('RDE 0.2.0/0.3.0 cannot contain DRT declaration items');
     }
     if (schemaVersion !== '0.5.0' && documentaryDateEntries.length) {
-      throw new ExecutionViewContractError('only RDE 0.5.0 can contain documentary date items');
+      throw new executionViewContractError_('only RDE 0.5.0 can contain documentary date items');
     }
     const records = Object.create(null);
     const orderedReferences = [];
@@ -284,11 +361,11 @@ class ImmutableExecutionView {
     for (let index = 0; index < projectionEntries.length; index += 1) {
       const itemDescriptor = Object.getOwnPropertyDescriptor(projectionEntries, String(index));
       if (!itemDescriptor || !Object.prototype.hasOwnProperty.call(itemDescriptor, 'value')) {
-        throw new ExecutionViewContractError('projectionEntries must contain data entries');
+        throw new executionViewContractError_('projectionEntries must contain data entries');
       }
       const entry = itemDescriptor.value;
       if (!isPlainExecutionObject(entry)) {
-        throw new ExecutionViewContractError('projection entry must be an object');
+        throw new executionViewContractError_('projection entry must be an object');
       }
       const keys = Object.keys(entry).sort();
       if (Object.getOwnPropertySymbols(entry).length ||
@@ -296,46 +373,46 @@ class ImmutableExecutionView {
           keys.some(key => !Object.prototype.hasOwnProperty.call(
             Object.getOwnPropertyDescriptor(entry, key), 'value'
           ))) {
-        throw new ExecutionViewContractError('projection entries must contain only enumerable data fields');
+        throw new executionViewContractError_('projection entries must contain only enumerable data fields');
       }
       const required = ['reference', 'entityId', 'parent', 'sourceDocument', 'value'];
       const allowed = required.concat(['provenance']);
       if (required.some(key => !keys.includes(key)) ||
           keys.some(key => !allowed.includes(key))) {
-        throw new ExecutionViewContractError(
+        throw new executionViewContractError_(
           'projection entry requires reference, entityId, parent, sourceDocument and value'
         );
       }
       const key = executionReferenceKey(entry.reference);
       if (Object.prototype.hasOwnProperty.call(records, key)) {
-        throw new ExecutionViewContractError(
+        throw new executionViewContractError_(
           'duplicate reference: ' + entry.reference.kind + ':' + entry.reference.identifier
         );
       }
       if (Object.prototype.hasOwnProperty.call(recordIds, entry.reference.identifier)) {
-        throw new ExecutionViewContractError('duplicate record_id: ' + entry.reference.identifier);
+        throw new executionViewContractError_('duplicate record_id: ' + entry.reference.identifier);
       }
       if (typeof entry.entityId !== 'string' || !entry.entityId) {
-        throw new ExecutionViewContractError('entityId must be a non-empty string');
+        throw new executionViewContractError_('entityId must be a non-empty string');
       }
-      if (entry.parent !== null && !(entry.parent instanceof TypedReference)) {
-        throw new ExecutionViewContractError('parent must be a TypedReference or null');
+      if (entry.parent !== null && !(entry.parent instanceof executionViewTypedReference_)) {
+        throw new executionViewContractError_('parent must be a TypedReference or null');
       }
-      if (!(entry.sourceDocument instanceof TypedReference) ||
+      if (!(entry.sourceDocument instanceof executionViewTypedReference_) ||
           entry.sourceDocument.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('sourceDocument must reference a DOCUMENT');
+        throw new executionViewContractError_('sourceDocument must reference a DOCUMENT');
       }
       if (entry.reference.kind === 'DOCUMENT' &&
           (entry.parent !== null || executionReferenceKey(entry.sourceDocument) !== key)) {
-        throw new ExecutionViewContractError('DOCUMENT must be root and self-source');
+        throw new executionViewContractError_('DOCUMENT must be root and self-source');
       }
       if (entry.reference.kind === 'DOCUMENT_SECTION' &&
           (!entry.parent || entry.parent.kind !== 'DOCUMENT')) {
-        throw new ExecutionViewContractError('DOCUMENT_SECTION must have a DOCUMENT parent');
+        throw new executionViewContractError_('DOCUMENT_SECTION must have a DOCUMENT parent');
       }
       if (entry.reference.kind === 'DOCUMENTARY_EVIDENCE' && entry.parent !== null &&
           entry.parent.kind !== 'DOCUMENT_SECTION') {
-        throw new ExecutionViewContractError(
+        throw new executionViewContractError_(
           'DOCUMENTARY_EVIDENCE parent, when present, must be a DOCUMENT_SECTION'
         );
       }
@@ -360,21 +437,21 @@ class ImmutableExecutionView {
       const record = records[executionReferenceKey(reference)];
       if (!Object.prototype.hasOwnProperty.call(records, executionReferenceKey(record.sourceDocument)) ||
           records[executionReferenceKey(record.sourceDocument)].reference.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('sourceDocument reference is missing from the view');
+        throw new executionViewContractError_('sourceDocument reference is missing from the view');
       }
       if (record.parent &&
           !Object.prototype.hasOwnProperty.call(records, executionReferenceKey(record.parent))) {
-        throw new ExecutionViewContractError('parent reference is missing from the view');
+        throw new executionViewContractError_('parent reference is missing from the view');
       }
       if (record.reference.kind === 'DOCUMENT_SECTION' &&
           executionReferenceKey(record.parent) !== executionReferenceKey(record.sourceDocument)) {
-        throw new ExecutionViewContractError('section parent and sourceDocument must agree');
+        throw new executionViewContractError_('section parent and sourceDocument must agree');
       }
       if (record.reference.kind === 'DOCUMENTARY_EVIDENCE' && record.parent) {
         const parentRecord = records[executionReferenceKey(record.parent)];
         if (executionReferenceKey(parentRecord.sourceDocument) !==
             executionReferenceKey(record.sourceDocument)) {
-          throw new ExecutionViewContractError('item parent and sourceDocument must agree');
+          throw new executionViewContractError_('item parent and sourceDocument must agree');
         }
       }
     });
@@ -382,7 +459,7 @@ class ImmutableExecutionView {
     function visitParent(reference) {
       const key = executionReferenceKey(reference);
       if (relationState[key] === 1) {
-        throw new ExecutionViewContractError('cyclic parent relation in projection');
+        throw new executionViewContractError_('cyclic parent relation in projection');
       }
       if (relationState[key] === 2) return;
       relationState[key] = 1;
@@ -400,11 +477,11 @@ class ImmutableExecutionView {
       );
       if (!associationDescriptor ||
           !Object.prototype.hasOwnProperty.call(associationDescriptor, 'value')) {
-        throw new ExecutionViewContractError('associationEntries must contain data entries');
+        throw new executionViewContractError_('associationEntries must contain data entries');
       }
       const association = associationDescriptor.value;
       if (!isPlainExecutionObject(association)) {
-        throw new ExecutionViewContractError('association entry must be an object');
+        throw new executionViewContractError_('association entry must be an object');
       }
       const keys = Object.keys(association).sort();
       const requiredAssociationKeys = [
@@ -417,40 +494,40 @@ class ImmutableExecutionView {
             Object.getOwnPropertyDescriptor(association, key), 'value'
           )) || requiredAssociationKeys.some(key => !keys.includes(key)) ||
           keys.some(key => !allowedAssociationKeys.includes(key))) {
-        throw new ExecutionViewContractError('association entry has missing or unsupported fields');
+        throw new executionViewContractError_('association entry has missing or unsupported fields');
       }
       if (requiredAssociationKeys.filter(key => key !== 'left' && key !== 'right' &&
           key !== 'sourceDocument').some(key =>
         typeof association[key] !== 'string' || !association[key])) {
-        throw new ExecutionViewContractError('association text fields must be non-empty strings');
+        throw new executionViewContractError_('association text fields must be non-empty strings');
       }
-      if (!(association.left instanceof TypedReference) ||
-          !(association.right instanceof TypedReference) ||
-          !(association.sourceDocument instanceof TypedReference) ||
+      if (!(association.left instanceof executionViewTypedReference_) ||
+          !(association.right instanceof executionViewTypedReference_) ||
+          !(association.sourceDocument instanceof executionViewTypedReference_) ||
           association.sourceDocument.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('association references are invalid');
+        throw new executionViewContractError_('association references are invalid');
       }
       const leftKey = executionReferenceKey(association.left);
       const rightKey = executionReferenceKey(association.right);
       const sourceKey = executionReferenceKey(association.sourceDocument);
       if (leftKey === rightKey) {
-        throw new ExecutionViewContractError('association endpoints must be distinct');
+        throw new executionViewContractError_('association endpoints must be distinct');
       }
       [leftKey, rightKey, sourceKey].forEach(referenceKey => {
         if (!Object.prototype.hasOwnProperty.call(records, referenceKey)) {
-          throw new ExecutionViewContractError('association reference is missing from the view');
+          throw new executionViewContractError_('association reference is missing from the view');
         }
       });
       if (records[sourceKey].reference.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('association source must reference a DOCUMENT');
+        throw new executionViewContractError_('association source must reference a DOCUMENT');
       }
       if (Object.prototype.hasOwnProperty.call(associationIds, association.associationId)) {
-        throw new ExecutionViewContractError('duplicate association id');
+        throw new executionViewContractError_('duplicate association id');
       }
       associationIds[association.associationId] = true;
       if (Object.prototype.hasOwnProperty.call(association, 'provenance') &&
           association.provenance !== null && !isPlainExecutionObject(association.provenance)) {
-        throw new ExecutionViewContractError('association provenance must be an object or null');
+        throw new executionViewContractError_('association provenance must be an object or null');
       }
       const hasProvenance = Object.prototype.hasOwnProperty.call(association, 'provenance');
       const copiedProvenance = hasProvenance
@@ -464,7 +541,7 @@ class ImmutableExecutionView {
         provenance: hasProvenance ? copiedProvenance : null
       });
       if (Object.prototype.hasOwnProperty.call(associationSignatures, signature)) {
-        throw new ExecutionViewContractError('duplicate documentary association');
+        throw new executionViewContractError_('duplicate documentary association');
       }
       associationSignatures[signature] = true;
       const projected = {
@@ -486,7 +563,7 @@ class ImmutableExecutionView {
       const descriptor = Object.getOwnPropertyDescriptor(declarationEntries, String(index));
       const declaration = descriptor.value;
       if (!isPlainExecutionObject(declaration)) {
-        throw new ExecutionViewContractError('declaration entry must be an object');
+        throw new executionViewContractError_('declaration entry must be an object');
       }
       const keys = Object.keys(declaration).sort();
       const requiredDeclarationKeys = [
@@ -500,46 +577,46 @@ class ImmutableExecutionView {
             Object.getOwnPropertyDescriptor(declaration, key), 'value'
           )) || requiredDeclarationKeys.some(key => !keys.includes(key)) ||
           keys.some(key => !allowedDeclarationKeys.includes(key))) {
-        throw new ExecutionViewContractError('declaration entry has missing or unsupported fields');
+        throw new executionViewContractError_('declaration entry has missing or unsupported fields');
       }
       if (requiredDeclarationKeys.filter(key => key !== 'drt' && key !== 'sourceDocument')
         .some(key => typeof declaration[key] !== 'string' || !declaration[key].trim())) {
-        throw new ExecutionViewContractError('declaration text fields must be non-empty strings');
+        throw new executionViewContractError_('declaration text fields must be non-empty strings');
       }
       if (!declaration.sourceText.includes(declaration.activityServiceText) ||
           !declaration.sourceText.includes(declaration.smsciScopeText)) {
-        throw new ExecutionViewContractError('declaration literals must occur in sourceText');
+        throw new executionViewContractError_('declaration literals must occur in sourceText');
       }
-      if (!(declaration.drt instanceof TypedReference) || declaration.drt.kind !== 'DOCUMENT' ||
-          !(declaration.sourceDocument instanceof TypedReference) ||
+      if (!(declaration.drt instanceof executionViewTypedReference_) || declaration.drt.kind !== 'DOCUMENT' ||
+          !(declaration.sourceDocument instanceof executionViewTypedReference_) ||
           declaration.sourceDocument.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError('declaration references are invalid');
+        throw new executionViewContractError_('declaration references are invalid');
       }
       const drtKey = executionReferenceKey(declaration.drt);
       const sourceKey = executionReferenceKey(declaration.sourceDocument);
       if (!Object.prototype.hasOwnProperty.call(records, drtKey) ||
           !Object.prototype.hasOwnProperty.call(records, sourceKey)) {
-        throw new ExecutionViewContractError('declaration reference is missing from the view');
+        throw new executionViewContractError_('declaration reference is missing from the view');
       }
       const drtRecord = records[drtKey];
       if ((drtRecord.entityId !== 'ART' &&
            drtRecord.entityId !== 'RRT' &&
            drtRecord.entityId !== 'TRT') ||
           drtRecord.reference.kind !== 'DOCUMENT') {
-        throw new ExecutionViewContractError(
+        throw new executionViewContractError_(
           'declaration DRT must reference a concrete ART, RRT or TRT document'
         );
       }
       if (executionReferenceKey(drtRecord.sourceDocument) !== sourceKey) {
-        throw new ExecutionViewContractError('declaration source must match the DRT source');
+        throw new executionViewContractError_('declaration source must match the DRT source');
       }
       if (Object.prototype.hasOwnProperty.call(declarationIds, declaration.declarationId)) {
-        throw new ExecutionViewContractError('duplicate DRT declaration id');
+        throw new executionViewContractError_('duplicate DRT declaration id');
       }
       declarationIds[declaration.declarationId] = true;
       if (Object.prototype.hasOwnProperty.call(declaration, 'provenance') &&
           declaration.provenance !== null && !isPlainExecutionObject(declaration.provenance)) {
-        throw new ExecutionViewContractError('declaration provenance must be an object or null');
+        throw new executionViewContractError_('declaration provenance must be an object or null');
       }
       const hasProvenance = Object.prototype.hasOwnProperty.call(declaration, 'provenance');
       if (hasProvenance) assertStrictExecutionJsonValue(declaration.provenance);
@@ -555,7 +632,7 @@ class ImmutableExecutionView {
         provenance: hasProvenance ? copiedProvenance : null
       });
       if (Object.prototype.hasOwnProperty.call(declarationSignatures, signature)) {
-        throw new ExecutionViewContractError('duplicate DRT declaration item');
+        throw new executionViewContractError_('duplicate DRT declaration item');
       }
       declarationSignatures[signature] = true;
       const projected = {
@@ -575,7 +652,7 @@ class ImmutableExecutionView {
       const descriptor = Object.getOwnPropertyDescriptor(documentaryDateEntries, String(index));
       const dateItem = descriptor.value;
       if (!isPlainExecutionObject(dateItem)) {
-        throw new ExecutionViewContractError('documentary date entry must be an object');
+        throw new executionViewContractError_('documentary date entry must be an object');
       }
       const keys = Object.keys(dateItem).sort();
       const requiredDateKeys = [
@@ -588,15 +665,15 @@ class ImmutableExecutionView {
             Object.getOwnPropertyDescriptor(dateItem, key), 'value'
           )) || requiredDateKeys.some(key => !keys.includes(key)) ||
           keys.some(key => !allowedDateKeys.includes(key))) {
-        throw new ExecutionViewContractError('documentary date entry has missing or unsupported fields');
+        throw new executionViewContractError_('documentary date entry has missing or unsupported fields');
       }
       if (requiredDateKeys.filter(key => key !== 'product' && key !== 'sourceDocument')
         .some(key => typeof dateItem[key] !== 'string' || !dateItem[key].trim())) {
-        throw new ExecutionViewContractError('documentary date text fields must be non-empty strings');
+        throw new executionViewContractError_('documentary date text fields must be non-empty strings');
       }
       if (!dateItem.sourceText.includes(dateItem.dateLabelText) ||
           !dateItem.sourceText.includes(dateItem.dateText)) {
-        throw new ExecutionViewContractError('documentary date literals must occur in sourceText');
+        throw new executionViewContractError_('documentary date literals must occur in sourceText');
       }
       const productReference = copyImmutableExecutionReference(dateItem.product, 'TEST_REPORT');
       const sourceReference = copyImmutableExecutionReference(dateItem.sourceDocument, 'DOCUMENT');
@@ -604,7 +681,7 @@ class ImmutableExecutionView {
       const sourceKey = executionReferenceKey(sourceReference);
       if (!Object.prototype.hasOwnProperty.call(records, productKey) ||
           !Object.prototype.hasOwnProperty.call(records, sourceKey)) {
-        throw new ExecutionViewContractError('documentary date reference is missing from the view');
+        throw new executionViewContractError_('documentary date reference is missing from the view');
       }
       const productRecordReference = copyImmutableExecutionReference(
         records[productKey].reference, 'TEST_REPORT'
@@ -618,16 +695,16 @@ class ImmutableExecutionView {
       if (executionReferenceKey(productRecordReference) !== productKey ||
           executionReferenceKey(sourceRecordReference) !== sourceKey ||
           executionReferenceKey(productSourceReference) !== sourceKey) {
-        throw new ExecutionViewContractError('documentary date source must match the product source');
+        throw new executionViewContractError_('documentary date source must match the product source');
       }
       if (Object.prototype.hasOwnProperty.call(dateItemIds, dateItem.dateItemId)) {
-        throw new ExecutionViewContractError('duplicate documentary date item id');
+        throw new executionViewContractError_('duplicate documentary date item id');
       }
       dateItemIds[dateItem.dateItemId] = true;
       const hasProvenance = Object.prototype.hasOwnProperty.call(dateItem, 'provenance');
       if (hasProvenance && dateItem.provenance !== null &&
           !isPlainExecutionObject(dateItem.provenance)) {
-        throw new ExecutionViewContractError('documentary date provenance must be an object or null');
+        throw new executionViewContractError_('documentary date provenance must be an object or null');
       }
       if (hasProvenance) assertStrictExecutionJsonValue(dateItem.provenance);
       const copiedProvenance = hasProvenance
@@ -656,21 +733,21 @@ class ImmutableExecutionView {
 
   contains(reference) {
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     const key = executionReferenceKey(reference);
     return Object.prototype.hasOwnProperty.call(state.byReference, key);
   }
 
   schemaVersion() {
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     return state.schemaVersion;
   }
 
   documentaryAssociations(reference) {
     executionViewRecord(this, reference);
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     const key = executionReferenceKey(reference);
     return Object.freeze(state.documentaryAssociations.filter(association =>
       executionReferenceKey(association.left) === key ||
@@ -682,12 +759,12 @@ class ImmutableExecutionView {
     const record = executionViewRecord(this, reference);
     if (record.reference.kind !== 'DOCUMENT' ||
         (record.entityId !== 'ART' && record.entityId !== 'RRT' && record.entityId !== 'TRT')) {
-      throw new ExecutionViewContractError(
+      throw new executionViewContractError_(
         'drtDeclarationItems requires a concrete ART, RRT or TRT DOCUMENT reference'
       );
     }
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     const key = executionReferenceKey(reference);
     return Object.freeze(state.drtDeclarationItems.filter(item =>
       executionReferenceKey(item.drt) === key
@@ -697,10 +774,10 @@ class ImmutableExecutionView {
   documentaryDateItems(reference) {
     const record = executionViewRecord(this, reference);
     if (record.reference.kind !== 'TEST_REPORT') {
-      throw new ExecutionViewContractError('documentaryDateItems requires a TEST_REPORT reference');
+      throw new executionViewContractError_('documentaryDateItems requires a TEST_REPORT reference');
     }
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     const key = executionReferenceKey(reference);
     return Object.freeze(state.documentaryDateItems.filter(item =>
       executionReferenceKey(item.product) === key
@@ -725,10 +802,10 @@ class ImmutableExecutionView {
 
   referencesByEntity(entityId) {
     if (typeof entityId !== 'string' || !entityId) {
-      throw new ExecutionViewContractError('entityId must be a non-empty string');
+      throw new executionViewContractError_('entityId must be a non-empty string');
     }
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     return Object.freeze(state.orderedReferences.filter(
       reference => state.byReference[executionReferenceKey(reference)].entityId === entityId
     ));
@@ -737,10 +814,10 @@ class ImmutableExecutionView {
   children(parentReference, entityId) {
     executionViewRecord(this, parentReference);
     if (entityId !== undefined && (typeof entityId !== 'string' || !entityId)) {
-      throw new ExecutionViewContractError('entityId must be a non-empty string when provided');
+      throw new executionViewContractError_('entityId must be a non-empty string when provided');
     }
     const state = executionViewStateGet_(this);
-    if (!state) throw new ExecutionViewContractError('invalid execution view receiver');
+    if (!state) throw new executionViewContractError_('invalid execution view receiver');
     const parentKey = executionReferenceKey(parentReference);
     return Object.freeze(state.orderedReferences.filter(reference => {
       const record = state.byReference[executionReferenceKey(reference)];
@@ -766,11 +843,11 @@ class ImmutableExecutionView {
 
   function snapshotImmutableExecutionViewEntityRecords_(view, entityId) {
     if (typeof entityId !== 'string' || !entityId) {
-      throw new ExecutionViewContractError('entityId must be a non-empty string');
+      throw new executionViewContractError_('entityId must be a non-empty string');
     }
     const state = executionViewStateGet_(view);
     if (!state) {
-      throw new ExecutionViewContractError('invalid execution view receiver');
+      throw new executionViewContractError_('invalid execution view receiver');
     }
     const result = [];
     for (let index = 0; index < state.orderedReferences.length; index += 1) {
@@ -782,7 +859,7 @@ class ImmutableExecutionView {
           (record.hasProvenance && record.provenance &&
            typeof record.provenance === 'object' &&
            !executionViewIsFrozen_(record.provenance))) {
-        throw new ExecutionViewContractError(
+        throw new executionViewContractError_(
           'intrinsic execution-view state must remain immutable'
         );
       }

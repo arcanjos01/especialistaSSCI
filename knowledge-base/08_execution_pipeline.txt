@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.18.0
+# DOCUMENT_VERSION: 4.19.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.15.0
+KNOWLEDGE_BASE_VERSION: 5.16.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -24,8 +24,8 @@ DOCUMENT_SET:
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.5.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.18.0
+06_reports.txt: DOCUMENT_VERSION 3.6.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.19.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.5.0
 
 END DOCUMENT_SET.
@@ -551,7 +551,14 @@ of global helper bindings cannot alter which private records or facts are
 returned. The backing Process Memory store itself must remain
 closure-private: no top-level/global lexical binding, exported object, debug
 hook or public mutator may expose the WeakMap or permit replacing state for an
-existing ImmutableExecutionView. The binding may
+existing ImmutableExecutionView. The complete materialization path that writes
+records into this private store — including reference-key calculation,
+TypedReference validation/copy, JSON-object classification, immutable fact and
+provenance copy, strict provenance validation and any recursion used by those
+operations — must execute through closure-private helpers captured with the
+ImmutableExecutionView implementation. Reassigning same-named global helpers
+before projectRdeToExecutionView_ runs shall neither alter a source fact nor
+produce a different private Process Memory fact. The binding may
 contain zero or more concrete DRT references and their documentary provenance.
 It shall not modify the RDE or the plan, and shall not select evidence by
 filename, order, proximity, similarity or plausibility. The same concrete DRT

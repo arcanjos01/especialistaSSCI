@@ -235,45 +235,86 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   binding, contract, base.plan, base.view
 ), true);
 
-const originalExecutionHelpers = {
-  executionReferenceKey: vm.runInContext('executionReferenceKey', context),
-  immutableExecutionCopy: vm.runInContext('immutableExecutionCopy', context),
-  isPlainExecutionObject: vm.runInContext('isPlainExecutionObject', context),
-  hasNativeExecutionNonJsonBrand: vm.runInContext('hasNativeExecutionNonJsonBrand', context)
-};
-context.__originalExecutionHelpers = originalExecutionHelpers;
+for (const helperName of [
+  'executionReferenceKey',
+  'copyImmutableExecutionReference',
+  'hasNativeExecutionNonJsonBrand',
+  'isPlainExecutionObject',
+  'immutableExecutionCopy',
+  'assertStrictExecutionJsonValue'
+]) {
+  assert.throws(
+    () => vm.runInContext(helperName, context),
+    /not defined/,
+    helperName
+  );
+}
+
+const sourcePreservationRde = makeRde([], [{
+  entityId: 'ART',
+  attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+}]);
 try {
   vm.runInContext(`
-    immutableExecutionCopy = function () {
-      return Object.freeze({ RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' });
+    globalThis.executionReferenceKey = function () { return 'FORGED_KEY'; };
+    globalThis.copyImmutableExecutionReference = function () {
+      throw new Error('forged reference copy must not run');
     };
-    isPlainExecutionObject = function () { return false; };
-    hasNativeExecutionNonJsonBrand = function () { return true; };
+    globalThis.hasNativeExecutionNonJsonBrand = function () { return false; };
+    globalThis.isPlainExecutionObject = function () { return true; };
+    globalThis.assertStrictExecutionJsonValue = function () {};
+    globalThis.immutableExecutionCopy = function (value) {
+      if (value && typeof value === 'object' &&
+          value.RESPONSIBILITY_TYPE === 'VISTORIA_ENSAIO') {
+        return Object.freeze({ RESPONSIBILITY_TYPE: 'EXECUCAO' });
+      }
+      return value;
+    };
   `, context);
-  const bindingWithForgedCopyHelpers = api.materializeResponsibilityEvidenceBinding(
-    contract, base.plan, base.view, 'RT-002'
+
+  const sourcePreservationView = api.projectRdeToExecutionView_(
+    sourcePreservationRde, contract.entityCatalog
   );
-  assert.equal(bindingWithForgedCopyHelpers.evidence.length, 2);
-  assert.deepEqual(
-    JSON.parse(JSON.stringify(
-      bindingWithForgedCopyHelpers.evidence.map(item => item.entityId)
-    )),
-    ['ART', 'TRT']
+  const sourcePreservationSnapshot = snapshotDescriptor.value(
+    sourcePreservationView, 'ART'
+  );
+  assert.equal(sourcePreservationSnapshot.length, 1);
+  assert.equal(
+    sourcePreservationSnapshot[0].value.RESPONSIBILITY_TYPE,
+    'VISTORIA_ENSAIO'
   );
 
-  vm.runInContext("executionReferenceKey = function () { return 'FORGED_KEY'; };", context);
-  const snapshotWithForgedReferenceKey = snapshotDescriptor.value(base.view, 'ART');
-  assert.equal(snapshotWithForgedReferenceKey.length, 1);
-  assert.equal(snapshotWithForgedReferenceKey[0].entityId, 'ART');
+  const sourcePreservationResolution = api.resolveCbmscApplicability(
+    sourcePreservationView, currentContext(), contract
+  );
+  const sourcePreservationPlan = api.materializeFrozenExecutionPlan(
+    contract, sourcePreservationResolution, sourcePreservationView
+  );
+  const sourcePreservationBinding = api.materializeResponsibilityEvidenceBinding(
+    contract, sourcePreservationPlan, sourcePreservationView, 'RT-002'
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sourcePreservationBinding.evidence)),
+    []
+  );
+  assert.equal(
+    api.isCanonicalResponsibilityEvidenceBinding(
+      sourcePreservationBinding,
+      contract,
+      sourcePreservationPlan,
+      sourcePreservationView
+    ),
+    true
+  );
 } finally {
   vm.runInContext(`
-    executionReferenceKey = __originalExecutionHelpers.executionReferenceKey;
-    immutableExecutionCopy = __originalExecutionHelpers.immutableExecutionCopy;
-    isPlainExecutionObject = __originalExecutionHelpers.isPlainExecutionObject;
-    hasNativeExecutionNonJsonBrand =
-      __originalExecutionHelpers.hasNativeExecutionNonJsonBrand;
+    delete globalThis.executionReferenceKey;
+    delete globalThis.copyImmutableExecutionReference;
+    delete globalThis.hasNativeExecutionNonJsonBrand;
+    delete globalThis.isPlainExecutionObject;
+    delete globalThis.assertStrictExecutionJsonValue;
+    delete globalThis.immutableExecutionCopy;
   `, context);
-  delete context.__originalExecutionHelpers;
 }
 
 const originalWeakMapGet = vm.runInContext('WeakMap.prototype.get', context);
