@@ -67,10 +67,12 @@ class RtCatalogContractTests(unittest.TestCase):
             self.assertIn("laudo de vistoria", entry)
         self.assertNotIn("EXECUCAO OR REGULARIZACAO", self.text)
 
-    def test_unresolved_mappings_remain_isolated(self):
+    def test_removed_unresolved_requirement_mappings_are_not_reintroduced(self):
         normalized = {key: " ".join(value.split()) for key, value in self.entries.items()}
-        self.assertIn("UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPINGS", normalized["RT-007"])
-        self.assertIn("UNRESOLVED_ATTRIBUTE CURRENT_REQUIREMENT_MAPPING", normalized["RT-015"])
+        self.assertNotIn("CURRENT_REQUIREMENT_MAPPINGS", normalized["RT-007"])
+        self.assertNotIn("CURRENT_REQUIREMENT_MAPPING", normalized["RT-015"])
+        self.assertIn("mappings foram retirados dos Requirements correntes", normalized["RT-007"])
+        self.assertIn("REQ_IN09_CHECKLIST -> RT-015 foi retirado", normalized["RT-015"])
         self.assertIn("UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT006", normalized["RT-005"])
         self.assertIn("UNRESOLVED_ATTRIBUTE RESPONSIBILITY_RELATION_TO_RT005", normalized["RT-006"])
 
