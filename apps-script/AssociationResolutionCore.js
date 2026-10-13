@@ -35,7 +35,8 @@ function associationCloneFreeze_(value) {
 }
 
 function associationPolicyIsUsable_(policy, baseId, relationType) {
-  if (!policy || policy.status !== 'ACTIVE' || policy.baseId !== baseId ||
+  if (!policy || policy.status !== 'ACTIVE' || typeof policy.version !== 'string' ||
+      !policy.version.trim() || policy.baseId !== baseId ||
       policy.relationType !== relationType || !policy.calibration ||
       policy.calibration.status !== 'VALIDATED' ||
       policy.calibration.baseId !== baseId ||
@@ -46,8 +47,10 @@ function associationPolicyIsUsable_(policy, baseId, relationType) {
       !Number.isInteger(policy.calibration.sampleSize) || policy.calibration.sampleSize < 1 ||
       typeof policy.calibration.falseAcceptanceRate !== 'number' ||
       !Number.isFinite(policy.calibration.falseAcceptanceRate) ||
+      policy.calibration.falseAcceptanceRate < 0 || policy.calibration.falseAcceptanceRate > 1 ||
       typeof policy.calibration.maxFalseAcceptanceRate !== 'number' ||
       !Number.isFinite(policy.calibration.maxFalseAcceptanceRate) ||
+      policy.calibration.maxFalseAcceptanceRate < 0 || policy.calibration.maxFalseAcceptanceRate > 1 ||
       policy.calibration.falseAcceptanceRate > policy.calibration.maxFalseAcceptanceRate ||
       typeof policy.calibration.version !== 'string' || !policy.calibration.version.trim() ||
       typeof policy.calibration.datasetDigest !== 'string' ||
@@ -74,6 +77,8 @@ function resolveAutomaticAssociations(input) {
   'RDE_DIGEST_REQUIRED', 'SHA-256 digest of the validated RDE is required');
   associationRequire_(Array.isArray(input.candidates), 'CANDIDATES_INVALID',
     'candidate associations must be an array');
+  associationRequire_(typeof input.verifyEvidenceRef === 'function',
+    'EVIDENCE_VERIFIER_REQUIRED', 'evidence references must be verified against the exact RDE context');
 
   const candidateIds = new Set();
   const sourceGroups = new Map();
@@ -110,9 +115,22 @@ function resolveAutomaticAssociations(input) {
       candidate.sourceEvidenceRefs.every(ref => typeof ref === 'string' && ref.trim()) &&
       Array.isArray(candidate.targetEvidenceRefs) && candidate.targetEvidenceRefs.length > 0 &&
       candidate.targetEvidenceRefs.every(ref => typeof ref === 'string' && ref.trim());
+    const provenanceValid = candidateRefsValid && candidate.provenanceVerified === true &&
+      candidate.sourceEvidenceRefs.concat(candidate.targetEvidenceRefs).every(ref => {
+        try {
+          return input.verifyEvidenceRef(ref, {
+            submissionId: input.submissionId,
+            baseId: input.baseId,
+            rdeDigest: input.rdeDigest,
+            candidateId: candidate.candidateId,
+            relationType,
+          }) === true;
+        } catch (error) {
+          return false;
+        }
+      });
     const scoreValid = typeof candidate.score === 'number' &&
       Number.isFinite(candidate.score) && candidate.score >= 0 && candidate.score <= 1;
-    const provenanceValid = candidate.provenanceVerified === true;
     const unambiguous = !ambiguousCandidateIds.has(candidate.candidateId) &&
       candidate.competingCandidateCount === 0 && candidate.conflicted !== true;
     const passes = !rejected && policyUsable && candidateRefsValid && scoreValid &&

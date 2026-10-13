@@ -289,6 +289,7 @@ const associationPolicy = {
 const associationArtifact = api.resolveAutomaticAssociations({
   submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
   rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [{
     candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
@@ -316,6 +317,7 @@ assert.throws(() => api.materializeFrozenExecutionPlan(
 const rejectedAssociation = api.resolveAutomaticAssociations({
   submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
   rdeDigest: 'sha256:' + 'b'.repeat(64), humanRejections: ['LINK_TEST'],
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [{
     candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
@@ -330,6 +332,7 @@ assert.equal(rejectedAssociation.reportNotice, null);
 const competingAssociations = api.resolveAutomaticAssociations({
   submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
   rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [
     { candidateId: 'LINK_A', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
@@ -346,6 +349,7 @@ assert.equal(competingAssociations.decisions.every(item =>
 const noPolicyAssociation = api.resolveAutomaticAssociations({
   submissionId: 'SUBMISSION_TEST', baseId: 'BASE_UNCALIBRATED',
   rdeDigest: 'sha256:' + 'b'.repeat(64), policies: {},
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
   candidates: [{ candidateId: 'LINK_NO_POLICY',
     relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
     sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
