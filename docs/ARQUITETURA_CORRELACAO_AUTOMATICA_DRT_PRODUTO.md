@@ -79,6 +79,12 @@ artefato e geração do relatório. Esses serviços não estão implementados no
 baseline atual; portanto, não há admissão automática em processos reais até
 que essa integração e o deploy sejam concluídos.
 
+O contrato do resolver aceita tipos de vínculo como identificadores genéricos,
+mas a integração e os testes atuais cobrem somente a Base canônica
+`SSCI-HABITESE`. Cada nova Base precisará de adaptador para seu contexto
+canônico, evidências, armazenamento de política e ledger; não está ativada nas
+demais Bases ainda.
+
 O digest SHA-256 informado deve ser calculado pelo adaptador operacional a
 partir dos bytes da RDE validada. O resolvedor valida o formato do digest e
 vincula o artefato às identidades autenticadas da view e da resolução; ele não

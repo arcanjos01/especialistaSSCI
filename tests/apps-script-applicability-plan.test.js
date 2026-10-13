@@ -600,6 +600,32 @@ assertIntegrityError(() => api.materializeFrozenExecutionPlan(
 // F4-006: decoy globals with the old helper names cannot influence private closures.
 assert.equal(vm.runInContext("typeof cbmscDeepFreeze_", context), 'undefined');
 assert.equal(vm.runInContext("typeof planFreeze_", context), 'undefined');
+vm.runInContext(`
+  globalThis.__savedWeakMapGetDescriptor = Object.getOwnPropertyDescriptor(WeakMap.prototype, 'get');
+  globalThis.__savedArraySomeDescriptor = Object.getOwnPropertyDescriptor(Array.prototype, 'some');
+  globalThis.__savedJsonStringifyDescriptor = Object.getOwnPropertyDescriptor(JSON, 'stringify');
+  Object.defineProperty(WeakMap.prototype, 'get', {
+    value: function () { return undefined; }, configurable: true, writable: true
+  });
+  Object.defineProperty(Array.prototype, 'some', {
+    value: function () { return false; }, configurable: true, writable: true
+  });
+  Object.defineProperty(JSON, 'stringify', {
+    value: function () { return '{}'; }, configurable: true, writable: true
+  });
+`, context);
+assert.equal(api.isCanonicalAutomaticAssociationArtifact(
+  associationArtifact, null, complete.view, resolution, contract
+), true);
+assert.equal(api.isCanonicalFrozenExecutionPlan(
+  planWithAssociation, contract, complete.view
+), true);
+assert.match(associationArtifact.reportNotice, /admitido automaticamente/);
+vm.runInContext(`
+  Object.defineProperty(WeakMap.prototype, 'get', globalThis.__savedWeakMapGetDescriptor);
+  Object.defineProperty(Array.prototype, 'some', globalThis.__savedArraySomeDescriptor);
+  Object.defineProperty(JSON, 'stringify', globalThis.__savedJsonStringifyDescriptor);
+`, context);
 
 const gasCaseForBypass = resolve({ codes: ['IGC'] });
 const noGasCaseForBypass = resolve();
