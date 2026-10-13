@@ -272,13 +272,17 @@ assert.equal(firstPlan.PLANNED_EXECUTION_UNITS.some(unit =>
 
 // Automatic DRT/product decisions remain a separate, exact-RDE-bound plan artifact.
 const associationPolicy = {
-  status: 'ACTIVE', baseId: 'BASE_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+  status: 'ACTIVE', baseId: 'SSCI-HABITESE', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
   version: 'policy-v1',
+  policyDigest: 'sha256:' + 'c'.repeat(64),
   calibration: {
-    status: 'VALIDATED', baseId: 'BASE_TEST',
+    status: 'VALIDATED', baseId: 'SSCI-HABITESE',
     relationType: 'DRT_COVERS_TECHNICAL_PRODUCT', threshold: 0.97,
-    sampleSize: 100, falseAcceptanceRate: 0.01, maxFalseAcceptanceRate: 0.02,
-    version: 'calibration-v3', datasetDigest: 'sha256:' + 'a'.repeat(64),
+    sampleSize: 100, minimumSampleSize: 50,
+    falseAcceptanceRate: 0.01, maxFalseAcceptanceRate: 0.02,
+    version: 'calibration-v3', modelVersion: 'matcher-v4',
+    datasetDigest: 'sha256:' + 'a'.repeat(64),
+    scoringModelDigest: 'sha256:' + 'd'.repeat(64),
     approvedBy: 'test-calibration-owner', validatedAt: '2026-10-01T00:00:00Z'
   },
   controls: {
@@ -287,25 +291,42 @@ const associationPolicy = {
   }
 };
 const associationArtifact = api.resolveAutomaticAssociations({
-  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
+  contract, resolution,
+  view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
   rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
   verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: policy => policy === associationPolicy,
+  verifyCandidate: candidate => candidate.modelVersion === 'matcher-v4',
+  hasHumanRejection: () => false,
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [{
     candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
     sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
-    score: 0.99, provenanceVerified: true, competingCandidateCount: 0
+    score: 0.99, modelVersion: 'matcher-v4', provenanceVerified: true,
+    competingCandidateCount: 0, conflicted: false
   }]
 });
 assert.equal(associationArtifact.decisions[0].decision, 'AUTO_ACCEPTED');
+assert.equal(associationArtifact.decisions[0].calibration.threshold, 0.97);
+assert.equal(associationArtifact.decisions[0].policyDigest, 'sha256:' + 'c'.repeat(64));
 assert.equal(associationArtifact.normativeValidation, 'PENDING_INSTITUTIONAL_VALIDATION');
 assert.match(associationArtifact.reportNotice, /validação normativa institucional.*pendente/i);
 assert.equal(api.isCanonicalAutomaticAssociationArtifact(associationArtifact, {
-  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST', rdeDigest: 'sha256:' + 'b'.repeat(64)
-}), true);
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE', rdeDigest: 'sha256:' + 'b'.repeat(64)
+}, complete.view, resolution, contract), true);
 assert.equal(api.isCanonicalAutomaticAssociationArtifact(associationArtifact, {
-  submissionId: 'OTHER_SUBMISSION', baseId: 'BASE_TEST', rdeDigest: 'sha256:' + 'b'.repeat(64)
-}), false);
+  submissionId: 'OTHER_SUBMISSION', baseId: 'SSCI-HABITESE', rdeDigest: 'sha256:' + 'b'.repeat(64)
+}, complete.view, resolution, contract), false);
+const unrelatedAssociationContext = resolve({ codes: ['AI'] });
+assert.equal(api.isCanonicalAutomaticAssociationArtifact(associationArtifact, {
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE', rdeDigest: 'sha256:' + 'b'.repeat(64)
+}, unrelatedAssociationContext.view, unrelatedAssociationContext.resolution, contract), false);
+assert.throws(() => api.materializeFrozenExecutionPlan(
+  contract, unrelatedAssociationContext.resolution, unrelatedAssociationContext.view,
+  associationArtifact
+), /canonical automatic association artifact/);
 const planWithAssociation = api.materializeFrozenExecutionPlan(
   contract, resolution, complete.view, associationArtifact
 );
@@ -315,14 +336,22 @@ assert.throws(() => api.materializeFrozenExecutionPlan(
   contract, resolution, complete.view, { ...associationArtifact }
 ), /canonical automatic association artifact/);
 const rejectedAssociation = api.resolveAutomaticAssociations({
-  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
-  rdeDigest: 'sha256:' + 'b'.repeat(64), humanRejections: ['LINK_TEST'],
+  contract, resolution,
+  view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
+  rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
   verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: policy => policy === associationPolicy,
+  verifyCandidate: candidate => candidate.modelVersion === 'matcher-v4',
+  hasHumanRejection: key => key === JSON.stringify(['DRT_COVERS_TECHNICAL_PRODUCT',
+    ['RDE:DRT-1'], ['RDE:REPORT-1']]),
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [{
     candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
     sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
-    score: 0.99, provenanceVerified: true, competingCandidateCount: 0
+    score: 0.99, modelVersion: 'matcher-v4', provenanceVerified: true,
+    competingCandidateCount: 0, conflicted: false
   }]
 });
 assert.equal(rejectedAssociation.decisions[0].decision, 'NOT_ADMITTED');
@@ -330,34 +359,88 @@ assert.deepEqual(JSON.parse(JSON.stringify(rejectedAssociation.decisions[0].reas
   ['HUMAN_REJECTION_PRECEDENCE']);
 assert.equal(rejectedAssociation.reportNotice, null);
 const competingAssociations = api.resolveAutomaticAssociations({
-  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
+  contract, resolution,
+  view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
   rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
   verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: policy => policy === associationPolicy,
+  verifyCandidate: candidate => candidate.modelVersion === 'matcher-v4',
+  hasHumanRejection: () => false,
   policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
   candidates: [
     { candidateId: 'LINK_A', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
       sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
-      score: 0.99, provenanceVerified: true, competingCandidateCount: 0 },
+      score: 0.99, modelVersion: 'matcher-v4', provenanceVerified: true,
+      competingCandidateCount: 0, conflicted: false },
     { candidateId: 'LINK_B', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
-      sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-2'],
-      score: 0.999, provenanceVerified: true, competingCandidateCount: 0 }
+      sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+      score: 0.999, modelVersion: 'matcher-v4', provenanceVerified: true,
+      competingCandidateCount: 0, conflicted: false }
   ]
 });
 assert.equal(competingAssociations.decisions.every(item => item.decision === 'NOT_ADMITTED'), true);
 assert.equal(competingAssociations.decisions.every(item =>
   item.reasonCodes.includes('CONFLICT_OR_AMBIGUITY')), true);
 const noPolicyAssociation = api.resolveAutomaticAssociations({
-  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_UNCALIBRATED',
+  contract, resolution,
+  view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
   rdeDigest: 'sha256:' + 'b'.repeat(64), policies: {},
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
   verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: () => false,
+  verifyCandidate: () => false,
+  hasHumanRejection: () => false,
   candidates: [{ candidateId: 'LINK_NO_POLICY',
     relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
     sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
-    score: 1, provenanceVerified: true, competingCandidateCount: 0 }]
+    score: 1, modelVersion: 'matcher-v4', provenanceVerified: true,
+    competingCandidateCount: 0, conflicted: false }]
 });
 assert.equal(noPolicyAssociation.decisions[0].decision, 'NOT_ADMITTED');
 assert.equal(noPolicyAssociation.decisions[0].reasonCodes.includes(
   'CALIBRATED_BASE_POLICY_UNAVAILABLE'), true);
+const unknownConflictAssociation = api.resolveAutomaticAssociations({
+  contract, resolution,
+  view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
+  rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: policy => policy === associationPolicy,
+  verifyCandidate: candidate => candidate.modelVersion === 'matcher-v4',
+  hasHumanRejection: () => false,
+  policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
+  candidates: [{ candidateId: 'LINK_UNKNOWN_CONFLICT',
+    relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+    sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+    score: 0.99, modelVersion: 'matcher-v4', provenanceVerified: true,
+    competingCandidateCount: 0 }]
+});
+assert.equal(unknownConflictAssociation.decisions[0].decision, 'NOT_ADMITTED');
+assert.equal(unknownConflictAssociation.decisions[0].reasonCodes.includes(
+  'CONFLICT_OR_AMBIGUITY'), true);
+const unknownHumanLedgerAssociation = api.resolveAutomaticAssociations({
+  contract, resolution, view: complete.view,
+  submissionId: 'SUBMISSION_TEST', baseId: 'SSCI-HABITESE',
+  rdeDigest: 'sha256:' + 'b'.repeat(64),
+  verifySubmissionContext: id => id === 'SUBMISSION_TEST',
+  verifyEvidenceRef: ref => ref.startsWith('RDE:'),
+  verifyPolicy: policy => policy === associationPolicy,
+  verifyCandidate: candidate => candidate.modelVersion === 'matcher-v4',
+  hasHumanRejection: () => undefined,
+  policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
+  candidates: [{ candidateId: 'LINK_UNKNOWN_LEDGER',
+    relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+    sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+    score: 0.99, modelVersion: 'matcher-v4', provenanceVerified: true,
+    competingCandidateCount: 0, conflicted: false }]
+});
+assert.equal(unknownHumanLedgerAssociation.decisions[0].decision, 'NOT_ADMITTED');
+assert.equal(unknownHumanLedgerAssociation.decisions[0].reasonCodes.includes(
+  'HUMAN_REJECTION_CHECK_FAILED'), true);
 for (const unit of firstPlan.PLANNED_EXECUTION_UNITS) {
   const requirement = contract.requirements.find(item => item.requirementId === unit.requirement.id);
   const criterion = contract.criteria.find(item => item.criterionId === unit.criterion.id);

@@ -31,13 +31,26 @@ Uma política só pode admitir candidatos quando estiver `ACTIVE` e houver
 calibração validada para a mesma Base e tipo de vínculo, com limiar, tamanho de
 amostra, taxa de falsa aceitação, limite máximo, versão, digest do conjunto de
 calibração, aprovador e data de validação. O limiar deve estar entre 0 e 1 e a
-taxa observada não pode ultrapassar o limite máximo.
+taxa observada não pode ultrapassar o limite máximo. O chamador deve verificar
+a política contra a fonte governada, o resultado do modelo contra o registro de
+inferência e as rejeições humanas no ledger autoritativo. O verificador recebe
+o conjunto completo de candidatos e deve atestar a completude da busca e
+verificar conflito/concorrência em todo o escopo, inclusive entre endpoints
+diferentes. A decisão registra snapshot dos parâmetros relevantes e digests da
+política, da calibração e do modelo.
 
 São controles obrigatórios: proveniência verificada, ausência de conflito e
 ambiguidade, contexto exato vinculado, auditoria habilitada e divulgação no
-relatório. O candidato precisa ter referências válidas de origem e destino,
-proveniência verificada e pontuação igual ou superior ao limiar calibrado.
-Uma rejeição humana prevalece e bloqueia a admissão.
+relatório. O artefato fica associado à identidade da view imutável derivada da
+RDE, à resolução canônica da apresentação selecionada e ao contrato da Base; só
+pode entrar em plano materializado para o mesmo trio view/resolução/contrato.
+O candidato
+precisa ter referências válidas de origem e destino, proveniência verificada,
+versão de modelo correspondente à calibração e pontuação igual ou superior ao
+limiar calibrado. O estado de conflito deve estar explicitamente `false`; valor
+ausente bloqueia. A chave de rejeição é derivada do vínculo e das referências,
+para não depender do ID instável do candidato. Rejeição humana verificada
+prevalece e bloqueia a admissão.
 
 Se qualquer condição faltar, o resultado é `NOT_ADMITTED` com códigos de
 motivo. A capacidade global fica em `ACTIVE_FAIL_CLOSED`: isso habilita a
@@ -65,3 +78,10 @@ governança de políticas calibradas, execução de critérios, persistência do
 artefato e geração do relatório. Esses serviços não estão implementados no
 baseline atual; portanto, não há admissão automática em processos reais até
 que essa integração e o deploy sejam concluídos.
+
+O digest SHA-256 informado deve ser calculado pelo adaptador operacional a
+partir dos bytes da RDE validada. O resolvedor valida o formato do digest e
+vincula o artefato às identidades autenticadas da view e da resolução; ele não
+calcula o hash de conteúdo por conta própria. Até o adaptador de produção
+calcular e verificar o digest, esse campo não constitui prova criptográfica
+independente do conteúdo da RDE.

@@ -530,7 +530,9 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution, associati
     'canonical applicability resolution is required');
     if (associationArtifact !== undefined) {
       planRequire_(typeof global.isCanonicalAutomaticAssociationArtifact === 'function' &&
-        global.isCanonicalAutomaticAssociationArtifact(associationArtifact),
+        global.isCanonicalAutomaticAssociationArtifact(
+          associationArtifact, null, view, resolution, contract
+        ),
       'canonical automatic association artifact is required');
     }
     const frozenPlan = internalMaterializer(contract, resolution, associationArtifact);
@@ -558,7 +560,9 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution, associati
       PLAN_IS_CANONICAL_RESOLUTION_(source.resolution, view, contract) &&
       (source.associationArtifact === undefined ||
         (typeof global.isCanonicalAutomaticAssociationArtifact === 'function' &&
-          global.isCanonicalAutomaticAssociationArtifact(source.associationArtifact))) &&
+          global.isCanonicalAutomaticAssociationArtifact(
+            source.associationArtifact, null, view, source.resolution, contract
+          ))) &&
       PLAN_INTRINSIC_IS_FROZEN_(plan) && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(plan.PLANNED_EXECUTION_UNITS) &&
       PLAN_INTRINSIC_IS_FROZEN_(plan.PLANNED_EXECUTION_UNITS);
   }
