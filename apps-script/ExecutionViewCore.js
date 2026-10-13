@@ -1261,6 +1261,12 @@ Object.defineProperty(globalThis, 'snapshotImmutableExecutionViewEntityRecords',
   writable: false,
   configurable: false
 });
+Object.defineProperty(globalThis, 'isImmutableExecutionView', {
+  value: isImmutableExecutionView,
+  enumerable: false,
+  writable: false,
+  configurable: false
+});
 Object.defineProperty(globalThis, 'isExecutionViewBackedByEntityCatalog_', {
   value: isExecutionViewBackedByEntityCatalog_,
   enumerable: false,
@@ -1273,3 +1279,4 @@ Object.defineProperty(globalThis, 'projectRdeToExecutionView_', {
   writable: false,
   configurable: false
 });
+
