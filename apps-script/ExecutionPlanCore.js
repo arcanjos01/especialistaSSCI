@@ -485,7 +485,7 @@ function validateExecutionPlanIntegrity(contract, resolution, applicableIds, wor
 }
 
 /** Resolves applicability metadata and freezes the plan; no Criterion is evaluated. */
-function materializeFrozenExecutionPlanInternal_(contract, resolution) {
+function materializeFrozenExecutionPlanInternal_(contract, resolution, associationArtifact) {
   const indexes = planIndexes_(contract);
   const applicable = applicableRequirements_(contract, resolution, indexes);
   const applicableIds = planMap_(applicable, item => item.requirementId);
@@ -506,6 +506,9 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
     APPLICABLE_REQUIREMENTS: planMap_(applicable, item => planClone_(item)),
     WORKLIST_SMSCI: worklist,
     PLANNED_EXECUTION_UNITS: materialized.units,
+    ...(associationArtifact === undefined ? {} : {
+      ASSOCIATION_DECISIONS: planClone_(associationArtifact),
+    }),
     ITERATION_DOMAINS: planMap_(planFilter_(materialized.units,
       unit => unit.iterationDomain !== null), unit => ({
       unitKey: unit.unitKey, source: unit.iterationSource, values: planSlice_(unit.iterationDomain)
@@ -518,14 +521,19 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
   const provenance = new WeakMap();
   const internalMaterializer = materializeFrozenExecutionPlanInternal_;
 
-  function canonicalMaterializer(contract, resolution, view) {
+  function canonicalMaterializer(contract, resolution, view, associationArtifact) {
     planRequire_(typeof PLAN_IS_CANONICAL_CONTRACT_ === 'function' &&
       PLAN_IS_CANONICAL_CONTRACT_(contract),
     'canonical compiled runtime contract is required');
     planRequire_(typeof PLAN_IS_CANONICAL_RESOLUTION_ === 'function' &&
       PLAN_IS_CANONICAL_RESOLUTION_(resolution, view, contract),
     'canonical applicability resolution is required');
-    const frozenPlan = internalMaterializer(contract, resolution);
+    if (associationArtifact !== undefined) {
+      planRequire_(typeof global.isCanonicalAutomaticAssociationArtifact === 'function' &&
+        global.isCanonicalAutomaticAssociationArtifact(associationArtifact),
+      'canonical automatic association artifact is required');
+    }
+    const frozenPlan = internalMaterializer(contract, resolution, associationArtifact);
     planRequire_(PLAN_INTRINSIC_IS_FROZEN_(frozenPlan) &&
       PLAN_INTRINSIC_ARRAY_IS_ARRAY_(frozenPlan.PLANNED_EXECUTION_UNITS) &&
       PLAN_INTRINSIC_IS_FROZEN_(frozenPlan.PLANNED_EXECUTION_UNITS),
@@ -537,7 +545,7 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
       frozenPlan.selectedComprovante.identifier === resolution.selectedComprovante.identifier,
     'canonical materializer output differs from applicability resolution');
     PLAN_INTRINSIC_APPLY_(PLAN_INTRINSIC_WEAKMAP_SET_, provenance,
-      [frozenPlan, PLAN_INTRINSIC_FREEZE_({ contract, resolution, view })]);
+      [frozenPlan, PLAN_INTRINSIC_FREEZE_({ contract, resolution, view, associationArtifact })]);
     return frozenPlan;
   }
 
@@ -548,6 +556,9 @@ function materializeFrozenExecutionPlanInternal_(contract, resolution) {
       PLAN_IS_CANONICAL_CONTRACT_(contract) &&
       typeof PLAN_IS_CANONICAL_RESOLUTION_ === 'function' &&
       PLAN_IS_CANONICAL_RESOLUTION_(source.resolution, view, contract) &&
+      (source.associationArtifact === undefined ||
+        (typeof global.isCanonicalAutomaticAssociationArtifact === 'function' &&
+          global.isCanonicalAutomaticAssociationArtifact(source.associationArtifact))) &&
       PLAN_INTRINSIC_IS_FROZEN_(plan) && PLAN_INTRINSIC_ARRAY_IS_ARRAY_(plan.PLANNED_EXECUTION_UNITS) &&
       PLAN_INTRINSIC_IS_FROZEN_(plan.PLANNED_EXECUTION_UNITS);
   }
@@ -576,3 +587,4 @@ PLAN_INTRINSIC_DEFINE_(global, 'validateExecutionPlanIntegrity', {
   value: validateExecutionPlanIntegrity, enumerable: true, writable: false, configurable: false
 });
 })(globalThis);
+

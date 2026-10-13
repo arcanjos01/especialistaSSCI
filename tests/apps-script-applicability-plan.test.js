@@ -11,6 +11,7 @@ for (const relativePath of [
   '../apps-script/ExecutionViewCore.js',
   '../apps-script/CurrentSubmissionContextCore.js',
   '../apps-script/CbmscApplicabilityCore.js',
+  '../apps-script/AssociationResolutionCore.js',
   '../apps-script/ExecutionPlanCore.js'
 ]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
@@ -24,6 +25,8 @@ vm.runInContext(`globalThis.api = {
   parseAndValidateOperationalRdeJson_,
   createCurrentSubmissionContext,
   resolveCbmscApplicability,
+  resolveAutomaticAssociations,
+  isCanonicalAutomaticAssociationArtifact,
   isCanonicalCbmscApplicabilityResolution,
   materializeFrozenExecutionPlan,
   isCanonicalFrozenExecutionPlan,
@@ -266,6 +269,91 @@ assert.equal(Object.isFrozen(firstPlan.ITERATION_DOMAINS), true);
 assert.equal(firstPlan.PLANNED_EXECUTION_UNITS.some(unit =>
   'result' in unit || 'evidence' in unit || 'nonconformity' in unit || 'EngineResult' in unit
 ), false);
+
+// Automatic DRT/product decisions remain a separate, exact-RDE-bound plan artifact.
+const associationPolicy = {
+  status: 'ACTIVE', baseId: 'BASE_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+  version: 'policy-v1',
+  calibration: {
+    status: 'VALIDATED', baseId: 'BASE_TEST',
+    relationType: 'DRT_COVERS_TECHNICAL_PRODUCT', threshold: 0.97,
+    sampleSize: 100, falseAcceptanceRate: 0.01, maxFalseAcceptanceRate: 0.02,
+    version: 'calibration-v3', datasetDigest: 'sha256:' + 'a'.repeat(64),
+    approvedBy: 'test-calibration-owner', validatedAt: '2026-10-01T00:00:00Z'
+  },
+  controls: {
+    provenanceVerified: true, noConflict: true, noAmbiguity: true,
+    contextBound: true, auditEnabled: true, reportDisclosureEnabled: true
+  }
+};
+const associationArtifact = api.resolveAutomaticAssociations({
+  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
+  rdeDigest: 'sha256:' + 'b'.repeat(64),
+  policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
+  candidates: [{
+    candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+    sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+    score: 0.99, provenanceVerified: true, competingCandidateCount: 0
+  }]
+});
+assert.equal(associationArtifact.decisions[0].decision, 'AUTO_ACCEPTED');
+assert.equal(associationArtifact.normativeValidation, 'PENDING_INSTITUTIONAL_VALIDATION');
+assert.match(associationArtifact.reportNotice, /validação normativa institucional.*pendente/i);
+assert.equal(api.isCanonicalAutomaticAssociationArtifact(associationArtifact, {
+  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST', rdeDigest: 'sha256:' + 'b'.repeat(64)
+}), true);
+assert.equal(api.isCanonicalAutomaticAssociationArtifact(associationArtifact, {
+  submissionId: 'OTHER_SUBMISSION', baseId: 'BASE_TEST', rdeDigest: 'sha256:' + 'b'.repeat(64)
+}), false);
+const planWithAssociation = api.materializeFrozenExecutionPlan(
+  contract, resolution, complete.view, associationArtifact
+);
+assert.equal(planWithAssociation.ASSOCIATION_DECISIONS.decisions[0].decision, 'AUTO_ACCEPTED');
+assert.equal(Object.isFrozen(planWithAssociation.ASSOCIATION_DECISIONS), true);
+assert.throws(() => api.materializeFrozenExecutionPlan(
+  contract, resolution, complete.view, { ...associationArtifact }
+), /canonical automatic association artifact/);
+const rejectedAssociation = api.resolveAutomaticAssociations({
+  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
+  rdeDigest: 'sha256:' + 'b'.repeat(64), humanRejections: ['LINK_TEST'],
+  policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
+  candidates: [{
+    candidateId: 'LINK_TEST', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+    sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+    score: 0.99, provenanceVerified: true, competingCandidateCount: 0
+  }]
+});
+assert.equal(rejectedAssociation.decisions[0].decision, 'NOT_ADMITTED');
+assert.deepEqual(JSON.parse(JSON.stringify(rejectedAssociation.decisions[0].reasonCodes)),
+  ['HUMAN_REJECTION_PRECEDENCE']);
+assert.equal(rejectedAssociation.reportNotice, null);
+const competingAssociations = api.resolveAutomaticAssociations({
+  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_TEST',
+  rdeDigest: 'sha256:' + 'b'.repeat(64),
+  policies: { DRT_COVERS_TECHNICAL_PRODUCT: associationPolicy },
+  candidates: [
+    { candidateId: 'LINK_A', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+      sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+      score: 0.99, provenanceVerified: true, competingCandidateCount: 0 },
+    { candidateId: 'LINK_B', relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+      sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-2'],
+      score: 0.999, provenanceVerified: true, competingCandidateCount: 0 }
+  ]
+});
+assert.equal(competingAssociations.decisions.every(item => item.decision === 'NOT_ADMITTED'), true);
+assert.equal(competingAssociations.decisions.every(item =>
+  item.reasonCodes.includes('CONFLICT_OR_AMBIGUITY')), true);
+const noPolicyAssociation = api.resolveAutomaticAssociations({
+  submissionId: 'SUBMISSION_TEST', baseId: 'BASE_UNCALIBRATED',
+  rdeDigest: 'sha256:' + 'b'.repeat(64), policies: {},
+  candidates: [{ candidateId: 'LINK_NO_POLICY',
+    relationType: 'DRT_COVERS_TECHNICAL_PRODUCT',
+    sourceEvidenceRefs: ['RDE:DRT-1'], targetEvidenceRefs: ['RDE:REPORT-1'],
+    score: 1, provenanceVerified: true, competingCandidateCount: 0 }]
+});
+assert.equal(noPolicyAssociation.decisions[0].decision, 'NOT_ADMITTED');
+assert.equal(noPolicyAssociation.decisions[0].reasonCodes.includes(
+  'CALIBRATED_BASE_POLICY_UNAVAILABLE'), true);
 for (const unit of firstPlan.PLANNED_EXECUTION_UNITS) {
   const requirement = contract.requirements.find(item => item.requirementId === unit.requirement.id);
   const criterion = contract.criteria.find(item => item.criterionId === unit.criterion.id);
@@ -478,3 +566,4 @@ assert.equal(JSON.stringify(firstPlan.PLANNED_EXECUTION_UNITS),
   JSON.stringify(secondPlan.PLANNED_EXECUTION_UNITS));
 
 console.log('apps-script-applicability-plan: PASS');
+
