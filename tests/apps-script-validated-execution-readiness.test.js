@@ -13,6 +13,7 @@ for (const relativePath of [
   '../apps-script/CurrentSubmissionContextCore.js',
   '../apps-script/CbmscApplicabilityCore.js',
   '../apps-script/ExecutionPlanCore.js',
+  '../apps-script/ResponsibilityEvidenceCore.js',
   '../apps-script/CriterionExecutionCore.js',
   '../apps-script/ValidatedExecutionReadinessCore.js',
 ]) {
@@ -171,8 +172,11 @@ assert.ok(prepared.coverage.plannedUnitKeys.includes(
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_IN19_APPLICABILITY_REVIEW, T4_IN19_APPLICABILITY_REVIEW)'
 ));
-assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)'
+));
+assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)'
 ));
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)'

@@ -56,6 +56,13 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
       entity.ATTRIBUTES.includes('SIGNATURE_MECHANISM') && entity.ATTRIBUTE_TYPES &&
       entity.ATTRIBUTE_TYPES.SIGNATURE_MECHANISM === 'TEXT';
   }
+  if (assertIr.name === 'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE') {
+    if (!Array.isArray(assertIr.arguments) || assertIr.arguments.length !== 1) return false;
+    const argument = assertIr.arguments[0];
+    return !!argument && typeof argument === 'object' && !Array.isArray(argument) &&
+      Object.keys(argument).sort().join(',') === 'type,value' &&
+      argument.type === 'SYMBOL' && argument.value === 'RT_002_EXECUCAO_DE_OBRA';
+  }
   if (assertIr.name !== 'EXISTS') return false;
 
   readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,

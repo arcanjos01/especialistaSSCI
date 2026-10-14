@@ -947,23 +947,31 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 `8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`; e
 `git diff --check`.
 
-## Cobertura consolidada atual após reconciliação e RDE 0.4.0
+## Snapshot histórico e reconciliação do runtime atual
 
-A matriz detalhada entre as linhas 252–287 e a classificação original por
-blocker preservam o snapshot do baseline 6f82475. O estado corrente, após a
-ratificação/carga do Anexo A, as ondas assinadas/ALL e a RDE 0.4.0, é:
+A matriz detalhada entre as linhas 252–287 e as contagens 36/31 preservam
+snapshots históricos anteriores à retirada dos dois Criteria de regularidade
+profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
+regenerada no checkpoint commitado KB 5.19.0; ela contém 34 Criteria e não contém os dois
+Criteria de regularidade. A applicability atual mantém cinco Criteria não
+selecionáveis, portanto 29 são produtivamente alcançáveis.
 
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 9 | `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 16 | `T1_DRT_REQUIRED`, `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_DRT_PROFESSIONAL_REGULARITY`, `T1_CONFORMITY_REPORT`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_DRT_PROFESSIONAL_REGULARITY`, `T4_IN09_DRT`, `T4_IN19_FINAL_VERIFICATION` |
+| `PARTIAL_EXECUTION_SUPPORT` | 1 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 13 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN19_FINAL_VERIFICATION` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
-| `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 31 Criteria produtivos conforme revisão de contratos atual. |
+| `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 29 Criteria produtivos conforme revisão de contratos atual. |
 
-Contagens reconciliadas: 36 Criteria compilados; 31 produtivos; 5 não
-selecionáveis; 9 cobertos; 22 produtivos ainda sem executor integral. O PASS
-da formalização RDE 0.4.0 não aumenta os 9 cobertos. Os 16 casos
+Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
+`CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
+`CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
+ativo), `CRITERIA_COVERED=9`, `CRITERIA_PARTIAL=1` (`T1_DRT_REQUIRED`) e
+`CRITERIA_PENDING=20`. A contagem de retirados
+é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
+retirados. O PASS da formalização RDE 0.4.0 não aumenta os 9 cobertos. Os 13 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.

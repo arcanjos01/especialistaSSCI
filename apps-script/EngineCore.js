@@ -51,6 +51,8 @@ class TypedReference {
   }
 }
 
+const ENGINE_TYPED_REFERENCE_CLASS_ = TypedReference;
+
 class ArgumentSpec {
   constructor({ name, kind = ArgumentKind.ANY, required = true, many = false }) {
     this.name = requireNonEmptyString(name, 'argument name');
@@ -252,6 +254,49 @@ function technicalProductAttributePredicateContract() {
           result: typeof mechanism === 'string' && mechanism.trim()
             ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
           memoryReferences: [args.technicalProduct]
+        };
+      }
+    }
+  });
+}
+
+function responsibilityHasAcceptedDrtEvidencePredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory) {
+        if (args.evidenceReferences.length === 0) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (!memory || typeof memory.contains !== 'function' ||
+            typeof memory.read !== 'function') {
+          throw new EngineContractError(
+            'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE requires read-only Process Memory'
+          );
+        }
+        for (let index = 0; index < args.evidenceReferences.length; index += 1) {
+          const reference = args.evidenceReferences[index];
+          if (!(reference instanceof ENGINE_TYPED_REFERENCE_CLASS_) || reference.kind !== 'DOCUMENT' ||
+              !memory.contains(reference)) {
+            throw new ResultContractError(
+              'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE reference is not in Process Memory'
+            );
+          }
+          const facts = memory.read(reference);
+          if (!facts || typeof facts !== 'object' ||
+              facts.RESPONSIBILITY_TYPE !== 'EXECUCAO') {
+            throw new ResultContractError(
+              'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE reference lacks exact EXECUCAO fact'
+            );
+          }
+        }
+        return {
+          result: EngineResult.TRUE,
+          memoryReferences: args.evidenceReferences
         };
       }
     }

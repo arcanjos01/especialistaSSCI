@@ -10,6 +10,8 @@ class CriterionExecutionIntegrityError extends Error {
   }
 }
 
+const CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_ = TypedReference;
+
 function criterionExecutionRequire_(condition, message) {
   if (!condition) throw new CriterionExecutionIntegrityError(message);
 }
@@ -297,6 +299,49 @@ function criterionExecutionRequireKeys_(value, expected, label) {
   label + ' has unsupported or residual fields');
 }
 
+function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument) {
+  criterionExecutionRequire_(argument && argument.type === 'SYMBOL' &&
+    argument.value === 'RT_002_EXECUCAO_DE_OBRA',
+  'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE requires RT_002_EXECUCAO_DE_OBRA');
+  criterionExecutionRequire_(typeof materializeResponsibilityEvidenceBinding === 'function' &&
+    typeof isCanonicalResponsibilityEvidenceBinding === 'function',
+  'canonical ResponsibilityEvidenceBinding support is required');
+  const binding = materializeResponsibilityEvidenceBinding(contract, plan, view, 'RT-002');
+  criterionExecutionRequire_(isCanonicalResponsibilityEvidenceBinding(binding, contract, plan, view),
+    'canonical ResponsibilityEvidenceBinding is required');
+  criterionExecutionRequire_(binding.responsibility &&
+    binding.responsibility.catalogIdentifier === 'RT-002' &&
+    binding.responsibility.documentaryResponsibilityType === 'EXECUCAO' &&
+    Array.isArray(binding.evidence),
+  'RT-002 ResponsibilityEvidenceBinding is invalid');
+  const evidenceReferences = [];
+  for (let index = 0; index < binding.evidence.length; index += 1) {
+    const evidence = binding.evidence[index];
+    criterionExecutionRequire_(evidence && evidence.reference &&
+      evidence.reference.kind === 'DOCUMENT' && typeof evidence.reference.identifier === 'string' &&
+      evidence.reference.identifier && evidence.selectionFact &&
+      evidence.selectionFact.attribute === 'RESPONSIBILITY_TYPE' &&
+      evidence.selectionFact.value === 'EXECUCAO',
+    'RT-002 evidence must be selected by explicit RESPONSIBILITY_TYPE EXECUCAO');
+    const reference = new CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_(
+      evidence.reference.kind, evidence.reference.identifier
+    );
+    criterionExecutionRequire_(view.contains(reference),
+      'RT-002 evidence reference does not belong to the ImmutableExecutionView');
+    evidenceReferences[evidenceReferences.length] = reference;
+  }
+  return Object.freeze({
+    expression: new PredicateCall('RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE', {
+      evidenceReferences
+    }),
+    binding: immutableCopy({
+      type: 'RESPONSIBILITY_EVIDENCE',
+      responsibility: binding.responsibility,
+      evidence: binding.evidence
+    })
+  });
+}
+
 function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assertIr) {
   criterionExecutionRequire_(assertIr && typeof assertIr === 'object' &&
     !Array.isArray(assertIr), 'ASSERT IR node must be an object');
@@ -315,6 +360,14 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         'TECHNICAL_PRODUCT_ATTRIBUTE arguments must be canonical symbols');
       return criterionExecutionBindTechnicalProductAttribute_(contract, view,
         product.value, attribute.value);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE') {
+      criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
+        'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE must declare exactly one argument');
+      const argument = assertIr.arguments[0];
+      criterionExecutionRequireKeys_(argument, ['type', 'value'],
+        'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
+      return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument);
     }
     criterionExecutionRequire_(assertIr.name === 'EXISTS',
       'executor supports only the canonical EXISTS operator');
@@ -453,9 +506,10 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
 
 function executePlannedCriterion(contract, plan, unitKey, view) {
   const materialized = materializePlannedCriterion(contract, plan, unitKey, view);
-  const registry = materialized.validationExpression === null
-    ? new PredicateRegistry([])
-    : new PredicateRegistry([technicalProductAttributePredicateContract()]);
+  const registry = new PredicateRegistry([
+    responsibilityHasAcceptedDrtEvidencePredicateContract(),
+    ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])
+  ]);
   let result;
   if (materialized.validationExpression !== null) {
     const validationCriterion = new CriterionIR({

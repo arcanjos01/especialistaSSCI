@@ -12,6 +12,7 @@ for (const relativePath of [
   '../apps-script/CurrentSubmissionContextCore.js',
   '../apps-script/CbmscApplicabilityCore.js',
   '../apps-script/ExecutionPlanCore.js',
+  '../apps-script/ResponsibilityEvidenceCore.js',
   '../apps-script/CriterionExecutionCore.js'
 ]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
@@ -26,6 +27,8 @@ vm.runInContext(
   'createCurrentSubmissionContext,' +
   'resolveCbmscApplicability,' +
   'materializeFrozenExecutionPlan,' +
+  'materializeResponsibilityEvidenceBinding,' +
+  'isCanonicalResponsibilityEvidenceBinding,' +
   'materializePlannedCriterion,' +
   'executePlannedCriterion,' +
   'CriterionExecutionIntegrityError' +
@@ -57,6 +60,7 @@ const PRESSURIZATION_CHECKLIST_SIGNED_UNIT =
   'UNIT_KEY (REQ_IN09_CHECKLIST, T4_IN09_CHECKLIST)';
 const CMAR_DECLARATION_SIGNED_UNIT =
   'UNIT_KEY (REQ_IN18_CMAR, T4_IN18_CMAR)';
+const DRT_REQUIRED_UNIT = 'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)';
 
 function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
@@ -71,6 +75,7 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includePressurization = false, includePressurizationManual = false,
   includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
   signedProducts = [],
+  executionDrts = [],
   requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -158,6 +163,11 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       }
     });
   });
+  executionDrts.forEach((attributes, index) => records.push({
+    record_id: 'EXECUTION_DRT_' + index, entity_id: 'ART', parent_record_id: null,
+    source_document: 'EXECUTION_DRT_' + index, attributes,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'EXECUTION_DRT_' + index }
+  }));
   if (includeLegacyExecutionDrt) {
     records.push({
       record_id: 'DOC_DRT', entity_id: 'PPCI', parent_record_id: null,
@@ -515,6 +525,70 @@ assert.deepEqual(JSON.parse(JSON.stringify(positiveResult.trace[0].memoryReferen
 assert.equal(Object.hasOwn(positiveResult, 'nonconformityOnFalse'), false);
 assert.equal(positiveResult.traceability.declarationSource, '04_table4.txt');
 assert.equal(positiveResult.traceability.unitKey, PILOT_UNIT);
+
+// RT-002 DRT presence consumes only the authenticated, type-matched binding.
+const executionDrt = prepare({ includeGas: false, executionDrts: [{
+  RESPONSIBILITY_TYPE: 'EXECUCAO',
+  DECLARED_ACTIVITY_SERVICE_TEXT: 'TEST_ONLY atividade declarada'
+}] });
+const responsibilityBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, executionDrt.plan, executionDrt.view, 'RT-002'
+);
+assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
+  responsibilityBinding, contract, executionDrt.plan, executionDrt.view
+), true);
+assert.equal(responsibilityBinding.evidence.length, 1);
+const requiredDrtResult = api.executePlannedCriterion(
+  contract, executionDrt.plan, DRT_REQUIRED_UNIT, executionDrt.view
+);
+assert.equal(requiredDrtResult.engineResult, api.EngineResult.TRUE);
+assert.equal(requiredDrtResult.pipelineResult, 'PASS');
+assert.equal(requiredDrtResult.trace[0].predicateId,
+  'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE');
+assert.deepEqual(JSON.parse(JSON.stringify(requiredDrtResult.trace[0].memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'EXECUTION_DRT_0' }
+]);
+assert.equal(Object.hasOwn(requiredDrtResult, 'nonconformityOnFalse'), false);
+
+const emptyDrtBinding = prepare({ includeGas: false });
+const emptyDrtResult = api.executePlannedCriterion(
+  contract, emptyDrtBinding.plan, DRT_REQUIRED_UNIT, emptyDrtBinding.view
+);
+assert.equal(emptyDrtResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(emptyDrtResult.pipelineResult, 'MANUAL_REVIEW');
+assert.deepEqual(JSON.parse(JSON.stringify(emptyDrtResult.trace[0].memoryReferences)), []);
+assert.equal(Object.hasOwn(emptyDrtResult, 'nonconformityOnFalse'), false);
+
+const explicitlyDifferentDrtType = prepare({ includeGas: false, executionDrts: [{
+  RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO'
+}] });
+const differentDrtResult = api.executePlannedCriterion(
+  contract, explicitlyDifferentDrtType.plan, DRT_REQUIRED_UNIT,
+  explicitlyDifferentDrtType.view
+);
+assert.equal(differentDrtResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(Object.hasOwn(differentDrtResult, 'nonconformityOnFalse'), false);
+
+const multipleExecutionDrts = prepare({ includeGas: false, executionDrts: [
+  { RESPONSIBILITY_TYPE: 'EXECUCAO' }, { RESPONSIBILITY_TYPE: 'EXECUCAO' }
+] });
+const multipleDrtBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, multipleExecutionDrts.plan, multipleExecutionDrts.view, 'RT-002'
+);
+assert.equal(multipleDrtBinding.evidence.length, 2);
+const multipleDrtResult = api.executePlannedCriterion(
+  contract, multipleExecutionDrts.plan, DRT_REQUIRED_UNIT, multipleExecutionDrts.view
+);
+assert.equal(multipleDrtResult.engineResult, api.EngineResult.TRUE);
+assert.equal(multipleDrtResult.trace[0].memoryReferences.length, 2);
+assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
+  Object.freeze({ ...responsibilityBinding }), contract, executionDrt.plan,
+  executionDrt.view
+), false);
+assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
+  responsibilityBinding, contract, multipleExecutionDrts.plan,
+  multipleExecutionDrts.view
+), false);
 
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
