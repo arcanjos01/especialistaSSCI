@@ -169,7 +169,8 @@ assertBlocker(() => selectId([matching('TEST_ONLY_SAME_RE_OLD_DATE', {
   REQUEST_DATE: '2025-12-01', RE_IDENTIFIER: 'TEST_ONLY_RE_1'
 })]));
 
-// RE is a consistency check only when both sides supply it; it cannot identify.
+// RE is a consistency check only when both the presentation and candidate
+// provide it. Absence on either side does not infer the missing identifier.
 assertBlocker(() => selectId([matching('TEST_ONLY_RE_MISMATCH', {
   RE_IDENTIFIER: 'TEST_ONLY_OTHER_RE'
 })]));

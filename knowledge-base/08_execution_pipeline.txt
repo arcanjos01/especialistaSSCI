@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.20.0
+# DOCUMENT_VERSION: 4.22.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.17.0
+KNOWLEDGE_BASE_VERSION: 5.19.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -25,7 +25,7 @@ DOCUMENT_SET:
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
 06_reports.txt: DOCUMENT_VERSION 3.7.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.20.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.22.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.6.0
 
 END DOCUMENT_SET.
@@ -413,6 +413,38 @@ is required for score below threshold, conflict, ambiguity, competing
 candidates, insufficient provenance/integrity, or absent/invalid calibration.
 No correlation decision causes PASS in isolation.
 
+Each candidate shall include a versioned conflict assessment with an outcome,
+detector identity/version and references to documentary evidence already
+included in that candidate. The frozen policy and applicable calibration shall
+identify the detector version. Only `NO_MATERIAL_CONFLICT` from that exact
+detector version, with evidence covering both endpoints, can pass this gate.
+`MATERIAL_CONFLICT`, `INDETERMINATE`, a missing or mismatched assessment, or
+evidence that does not cover both endpoints requires human review. An
+assessment shall be authenticated over its outcome, calibrated score, detector
+id/version, complete candidate evidence references and conflict flags, policy
+digest, presentation identity and RDE digest. The
+runtime shall reject modified or replayed assessments. The candidate inventory
+shall enumerate every DRT-to-eligible-product endpoint pair in the exact RDE;
+an omitted, duplicate or unverifiable pair makes the inventory incomplete and
+requires human review. An assessment shall use only facts and provenance in the
+exact validated RDE; it
+shall not infer an explicit documentary association, Requirements, Criteria,
+Nonconformities or results. Names or textual resemblance alone do not
+establish correspondence or absence of conflict. If the available DRT and
+product facts are not comparable under an authorized, calibrated detector, the
+assessment is `INDETERMINATE`.
+
+An empirically validated calibration record shall identify both the dataset
+digest and the separate validation-evidence digest/reference. A hash alone or a
+`VALID` label without that validation record does not open the calibration gate.
+The validation receipt shall be authenticated by a calibration-authority key
+separate from the policy/configuration signing key; configuration alone cannot
+approve its own calibration.
+Correlation provenance is sufficient only when the endpoint evidence preserves
+usable origin/location: nonempty `sourceKind` and `sourceReference` together, a
+positive `page`, `row` or `column`, or a nonempty `text_span`, `location` or
+`attachment`. Other nonempty provenance fields alone require human review.
+
 Only an authenticated, read-only interface may expose an admitted correlation
 to the Engine. The interface shall bind the decision to the exact presentation
 identity, RDE digest, compiled contract, frozen execution plan and immutable
@@ -425,6 +457,16 @@ relation-only input; Process Memory remains exclusively fact-only. This does
 not alter execution semantics or the execution order. A correlation remains
 supporting input to a declared contract and cannot create a rule, result,
 Requirement, Criterion or Nonconformity.
+
+Phase ordering is explicit. PHASE 3A creates and freezes the correlation
+artifact from the validated RDE, its ImmutableExecutionView, the exact current
+presentation identity and frozen policy/calibration inputs. It does not require
+or read the applicability result or frozen execution plan. After PHASE 4C has
+materialized the plan, a separate authenticated read-only Engine binding may
+bind the existing artifact to the exact compiled contract, plan and view. This
+binding does not mutate or recompute the artifact, reopen documents, revisit
+PHASE 3A, or change any completed phase. A blocked or human-review decision
+exposes no relation to the Engine.
 
 Any operational presentation of the artifact shall preserve exact RDE text and
 RDE references/digest and include the literal disclosure

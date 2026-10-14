@@ -9,7 +9,8 @@ const {
   isImmutableExecutionView,
   isExecutionViewBackedByEntityCatalog_,
   snapshotImmutableExecutionViewEntityRecords_,
-  projectRdeToExecutionView_
+  projectRdeToExecutionView_,
+  isExecutionViewDerivedFromRde_
 } = (function () {
   'use strict';
 
@@ -22,6 +23,7 @@ const {
   const executionViewWeakMapGet_ = WeakMap.prototype.get;
   const executionViewWeakMapSet_ = WeakMap.prototype.set;
   const executionViewWeakMapHas_ = WeakMap.prototype.has;
+  const executionViewGetValidatedRdeDigest_ = getValidatedRdeDigest_;
   const executionViewArrayIncludes_ = Array.prototype.includes;
   const executionViewArraySort_ = Array.prototype.sort;
   const executionViewArrayConcat_ = Array.prototype.concat;
@@ -456,7 +458,8 @@ function executionViewRecord(view, reference) {
  */
 class ImmutableExecutionView {
   constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0',
-    declarationEntries = [], documentaryDateEntries = [], entityCatalogIdentity, constructionToken) {
+    declarationEntries = [], documentaryDateEntries = [], entityCatalogIdentity,
+    constructionToken, rdeOrigin, rdeDigest) {
     if (constructionToken !== executionViewConstructionToken_) {
       throw new executionViewContractError_(
         'ImmutableExecutionView can only be created from an RDE projection'
@@ -890,7 +893,9 @@ class ImmutableExecutionView {
       drtDeclarationItems: executionViewFreeze_(drtDeclarationItems),
       documentaryDateItems: executionViewFreeze_(documentaryDateItems),
       entityCatalogIdentity,
-      schemaVersion
+      schemaVersion,
+      rdeOrigin,
+      rdeDigest
     }));
     executionViewFreeze_(this);
   }
@@ -1051,18 +1056,28 @@ class ImmutableExecutionView {
     return executionViewFreeze_(result);
   }
 
-/** Create the closed documentary projection from a validated RDE 0.2.0 through 0.5.0. */
-function projectRdeToExecutionView_(rde, entityCatalog) {
-  if (typeof EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_ !== 'function' ||
-      !EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_(rde)) {
-    throw new executionViewContractError_(
-      'projection requires a structurally validated RDE parsed from JSON'
-    );
+  function isExecutionViewDerivedFromRde_(view, rde, digest) {
+    const state = executionViewStateGet_(view);
+    return !!state && executionViewStateHas_(view) && state.rdeOrigin === rde &&
+      EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_(rde) &&
+      typeof digest === 'string' && state.rdeDigest === digest &&
+      executionViewGetValidatedRdeDigest_(rde) === digest;
   }
+
+  /** Create the closed documentary projection from a validated RDE 0.2.0 through 0.5.0. */
+  function projectRdeToExecutionView_(rde, entityCatalog) {
+    if (typeof EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_ !== 'function' ||
+      !EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_(rde)) {
+      throw new executionViewContractError_(
+        'projection requires a structurally validated RDE parsed from JSON'
+      );
+    }
   // Only parser-authenticated, deeply frozen JSON can cross this boundary. A
   // caller-supplied Proxy cannot be safely inspected in JavaScript: its traps
   // can agree on a forged value while its target retains another fact.
   const entityCatalogIdentity = entityCatalog;
+  const rdeOrigin = rde;
+  const rdeDigest = executionViewGetValidatedRdeDigest_(rde);
   rde = immutableExecutionCopy(rde);
   entityCatalog = immutableExecutionCopy(entityCatalog);
   if (!rde || typeof rde !== 'object' || executionViewArrayIsArray_(rde)) {
@@ -1241,7 +1256,7 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
   }
   return new ImmutableExecutionView(
     entries, associations, schemaVersion, declarations, dates, entityCatalogIdentity,
-    executionViewConstructionToken_
+    executionViewConstructionToken_, rdeOrigin, rdeDigest
   );
 }
 
@@ -1251,7 +1266,8 @@ function projectRdeToExecutionView_(rde, entityCatalog) {
     isImmutableExecutionView,
     isExecutionViewBackedByEntityCatalog_,
     snapshotImmutableExecutionViewEntityRecords_,
-    projectRdeToExecutionView_
+    projectRdeToExecutionView_,
+    isExecutionViewDerivedFromRde_
   });
 })();
 
@@ -1272,4 +1288,7 @@ Object.defineProperty(globalThis, 'projectRdeToExecutionView_', {
   enumerable: true,
   writable: false,
   configurable: false
+});
+Object.defineProperty(globalThis, 'isExecutionViewDerivedFromRde_', {
+  value: isExecutionViewDerivedFromRde_, enumerable: false, writable: false, configurable: false
 });

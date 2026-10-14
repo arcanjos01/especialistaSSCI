@@ -1,3 +1,6 @@
+(function installCurrentSubmissionContext_(global) {
+'use strict';
+
 /**
  * Immutable, request-scoped intake context for the current Habite-se submission.
  * processId is optional technical correlation metadata and never selects a document.
@@ -11,22 +14,81 @@ class CurrentSubmissionContextContractError extends Error {
   }
 }
 
+const CURRENT_SUBMISSION_CONTEXT_AUTH_ = new WeakMap();
+const CURRENT_CONTEXT_WEAKMAP_SET_ = WeakMap.prototype.set;
+const CURRENT_CONTEXT_WEAKMAP_GET_ = WeakMap.prototype.get;
+const CURRENT_CONTEXT_WEAKMAP_HAS_ = WeakMap.prototype.has;
+const CURRENT_CONTEXT_APPLY_ = Reflect.apply;
+const CURRENT_CONTEXT_FREEZE_ = Object.freeze;
+const CURRENT_CONTEXT_IS_FROZEN_ = Object.isFrozen;
+const CURRENT_CONTEXT_KEYS_ = Object.keys;
+const CURRENT_CONTEXT_GET_PROTOTYPE_ = Object.getPrototypeOf;
+const CURRENT_CONTEXT_OBJECT_PROTOTYPE_ = Object.prototype;
+const CURRENT_CONTEXT_GET_NAMES_ = Object.getOwnPropertyNames;
+const CURRENT_CONTEXT_GET_SYMBOLS_ = Object.getOwnPropertySymbols;
+const CURRENT_CONTEXT_GET_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
+const CURRENT_CONTEXT_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const CURRENT_CONTEXT_ARRAY_SORT_ = Array.prototype.sort;
+const CURRENT_CONTEXT_ARRAY_SLICE_ = Array.prototype.slice;
+const CURRENT_CONTEXT_ARRAY_JOIN_ = Array.prototype.join;
+const CURRENT_CONTEXT_ARRAY_IS_ARRAY_ = Array.isArray;
+const CURRENT_CONTEXT_ARRAY_EVERY_ = Array.prototype.every;
+const CURRENT_CONTEXT_ARRAY_INCLUDES_ = Array.prototype.includes;
+const CURRENT_CONTEXT_ARRAY_FOR_EACH_ = Array.prototype.forEach;
+const CURRENT_CONTEXT_ARRAY_PUSH_ = Array.prototype.push;
+const CURRENT_CONTEXT_STRING_TRIM_ = String.prototype.trim;
+const CURRENT_CONTEXT_DEFINE_ = Object.defineProperty;
+const CURRENT_CONTEXT_NATIVE_OBJECT_PROTOTYPE_NAMES_ = CURRENT_CONTEXT_FREEZE_(
+  CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SORT_, CURRENT_CONTEXT_GET_NAMES_(CURRENT_CONTEXT_OBJECT_PROTOTYPE_), [])
+);
+
 const CURRENT_SUBMISSION_DOCUMENT_ENTITY =
   'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE';
 
 function isPlainSubmissionObject(value) {
-  if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === null || Object.getPrototypeOf(prototype) === null;
+  if (!value || typeof value !== 'object' || CURRENT_CONTEXT_ARRAY_IS_ARRAY_(value)) return false;
+  const prototype = CURRENT_CONTEXT_GET_PROTOTYPE_(value);
+  if (prototype === null || prototype === CURRENT_CONTEXT_OBJECT_PROTOTYPE_) return true;
+  if (CURRENT_CONTEXT_GET_PROTOTYPE_(prototype) !== null) return false;
+  const prototypeNames = CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SORT_, CURRENT_CONTEXT_GET_NAMES_(prototype), []);
+  if (CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_JOIN_, prototypeNames, ['\u0000']) !==
+      CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_JOIN_, CURRENT_CONTEXT_NATIVE_OBJECT_PROTOTYPE_NAMES_, ['\u0000'])) return false;
+  const constructor = CURRENT_CONTEXT_GET_DESCRIPTOR_(prototype, 'constructor');
+  return constructor &&
+    CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, constructor, ['value']) &&
+    typeof constructor.value === 'function' && constructor.value.name === 'Object';
 }
 
 function hasExactSubmissionKeys(value, expectedKeys) {
-  return isPlainSubmissionObject(value) &&
-    Object.keys(value).sort().join('\u0000') === expectedKeys.slice().sort().join('\u0000');
+  if (!isPlainSubmissionObject(value) || CURRENT_CONTEXT_GET_SYMBOLS_(value).length !== 0) return false;
+  const keys = CURRENT_CONTEXT_KEYS_(value);
+  const names = CURRENT_CONTEXT_GET_NAMES_(value);
+  if (names.length !== keys.length || keys.length !== expectedKeys.length) return false;
+  for (let index = 0; index < keys.length; index += 1) {
+    const descriptor = CURRENT_CONTEXT_GET_DESCRIPTOR_(value, keys[index]);
+    if (!descriptor || !CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, descriptor, ['value'])) return false;
+  }
+  return CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_JOIN_,
+      CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SORT_, CURRENT_CONTEXT_KEYS_(value), []), ['\u0000']) ===
+    CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_JOIN_,
+      CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SORT_, CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SLICE_, expectedKeys, []), []), ['\u0000']);
+}
+
+function hasOnlySubmissionDataProperties(value, allowedKeys) {
+  if (!isPlainSubmissionObject(value) || CURRENT_CONTEXT_GET_SYMBOLS_(value).length !== 0) return false;
+  const keys = CURRENT_CONTEXT_KEYS_(value);
+  if (CURRENT_CONTEXT_GET_NAMES_(value).length !== keys.length) return false;
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index];
+    const descriptor = CURRENT_CONTEXT_GET_DESCRIPTOR_(value, key);
+    if (!CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_INCLUDES_, allowedKeys, [key]) ||
+        !descriptor || !CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, descriptor, ['value'])) return false;
+  }
+  return true;
 }
 
 function requireSubmissionString(value, name) {
-  if (typeof value !== 'string' || value.trim() === '') {
+  if (typeof value !== 'string' || CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_STRING_TRIM_, value, []) === '') {
     throw new CurrentSubmissionContextContractError(name + ' must be a non-empty string');
   }
   return value;
@@ -50,9 +112,10 @@ function createCurrentSubmissionContext(input) {
     throw new CurrentSubmissionContextContractError('context must be a plain object');
   }
   const allowed = ['processId', 'protocolIdentifier', 'requestDate', 'reIdentifier', 'provenance'];
-  if (Object.keys(input).some(key => !allowed.includes(key)) ||
-      !['protocolIdentifier', 'requestDate', 'provenance']
-        .every(key => Object.prototype.hasOwnProperty.call(input, key))) {
+  if (!hasOnlySubmissionDataProperties(input, allowed) ||
+      !CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_EVERY_,
+        ['protocolIdentifier', 'requestDate', 'provenance'], [key =>
+          CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, input, [key])])) {
     throw new CurrentSubmissionContextContractError('context has missing or unknown fields');
   }
 
@@ -73,23 +136,47 @@ function createCurrentSubmissionContext(input) {
       'provenance must contain exactly sourceKind and sourceReference'
     );
   }
-  const immutableProvenance = Object.freeze({
+  const immutableProvenance = CURRENT_CONTEXT_FREEZE_({
     sourceKind: requireSubmissionString(provenance.sourceKind, 'provenance.sourceKind'),
     sourceReference: requireSubmissionString(
       provenance.sourceReference, 'provenance.sourceReference'
     )
   });
   let reIdentifier = null;
-  if (Object.prototype.hasOwnProperty.call(input, 'reIdentifier') && input.reIdentifier != null) {
+  if (CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, input, ['reIdentifier']) && input.reIdentifier != null) {
     reIdentifier = requireSubmissionString(input.reIdentifier, 'reIdentifier');
   }
-  return Object.freeze({
+  const context = CURRENT_CONTEXT_FREEZE_({
     processId,
     protocolIdentifier,
     requestDate: input.requestDate,
     reIdentifier,
     provenance: immutableProvenance
   });
+  CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_WEAKMAP_SET_, CURRENT_SUBMISSION_CONTEXT_AUTH_, [context, CURRENT_CONTEXT_FREEZE_({
+    protocolIdentifier: context.protocolIdentifier,
+    requestDate: context.requestDate,
+    reIdentifier: context.reIdentifier,
+    provenance: context.provenance
+  })]);
+  return context;
+}
+
+function isCanonicalCurrentSubmissionContext(value) {
+  return CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_WEAKMAP_HAS_, CURRENT_SUBMISSION_CONTEXT_AUTH_, [value]) &&
+    CURRENT_CONTEXT_IS_FROZEN_(value) && CURRENT_CONTEXT_IS_FROZEN_(value.provenance);
+}
+
+function authenticateCurrentSubmissionContext(context) {
+  if (!isCanonicalCurrentSubmissionContext(context)) {
+    throw new CurrentSubmissionContextContractError('context is not canonical or authenticated');
+  }
+  return context;
+}
+
+function getAuthenticatedPresentationIdentity(context) {
+  authenticateCurrentSubmissionContext(context);
+  return CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_WEAKMAP_GET_, CURRENT_SUBMISSION_CONTEXT_AUTH_, [context]);
 }
 
 function currentSubmissionReferenceKey_(reference) {
@@ -121,7 +208,7 @@ function selectCurrentComprovante(view, context) {
 
   const matches = [];
   try {
-    candidates.forEach(reference => {
+    CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_FOR_EACH_, candidates, [reference => {
       if (view.entityId(reference) !== CURRENT_SUBMISSION_DOCUMENT_ENTITY) return;
       const referenceKey = currentSubmissionReferenceKey_(reference);
       if (!referenceKey) return;
@@ -135,12 +222,12 @@ function selectCurrentComprovante(view, context) {
           attributes.REQUEST_DATE !== current.requestDate) return;
 
       if (current.reIdentifier !== null &&
-          Object.prototype.hasOwnProperty.call(attributes, 'RE_IDENTIFIER') &&
+          CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_HAS_OWN_, attributes, ['RE_IDENTIFIER']) &&
           attributes.RE_IDENTIFIER !== null &&
           attributes.RE_IDENTIFIER !== current.reIdentifier) return;
 
-      matches.push(reference);
-    });
+      CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_PUSH_, matches, [reference]);
+    }]);
   } catch (error) {
     if (error instanceof CurrentSubmissionContextContractError) throw error;
     throw new CurrentSubmissionContextContractError(
@@ -157,3 +244,26 @@ function selectCurrentComprovante(view, context) {
   }
   return matches[0];
 }
+
+CURRENT_CONTEXT_DEFINE_(globalThis, 'isCanonicalCurrentSubmissionContext', {
+  value: isCanonicalCurrentSubmissionContext, enumerable: false, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(globalThis, 'authenticateCurrentSubmissionContext', {
+  value: authenticateCurrentSubmissionContext, enumerable: false, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(globalThis, 'getAuthenticatedPresentationIdentity', {
+  value: getAuthenticatedPresentationIdentity, enumerable: false, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(globalThis, 'selectCurrentComprovante', {
+  value: selectCurrentComprovante, enumerable: false, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(global, 'CurrentSubmissionContextContractError', {
+  value: CurrentSubmissionContextContractError, enumerable: true, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(global, 'createCurrentSubmissionContext', {
+  value: createCurrentSubmissionContext, enumerable: true, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(global, 'isCanonicalCivilDate_', {
+  value: isCanonicalCivilDate_, enumerable: false, writable: false, configurable: false
+});
+})(globalThis);

@@ -29,6 +29,8 @@ vm.runInContext(source + `
   validateRdeStructure_,
   validateRdeRecordEnvelope_,
     parseAndValidateOperationalRdeJson_,
+    canonicalRdeJson_,
+    getValidatedRdeDigest_,
     validateSourceHash_
   };
 `, context);
@@ -58,6 +60,21 @@ assert.equal(core.RDE_SCHEMA_VERSION, '0.5.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+);
+
+const unicodeRdeInput = core.buildFakeRde_({
+  ...input,
+  sourceFileName: 'Relatório 🧯.pdf',
+  sourceFileId: 'unicode-file-id'
+});
+const unicodeRde = core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(unicodeRdeInput),
+  { processId: unicodeRdeInput.process_id, sourceFileId: unicodeRdeInput.source.file_id },
+  compiledContract.entityCatalog
+);
+assert.equal(
+  core.getValidatedRdeDigest_(unicodeRde),
+  crypto.createHash('sha256').update(core.canonicalRdeJson_(unicodeRde), 'utf8').digest('hex')
 );
 
 const rde = core.buildFakeRde_(input);
