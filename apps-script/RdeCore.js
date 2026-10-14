@@ -1,18 +1,43 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.5.0';
-const RDE_PREVIOUS_SCHEMA_VERSION = '0.4.0';
+const RDE_SCHEMA_VERSION = '0.6.0';
+const RDE_PREVIOUS_SCHEMA_VERSION = '0.5.0';
 const RDE_LEGACY_SCHEMA_VERSION = '0.3.0';
 const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
 const RDE_INTRINSIC_GET_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
+const RDE_INTRINSIC_GET_NAMES_ = Object.getOwnPropertyNames;
+const RDE_INTRINSIC_GET_SYMBOLS_ = Object.getOwnPropertySymbols;
 const RDE_INTRINSIC_DEFINE_PROPERTY_ = Object.defineProperty;
 const RDE_INTRINSIC_JSON_PARSE_ = JSON.parse;
+const RDE_INTRINSIC_JSON_STRINGIFY_ = JSON.stringify;
 const RDE_INTRINSIC_KEYS_ = Object.keys;
 const RDE_INTRINSIC_FREEZE_ = Object.freeze;
 const RDE_INTRINSIC_IS_ARRAY_ = Array.isArray;
 const RDE_INTRINSIC_APPLY_ = Reflect.apply;
 const RDE_INTRINSIC_HAS_OWN_ = Object.prototype.hasOwnProperty;
+const RDE_INTRINSIC_STRING_INDEX_OF_ = String.prototype.indexOf;
+const RDE_INTRINSIC_STRING_TRIM_ = String.prototype.trim;
+const RDE_INTRINSIC_NUMBER_IS_FINITE_ = Number.isFinite;
+const RDE_INTRINSIC_ARRAY_PUSH_ = Array.prototype.push;
+const RDE_INTRINSIC_ARRAY_JOIN_ = Array.prototype.join;
+const RDE_INTRINSIC_ARRAY_SORT_ = Array.prototype.sort;
+const RDE_INTRINSIC_SET_HAS_ = Set.prototype.has;
+const RDE_INTRINSIC_SET_ADD_ = Set.prototype.add;
+const RDE_INTRINSIC_SET_DELETE_ = Set.prototype.delete;
 const RDE_INTRINSIC_WEAKSET_ADD_ = WeakSet.prototype.add;
 const RDE_INTRINSIC_WEAKSET_HAS_ = WeakSet.prototype.has;
+
+function rdeHasOwn_(object, key) {
+  return RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_HAS_OWN_, object, [key]);
+}
+
+function rdeNonBlankText_(value) {
+  return typeof value === 'string' &&
+    RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_STRING_TRIM_, value, []).length > 0;
+}
+
+function rdeLiteralIndexOf_(text, needle) {
+  return RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_STRING_INDEX_OF_, text, [needle]);
+}
 
 function rdeSha256Fallback_(text) {
   const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
@@ -37,7 +62,8 @@ function lockRdeValidationHelpers_() {
     'requireRdeObject_', 'requireRdeString_', 'hasNativeNonJsonBrand_',
     'isPlainRdeObject_', 'rdeEntityDefinition_', 'validateRdeRecordEnvelope_',
     'canonicalRdeJson_', 'validateRdeDocumentaryAssociations_',
-    'validateRdeDrtDeclarationItems_', 'validateRdeDocumentaryDateItems_',
+    'validateRdeDrtDeclarationItems_', 'validateRdeDocumentaryDateItems_', 'validateRdeActivityItems_',
+    'rdeHasOwn_', 'rdeNonBlankText_', 'rdeLiteralIndexOf_',
     'validateRdeStructure_', 'parseAndValidateOperationalRdeJson_',
     'validateSourceHash_', 'sha256Hex_', 'rdeSha256Fallback_', 'validatedRdeDigest_'
   ];
@@ -54,8 +80,8 @@ function lockRdeValidationHelpers_() {
   }
 }
 function isSupportedRdeSchemaVersion_(version) {
-  return version === RDE_SCHEMA_VERSION || version === RDE_PREVIOUS_SCHEMA_VERSION ||
-    version === RDE_LEGACY_SCHEMA_VERSION || version === RDE_HISTORICAL_SCHEMA_VERSION;
+  return version === '0.2.0' || version === '0.3.0' || version === '0.4.0' ||
+    version === '0.5.0' || version === '0.6.0';
 }
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
@@ -83,6 +109,7 @@ function buildFakeRde_(input) {
     documentary_associations: [],
     drt_declaration_items: [],
     documentary_date_items: [],
+    drt_activity_items: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -126,6 +153,7 @@ function validateRde_(rde, expected) {
     'documentary_associations',
     'drt_declaration_items',
     'documentary_date_items',
+    'drt_activity_items',
     'extraction_warnings'
   ])) {
     throw new Error('RDE deve ser um objeto JSON.');
@@ -192,6 +220,9 @@ function validateRde_(rde, expected) {
   }
   if (!Array.isArray(rde.documentary_date_items) || rde.documentary_date_items.length !== 0) {
     throw new Error('documentary_date_items deve ser vazia no extrator fake.');
+  }
+  if (!Array.isArray(rde.drt_activity_items) || rde.drt_activity_items.length !== 0) {
+    throw new Error('drt_activity_items deve ser vazia no extrator fake.');
   }
 
   if (
@@ -619,10 +650,10 @@ function validateRdeRecordEnvelope_(records, entityCatalog) {
 
 function canonicalRdeJson_(value, active) {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') {
-    return JSON.stringify(value);
+    return RDE_INTRINSIC_JSON_STRINGIFY_(value);
   }
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return JSON.stringify(value);
+  if (typeof value === 'number' && RDE_INTRINSIC_NUMBER_IS_FINITE_(value)) {
+    return RDE_INTRINSIC_JSON_STRINGIFY_(value);
   }
   if (typeof value !== 'object') {
     throw makeRdeValidationError_(
@@ -631,26 +662,26 @@ function canonicalRdeJson_(value, active) {
     );
   }
   const seen = active || new Set();
-  if (seen.has(value)) {
+  if (RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_SET_HAS_, seen, [value])) {
     throw makeRdeValidationError_(
       'RDE_ASSOCIATION_PROVENANCE_INVALID',
       'documentary_associations.provenance não pode conter ciclos.'
     );
   }
-  seen.add(value);
+  RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_SET_ADD_, seen, [value]);
   let serialized;
-  if (Array.isArray(value)) {
-    if (Object.getOwnPropertySymbols(value).length ||
-        Object.keys(value).length !== value.length ||
-        Object.getOwnPropertyNames(value).length !== value.length + 1) {
+  if (RDE_INTRINSIC_IS_ARRAY_(value)) {
+    if (RDE_INTRINSIC_GET_SYMBOLS_(value).length ||
+        RDE_INTRINSIC_KEYS_(value).length !== value.length ||
+        RDE_INTRINSIC_GET_NAMES_(value).length !== value.length + 1) {
       throw makeRdeValidationError_(
         'RDE_ASSOCIATION_PROVENANCE_INVALID',
         'Arrays em provenance devem conter somente posições indexadas.'
       );
     }
     for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      if (!descriptor || !RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_HAS_OWN_, descriptor, ['value'])) {
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(value, String(index));
+      if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
         throw makeRdeValidationError_(
           'RDE_ASSOCIATION_PROVENANCE_INVALID',
           'Arrays em provenance devem conter somente valores de dados.'
@@ -659,38 +690,48 @@ function canonicalRdeJson_(value, active) {
     }
     const items = [];
     for (let index = 0; index < value.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      items.push(canonicalRdeJson_(descriptor.value, seen));
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(value, String(index));
+      RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_ARRAY_PUSH_, items,
+        [canonicalRdeJson_(descriptor.value, seen)]);
     }
-    serialized = '[' + items.join(',') + ']';
+    serialized = '[' + RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_ARRAY_JOIN_, items, [',']) + ']';
   } else if (isPlainRdeObject_(value)) {
-    if (Object.getOwnPropertySymbols(value).length ||
-        Object.getOwnPropertyNames(value).length !== Object.keys(value).length) {
+    const keys = RDE_INTRINSIC_KEYS_(value);
+    if (RDE_INTRINSIC_GET_SYMBOLS_(value).length ||
+        RDE_INTRINSIC_GET_NAMES_(value).length !== keys.length) {
       throw makeRdeValidationError_(
         'RDE_ASSOCIATION_PROVENANCE_INVALID',
         'Objetos em provenance devem conter somente campos JSON enumeráveis.'
       );
     }
-    Object.keys(value).forEach(key => {
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(value, key);
+      if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
         throw makeRdeValidationError_(
           'RDE_ASSOCIATION_PROVENANCE_INVALID',
           'Provenance não pode conter propriedades calculadas.'
         );
       }
-    });
-    serialized = '{' + Object.keys(value).sort().map(key =>
-      JSON.stringify(key) + ':' + canonicalRdeJson_(value[key], seen)
-    ).join(',') + '}';
+    }
+    RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_ARRAY_SORT_, keys, []);
+    let fields = '';
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(value, key);
+      if (index > 0) fields += ',';
+      fields += RDE_INTRINSIC_JSON_STRINGIFY_(key) + ':' +
+        canonicalRdeJson_(descriptor.value, seen);
+    }
+    serialized = '{' + fields + '}';
   } else {
-    seen.delete(value);
+    RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_SET_DELETE_, seen, [value]);
     throw makeRdeValidationError_(
       'RDE_ASSOCIATION_PROVENANCE_INVALID',
       'documentary_associations.provenance deve conter somente objetos simples.'
     );
   }
-  seen.delete(value);
+  RDE_INTRINSIC_APPLY_(RDE_INTRINSIC_SET_DELETE_, seen, [value]);
   return serialized;
 }
 
@@ -853,7 +894,7 @@ function validateRdeDrtDeclarationItems_(items, records, entityCatalog) {
   const declarationIds = Object.create(null);
   const signatures = Object.create(null);
   for (let index = 0; index < items.length; index += 1) {
-    const itemDescriptor = Object.getOwnPropertyDescriptor(items, String(index));
+    const itemDescriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(items, String(index));
     if (!itemDescriptor || !Object.prototype.hasOwnProperty.call(itemDescriptor, 'value')) {
       throw makeRdeValidationError_(
         'RDE_DRT_DECLARATIONS_INVALID',
@@ -1072,7 +1113,98 @@ function validateRdeDocumentaryDateItems_(items, records, entityCatalog) {
   return true;
 }
 
-/** Valida RDE 0.2.0/0.3.0/0.4.0/0.5.0 sem executar Requirements ou Criteria. */
+function validateRdeActivityItems_(items, records, entityCatalog) {
+  if (!RDE_INTRINSIC_IS_ARRAY_(items) || RDE_INTRINSIC_GET_SYMBOLS_(items).length ||
+      RDE_INTRINSIC_KEYS_(items).length !== items.length ||
+      RDE_INTRINSIC_GET_NAMES_(items).length !== items.length + 1) {
+    throw makeRdeValidationError_('RDE_ACTIVITY_ITEMS_INVALID',
+      'drt_activity_items deve ser um array denso sem propriedades extras.');
+  }
+  for (let index = 0; index < items.length; index += 1) {
+    const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(items, String(index));
+    if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEMS_INVALID', 'drt_activity_items deve conter dados em todas as posições.');
+    }
+  }
+  const recordsById = Object.create(null);
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(records, String(index));
+    if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEMS_INVALID', 'records deve conter dados em todas as posições.');
+    }
+    recordsById[descriptor.value.record_id] = descriptor.value;
+  }
+  const itemIds = Object.create(null);
+  const signatures = Object.create(null);
+  const required = ['activity_item_id', 'drt_record_id', 'activity_service_text', 'source_document', 'source_text'];
+  const optional = ['provenance'];
+  const hasKey = (list, key) => {
+    for (let index = 0; index < list.length; index += 1) if (list[index] === key) return true;
+    return false;
+  };
+  for (let index = 0; index < items.length; index += 1) {
+    const itemDescriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(items, String(index));
+    if (!itemDescriptor || !rdeHasOwn_(itemDescriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEMS_INVALID', 'drt_activity_items deve conter dados em todas as posições.');
+    }
+    const item = itemDescriptor.value;
+    if (!isPlainRdeObject_(item)) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_INVALID',
+      'drt_activity_items[' + index + '] deve ser um objeto simples.');
+    const keys = RDE_INTRINSIC_KEYS_(item);
+    let unsupportedKey = false;
+    for (let keyIndex = 0; keyIndex < keys.length; keyIndex += 1) {
+      if (!hasKey(required, keys[keyIndex]) && !hasKey(optional, keys[keyIndex])) unsupportedKey = true;
+    }
+    if (RDE_INTRINSIC_GET_SYMBOLS_(item).length ||
+        RDE_INTRINSIC_GET_NAMES_(item).length !== keys.length || unsupportedKey) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_INVALID',
+        'drt_activity_items[' + index + '] tem campos ausentes ou não declarados.');
+    }
+    const fieldValues = Object.create(null);
+    for (let keyIndex = 0; keyIndex < required.length; keyIndex += 1) {
+      const key = required[keyIndex];
+      const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(item, key);
+      if (!descriptor || !rdeHasOwn_(descriptor, 'value') || !rdeNonBlankText_(descriptor.value)) {
+        throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_INVALID', key + ' deve ser texto literal não vazio.');
+      }
+      fieldValues[key] = descriptor.value;
+    }
+    if (rdeLiteralIndexOf_(fieldValues.source_text, fieldValues.activity_service_text) === -1) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_TEXT_MISMATCH', 'activity_service_text deve ocorrer literalmente em source_text.');
+    }
+    if (rdeHasOwn_(itemIds, fieldValues.activity_item_id)) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_ID_DUPLICATE', 'activity_item_id duplicado.');
+    itemIds[fieldValues.activity_item_id] = true;
+    const drt = recordsById[fieldValues.drt_record_id];
+    const drtDefinition = drt && rdeHasOwn_(entityCatalog, drt.entity_id)
+      ? entityCatalog[drt.entity_id] : null;
+    if (!drt || !rdeHasOwn_(recordsById, fieldValues.drt_record_id)) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_DRT_DANGLING', 'drt_record_id deve resolver na mesma RDE.');
+    if (!drtDefinition || drtDefinition.TYPE !== 'DOCUMENT' || drtDefinition.EXTENDS !== 'DRT' || drtDefinition.ABSTRACT === true) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_DRT_TYPE_INVALID', 'drt_record_id deve resolver para DRT concreto.');
+    }
+    const source = recordsById[fieldValues.source_document];
+    if (!source || !rdeHasOwn_(recordsById, fieldValues.source_document) ||
+        !rdeHasOwn_(entityCatalog, source.entity_id) ||
+        entityCatalog[source.entity_id].TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_SOURCE_INVALID', 'source_document deve resolver para DOCUMENT.');
+    }
+    if (fieldValues.source_document !== drt.source_document) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_SOURCE_MISMATCH', 'source_document deve corresponder à origem da DRT.');
+    const provenanceDescriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(item, 'provenance');
+    const hasProvenance = !!provenanceDescriptor;
+    if (hasProvenance && !rdeHasOwn_(provenanceDescriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_PROVENANCE_INVALID', 'provenance não pode ser accessor.');
+    }
+    const provenanceValue = hasProvenance ? provenanceDescriptor.value : null;
+    if (hasProvenance && provenanceValue !== null && !isPlainRdeObject_(provenanceValue)) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_PROVENANCE_INVALID', 'provenance deve ser objeto simples.');
+    let provenance = null;
+    if (hasProvenance) { try { provenance = canonicalRdeJson_(provenanceValue); } catch (error) { throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_PROVENANCE_INVALID', 'provenance deve conter somente valores JSON simples.'); } }
+    const signature = canonicalRdeJson_({ drt_record_id: fieldValues.drt_record_id, activity_service_text: fieldValues.activity_service_text, source_document: fieldValues.source_document, source_text: fieldValues.source_text, hasProvenance, provenance });
+    if (rdeHasOwn_(signatures, signature)) throw makeRdeValidationError_('RDE_ACTIVITY_ITEM_DUPLICATE', 'item de atividade estruturalmente idêntico já registrado.');
+    signatures[signature] = true;
+  }
+  return true;
+}
+
+/** Valida RDE 0.2.0-0.6.0 sem executar Requirements ou Criteria. */
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
@@ -1081,7 +1213,7 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
       !isSupportedRdeSchemaVersion_(schemaDescriptor.value)) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
-      'schema_version deve ser 0.5.0, 0.4.0, 0.3.0 ou 0.2.0.'
+      'schema_version deve ser 0.6.0, 0.5.0, 0.4.0, 0.3.0 ou 0.2.0.'
     );
   }
   const schemaVersion = schemaDescriptor.value;
@@ -1093,7 +1225,12 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
     expectedEnvelopeKeys.push('documentary_associations');
     expectedEnvelopeKeys.push('drt_declaration_items');
     expectedEnvelopeKeys.push('documentary_date_items');
+    expectedEnvelopeKeys.push('drt_activity_items');
   } else if (schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+    expectedEnvelopeKeys.push('documentary_associations');
+    expectedEnvelopeKeys.push('drt_declaration_items');
+    expectedEnvelopeKeys.push('documentary_date_items');
+  } else if (schemaVersion === '0.4.0') {
     expectedEnvelopeKeys.push('documentary_associations');
     expectedEnvelopeKeys.push('drt_declaration_items');
   } else if (schemaVersion === RDE_LEGACY_SCHEMA_VERSION) {
@@ -1162,17 +1299,22 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
 
   if (schemaVersion === RDE_SCHEMA_VERSION ||
       schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
-      schemaVersion === RDE_LEGACY_SCHEMA_VERSION) {
+      schemaVersion === RDE_LEGACY_SCHEMA_VERSION ||
+      schemaVersion === '0.4.0') {
     const associationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_associations');
     validateRdeDocumentaryAssociations_(associationsDescriptor.value, rde.records, entityCatalog);
   }
-  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION || schemaVersion === '0.4.0') {
     const declarationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_declaration_items');
     validateRdeDrtDeclarationItems_(declarationsDescriptor.value, rde.records, entityCatalog);
   }
-  if (schemaVersion === RDE_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
     const datesDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_date_items');
     validateRdeDocumentaryDateItems_(datesDescriptor.value, rde.records, entityCatalog);
+  }
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
+    const activitiesDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_activity_items');
+    validateRdeActivityItems_(activitiesDescriptor.value, rde.records, entityCatalog);
   }
 
   if (!Array.isArray(rde.extraction_warnings)) {

@@ -28,6 +28,7 @@ vm.runInContext(source + `
     sha256Hex_,
   validateRdeStructure_,
   validateRdeRecordEnvelope_,
+    validateRdeActivityItems_,
     parseAndValidateOperationalRdeJson_,
     canonicalRdeJson_,
     getValidatedRdeDigest_,
@@ -40,6 +41,18 @@ assert.equal(core.isSupportedRdeSchemaVersion_('0.2.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.3.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.4.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.5.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.6.0'), true);
+const originalArrayIncludes = Array.prototype.includes;
+try {
+  vm.runInContext(`
+    globalThis.__originalArrayIncludes = Array.prototype.includes;
+    Array.prototype.includes = function () { throw new Error('prototype pollution'); };
+  `, context);
+  assert.equal(core.isSupportedRdeSchemaVersion_('0.6.0'), true);
+} finally {
+  vm.runInContext('Array.prototype.includes = globalThis.__originalArrayIncludes; delete globalThis.__originalArrayIncludes;', context);
+}
+assert.equal(Array.prototype.includes, originalArrayIncludes);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.1.0'), false);
 const input = {
   processId: 'HAB-E30DD583092F3F62',
@@ -56,7 +69,7 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.5.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.6.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
@@ -78,7 +91,7 @@ assert.equal(
 );
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.5.0');
+assert.equal(rde.schema_version, '0.6.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
@@ -87,6 +100,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(rde.records)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_declaration_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_date_items)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_activity_items)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -296,6 +310,7 @@ const legacyStructuralRde = {
 delete legacyStructuralRde.documentary_associations;
 delete legacyStructuralRde.drt_declaration_items;
 delete legacyStructuralRde.documentary_date_items;
+delete legacyStructuralRde.drt_activity_items;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
 assert.equal(core.parseAndValidateOperationalRdeJson_(
@@ -309,10 +324,23 @@ expectValidationCode(unsupportedAssociationRde, 'RDE_ENVELOPE_INVALID');
 const legacyV3Rde = { ...operationalRde, schema_version: '0.3.0' };
 delete legacyV3Rde.drt_declaration_items;
 delete legacyV3Rde.documentary_date_items;
+delete legacyV3Rde.drt_activity_items;
 assert.equal(core.validateRdeStructure_(legacyV3Rde, operationalExpected, entityCatalog), legacyV3Rde);
 const legacyV4Rde = { ...operationalRde, schema_version: '0.4.0' };
 delete legacyV4Rde.documentary_date_items;
+delete legacyV4Rde.drt_activity_items;
 assert.equal(core.validateRdeStructure_(legacyV4Rde, operationalExpected, entityCatalog), legacyV4Rde);
+const malformedV4AssociationRde = {
+  ...legacyV4Rde,
+  documentary_associations: [{
+    association_id: 'A-V4-ORPHAN', left_record_id: 'MISSING_LEFT',
+    right_record_id: 'MISSING_RIGHT', source_document: 'MISSING_SOURCE',
+    statement_text: 'Vínculo não presente na RDE.'
+  }]
+};
+assert.throws(() => core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(malformedV4AssociationRde), operationalExpected, entityCatalog
+), error => error.code === 'RDE_ASSOCIATION_ENDPOINT_DANGLING');
 const missingV4Declarations = { ...operationalRde };
 delete missingV4Declarations.drt_declaration_items;
 expectValidationCode(missingV4Declarations, 'RDE_ENVELOPE_INVALID');
@@ -425,6 +453,24 @@ invalidDeclaration(missingDeclarationField, 'RDE_DRT_DECLARATION_INVALID');
 invalidDeclaration({ ...declaration, declaration_id: '' }, 'RDE_DRT_DECLARATION_INVALID');
 invalidDeclaration({ ...declaration, declaration_id: 'D000001', smsci_scope_text: 'scope absent' },
   'RDE_DRT_DECLARATION_TEXT_MISMATCH');
+const legacyV4DeclarationRde = {
+  ...declarationRde,
+  schema_version: '0.4.0'
+};
+delete legacyV4DeclarationRde.documentary_date_items;
+delete legacyV4DeclarationRde.drt_activity_items;
+for (const sourceText of [
+  'Somente o sistema de hidrantes está citado.',
+  'Atividade: execução de instalação.'
+]) {
+  const malformedV4DeclarationRde = {
+    ...legacyV4DeclarationRde,
+    drt_declaration_items: [{ ...declaration, source_text: sourceText }]
+  };
+  assert.throws(() => core.parseAndValidateOperationalRdeJson_(
+    JSON.stringify(malformedV4DeclarationRde), operationalExpected, declarationCatalog
+  ), error => error.code === 'RDE_DRT_DECLARATION_TEXT_MISMATCH');
+}
 invalidDeclaration({ ...declaration, drt_record_id: 'R_DECL_SOURCE' },
   'RDE_DRT_DECLARATION_DRT_TYPE_INVALID');
 invalidDeclaration({ ...declaration, drt_record_id: 'R_MISSING' },
@@ -504,6 +550,115 @@ assert.doesNotThrow(() => core.validateRdeStructure_({
 assert.throws(() => core.validateRdeStructure_({
   ...dateRde, documentary_date_items: new Array(1)
 }, operationalExpected, dateCatalog), error => error.code === 'RDE_DOCUMENTARY_DATES_INVALID');
+
+const activityRde = {
+  ...declarationRde,
+  schema_version: '0.6.0',
+  documentary_date_items: [],
+  drt_activity_items: [{
+    activity_item_id: 'ACT-001', drt_record_id: 'R_DECL_DRT',
+    activity_service_text: 'execução de instalação',
+    source_document: 'R_DECL_DRT',
+    source_text: 'Atividade: execução de instalação; sistema não declarado.'
+  }]
+};
+assert.doesNotThrow(() => core.validateRdeStructure_(activityRde, operationalExpected, declarationCatalog));
+assert.throws(() => core.validateRdeStructure_({
+  ...activityRde,
+  drt_activity_items: [{ ...activityRde.drt_activity_items[0], smsci_scope_text: 'sistema de hidrantes' }]
+}, operationalExpected, declarationCatalog), error => error.code === 'RDE_ACTIVITY_ITEM_INVALID');
+assert.throws(() => core.validateRdeStructure_({
+  ...activityRde,
+  drt_activity_items: [{ ...activityRde.drt_activity_items[0], activity_item_id: 'ACT-001', extra: true }]
+}, operationalExpected, declarationCatalog), error => error.code === 'RDE_ACTIVITY_ITEM_INVALID');
+assert.doesNotThrow(() => core.validateRdeActivityItems_(
+  activityRde.drt_activity_items, activityRde.records, declarationCatalog
+));
+const helperNames = ['rdeHasOwn_', 'rdeNonBlankText_', 'rdeLiteralIndexOf_'];
+for (const name of helperNames) {
+  const descriptor = vm.runInContext(`Object.getOwnPropertyDescriptor(globalThis, '${name}')`, context);
+  assert.equal(descriptor.writable, false, `${name} must be locked`);
+  assert.equal(descriptor.configurable, false, `${name} must be non-configurable`);
+  assert.equal(vm.runInContext(`Reflect.set(globalThis, '${name}', () => true)`, context), false);
+}
+try {
+  vm.runInContext(`
+    globalThis.__originalGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+    Object.getOwnPropertyDescriptor = function (target, key) {
+      if (key === 'source_text') return { value: 'Atividade: execução de instalação; sistema não declarado.' };
+      return globalThis.__originalGetOwnPropertyDescriptor(target, key);
+    };
+  `, context);
+  assert.throws(() => core.validateRdeActivityItems_([{
+    ...activityRde.drt_activity_items[0], source_text: 'A fonte não declara esse serviço.'
+  }], activityRde.records, declarationCatalog), error =>
+    error.code === 'RDE_ACTIVITY_ITEM_TEXT_MISMATCH');
+} finally {
+  vm.runInContext(`
+    Object.getOwnPropertyDescriptor = globalThis.__originalGetOwnPropertyDescriptor;
+    delete globalThis.__originalGetOwnPropertyDescriptor;
+  `, context);
+}
+assert.throws(() => core.validateRdeActivityItems_([{
+  ...activityRde.drt_activity_items[0], drt_record_id: 'ORPHAN_DRT'
+}], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_DRT_DANGLING');
+const otherDrtRecord = {
+  record_id: 'R_OTHER_DRT', entity_id: 'ART', parent_record_id: null,
+  source_document: 'R_OTHER_DRT', attributes: {},
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'OTHER_DRT' }
+};
+assert.throws(() => core.validateRdeActivityItems_([{
+  ...activityRde.drt_activity_items[0], source_document: 'R_OTHER_DRT'
+}], declarationRde.records.concat([otherDrtRecord]), declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_SOURCE_MISMATCH');
+assert.throws(() => core.validateRdeActivityItems_([
+  activityRde.drt_activity_items[0],
+  { ...activityRde.drt_activity_items[0], activity_item_id: 'ACT-002' }
+], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_DUPLICATE');
+const accessorActivity = { ...activityRde.drt_activity_items[0] };
+let activityAccessorCalled = false;
+Object.defineProperty(accessorActivity, 'source_text', {
+  enumerable: true, get() { activityAccessorCalled = true; return 'forged'; }
+});
+assert.throws(() => core.validateRdeActivityItems_([accessorActivity], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_INVALID');
+assert.equal(activityAccessorCalled, false);
+const hiddenActivityField = { ...activityRde.drt_activity_items[0] };
+Object.defineProperty(hiddenActivityField, 'hidden', { value: true });
+assert.throws(() => core.validateRdeActivityItems_([hiddenActivityField], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_INVALID');
+const symbolActivityField = { ...activityRde.drt_activity_items[0] };
+symbolActivityField[Symbol('hidden')] = true;
+assert.throws(() => core.validateRdeActivityItems_([symbolActivityField], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_INVALID');
+const namedPropertyHole = new Array(1);
+namedPropertyHole.activity = activityRde.drt_activity_items[0];
+assert.throws(() => core.validateRdeActivityItems_(namedPropertyHole, activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEMS_INVALID');
+assert.throws(() => core.validateRdeActivityItems_([{
+  ...activityRde.drt_activity_items[0], provenance: []
+}], activityRde.records, declarationCatalog), error =>
+  error.code === 'RDE_ACTIVITY_ITEM_PROVENANCE_INVALID');
+try {
+  vm.runInContext(`
+    globalThis.__originalForEach = Array.prototype.forEach;
+    globalThis.__originalStringIndexOf = String.prototype.indexOf;
+    Array.prototype.forEach = function () { throw new Error('prototype pollution'); };
+    String.prototype.indexOf = function () { throw new Error('prototype pollution'); };
+  `, context);
+  assert.doesNotThrow(() => core.validateRdeActivityItems_(
+    activityRde.drt_activity_items, activityRde.records, declarationCatalog
+  ));
+} finally {
+  vm.runInContext(`
+    Array.prototype.forEach = globalThis.__originalForEach;
+    String.prototype.indexOf = globalThis.__originalStringIndexOf;
+    delete globalThis.__originalForEach;
+    delete globalThis.__originalStringIndexOf;
+  `, context);
+}
 const signatureCatalog = {
   SOURCE_REPORT: { TYPE: 'DOCUMENT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} },
   SHP_COMMISSIONING_REPORT: {

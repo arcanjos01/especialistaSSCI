@@ -35,7 +35,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.19\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.20\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.19.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.20.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -86,7 +86,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_rde_050_preserves_documentary_dates(self):
         rde = (KB / "09_Especificacao_da_RDE.txt").read_text(encoding="utf-8")
-        self.assertIn("RDE_SCHEMA_VERSION: 0.5.0", rde)
+        self.assertIn("RDE_SCHEMA_VERSION: 0.6.0", rde)
         self.assertRegex(rde, r"RDE 0\.5\.0 deverá possuir também `documentary_date_items`")
         date_items = re.sub(
             r"\s+", " ", rde.split("DOCUMENTARY DATE ITEMS", 1)[1].split(

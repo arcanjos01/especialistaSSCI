@@ -4,7 +4,8 @@ Status de acompanhamento: `IN_PROGRESS`
 Baseline reconciliado: `f826ac7d453b7744fed11bed23824acac9fcbb72`
 Branch: `feature/apps-script-engine-core`
 Knowledge Base no baseline: `5.16.0`; Onda A: `5.17.0`; checkpoint Onda B:
-`5.19.0`, commitado e enviado; Onda D prioridade 1 em `140f888`.
+`5.19.0`, commitado e enviado; Onda D prioridade 1 em `140f888`; candidate
+RDE 0.6/KB `5.20.0` em revisão, ainda não commitado.
 
 Este registro acompanha o trabalho autorizado a partir do baseline, sem substituir
 os contratos canônicos nem o inventário de cobertura.
@@ -225,3 +226,48 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   `T1/T4_DRT_REGISTERED`, `T1/T4_DRT_SIGNED` e os quatro Criteria básicos
   permanecem pendentes até existir contrato explícito para seleção factual e
   comparandos, sem rebaixar ausência ou conflito a FAIL.
+- Revisão arquitetural do próximo slice, snapshot `64b0504b1d323db099b5751d6d0d14ae21664395`:
+  o parecer independente identificou-se como Codex/GPT-6 (aceito pelo usuário,
+  não Sol 6.1). `T1_DRT_ACTIVITY_EXECUTION` e `HAS_DRT_ACTIVITY` não podem
+  derivar associação individual atividade↔SMSCI dos campos livres nem da mera
+  coocorrência de `drt_declaration_items`; `DRT_COVERS` exige documento, SMSCI e
+  atividade explícitos. Recomendada representação RDE aditiva FACT-ONLY de
+  atividades/serviços individualizados, preservando texto literal e proveniência,
+  sem criar vínculo atividade↔SMSCI ou produto. Isso não cria compatibilidade, cobertura,
+  resultado, evidência de ausência nem admissão de correlação. A triagem Luna
+  dos cinco Criteria de comissionamento confirmou contratos/fatos ainda
+  insuficientes: presença de produto, assinatura textual ou associação isolada
+  não completa `DRT_COVERS`, validade ou independência. Implementação apenas da
+  representação factual foi delegada à Luna; executor e cobertura não foram
+  declarados. A revisão final Sol 6.1 da Fase 6 permanece pendente.
+- Ciclo corretivo após `GPT6_REVIEW=FAIL` do RDE 0.6 candidate sobre o commit
+  `64b0504b1d323db099b5751d6d0d14ae21664395`: helper de validação de atividade
+  agora é imutável e usa descritor intrínseco capturado; `drt_activity_items`
+  deixou de aceitar/projetar `smsci_scope_text`, pois coocorrência textual não
+  prova pareamento. RDE 0.6 representa apenas atividade literal, sem associação
+  a SMSCI/produto. Teste focal RDE PASS, inclusive tentativa de monkeypatch e
+  helpers globais. Gates integrais e re-revisão independente GPT-6 pendentes;
+  nenhuma cobertura de Criterion foi reivindicada.
+- Re-revisão GPT-6 do candidate encontrou dois novos findings: o parser não
+  autenticava associações documentais em RDE 0.4; e uma edição de Documento 09
+  havia enfraquecido a exigência histórica de ocorrência literal dos dois campos
+  em `drt_declaration_items`. Corrigidos com inclusão explícita de RDE 0.4 na
+  validação estrutural e restauração da regra documental, cada qual com
+  regressão específica. Após correção: 141 testes Python, 9 suítes Apps Script,
+  sintaxe JS/Code.gs e `git diff --check` PASS; runtime SHA-256
+  `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
+  Re-revisão GPT-6 seguinte pendente; ainda sem commit/release limpo.
+- Reconciliados por inventário independente da Base/runtime: 34 Criteria ativos,
+  29 produtivos, 5 não selecionáveis, 2 retirados; 9 cobertos integralmente,
+  1 parcial (`T1_DRT_REQUIRED`) e 20 pendentes. O RDE 0.6 não aumenta cobertura.
+- Re-revisão GPT-6 estática final deste slice: `PASS`, identidade efetiva Codex
+  baseado em GPT-6, não Sol 6.1. Confirmou alinhamento da ImmutableExecutionView
+  e Documento 09 para RDE 0.6, limites de `drtActivityItems`, regressões RDE 0.4
+  (associações e ambos os literais) e fechamento dos quatro findings do ciclo.
+  Uma tentativa anterior de revisão de segurança foi bloqueada pelo controle
+  automático por possível risco cibernético; a revisão estreita, somente leitura,
+  passou sem execução de cenários operacionais. O reviewer não rodou testes.
+  Gates executados pelo executor após correções: 141 Python, 9 Apps Script,
+  sintaxe JS/Code.gs, runtime byte-identical SHA-256
+  `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`,
+  manifest/phase guards e `git diff --check` PASS. `SOL_REVIEW` permanece PENDING.

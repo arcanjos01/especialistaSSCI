@@ -218,6 +218,32 @@ assert.throws(() => declarationView.drtDeclarationItems(
   new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
 ), /requires a concrete ART, RRT or TRT DOCUMENT reference/);
 assert.equal(JSON.stringify(declarationRde), declarationSnapshot);
+const activityRde = {
+  ...declarationRde,
+  schema_version: '0.6.0',
+  documentary_date_items: [],
+  drt_activity_items: [{
+    activity_item_id: 'ACT-001', drt_record_id: 'R_DRT_RECORD',
+    activity_service_text: 'execução de instalação',
+    source_document: 'R_DRT_RECORD',
+    source_text: 'Atividade: execução de instalação.'
+  }]
+};
+const activityView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(activityRde), { processId: activityRde.process_id, sourceFileId: activityRde.source.file_id }, entityCatalog
+), entityCatalog);
+const activityItems = activityView.drtActivityItems(drtRef);
+assert.deepEqual(JSON.parse(JSON.stringify(activityItems)), [{
+  activityItemId: 'ACT-001', drt: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
+  activityServiceText: 'execução de instalação',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
+  sourceText: 'Atividade: execução de instalação.'
+}]);
+assert.equal(Object.isFrozen(activityItems), true);
+assert.equal(Object.isFrozen(activityItems[0]), true);
+activityItems[0].activityServiceText = 'tampered';
+assert.equal(activityItems[0].activityServiceText, 'execução de instalação');
+assert.deepEqual(JSON.parse(JSON.stringify(activityView.drtActivityItems(drtRef))), JSON.parse(JSON.stringify(activityItems)));
 const dateRde = {
   ...declarationRde,
   schema_version: '0.5.0',
