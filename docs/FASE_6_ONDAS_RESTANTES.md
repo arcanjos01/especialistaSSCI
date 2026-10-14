@@ -15,8 +15,9 @@ os contratos canônicos nem o inventário de cobertura.
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
 - `origin/feature/apps-script-engine-core` e branch local estavam ambos em
-  `b3345a9` na reconciliação de 2026-10-14; divergência inicial zero. As
-  alterações atuais são locais e não foram commitadas.
+  `b3345a9` na reconciliação de 2026-10-14; divergência inicial zero. O
+  checkpoint Onda B está agora no commit local `87a85d92bf21cad3afa006334b7fa606383c7014`;
+  o push está pendente até concluir o registro de SHAs e confirmar o remoto.
 - `.codex-local-evidence/` é não rastreado e foi preservado. Não incluir em commits.
 - Checkpoint `ResponsibilityEvidenceBinding` / `ImmutableExecutionView` está
   presente e fechado no baseline, com revisão Sol `PASS`; manter intacto.
@@ -85,6 +86,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 | Onda B, re-revisão GPT-6 | árvore local antes do hardening canônico | `FAIL`; 2 P2 de autenticação e 1 P3 de tracker; correções locais aplicadas, nova revisão pendente | Chaves agora exigem formato canônico de 43 caracteres ASCII (32 bytes base64url sem padding), rejeitando a equivalência HMAC de `key`/`key+NUL`; recibo usa serialização capturada de objeto null-prototype com campos próprios tipados; teste assina com chave de calibração distinta, injeta `Array.prototype.toJSON` e substitui `JSON.stringify`, e confirma assinatura alterada inválida. Tracker agora registra findings corrigidos e re-review pendente. O revisor declarou GPT-6, não Sol 6.1; suíte focal PASS no snapshot anterior aos fixes. |
 | Onda B, re-revisão GPT-6 | snapshot imediatamente anterior à correção dos sufixos e da frase de admissão | `FAIL`; P2 sobre 4/16 sufixos canônicos e P3 por afirmação obsoleta de fixture `ADMITTED`; corrigidos localmente | Validador atualizado para aceitar as 16 terminações válidas; teste percorre todas as 16 chaves por recibo de autenticação isolado. Tracker agora afirma explicitamente que não há fixture `ADMITTED`. O revisor confirmou encerramento dos achados anteriores, manteve identidade GPT-6 e não concedeu Sol 6.1. Gates integrais e nova revisão ainda pendentes. |
 | Onda B, re-revisão GPT-6 aceita pelo usuário | candidate temporário `9d293b4f71e66ebfd29b1ea198a587f5ded37f00` (worktree de validação; não commit da branch) | `PASS` focado; findings anteriores fechados; zero findings novos no escopo | Revisor declarou efetivamente Codex/GPT-6, não Sol 6.1; o usuário autorizou aceitar revisão GPT-6. Confirmados 16 finais canônicos, bloqueio de chave HMAC equivalente via NUL, recibo de autoridade distinta e proteção a monkeypatch, e ausência de fixture `ADMITTED`. Gates integrais após fixes: 141 Python, 9 Apps Script, sintaxe JS/Code.gs, runtime byte-identical SHA-256 `7025ebea7f23a429c954c712ee6afe34db04a5cf796a70699e29cc7b3e82b3a6`, release 10/10, KB 5.19.0, pipeline 4.22.0, SOURCE_COMMIT exato `9d293b4f71e66ebfd29b1ea198a587f5ded37f00`, phase guards pela suíte Python, `git diff --check` PASS. Isso aceita a revisão intermediária da Onda B, não declara revisão Sol nem fecha Fase 6. |
+| Onda B, commit e release limpo | `87a85d92bf21cad3afa006334b7fa606383c7014` | Commit criado após GPT-6 PASS aceito pelo usuário; release real PASS | Release em worktree limpa: 10 documentos, `SOURCE_COMMIT=87a85d92bf21cad3afa006334b7fa606383c7014`; Onda B ficou commitada separadamente. Slice Onda D continua local e sem commit; push seguro da Onda B pendente. `.codex-local-evidence/` permanece fora do índice. |
 | Fechamento | — | PENDING | — |
 
 ## Estados finais obrigatórios
