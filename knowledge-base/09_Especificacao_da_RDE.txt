@@ -387,6 +387,40 @@ Nenhum conteúdo adicional deverá ser produzido.
 A etapa EXECUTION utilizará exclusivamente a RDE validada como fonte de
 evidências e relações estruturais.
 
+------------------------------------------------------------------------
+
+ONDA A – ASSISTED DRT/PRODUCT CORRELATION CONTRACT
+
+A correlação entre uma DRT e um produto técnico é uma inferência assistida
+por IA, produzida em artefato separado e fora da RDE. Ela não é
+`documentary_association`, não altera a RDE, não acrescenta fatos documentais
+e não produz regra, Requirement, Criterion, resultado normativo ou
+Nonconformity.
+
+O artefato de correlação deve preservar, para cada decisão, `decision_id`
+imutável, `policy_version`, versão da calibração, `base_id`, `binding_type`,
+referências exatas à DRT e ao produto, `rde_schema_version`, `rde_digest`,
+provenance/integrity, proposta, fatos de suporte, decisão, score, threshold e
+gates. Deve ainda preservar a identidade exata da apresentação segundo o
+`CurrentSubmissionContext`, usando `PROTOCOL_IDENTIFIER` e `REQUEST_DATE`
+quando aplicáveis, e rejeitar reuse em outra apresentação mesmo com documentos
+e digest iguais. Política, threshold e calibração (id/versão/hash e validade)
+devem ser congelados antes da decisão e válidos/aplicáveis a `base_id` e
+`binding_type`; caso contrário, `BLOCKED`. A decisão é imutável.
+
+O threshold inicial é `0.80`, inclusivo (`score >= threshold`), e é ajustável
+fora do Engine. Auto-admission é uma capacidade, mas permanece `BLOCKED`
+quando não houver calibração empírica adequada, válida e aplicável à Base e ao
+tipo de vínculo.
+
+Revisão humana é obrigatória quando `score < threshold`, houver conflito,
+ambiguidade, candidatos concorrentes, provenance/integrity insuficientes ou
+calibração ausente/inválida. Nenhuma correlação causa `PASS` isoladamente. A
+interface de consumo pelo Engine deve ser autenticada e somente leitura.
+
+A representação do sidecar segue o contrato do pipeline definido em
+08_execution_pipeline.txt.
+
 RDE 0.2.0/0.3.0/0.4.0/0.5.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:

@@ -319,7 +319,7 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         for label in ("ITEM DO CHECKLIST:", "CAUSA A SELECIONAR:", "SUBCAUSA A SELECIONAR:", "DESCREVER:", "EVIDÊNCIA:"):
             self.assertIn(label, REPORTS)
         self.assertLess(PIPELINE.index("# PHASE 6\n"), PIPELINE.index("# PHASE 6A\n"))
-        self.assertLess(PIPELINE.index("# PHASE 6A\n"), PIPELINE.index("# PHASE 7\n"))
+        self.assertLess(PIPELINE.index("# PHASE 6A\n"), PIPELINE.index("# PHASE 8\n"))
         self.assertIn("Do not group, deduplicate or suppress pending entries", PIPELINE)
         self.assertIn("TRATAMENTO HUMANO", REPORTS)
         self.assertNotIn("3. ITENS QUE NECESSITAM TRATAMENTO HUMANO", REPORTS)

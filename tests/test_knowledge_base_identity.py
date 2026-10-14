@@ -35,7 +35,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.16\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.17\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,7 +55,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.16.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.17.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -65,6 +65,55 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertNotIn("DOCUMENT_VERSION por documento carregado:", operational)
         for field in ("KNOWLEDGE_BASE_ID:", "KNOWLEDGE_BASE_VERSION:", "SOURCE_COMMIT:"):
             self.assertIn(field, audit)
+
+    def test_correlation_disclosure_contract_is_exact_and_non_normative(self):
+        notice = (
+            "Foi utilizada correlação documental automática assistida por inteligência artificial, "
+            "conforme política e calibração identificadas neste relatório. A validação normativa "
+            "institucional deste mecanismo permanece pendente. A admissão automática não equivale "
+            "à confirmação humana da correspondência nem comprova isoladamente o atendimento das "
+            "exigências normativas."
+        )
+        normalized = re.sub(r"\s+", " ", self.reports)
+        normalized_folded = normalized.casefold()
+        self.assertIn(notice, normalized)
+        self.assertIn("confiança calibrada", normalized_folded)
+        self.assertIn("versão da política", normalized_folded)
+        self.assertIn("versão da calibração", normalized_folded)
+        self.assertIn("referências rastreáveis às evidências utilizadas", normalized_folded)
+        self.assertIn("proveniência disponível", normalized_folded)
+        self.assertIn("não recalcular a correlação", normalized_folded)
+
+    def test_rde_050_preserves_documentary_dates(self):
+        rde = (KB / "09_Especificacao_da_RDE.txt").read_text(encoding="utf-8")
+        self.assertIn("RDE_SCHEMA_VERSION: 0.5.0", rde)
+        self.assertRegex(rde, r"RDE 0\.5\.0 deverá possuir também `documentary_date_items`")
+        date_items = re.sub(
+            r"\s+", " ", rde.split("DOCUMENTARY DATE ITEMS", 1)[1].split(
+                "Toda entidade deverá", 1
+            )[0]
+        )
+        fields = (
+            "date_item_id:",
+            "product_record_id:",
+            "date_label_text:",
+            "date_text:",
+            "source_document:",
+            "source_text:",
+            "provenance: (opcional)",
+        )
+        positions = [date_items.index(field) for field in fields]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("possui exatamente:", date_items)
+        self.assertIn("product_record_id` resolve somente para registro cujo tipo canônico seja exatamente `TEST_REPORT`", date_items)
+        self.assertIn("`source_document` resolve para `TYPE DOCUMENT`", date_items)
+        for sentence in (
+            "Preservar ordem, itens múltiplos, valores conflitantes e provenances separadamente.",
+            "Não escolher, priorizar ou deduplicar datas documentais.",
+            "Não parafrasear, normalizar ou combinar ocorrências.",
+            "não converte nem compara datas",
+        ):
+            self.assertIn(sentence, date_items)
 
     def test_identity_mismatch_is_audit_only_and_non_normative(self):
         identity = self.reports.split("IDENTIDADE DA BASE", 1)[1].split(
@@ -79,6 +128,141 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             "não pode\nalterar os resultados consolidados",
         ):
             self.assertIn(required_guard, identity)
+
+    def test_phase_3a_sidecar_scope_reconciles_process_memory_guards(self):
+        normalized = re.sub(r"\s+", " ", self.pipeline)
+        phase_3a = normalized.split("# PHASE 3A", 1)[1].split(
+            "END PHASE 3A", 1
+        )[0]
+        for forbidden in (
+            "documentary_associations",
+            "execute Requirements or Criteria",
+            "EngineResult/PipelineResult",
+        ):
+            self.assertIn(forbidden, phase_3a)
+        for required in (
+            "separate, immutable correlation artifact",
+            "shall not modify either source",
+            "CurrentSubmissionContext",
+            "PROTOCOL_IDENTIFIER",
+            "REQUEST_DATE",
+            "exact RDE references and digest",
+            "exact presentation identity",
+            "compiled contract",
+            "frozen execution plan",
+            "immutable execution view",
+            "frozen policy",
+            "threshold",
+            "calibration id/version/hash",
+            "validity",
+            "policy and decision are frozen/versioned",
+            "base_id",
+            "binding_type",
+            "score >= threshold",
+            "adjustable only outside the Engine",
+            "BLOCKED",
+            "conflict",
+            "ambiguity",
+            "competing candidates",
+            "insufficient provenance/integrity",
+            "Human review is required",
+            "No correlation decision causes PASS in isolation",
+            "cannot create a rule, result, Requirement, Criterion or Nonconformity",
+        ):
+            self.assertIn(required, phase_3a)
+        self.assertIn(
+            "The initial inclusive threshold is `0.80` (`score >= threshold`) and is adjustable only outside the Engine.",
+            phase_3a,
+        )
+        self.assertIn(
+            "The policy and decision are frozen/versioned and the decision is immutable.",
+            phase_3a,
+        )
+        self.assertIn(
+            "Policy and calibration must be valid and applicable to `base_id` and `binding_type` before the decision; missing, invalid or inapplicable policy/calibration is `BLOCKED`.",
+            phase_3a,
+        )
+        self.assertIn(
+            "The common correlation contract shall be calibrated independently for each Knowledge Base and binding type.",
+            phase_3a,
+        )
+        self.assertIn(
+            "Only an authenticated, read-only interface may expose an admitted correlation to the Engine.",
+            phase_3a,
+        )
+        self.assertIn(
+            "The interface shall bind the decision to the exact presentation identity, RDE digest, compiled contract, frozen execution plan and immutable execution view.",
+            phase_3a,
+        )
+        self.assertIn(
+            "The authenticated sidecar is limited to contextual documentary relation for the executor, separate, immutable and read-only",
+            phase_3a,
+        )
+        self.assertIn(
+            "its authentication covers presentation, RDE, contract, plan and view and it shall not alter facts, Process Memory or the RDE.",
+            phase_3a,
+        )
+        self.assertNotIn(
+            "Requirements, Criteria and Report generation shall consume Process Memory only.",
+            normalized,
+        )
+        self.assertNotIn("Criteria shall consume Process Memory only.", normalized)
+        self.assertIn(
+            "ARCHITECTURAL_CONFLICT=RESOLVED_BY_EXPLICIT_USER_DECISION",
+            normalized,
+        )
+        self.assertIn(
+            "Requirements shall consume documentary facts from Process Memory only",
+            normalized,
+        )
+        self.assertIn(
+            "only for a declared DRT-to-product/coverage relation predicate",
+            normalized,
+        )
+        self.assertIn("never supply an attribute or documentary fact", normalized)
+        self.assertIn(
+            "Report generation in Phase 8 may consume authenticated artifact metadata only to disclose",
+            normalized,
+        )
+        self.assertIn("shall not recompute correlation", normalized)
+        self.assertIn("relation-only input", normalized)
+        self.assertIn("sidecar shall never supply an attribute or documentary fact", normalized)
+        self.assertIn(
+            "Applicability and all other phases shall consume Process Memory only",
+            normalized,
+        )
+
+    def test_phase_8_requires_frozen_authenticated_disclosure_projection(self):
+        phase_8 = self.pipeline.split("# PHASE 8", 1)[1].split(
+            "# EXECUTION RULES", 1
+        )[0]
+        normalized = re.sub(r"\s+", " ", phase_8)
+        self.assertIn("authenticated", normalized)
+        self.assertIn("immutable", normalized)
+        self.assertIn("read-only", normalized)
+        self.assertIn("frozen correlation disclosure projection", normalized)
+        self.assertIn("only the immutable consolidated results", normalized)
+        self.assertIn("immutable Phase 6A operational projection", normalized)
+        self.assertIn("linked to the exact presentation and RDE", normalized)
+        self.assertIn("fields enumerated by 06_reports", normalized)
+        for field in (
+            "DRT reference",
+            "product reference",
+            "automatic origin",
+            "calibrated confidence",
+            "policy and calibration versions",
+            "evidence/provenance references",
+            "caveats",
+            "institutional status",
+        ):
+            self.assertIn(field, normalized)
+        self.assertIn(
+            "it shall only disclose this frozen projection and shall not recompute correlation.",
+            normalized,
+        )
+        self.assertIn("shall never consume the correlation artifact wholesale", normalized)
+        self.assertIn("receive proposals, extracted facts, or any capability to alter the decision", normalized)
+        self.assertIn("shall not recompute correlation", normalized)
 
     def test_source_commit_is_resolved_only_by_clean_release_build(self):
         self.assertIn("SOURCE_COMMIT: RELEASE_BUILD_REQUIRED", self.pipeline)

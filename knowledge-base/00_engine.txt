@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.3
+# VERSION 4.4
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -41,6 +41,35 @@ NO_RESULT_WITHOUT_EVIDENCE
 PROCESS_ALL_CRITERIA
 
 PROCESS_ALL_DOCUMENTS
+
+###############################################################################
+# ONDA A – ASSISTED CORRELATION BOUNDARY
+###############################################################################
+
+DRT_PRODUCT_CORRELATION_IS_EXTERNAL_TO_ENGINE
+
+The Engine shall not generate, score, calibrate, admit or mutate an assisted
+DRT/product correlation. Correlation proposals, documentary facts, decisions,
+policy versions, calibration versions, provenance and integrity metadata
+belong to a separate immutable artifact.
+
+The Engine shall consume that artifact only through an authenticated,
+read-only interface bound to the exact compiled contract, frozen execution
+plan, ImmutableExecutionView, RDE digest and exact presentation identity. The
+interface shall reject reuse in another presentation, even when documents and
+RDE digest are identical, and shall reject absent, invalid,
+conflicting, ambiguous, competing, below-threshold or insufficiently
+provenanced/integrity-checked decisions. The initial inclusive threshold is
+0.80 and is configured and versioned outside the Engine. The policy,
+threshold, calibration id/version/hash and validity shall be frozen before the
+decision. Policy and calibration shall be valid and applicable to the active
+Knowledge Base and binding type; otherwise the decision is BLOCKED.
+
+Auto-admission is supported as a capability but is BLOCKED unless empirical
+calibration is adequate, valid and applicable to the active Knowledge Base
+and binding type. A correlation decision shall never, by itself, produce
+PASS, satisfy a Criterion, alter a Requirement, create a Nonconformity or
+reclassify documentary evidence as documentary_association.
 
 ###############################################################################
 # RESERVED WORDS

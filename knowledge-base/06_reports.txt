@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 3.6.0
+DOCUMENT_VERSION: 3.7.0
 
 FINALIDADE
 
@@ -137,7 +137,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.16.0;
+- Base: SSCI-Habite-se 5.17.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
@@ -148,6 +148,20 @@ Incluir obrigatoriamente:
 "Este relatório foi produzido automaticamente a partir da Base de
 Conhecimento do SSCI. A decisão administrativa compete exclusivamente ao
 analista responsável do CBMSC."
+
+CORRELAÇÃO DOCUMENTAL AUTOMÁTICA DRT–PRODUTO
+
+Quando uma correlação documental automática tiver sido admitida e utilizada,
+apresentar somente os dados do artefato imutável autenticado: DRT associada,
+produto técnico relacionado, origem automática assistida por IA, confiança
+calibrada, versão da política, versão da calibração, referências rastreáveis às
+evidências utilizadas e proveniência disponível e ressalvas registradas. Não recalcular a correlação nem apresentá-la
+como associação documental explícita, confirmação humana ou comprovação
+autônoma de atendimento normativo.
+
+Incluir literalmente o aviso:
+
+"Foi utilizada correlação documental automática assistida por inteligência artificial, conforme política e calibração identificadas neste relatório. A validação normativa institucional deste mecanismo permanece pendente. A admissão automática não equivale à confirmação humana da correspondência nem comprova isoladamente o atendimento das exigências normativas."
 
 POLÍTICA DO CAMPO DESCREVER
 

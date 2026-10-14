@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.19.0
+# DOCUMENT_VERSION: 4.20.0
 ###############################################################################
 
 ###############################################################################
@@ -11,22 +11,22 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.16.0
+KNOWLEDGE_BASE_VERSION: 5.17.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.3.0
+00_engine.txt: DOCUMENT_VERSION 4.4.0
 01_entities.txt: DOCUMENT_VERSION 3.8.0
 02_requirements.txt: DOCUMENT_VERSION 3.5.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.6.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.19.0
-09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.5.0
+06_reports.txt: DOCUMENT_VERSION 3.7.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.20.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.6.0
 
 END DOCUMENT_SET.
 
@@ -365,12 +365,74 @@ Close Process Memory as complete and immutable before Phase 4. This closes the
 logical execution view, whether backed by an adapter or an in-memory normalized
 representation; it does not require persistence.
 
-Requirements, Criteria and Report generation shall consume Process Memory only.
+Requirements shall consume documentary facts from Process Memory only. Criteria
+shall consume documentary facts from Process Memory and may consume the
+authenticated Phase 3A sidecar only for a declared DRT-to-product/coverage
+relation predicate, as relation-only input; the sidecar shall never supply an
+attribute or documentary fact. Report generation in Phase 8 may consume
+authenticated artifact metadata only to disclose the correlation and its
+provenance; it shall not recompute correlation, reopen documents or alter
+consolidated results. Applicability and all other phases shall consume Process
+Memory only and shall not consume the sidecar. This reconciles the prior
+conflict as `ARCHITECTURAL_CONFLICT=RESOLVED_BY_EXPLICIT_USER_DECISION`.
 
 Do not reopen Source Documents or retry documentary extraction in this or any
 later phase.
 
 END PHASE 3.
+
+###############################################################################
+# PHASE 3A
+# ONDA A – ASSISTED DRT/PRODUCT CORRELATION
+###############################################################################
+
+This phase may produce a separate, immutable correlation artifact from the
+validated RDE and immutable execution view. It shall not modify either source,
+create `documentary_associations`, reopen documents, execute Requirements or
+Criteria, or produce an EngineResult/PipelineResult.
+
+The artifact shall separate proposals, documentary facts, decisions and
+operational gates. Each decision shall be bound to exact RDE references and
+digest, exact presentation identity, provenance/integrity, `base_id`,
+`binding_type`, frozen policy, threshold, calibration id/version/hash and
+validity. The identity follows the authorized `CurrentSubmissionContext`,
+using `PROTOCOL_IDENTIFIER` and `REQUEST_DATE` when applicable; without an
+identifier, use only the alternative already defined by the current contract.
+A decision is not reusable in another presentation, even with identical
+documents or RDE digest. The initial
+inclusive threshold is `0.80` (`score >= threshold`) and is adjustable only
+outside the Engine. The policy and decision are frozen/versioned and the
+decision is immutable. Policy and calibration must be valid and applicable to
+`base_id` and `binding_type` before the decision; missing, invalid or
+inapplicable policy/calibration is `BLOCKED`.
+
+The common correlation contract shall be calibrated independently for each
+Knowledge Base and binding type. Auto-admission is available as a capability
+but has status `BLOCKED` without adequate empirical calibration. Human review
+is required for score below threshold, conflict, ambiguity, competing
+candidates, insufficient provenance/integrity, or absent/invalid calibration.
+No correlation decision causes PASS in isolation.
+
+Only an authenticated, read-only interface may expose an admitted correlation
+to the Engine. The interface shall bind the decision to the exact presentation
+identity, RDE digest, compiled contract, frozen execution plan and immutable
+execution view. The authenticated sidecar is limited to contextual documentary
+relation for the executor, separate, immutable and read-only; its
+authentication covers presentation, RDE, contract, plan and view and it shall
+not alter facts, Process Memory or the RDE. The user's decision authorizes this
+sidecar as additional authenticated input to the Engine only as a contextual,
+relation-only input; Process Memory remains exclusively fact-only. This does
+not alter execution semantics or the execution order. A correlation remains
+supporting input to a declared contract and cannot create a rule, result,
+Requirement, Criterion or Nonconformity.
+
+Any operational presentation of the artifact shall preserve exact RDE text and
+RDE references/digest and include the literal disclosure
+`Foi utilizada correlação documental automática assistida por inteligência artificial, conforme política e calibração identificadas neste relatório. A validação normativa institucional deste mecanismo permanece pendente. A admissão automática não equivale à confirmação humana da correspondência nem comprova isoladamente o atendimento das exigências normativas.` This phase
+does not define or implement the report; report generation remains governed by
+Phase 8.
+
+END PHASE 3A.
 
 ###############################################################################
 # PHASE 4A
@@ -673,7 +735,10 @@ MANUAL_REVIEW
 No other PipelineResult is allowed. The EngineResult remains available in the
 trace even when its PipelineResult is normalized.
 
-Criteria shall consume Process Memory only.
+Criteria shall consume documentary facts from Process Memory only, except for
+the authenticated Phase 3A sidecar expressly authorized above: a Criterion
+may read it only in a declared DRT-to-product/coverage relation predicate and
+only as relation-only input, never as an attribute or documentary fact.
 
 Applicability remains resolved before execution. A predicate may return
 NOT_APPLICABLE only when its declared result contract permits it; the Engine
@@ -831,17 +896,26 @@ Nonconformities or operational pending entries. Continue operational report
 generation when the canonical results and operational projection remain
 intact; expose the inconsistency explicitly only in audit mode.
 
-The transient operational projection becomes immutable before Phase 7.
+The transient operational projection becomes immutable before Phase 8.
 
 END PHASE 6A.
 
 ###############################################################################
-# PHASE 7
+# PHASE 8
 # REPORT GENERATION
 ###############################################################################
 
 Generate the operational report using only the immutable consolidated results,
-the immutable Phase 6A operational projection and 06_reports.
+the immutable Phase 6A operational projection, the authenticated, immutable,
+read-only frozen
+correlation disclosure projection linked to the exact presentation and RDE, and
+06_reports. The disclosure projection shall be generated only from the fields
+enumerated by 06_reports: DRT reference, product reference, automatic origin,
+calibrated confidence, policy and calibration versions, evidence/provenance
+references, caveats, and institutional status. The report shall never consume
+the correlation artifact wholesale or receive proposals, extracted facts, or
+any capability to alter the decision; it shall only disclose this frozen
+projection and shall not recompute correlation.
 
 Do not expose Requirements, Criteria or internal identifiers in the
 operational report.
