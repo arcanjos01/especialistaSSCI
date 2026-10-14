@@ -206,3 +206,22 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   correlação real pode ser admitida. GPT-6 confirmou os fixes; aguarda-se Sol
   6.1. Não inferir serviço DRT↔produto por nomes ou texto: a Base não fornece
   campos equivalentes.
+- Retomada de 2026-10-14 no HEAD `2182751d873ee068c7cc434998cf723805170ce7`:
+  branch e origin coincidem; worktree rastreada limpa; `.codex-local-evidence/`
+  continua preservado e fora do Git. O release build real registrado no
+  checkpoint anterior tem `SOURCE_COMMIT=2182751d873ee068c7cc434998cf723805170ce7`.
+  O usuário autorizou aceitar revisões GPT-6, mantendo a identidade declarada;
+  isso não equivale a Sol 6.1. O parecer GPT-6 do slice RT-002 mantém
+  `T1_DRT_REQUIRED=PARTIAL` e confirma que `T1_DRT_ACTIVITY_EXECUTION` não é
+  executado.
+- Reconciliação da prioridade 2: RDE contém `COUNCIL_REGISTRATION_STATUS`,
+  `COUNCIL_ISSUANCE_STATUS`, `COUNCIL_PAYMENT_STATUS`, `SIGNATURE_PARTY` e
+  `SIGNATURE_MECHANISM` somente como texto FACT-ONLY; a decisão contratual
+  anterior explicitamente não os converte em `REGISTERED`/`SIGNED`. A fronteira
+  autenticada `ResponsibilityEvidenceBinding` seleciona atualmente somente
+  RT-002 por `RESPONSIBILITY_TYPE=EXECUCAO`; esse fato não resolve pareamento
+  para cada responsabilidade, nem identidade/autenticidade do signatário.
+  PROCESS não expõe comparandos tipados para RI legal, endereço ou área. Logo
+  `T1/T4_DRT_REGISTERED`, `T1/T4_DRT_SIGNED` e os quatro Criteria básicos
+  permanecem pendentes até existir contrato explícito para seleção factual e
+  comparandos, sem rebaixar ausência ou conflito a FAIL.
