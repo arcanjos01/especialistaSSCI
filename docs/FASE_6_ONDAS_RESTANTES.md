@@ -271,3 +271,8 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   sintaxe JS/Code.gs, runtime byte-identical SHA-256
   `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`,
   manifest/phase guards e `git diff --check` PASS. `SOL_REVIEW` permanece PENDING.
+- Checkpoint RDE 0.6 commitado e enviado por fast-forward: `01ceb7e43d10875573a3b438dd2755bcb0ef7728`.
+  Release real em worktree limpa PASS: 10 documentos, `SOURCE_COMMIT` exato
+  `01ceb7e43d10875573a3b438dd2755bcb0ef7728`; KB `5.20.0`, pipeline `4.23.0`.
+  `SOL_REVIEW` da Fase 6 segue PENDING; Criteria e correlação operacional não
+  foram declarados concluídos por este slice.
