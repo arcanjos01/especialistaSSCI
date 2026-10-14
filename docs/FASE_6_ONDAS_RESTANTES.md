@@ -17,8 +17,8 @@ os contratos canônicos nem o inventário de cobertura.
 - `origin/feature/apps-script-engine-core` e branch local estavam ambos em
   `b3345a9` na reconciliação de 2026-10-14; divergência inicial zero. O checkpoint
   Onda B foi enviado até `17283f6f9a38174143f0ecfa24f9cff51dd8e5d6` por
-  fast-forward; a Onda D RT-002 está commitada localmente em
-  `140f888023c0fe19ad7ffd1450e41d12002d5111`, com push pendente.
+  fast-forward; a Onda D RT-002 e seu registro foram enviados por fast-forward
+  até `7158a158aa0ee7494e52206636b51eff02f39adc`.
 - `.codex-local-evidence/` é não rastreado e foi preservado. Não incluir em commits.
 - Checkpoint `ResponsibilityEvidenceBinding` / `ImmutableExecutionView` está
   presente e fechado no baseline, com revisão Sol `PASS`; manter intacto.
@@ -89,7 +89,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 | Onda B, re-revisão GPT-6 | snapshot imediatamente anterior à correção dos sufixos e da frase de admissão | `FAIL`; P2 sobre 4/16 sufixos canônicos e P3 por afirmação obsoleta de fixture `ADMITTED`; corrigidos localmente | Validador atualizado para aceitar as 16 terminações válidas; teste percorre todas as 16 chaves por recibo de autenticação isolado. Tracker agora afirma explicitamente que não há fixture `ADMITTED`. O revisor confirmou encerramento dos achados anteriores, manteve identidade GPT-6 e não concedeu Sol 6.1. Gates integrais e nova revisão ainda pendentes. |
 | Onda B, re-revisão GPT-6 aceita pelo usuário | candidate temporário `9d293b4f71e66ebfd29b1ea198a587f5ded37f00` (worktree de validação; não commit da branch) | `PASS` focado; findings anteriores fechados; zero findings novos no escopo | Revisor declarou efetivamente Codex/GPT-6, não Sol 6.1; o usuário autorizou aceitar revisão GPT-6. Confirmados 16 finais canônicos, bloqueio de chave HMAC equivalente via NUL, recibo de autoridade distinta e proteção a monkeypatch, e ausência de fixture `ADMITTED`. Gates integrais após fixes: 141 Python, 9 Apps Script, sintaxe JS/Code.gs, runtime byte-identical SHA-256 `7025ebea7f23a429c954c712ee6afe34db04a5cf796a70699e29cc7b3e82b3a6`, release 10/10, KB 5.19.0, pipeline 4.22.0, SOURCE_COMMIT exato `9d293b4f71e66ebfd29b1ea198a587f5ded37f00`, phase guards pela suíte Python, `git diff --check` PASS. Isso aceita a revisão intermediária da Onda B, não declara revisão Sol nem fecha Fase 6. |
 | Onda B, commit e release limpo | `87a85d92bf21cad3afa006334b7fa606383c7014` | Commit criado após GPT-6 PASS aceito pelo usuário; release real PASS | Release em worktree limpa: 10 documentos, `SOURCE_COMMIT=87a85d92bf21cad3afa006334b7fa606383c7014`; enviado no checkpoint seguinte. `.codex-local-evidence/` ficou fora do índice. |
-| Onda D RT-002, commit local | `140f888023c0fe19ad7ffd1450e41d12002d5111` | Implementação parcial revisada GPT-6 PASS; gates integrais PASS; release e push pendentes | Commit contém executor genérico para o predicado RT-002, integração de readiness, fixtures e inventário atualizado. Não declara o Criterion integralmente coberto. |
+| Onda D RT-002, commit e push | `140f888023c0fe19ad7ffd1450e41d12002d5111`; tracker `7158a158aa0ee7494e52206636b51eff02f39adc` | Implementação parcial revisada GPT-6 PASS; gates integrais e release PASS; fast-forward enviado | Release em worktree limpa: 10 documentos, SOURCE_COMMIT exato `7158a158aa0ee7494e52206636b51eff02f39adc`. Commit contém executor do predicado RT-002, readiness, fixtures e inventário atualizado. O Criterion continua parcial. |
 | Fechamento | — | PENDING | — |
 
 ## Estados finais obrigatórios
