@@ -411,5 +411,9 @@ validação institucional da correlação permanece separadamente `PENDING`.
   P2+ aberto. Gates completos após esse último finding: 9 suítes
   Apps Script, 141 testes Python, sintaxe JS/Code.gs, runtime byte-identical
   SHA-256 `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`,
-  `git diff --check` — PASS. Release build limpo, commit/push e revisão Sol 6.1
-  continuam pendentes.
+  `git diff --check` — PASS. Commit/push `745b7b182a66fa6f934b73e35ada440c5556b612`.
+  Release build limpo em 10/10 documentos PASS, `SOURCE_COMMIT` exato
+  `745b7b182a66fa6f934b73e35ada440c5556b612`, KB `5.22.0`, Pipeline `4.25.0`,
+  RDE `1.8.0`, Documento 06 `3.10.0`. `CRITERIA_COVERED` permanece 6; a coleção
+  é factual e não fornece mapeamento para `DRT_COVERS`. `SOL_REVIEW=PENDING`;
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
