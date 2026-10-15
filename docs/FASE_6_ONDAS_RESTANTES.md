@@ -28,7 +28,7 @@ os contratos canônicos nem o inventário de cobertura.
   `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
 - Checkpoint `ResponsibilityEvidenceBinding` / `ImmutableExecutionView` está
   presente e fechado no baseline, com revisão Sol `PASS`; manter intacto.
-- Reconciliação do runtime candidate: 34 Criteria ativos, 29 produtivos, 5
+- Snapshot anterior à reconciliação atual: 34 Criteria ativos, 29 produtivos, 5
   não selecionáveis (quatro M5 e um regime legado), 2 retirados (regularidade
   profissional T1/T4), 9 cobertos, 1 parcial e 19 sem suporte executável
   (20 pendentes no total). KB `5.18.0` no último checkpoint reconciliado; a
@@ -59,7 +59,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; PRIORIDADE 1 T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PENDING; 19 sem suporte integral; pending=20; GPT6_REVIEW=PASS_ACCEPTED_BY_USER` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PENDING; assinatura reclassificada; 6 cobertos, 1 parcial e 23 pendentes de cobertura integral (inclui o parcial)` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -87,7 +87,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 | Onda C | incorporada aos contratos A/C | `REPORT_DISCLOSURE_CONTRACT=READY` | Contrato e guard do aviso exato presentes; sem antecipar implementação Fase 8. |
 | Onda D, prioridade 1 | candidate local sobre `b3345a9` | `T1_DRT_REQUIRED` parcial; `T1_DRT_ACTIVITY_EXECUTION` pending | Gates direcionados PASS; cobertura não incrementada até completar semântica negativa e review. |
 | Onda D, RT-002, revisão independente GPT-6 aceita pelo usuário | diff sobre `17283f6f9a38174143f0ecfa24f9cff51dd8e5d6`; commit local `140f888023c0fe19ad7ffd1450e41d12002d5111` | `PASS` como `PARTIAL_EXECUTION_SUPPORT`; nenhum finding bloqueante | Reviewer confirmou que binding canônico de RT-002, autenticado a contract/plan/view, e fato exato `RESPONSIBILITY_TYPE=EXECUCAO` provam somente presença documental; ausência, conflito ou type incompatível ficam `MANUAL_REVIEW`, sem FAIL/NC. Múltiplas DRTs explícitas aceitas; trace, provenance e readiness testados. `T1_DRT_ACTIVITY_EXECUTION` e via condicional de regularização continuam sem executor e não recebem cobertura. Quatro suítes focadas e gates integrais 141 Python/9 Apps Script passaram; SHA runtime `7025ebea7f23a429c954c712ee6afe34db04a5cf796a70699e29cc7b3e82b3a6`. Revisor declarou GPT-6, não Sol; aceite do usuário se aplica à revisão GPT-6. |
-| Revisão final solicitada (não Sol) | candidate `a07a1d48e0d12e26c2961f13be2a0232e4068a4d` | `FAIL` de GPT-6; não conta como `SOL_REVIEW`; contagem reconciliada pelo revisor: 34/29/5/2/9/1/20 | Achados registrados como revisão GPT-6, não findings Sol. A terceira revisão intermediária confirmou os fixes no candidate atual; detecção factual ou calibração reais seguem ausentes/BLOCKED. |
+| Revisão final solicitada (não Sol) | candidate `a07a1d48e0d12e26c2961f13be2a0232e4068a4d` | `FAIL` de GPT-6; não conta como `SOL_REVIEW`; contagem daquele snapshot: 34/29/5/2/9/1/20 | Achados registrados como revisão GPT-6, não findings Sol. A terceira revisão intermediária confirmou os fixes no candidate atual; detecção factual ou calibração reais seguem ausentes/BLOCKED. |
 | Onda B, re-revisão GPT-6 | snapshot temporário `3dca687b5702af7e4c8bf55760546bd81b1a1cc4` | `FAIL`; não é revisão Sol 6.1 | Findings prévios de calibração, autenticação de assessment, concorrentes e provenance foram aceitos como corrigidos. Finding residual: `conflictFlags` podia ser removido mantendo assinatura. O candidate atual vincula também esses flags e adiciona teste adversarial; gates integrais e nova re-revisão pendentes. Nenhuma fixture demonstra `ADMITTED`. |
 | Onda B, terceira re-revisão GPT-6 | snapshot temporário `48e53d5d6ab865e35b31c19a20c2b846e693beda` | `PASS`; não é revisão Sol 6.1 | Findings de calibração empírica, assinatura de conflito/score/flags, inventário completo, provenance e monkeypatch encerrados. 141 testes Python; 9 suítes Apps Script; sintaxe, runtime, diff check e release build de 10 documentos PASS. Calibração real segue ausente/BLOCKED. |
 | Onda B, auditoria Codex/GPT-6 subsequente (não Sol) | snapshot da árvore local comparada byte a byte com `48e53d5d6ab865e35b31c19a20c2b846e693beda`; tracker tinha divergência | `SOL_REVIEW=PENDING`; 2 P2 encontrados, agora corrigidos localmente; revisão intermediária atual pendente | Separação de chave de autoridade de calibração e chave de configuração adicionada com teste; resumo do tracker reconciliado. Nenhum arquivo foi alterado pelo revisor. A revisão identificou explicitamente identidade efetiva Codex/GPT-6, portanto não é aprovação Sol 6.1. |
@@ -96,6 +96,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 | Onda B, re-revisão GPT-6 aceita pelo usuário | candidate temporário `9d293b4f71e66ebfd29b1ea198a587f5ded37f00` (worktree de validação; não commit da branch) | `PASS` focado; findings anteriores fechados; zero findings novos no escopo | Revisor declarou efetivamente Codex/GPT-6, não Sol 6.1; o usuário autorizou aceitar revisão GPT-6. Confirmados 16 finais canônicos, bloqueio de chave HMAC equivalente via NUL, recibo de autoridade distinta e proteção a monkeypatch, e ausência de fixture `ADMITTED`. Gates integrais após fixes: 141 Python, 9 Apps Script, sintaxe JS/Code.gs, runtime byte-identical SHA-256 `7025ebea7f23a429c954c712ee6afe34db04a5cf796a70699e29cc7b3e82b3a6`, release 10/10, KB 5.19.0, pipeline 4.22.0, SOURCE_COMMIT exato `9d293b4f71e66ebfd29b1ea198a587f5ded37f00`, phase guards pela suíte Python, `git diff --check` PASS. Isso aceita a revisão intermediária da Onda B, não declara revisão Sol nem fecha Fase 6. |
 | Onda B, commit e release limpo | `87a85d92bf21cad3afa006334b7fa606383c7014` | Commit criado após GPT-6 PASS aceito pelo usuário; release real PASS | Release em worktree limpa: 10 documentos, `SOURCE_COMMIT=87a85d92bf21cad3afa006334b7fa606383c7014`; enviado no checkpoint seguinte. `.codex-local-evidence/` ficou fora do índice. |
 | Onda D RT-002, commit e push | `140f888023c0fe19ad7ffd1450e41d12002d5111`; tracker `7158a158aa0ee7494e52206636b51eff02f39adc` | Implementação parcial revisada GPT-6 PASS; gates integrais e release PASS; fast-forward enviado | Release em worktree limpa: 10 documentos, SOURCE_COMMIT exato `7158a158aa0ee7494e52206636b51eff02f39adc`. Commit contém executor do predicado RT-002, readiness, fixtures e inventário atualizado. O Criterion continua parcial. |
+| Correção conservadora `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | Candidate sobre `9e8462b8aacc09baa97f2c8c6905745495e55d86` | Implementada; Luna revisor apontou inconsistência de totais/histórico; reconciliação documental corrigida | `SIGNATURE_MECHANISM` é texto FACT-ONLY e não prova verificabilidade documental. Produto existente com texto conhecido ou arbitrário retorna `MANUAL_REVIEW`; os três Criteria dependentes saem de `EXECUTABLE_EXISTING`. Runtime atual: 34/29/5/2; 6 cobertos, 1 parcial e 23 pendentes (inclui o parcial). |
 | Fechamento | — | PENDING | — |
 
 ## Estados finais obrigatórios
@@ -114,7 +115,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 
 - Runtime lido diretamente: 34 Criteria; 29 produtivos e 5 não selecionáveis.
   Os dois Criteria de regularidade profissional foram retirados e não aparecem
-  no contrato compilado. Contagem atual: 9 cobertos, 1 parcial e 20 pendentes.
+  no contrato compilado. Contagem daquele snapshot: 9 cobertos, 1 parcial e 20 pendentes.
 - O candidate Onda B inclui o correlacionador e a fronteira pós-plano, RDE
   digest autenticado e política exata de binding. A produção mantém o registro
   empírico vazio: `CALIBRATION_GATE=BLOCKED`; não há fixture de decisão
@@ -179,7 +180,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   candidato e não são verificadas contra fatos documentais; P2 a fixture de
   prompt injection não cobre conteúdo extraído sob admissão; P2 este tracker
   mantinha estado intermediário pendente após aceitação do usuário. Contagens
-  confirmadas pelo reviewer: 34/29/5/2/9/1/20. Verificações atuais antes dos
+  confirmadas pelo reviewer para aquele snapshot: 34/29/5/2/9/1/20. Verificações daquele candidate antes dos
   findings: 141 Python, 9 Apps Script, sintaxe 11 JS e Code.gs, runtime
   byte-identical e diff check PASS; release limpo PASS.
 - Correção subsequente da configuração: removido o registry de calibração
@@ -262,7 +263,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   sintaxe JS/Code.gs e `git diff --check` PASS; runtime SHA-256
   `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
   Re-revisão GPT-6 seguinte pendente; ainda sem commit/release limpo.
-- Reconciliados por inventário independente da Base/runtime: 34 Criteria ativos,
+- Reconciliação histórica por inventário independente da Base/runtime: 34 Criteria ativos,
   29 produtivos, 5 não selecionáveis, 2 retirados; 9 cobertos integralmente,
   1 parcial (`T1_DRT_REQUIRED`) e 20 pendentes. O RDE 0.6 não aumenta cobertura.
 - Re-revisão GPT-6 estática final deste slice: `PASS`, identidade efetiva Codex
@@ -281,7 +282,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   `01ceb7e43d10875573a3b438dd2755bcb0ef7728`; KB `5.20.0`, pipeline `4.23.0`.
   `SOL_REVIEW` da Fase 6 segue PENDING; Criteria e correlação operacional não
   foram declarados concluídos por este slice.
-- Retomada/checkpoint de 2026-10-15: branch local e `origin` confirmadas em
+- Retomada/checkpoint de 2026-10-15 anterior ao commit `9e8462b`: branch local e `origin` confirmadas em
   `6414aacca564f90ad3fd904a89f5dc6b34ca4917`; worktree rastreada limpa e
   `.codex-local-evidence/` não rastreado preservado. KB `5.20.0`, RDE `0.6`,
   runtime SHA-256 `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
@@ -295,7 +296,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   integração da sidecar ao Engine continua pendente porque não há consumidor
   declarado para correlação nos Criteria produtivos; expor a sidecar sem
   predicate de relação violaria o contrato do Engine. Manter contagens em
-  `34/29/5/2/9/1/20`, `SOL_REVIEW=PENDING`, `CALIBRATION_GATE=BLOCKED` e
+  naquela retomada, `34/29/5/2/9/1/20`, `SOL_REVIEW=PENDING`, `CALIBRATION_GATE=BLOCKED` e
   `CORRELATION_INTEGRATION=PENDING`. Próxima retomada: obter as decisões/dados
   listados na revisão de blockers, implementar apenas os slices autorizados,
   repetir gates completos, obter revisão independente corretamente identificada
@@ -310,8 +311,8 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   a integração relação-only já aprovada para o Criterion declarado
   `T1_CONFORMITY_REPORT`. Candidate de implementação ainda não revisado em
   `CorrelationCore.js`, `EngineCore.js`, `CriterionExecutionCore.js` e teste
-  de correlação. Não altera o bloqueio real de calibração. Inventário vigente:
-  `34/29/5/2/9/1/20`. O primeiro candidate de integração já incluía consumidor
+  de correlação. Não altera o bloqueio real de calibração. Inventário naquele
+  checkpoint: `34/29/5/2/9/1/20`. O primeiro candidate de integração já incluía consumidor
   no Engine, mas readiness e E2E positivo ainda estavam pendentes naquele
   checkpoint. Após fechamento dos gaps, revisão Luna independente e revisão
   arquitetural Sol 6.1 do slice retornaram PASS; um finding HIGH de ordem de
@@ -321,9 +322,10 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   após RT válida, produz FALSE/NC_T1_003 com referência DOCUMENT_ABSENCE. A
   projeção de correlação só expõe metadados depois de autenticação; a âncora de
   revisão é o selectedComprovante exato do plano. Gates integrais no candidate
-  final: 141 testes Python; 9 suítes Apps Script; sintaxe JS/Code.gs; runtime
+  final do slice RT-002: 141 testes Python; 9 suítes Apps Script; sintaxe JS/Code.gs; runtime
   byte-identical SHA-256 `0c36536ae85ce2994839ad75107dd30ef73d279716bf9bf9db492a746c8f4590`;
   phase guards/manifests pelos testes Python e `git diff --check` PASS. A fixture
   ADMITTED é TEST_ONLY; calibração empírica real segue BLOCKED, portanto não há
-  admissão operacional validada e a contagem de cobertura permanece
-  `34/29/5/2/9/1/20`. Revisão Sol 6.1 da Fase 6 continua PENDING.
+  admissão operacional validada. A contagem daquele snapshot era
+  `34/29/5/2/9/1/20`; a reclassificação de assinatura desta retomada deixa como
+  estado vigente `34/29/5/2/6/1/23`. Revisão Sol 6.1 da Fase 6 continua PENDING.

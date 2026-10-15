@@ -469,7 +469,7 @@ A implementação candidata adiciona a versão 0.4.0 mantendo validação de 0.2
 e 0.3.0 sem migração, conserva a coleção imutável na ExecutionView e não a
 consome em execução normativa. Rejeita chaves/versões incompatíveis, relações
 pendentes ou de tipo errado, textos ausentes/não literais e provenance
-inválida. Cobertura permanece 9/31 Criteria produtivos; não foram adicionados
+inválida. Naquele snapshot, cobertura registrada era 9/31 Criteria produtivos; não foram adicionados
 predicates nem capacidade de Criterion. Revisão Sol 6.1 do diff efetivo ainda
 pendente naquele momento; a revisão do candidate
 `3fe96004912dde5f356d6ce1a23cf511f1ffc5f0` encontrou e abriu F6-040. O finding
@@ -886,20 +886,22 @@ aceita ASSERT `EXISTS` ou `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` no mesmo
 produto e rejeita constructos compostos ainda sem executor, como `ALL` com `DRT_COVERS`,
 `VALID_WITHIN_YEARS` ou `REPORT_CONTAINS`.
 
-A cobertura materializável/readiness sobe de 6 para 9 dos 31 Criteria
-produtivos: `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST` e
-`T4_IN18_CMAR` juntam-se aos seis Criteria já cobertos. A contagem não cobre
-os Criteria compostos restantes só porque seus produtos agora têm o atributo
-factual de assinatura. Não foram adicionados predicates nem formas do ASSERT
-IR. Os testes demonstram seleção da unidade, materialização positiva dos três
-casos, manutenção de Criteria compostos como unsupported, estado `VALIDATED`,
-nenhum resultado/persistência/execução na readiness e RDE não mutada. O fluxo
-de resultados não mudou e `ANALYZED` continua fora da Fase 6.
+`VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` permanece apenas como suporte de
+materialização/readiness. A presença de texto em `SIGNATURE_MECHANISM` não
+prova assinatura documentalmente verificável; por isso os três Criteria
+`T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST` e `T4_IN18_CMAR` retornam
+`MANUAL_REVIEW` e não integram a contagem de cobertura produtiva. O snapshot
+funcional desta subseção era de 31 Criteria produtivos; no runtime atual, a
+cobertura é 6 dos 29 Criteria produtivos. A existência e a rastreabilidade dos
+produtos continuam testadas, mas nenhum Criterion assinado gera `PASS` apenas
+por esse texto. Não foram adicionados predicates, allowlists ou semântica à
+Base. O fluxo de resultados não mudou e `ANALYZED` continua fora da Fase 6.
 
-Candidate `a3d9e0432814c381aca82fff054f48538a6331e4`, revisado por Sol 6.1
-contra `805ee9ce9c483e447fb96634cb17b21c5f2e0716`, recebeu
-`SOL_REVIEW=PASS` sem findings. Sol confirmou a cobertura materializável 9/31,
-a restrição dos Criteria compostos e a preservação das fronteiras read-only.
+Candidate histórico `a3d9e0432814c381aca82fff054f48538a6331e4`, revisado por
+Sol 6.1 contra `805ee9ce9c483e447fb96634cb17b21c5f2e0716`, recebeu
+`SOL_REVIEW=PASS` sem findings para aquele snapshot. A declaração histórica de
+9/31 foi superada pela auditoria atual do predicate de assinatura e pela
+reconciliação do runtime atual abaixo.
 Gates no candidate: 150 testes Python, sete suítes Apps Script, sintaxe de
 módulos/testes JS e `Code.gs`, regeneração dupla byte-idêntica (SHA-256
 `8e0f715f44c677497527f27c2f9ec294f5d0aa109b2860199f9dd84e6fbb56d6`) e
@@ -932,7 +934,7 @@ Fixtures sintéticas exercitam `ALL` com resultados TRUE/FALSE, cardinalidade de
 um ou mais filhos, determinismo, trace dos filhos, associação de NC apenas no
 FALSE, rejeição de expressão vazia, campo residual e folha `DRT_COVERS` ainda
 não executável. A readiness confirma que um `ALL` com folha não suportada não
-se torna materializável. Cobertura permanece 9/31; nenhum predicate, Criterion,
+se torna materializável. Naquele snapshot, cobertura registrada era 9/31; nenhum predicate, Criterion,
 Requirement ou Nonconformity foi adicionado. O candidate
 `22a4665fa5958becbfd996b84cad28d5a6ca1201` foi commitado e enviado à branch.
 Revisão independente Sol 6.1 contra o baseline
@@ -949,18 +951,23 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 
 ## Snapshot histórico e reconciliação do runtime atual
 
+Contagens anteriores nesta subseção e nas ondas anteriores são registros
+históricos do estado de cada candidate. O único quantitativo vigente é a
+reconciliação operacional explicitamente identificada abaixo: 34 ativos,
+29 produtivos, 6 cobertos, 1 parcial e 23 pendentes de cobertura integral.
+
 A matriz detalhada entre as linhas 252–287 e as contagens 36/31 preservam
 snapshots históricos anteriores à retirada dos dois Criteria de regularidade
 profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada no checkpoint commitado KB 5.19.0; ela contém 34 Criteria e não contém os dois
+regenerada no checkpoint commitado KB 5.21.0; ela contém 34 Criteria e não contém os dois
 Criteria de regularidade. A applicability atual mantém cinco Criteria não
 selecionáveis, portanto 29 são produtivamente alcançáveis.
 
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
-| `EXECUTABLE_EXISTING` | 9 | `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
+| `EXECUTABLE_EXISTING` | 6 | `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
 | `PARTIAL_EXECUTION_SUPPORT` | 1 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 13 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN19_FINAL_VERIFICATION` |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 16 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
 | `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 29 Criteria produtivos conforme revisão de contratos atual. |
@@ -968,10 +975,11 @@ selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=9`, `CRITERIA_PARTIAL=1` (`T1_DRT_REQUIRED`) e
-`CRITERIA_PENDING=20`. A contagem de retirados
+ativo), `CRITERIA_COVERED=6`, `CRITERIA_PARTIAL=1` (`T1_DRT_REQUIRED`) e
+`CRITERIA_PENDING=23`, contando o parcial como pendente de cobertura integral.
+Há 22 Criteria sem suporte integral além do parcial. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
-retirados. O PASS da formalização RDE 0.4.0 não aumenta os 9 cobertos. Os 13 casos
+retirados. O PASS da formalização RDE 0.4.0 não aumenta os 6 cobertos. Os 16 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
@@ -994,12 +1002,14 @@ seleciona datas, determina data de avaliação, compara janelas, associa DRT,
 avalia validade nem determina resultado. A regra de cinco anos do laudo de
 estanqueidade de gás não se aplica genericamente aos demais `TEST_REPORT`.
 
-Isto formaliza apenas fatos documentais para apoiar futuramente os Criteria
-temporais. `T4_IN08_ESTANQUEIDADE` e `F6-MC-005` continuam bloqueados por
+No snapshot histórico daquela onda, esta mudança formalizou fatos documentais
+para apoiar futuramente os Criteria temporais. `T4_IN08_ESTANQUEIDADE` e
+`F6-MC-005` continuam bloqueados por
 seleção da data pertinente, formato/interpretação, referência autorizada de
 avaliação, produto quando houver vários relatórios e associação ao DRT. Esta
 mudança não altera Requirement, Criterion, predicate, applicability, resultado
-ou Nonconformity, e não aumenta a cobertura atual de 9/31. A revisão Sol da
+ou Nonconformity, e naquele snapshot não aumentava a cobertura então registrada
+como 9/31. A revisão Sol da
 implementação efetiva no candidate `2ac2018e2be2b9243ff00c8db40db27c30fc6588`
 retornou `SOL_REVIEW=FAIL` com o finding MEDIUM `F6-DATE-001`: referências
 `TypedReference` mutáveis ou com accessors podiam entrar pela construção direta

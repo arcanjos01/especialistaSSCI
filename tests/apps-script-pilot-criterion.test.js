@@ -285,13 +285,12 @@ const signedConformityResult = api.executePlannedCriterion(
 );
 assert.equal(signedConformityResult.unitKey, CONFORMITY_REPORT_SIGNED_UNIT);
 assert.equal(signedConformityResult.resultOrigin, 'EVALUATED');
-assert.equal(signedConformityResult.engineResult, api.EngineResult.TRUE);
-assert.equal(signedConformityResult.pipelineResult, 'PASS');
+assert.equal(signedConformityResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(signedConformityResult.pipelineResult, 'MANUAL_REVIEW');
 assert.equal(signedConformityResult.normalization, 'IDENTITY');
-assert.equal(signedConformityResult.trace.length, 2);
-assert.ok(signedConformityResult.trace.every(
-  entry => entry.predicateId === 'TECHNICAL_PRODUCT_ATTRIBUTE' && entry.result === 'TRUE'
-));
+assert.equal(signedConformityResult.trace.length, 1);
+assert.equal(signedConformityResult.trace[0].predicateId, 'TECHNICAL_PRODUCT_ATTRIBUTE');
+assert.equal(signedConformityResult.trace[0].result, api.EngineResult.MANUAL_REVIEW);
 assert.equal(signedConformityResult.nonconformityOnFalse, undefined);
 assert.deepEqual(
   JSON.parse(JSON.stringify(signedConformityResult.traceability.documentaryBinding.sourceDocument)),
@@ -344,14 +343,14 @@ for (const signedProductCase of [
   const signedProductResult = api.executePlannedCriterion(
     contract, signedProduct.plan, signedProductCase.unitKey, signedProduct.view
   );
-  assert.equal(signedProductResult.engineResult, api.EngineResult.TRUE);
-  assert.equal(signedProductResult.pipelineResult, 'PASS');
+  assert.equal(signedProductResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(signedProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(signedProductResult.resultOrigin, 'EVALUATED');
-  assert.equal(signedProductResult.trace.length, 2);
+  assert.equal(signedProductResult.trace.length, 1);
   assert.deepEqual(JSON.parse(JSON.stringify(
     signedProductResult.trace.map(entry => entry.predicateId)
-  )), ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS']);
-  assert.ok(signedProductResult.trace.every(entry => entry.result === 'TRUE'));
+  )), ['TECHNICAL_PRODUCT_ATTRIBUTE']);
+  assert.equal(signedProductResult.trace[0].result, api.EngineResult.MANUAL_REVIEW);
   assert.deepEqual(
     JSON.parse(JSON.stringify(
       signedProductResult.traceability.documentaryBinding.sourceDocument

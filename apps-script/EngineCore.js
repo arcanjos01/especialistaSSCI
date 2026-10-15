@@ -249,10 +249,11 @@ function technicalProductAttributePredicateContract() {
             'TECHNICAL_PRODUCT_ATTRIBUTE product attributes are invalid'
           );
         }
-        const mechanism = attributes.SIGNATURE_MECHANISM;
         return {
-          result: typeof mechanism === 'string' && mechanism.trim()
-            ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
+          // SIGNATURE_MECHANISM is FACT-ONLY text.  The RDE has no typed fact
+          // that proves documentary verifiability, so text presence cannot
+          // satisfy SIGNED.
+          result: EngineResult.MANUAL_REVIEW,
           memoryReferences: [args.technicalProduct]
         };
       }

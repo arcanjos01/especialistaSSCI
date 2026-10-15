@@ -147,7 +147,7 @@ const signedCall = product => new E.PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE',
   technicalProduct: product, attribute: 'SIGNED'
 });
 assert.equal(E.evaluateCriterion(criterion(signedCall(signedProduct)), productRegistry,
-  productMemory).engineResult, ER.TRUE);
+  productMemory).engineResult, ER.MANUAL_REVIEW);
 assert.equal(E.evaluateCriterion(criterion(signedCall(absentProduct)), productRegistry,
   productMemory).engineResult, ER.MANUAL_REVIEW);
 assert.throws(() => E.evaluateCriterion(criterion(new E.PredicateCall(
@@ -159,6 +159,12 @@ const unsignedMemory = Object.freeze({
 });
 assert.equal(E.evaluateCriterion(criterion(signedCall(signedProduct)), productRegistry,
   unsignedMemory).engineResult, ER.MANUAL_REVIEW);
+const arbitraryTextMemory = Object.freeze({
+  contains() { return true; },
+  read() { return Object.freeze({ SIGNATURE_MECHANISM: 'qualquer texto' }); }
+});
+assert.equal(E.evaluateCriterion(criterion(signedCall(signedProduct)), productRegistry,
+  arbitraryTextMemory).engineResult, ER.MANUAL_REVIEW);
 
 assert.throws(() => new E.PredicateContract({
   predicateId: 'TEST_NA', argumentSchema: new E.ArgumentSchema(),
