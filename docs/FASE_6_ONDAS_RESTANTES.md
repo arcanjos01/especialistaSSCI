@@ -3,9 +3,10 @@
 Status de acompanhamento: `IN_PROGRESS`
 Baseline reconciliado: `f826ac7d453b7744fed11bed23824acac9fcbb72`
 Branch: `feature/apps-script-engine-core`
-Knowledge Base no baseline: `5.16.0`; Onda A: `5.17.0`; checkpoint Onda B:
-`5.19.0`, commitado e enviado; Onda D prioridade 1 em `140f888`; candidate
-RDE 0.6/KB `5.20.0` em revisão, ainda não commitado.
+Knowledge Base no baseline: `5.16.0`; Onda A/C: contrato aprovado em `5.17.0`;
+Onda B base em `5.19.0`; RDE 0.6/KB `5.20.0` commitado e enviado em
+`01ceb7e43d10875573a3b438dd2755bcb0ef7728`. Checkpoints documentais seguintes:
+`6414aacca564f90ad3fd904a89f5dc6b34ca4917` e `242e0bfe03d3ad3041b923280fd450af800718bc`.
 
 Este registro acompanha o trabalho autorizado a partir do baseline, sem substituir
 os contratos canônicos nem o inventário de cobertura.
@@ -21,6 +22,10 @@ os contratos canônicos nem o inventário de cobertura.
   fast-forward; a Onda D RT-002 e seu registro foram enviados por fast-forward
   até `7158a158aa0ee7494e52206636b51eff02f39adc`.
 - `.codex-local-evidence/` é não rastreado e foi preservado. Não incluir em commits.
+- Estado atual retomado em 2026-10-15: branch local e `origin` coincidem em
+  `242e0bfe03d3ad3041b923280fd450af800718bc`; worktree rastreada limpa antes do
+  candidate de integração abaixo. KB `5.20.0`, runtime SHA-256
+  `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
 - Checkpoint `ResponsibilityEvidenceBinding` / `ImmutableExecutionView` está
   presente e fechado no baseline, com revisão Sol `PASS`; manter intacto.
 - Reconciliação do runtime candidate: 34 Criteria ativos, 29 produtivos, 5
@@ -52,7 +57,7 @@ os contratos canônicos nem o inventário de cobertura.
 | Onda | Escopo | Dependências | Gates/saída | Estado |
 |---|---|---|---|---|
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
-| B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão intermediária aceita pelo usuário; revisão final após Onda D | `GPT6_REVIEW=PASS_ACCEPTED_BY_USER; Onda B FINDINGS_OPEN=0; calibração e integração real bloqueadas/pendentes; revisão final da fase pendente` |
+| B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
 | D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; PRIORIDADE 1 T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PENDING; 19 sem suporte integral; pending=20; GPT6_REVIEW=PASS_ACCEPTED_BY_USER` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
@@ -98,9 +103,9 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 `SOL_CONTRACT_REVIEW=PASS` (Onda A/C)
 `SOL_REVIEW=PENDING` (aprovação final de toda Fase 6)
 `AUTO_ADMISSION_THRESHOLD=0.80`
-`AUTO_ADMISSION_POLICY=CONTRACT_READY; RUNTIME_INTEGRATION=PENDING`
+`AUTO_ADMISSION_POLICY=CONTRACT_READY; CORRELATION_ENGINE_CONSUMER=READY; PRODUCTION_CALLER=PENDING`
 `CALIBRATION_GATE=BLOCKED` até calibração empírica adequada
-`CORRELATION_INTEGRATION=PENDING`
+`CORRELATION_INTEGRATION=ENGINE_CONSUMER_READY; PRODUCTION_CALLER=PENDING`
 `REPORT_DISCLOSURE_CONTRACT=READY`
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`
 `FASE_6_STATUS=IN_PROGRESS`
@@ -296,3 +301,29 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   repetir gates completos, obter revisão independente corretamente identificada
   e atualizar o checkpoint. A sessão foi pausada pela sinalização de uso
   limitado; isto não encerra nem aprova a Fase 6.
+- Nova retomada: inventário Luna confirmou que `T1_DRT_ACTIVITY_EXECUTION`
+  permanece sem classificação segura: o Anexo A exige conferir atividade/
+  serviço literal, mas `drt_activity_items` é FACT-ONLY e não há vocabulário
+  negativo tipado autorizado. O único resultado seguro com os fatos atuais é
+  `MANUAL_REVIEW`, sem `FAIL`/NC. O Anexo A versionado atual contém entrada
+  concreta RT-002, inclusive produto `CONFORMITY_REPORT`; isso permite avançar
+  a integração relação-only já aprovada para o Criterion declarado
+  `T1_CONFORMITY_REPORT`. Candidate de implementação ainda não revisado em
+  `CorrelationCore.js`, `EngineCore.js`, `CriterionExecutionCore.js` e teste
+  de correlação. Não altera o bloqueio real de calibração. Inventário vigente:
+  `34/29/5/2/9/1/20`. O primeiro candidate de integração já incluía consumidor
+  no Engine, mas readiness e E2E positivo ainda estavam pendentes naquele
+  checkpoint. Após fechamento dos gaps, revisão Luna independente e revisão
+  arquitetural Sol 6.1 do slice retornaram PASS; um finding HIGH de ordem de
+  validação e dois findings de rastreabilidade foram corrigidos e re-revisados.
+  O Engine valida RT-002 única e fato EXECUCAO antes de decidir produto: RT
+  ausente/ambígua fica MANUAL_REVIEW sem DOCUMENT_ABSENCE; produto ausente,
+  após RT válida, produz FALSE/NC_T1_003 com referência DOCUMENT_ABSENCE. A
+  projeção de correlação só expõe metadados depois de autenticação; a âncora de
+  revisão é o selectedComprovante exato do plano. Gates integrais no candidate
+  final: 141 testes Python; 9 suítes Apps Script; sintaxe JS/Code.gs; runtime
+  byte-identical SHA-256 `0c36536ae85ce2994839ad75107dd30ef73d279716bf9bf9db492a746c8f4590`;
+  phase guards/manifests pelos testes Python e `git diff --check` PASS. A fixture
+  ADMITTED é TEST_ONLY; calibração empírica real segue BLOCKED, portanto não há
+  admissão operacional validada e a contagem de cobertura permanece
+  `34/29/5/2/9/1/20`. Revisão Sol 6.1 da Fase 6 continua PENDING.

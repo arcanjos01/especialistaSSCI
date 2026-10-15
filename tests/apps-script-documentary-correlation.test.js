@@ -37,7 +37,9 @@ for (const relativePath of [
   '../apps-script/CbmscApplicabilityCore.js',
   '../apps-script/ExecutionPlanCore.js',
   '../apps-script/CorrelationConfigurationCore.js',
-  '../apps-script/CorrelationCore.js'
+  '../apps-script/CorrelationCore.js',
+  '../apps-script/CriterionExecutionCore.js',
+  '../apps-script/ResponsibilityEvidenceCore.js'
 ]) {
   const source = fs.readFileSync(path.join(__dirname, relativePath), 'utf8');
   vm.runInContext(source, context);
@@ -54,12 +56,14 @@ vm.runInContext(`globalThis.api = {
   makeCorrelationDecision,
   isAuthenticatedCorrelationDecision,
   readOnlyCorrelationForEngine,
+  isCanonicalEngineCorrelationProjection,
   hashCanonicalCorrelation,
   canonicalCorrelationJson,
   getAuthenticatedPresentationIdentity,
   getValidatedRdeDigest_,
   verifyEmpiricalCalibration_,
-  loadAuthenticatedCorrelationConfiguration_
+  loadAuthenticatedCorrelationConfiguration_,
+  executePlannedCriterion
 };`, context);
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
@@ -505,11 +509,173 @@ const engineProjection = api.readOnlyCorrelationForEngine(
 assert.equal(engineProjection.status, 'HUMAN_REVIEW');
 assert.equal(engineProjection.relation, null);
 assert.equal(engineProjection.normativeResult, null);
+assert.equal(api.isCanonicalEngineCorrelationProjection(
+  engineProjection, contract, base.plan, base.view, base.submissionContext
+), true);
+assert.equal(api.isCanonicalEngineCorrelationProjection(
+  engineProjection, contract, base.plan, base.view, makeContext('OTHER_PRESENTATION')
+), false);
+assert.equal(api.isCanonicalEngineCorrelationProjection(
+  JSON.parse(JSON.stringify(engineProjection)), contract, base.plan, base.view
+), false);
+const staleProjectionBase = prepare({ products: [{ id: 'PRODUCT_STALE', entity: 'PRESSURIZATION_TEST_REPORT' }] });
+assert.equal(api.isCanonicalEngineCorrelationProjection(
+  engineProjection, contract, staleProjectionBase.plan, staleProjectionBase.view,
+  staleProjectionBase.submissionContext
+), false);
+assert.equal(Object.isFrozen(engineProjection), true);
 
 const changedRde = prepare({ products: [{ id: 'PRODUCT_2', entity: 'PRESSURIZATION_TEST_REPORT' }] });
 assert.notEqual(api.getValidatedRdeDigest_(base.rde), api.getValidatedRdeDigest_(changedRde.rde));
 assert.equal(api.isAuthenticatedCorrelationDecision(policyDecision, contract, changedRde.view, changedRde.submissionContext, changedRde.rde), false);
 assert.throws(() => api.readOnlyCorrelationForEngine(policyDecision, contract, changedRde.plan, changedRde.view, changedRde.submissionContext, changedRde.rde), /unauthenticated/);
+
+// End-to-end T1 relation: the admitted decision exists only through test fixtures;
+// CALIBRATION_GATE remains blocked unless the fixture supplies a distinct authority receipt.
+const conformity = prepare({ products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }] });
+const conformityPolicy = testPolicy({ technicalProductIds: ['CONFORMITY_REPORT'] });
+const conformityCalibration = {
+  calibrationId: 'TEST_ONLY_E2E_CALIBRATION', version: 'fixture-e2e-v1',
+  baseId: conformityPolicy.baseId, bindingType: conformityPolicy.bindingType,
+  policyDigest: api.hashCanonicalCorrelation(conformityPolicy), datasetHash: 'd'.repeat(64),
+  validity: 'VALID', status: 'VALID', conflictDetectorId: conformityPolicy.conflictDetectorId,
+  conflictDetectorVersion: conformityPolicy.conflictDetectorVersion,
+  validationEvidenceDigest: 'e'.repeat(64), validationRecordId: 'TEST_ONLY_E2E_RECEIPT',
+  validationStatus: 'EMPIRICALLY_VALIDATED'
+};
+properties.SSCI_CORRELATION_CALIBRATION_AUTHORITY_HMAC_KEY = CALIBRATION_TEST_KEY;
+conformityCalibration.validationSignature = crypto.createHmac('sha256', CALIBRATION_TEST_KEY)
+  .update(calibrationReceiptPayload(conformityCalibration), 'utf8').digest('base64');
+storeConfiguration(conformityPolicy, [conformityCalibration]);
+const admittedCorrelation = decision(conformity, [candidate({
+  technicalProductTarget: ref('REPORT', 'PRODUCT_1'),
+  evidenceRefs: [ref('DOCUMENT', 'DRT_1'), ref('REPORT', 'PRODUCT_1')], score: 0.99
+})], conformityPolicy);
+assert.equal(admittedCorrelation.status, 'ADMITTED');
+const admittedProjection = api.readOnlyCorrelationForEngine(
+  admittedCorrelation, contract, conformity.plan, conformity.view,
+  conformity.submissionContext, conformity.rde
+);
+const rdeBeforeExecution = JSON.stringify(conformity.rde);
+const conformityResult = api.executePlannedCriterion(
+  contract, conformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
+  admittedProjection, conformity.submissionContext
+);
+assert.equal(conformityResult.engineResult, 'TRUE');
+assert.equal(conformityResult.pipelineResult, 'PASS');
+const conformityRelationTrace = conformityResult.trace.find(
+  entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
+);
+assert.ok(conformityRelationTrace);
+assert.deepEqual(JSON.parse(JSON.stringify(conformityRelationTrace.externalRelationTrace)), {
+  decisionId: admittedCorrelation.decision_id,
+  rdeDigest: api.getValidatedRdeDigest_(conformity.rde),
+  policy: { id: conformityPolicy.version },
+  calibration: { id: conformityCalibration.calibrationId,
+    version: conformityCalibration.version },
+  status: 'ADMITTED',
+  reason: 'ADMITTED_CORRELATION_CONSUMED'
+});
+assert.deepEqual(JSON.parse(JSON.stringify(conformityRelationTrace.memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DRT_1' },
+  { kind: 'REPORT', identifier: 'PRODUCT_1' }
+]);
+assert.equal(JSON.stringify(conformity.rde), rdeBeforeExecution);
+
+const forgedProjection = JSON.parse(JSON.stringify(admittedProjection));
+forgedProjection.decisionId = 'MALICIOUS_DECISION_ID';
+forgedProjection.policyVersion = 'MALICIOUS_POLICY';
+const forgedProjectionResult = api.executePlannedCriterion(
+  contract, conformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
+  forgedProjection, conformity.submissionContext
+);
+const forgedProjectionTrace = forgedProjectionResult.trace.find(
+  entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
+).externalRelationTrace;
+assert.deepEqual(JSON.parse(JSON.stringify(forgedProjectionTrace)), {
+  reason: 'CORRELATION_PROJECTION_REJECTED'
+});
+assert.equal(JSON.stringify(forgedProjectionTrace).includes('MALICIOUS'), false);
+
+const missingConformity = prepare({ products: [] });
+const missingConformityResult = api.executePlannedCriterion(
+  contract, missingConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', missingConformity.view,
+  null, missingConformity.submissionContext
+);
+assert.equal(missingConformityResult.engineResult, 'FALSE');
+assert.equal(missingConformityResult.pipelineResult, 'FAIL');
+assert.equal(missingConformityResult.nonconformityOnFalse, 'NC_T1_003');
+const missingConformityTrace = missingConformityResult.trace.find(
+  entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(missingConformityTrace.memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DRT_1' },
+  { kind: 'DOCUMENT_ABSENCE', identifier: 'CONFORMITY_REPORT' }
+]);
+
+const missingRt = prepare({ drts: [], products: [] });
+const missingRtResult = api.executePlannedCriterion(
+  contract, missingRt.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', missingRt.view,
+  null, missingRt.submissionContext
+);
+assert.equal(missingRtResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(missingRtResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(missingRtResult.nonconformityOnFalse, undefined);
+const missingRtTrace = missingRtResult.trace.find(
+  entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(missingRtTrace.memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(missingRtTrace.externalRelationTrace)), {
+  reason: 'RT_BINDING_UNAVAILABLE'
+});
+assert.ok(!missingRtResult.trace.some(entry => entry.memoryReferences.some(
+  reference => reference.kind === 'DOCUMENT_ABSENCE'
+)));
+
+const multipleRt = prepare({
+  drts: [{ id: 'DRT_1', entity: 'ART' }, { id: 'DRT_2', entity: 'ART' }],
+  products: []
+});
+const multipleRtResult = api.executePlannedCriterion(
+  contract, multipleRt.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', multipleRt.view,
+  null, multipleRt.submissionContext
+);
+assert.equal(multipleRtResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(multipleRtResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(multipleRtResult.nonconformityOnFalse, undefined);
+assert.ok(!multipleRtResult.trace.some(entry => entry.memoryReferences.some(
+  reference => reference.kind === 'DOCUMENT_ABSENCE'
+)));
+
+storeConfiguration(conformityPolicy);
+delete properties.SSCI_CORRELATION_CALIBRATION_AUTHORITY_HMAC_KEY;
+const conformityHumanReview = decision(conformity, [candidate({
+  technicalProductTarget: ref('REPORT', 'PRODUCT_1'),
+  evidenceRefs: [ref('DOCUMENT', 'DRT_1'), ref('REPORT', 'PRODUCT_1')], score: 0.99
+})], conformityPolicy);
+assert.equal(conformityHumanReview.status, 'HUMAN_REVIEW');
+assert.equal(conformityHumanReview.calibration.status, 'BLOCKED');
+const humanReviewProjection = api.readOnlyCorrelationForEngine(
+  conformityHumanReview, contract, conformity.plan, conformity.view,
+  conformity.submissionContext, conformity.rde
+);
+const humanReviewResult = api.executePlannedCriterion(
+  contract, conformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
+  humanReviewProjection, conformity.submissionContext
+);
+assert.equal(humanReviewResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(humanReviewResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(humanReviewResult.trace[0].externalRelationTrace.status, 'HUMAN_REVIEW');
+assert.equal(humanReviewResult.trace[0].externalRelationTrace.reason, 'CORRELATION_NOT_ADMITTED');
+assert.equal(JSON.stringify(conformity.rde), rdeBeforeExecution);
 const sameContentRde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(base.rde), {
   processId: base.rde.process_id, sourceFileId: base.rde.source.file_id
 }, contract.entityCatalog);

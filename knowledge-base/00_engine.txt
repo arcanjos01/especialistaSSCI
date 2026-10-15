@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.4
+# VERSION 4.5
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -70,6 +70,24 @@ calibration is adequate, valid and applicable to the active Knowledge Base
 and binding type. A correlation decision shall never, by itself, produce
 PASS, satisfy a Criterion, alter a Requirement, create a Nonconformity or
 reclassify documentary evidence as documentary_association.
+
+RESPONSIBILITY_HAS_TECHNICAL_PRODUCT
+
+This relation-only predicate is declared for the current authorized tuple
+RT_002_EXECUCAO_DE_OBRA and CONFORMITY_REPORT only. It returns TRUE only when
+the exact RT-002 DRT binding is present, the exact CONFORMITY_REPORT endpoint
+has entity type REPORT, and the relation is supplied by an authenticated
+documentary association or by the exact admitted correlation sidecar bound to
+the current execution context. Documentary provenance and external relation
+provenance remain distinct. The explicit documentary-association route is
+unsupported by the current executor and therefore returns MANUAL_REVIEW.
+Because this tuple is REQUIRED, FALSE is permitted only when the exact
+CONFORMITY_REPORT endpoint is absent from the validated execution view.
+Missing or ambiguous RT-002 evidence, or a missing or blocked relation, is
+MANUAL_REVIEW and never establishes product absence. The relation is
+contextual input only; it cannot create facts or evidence, alter Process
+Memory or documentary_associations, produce another Requirement/Criterion
+result, or create a Nonconformity.
 
 ###############################################################################
 # RESERVED WORDS

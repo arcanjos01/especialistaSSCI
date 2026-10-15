@@ -303,6 +303,139 @@ function responsibilityHasAcceptedDrtEvidencePredicateContract() {
   });
 }
 
+function responsibilityHasTechnicalProductPredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'responsibility', kind: ArgumentKind.TEXT }),
+      new ArgumentSpec({ name: 'technicalProduct', kind: ArgumentKind.TEXT })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.FALSE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory, context, correlationProjection) {
+        if (args.responsibility !== 'RT_002_EXECUCAO_DE_OBRA' ||
+            args.technicalProduct !== 'CONFORMITY_REPORT') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (typeof materializeResponsibilityEvidenceBinding !== 'function' ||
+            typeof isCanonicalResponsibilityEvidenceBinding !== 'function') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        const selectedComprovante = context.executionPlan &&
+          context.executionPlan.selectedComprovante;
+        if (!isPlainObject(selectedComprovante) ||
+            Object.keys(selectedComprovante).sort().join(',') !== 'identifier,kind' ||
+            selectedComprovante.kind !== 'DOCUMENT' ||
+            typeof selectedComprovante.identifier !== 'string' ||
+            !selectedComprovante.identifier) {
+          throw new ResultContractError(
+            'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT requires an exact selectedComprovante snapshot'
+          );
+        }
+        const sourceAnchor = new TypedReference(selectedComprovante.kind,
+          selectedComprovante.identifier);
+        if (!memory.contains(sourceAnchor) ||
+            memory.entityId(sourceAnchor) !== 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE') {
+          throw new ResultContractError(
+            'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT selectedComprovante is not an exact memory entity'
+          );
+        }
+        const bindingUnavailable = () => ({
+          result: EngineResult.MANUAL_REVIEW,
+          memoryReferences: [sourceAnchor],
+          externalRelationTrace: { reason: 'RT_BINDING_UNAVAILABLE' }
+        });
+        let evidenceBinding;
+        try {
+          evidenceBinding = materializeResponsibilityEvidenceBinding(
+            context.compiledContract, context.executionPlan, memory, 'RT-002');
+        } catch (error) {
+          return bindingUnavailable();
+        }
+        const selected = evidenceBinding.evidence || [];
+        if (!isCanonicalResponsibilityEvidenceBinding(evidenceBinding,
+              context.compiledContract, context.executionPlan, memory) ||
+            selected.length !== 1 || !selected[0].reference ||
+            selected[0].reference.kind !== 'DOCUMENT') {
+          return {
+            result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [sourceAnchor, ...selected.map(entry => entry && entry.reference)
+              .filter(reference => reference && typeof reference.kind === 'string' &&
+                typeof reference.identifier === 'string')
+              .map(reference => new TypedReference(reference.kind, reference.identifier))],
+            externalRelationTrace: { reason: 'RT_BINDING_UNAVAILABLE' }
+          };
+        }
+        const drt = new TypedReference(selected[0].reference.kind,
+          selected[0].reference.identifier);
+        const facts = memory.read(drt);
+        if (!facts || facts.RESPONSIBILITY_TYPE !== 'EXECUCAO') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [drt] };
+        }
+        const productReferences = typeof memory.referencesByEntity === 'function'
+          ? memory.referencesByEntity('CONFORMITY_REPORT') : null;
+        if (!Array.isArray(productReferences)) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [drt] };
+        }
+        if (productReferences.length === 0) {
+          return { result: EngineResult.FALSE,
+            memoryReferences: [drt, new TypedReference('DOCUMENT_ABSENCE', 'CONFORMITY_REPORT')] };
+        }
+        if (productReferences.length !== 1 ||
+            !(productReferences[0] instanceof TypedReference) ||
+            productReferences[0].kind !== 'REPORT' ||
+            memory.entityId(productReferences[0]) !== 'CONFORMITY_REPORT') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: productReferences };
+        }
+        if (typeof isCanonicalEngineCorrelationProjection !== 'function' ||
+            !isCanonicalEngineCorrelationProjection(correlationProjection,
+              context.compiledContract, context.executionPlan, memory,
+              context.currentSubmissionContext)) {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [productReferences[0]],
+            externalRelationTrace: { reason: 'CORRELATION_PROJECTION_REJECTED' } };
+        }
+        const relationTrace = {
+          decisionId: correlationProjection.decisionId,
+          rdeDigest: correlationProjection.rdeDigest,
+          policy: { id: correlationProjection.policyVersion },
+          calibration: { id: correlationProjection.calibrationId,
+            version: correlationProjection.calibrationVersion },
+          status: correlationProjection.status,
+          reason: 'CORRELATION_NOT_ADMITTED'
+        };
+        const manualReview = (references) => ({ result: EngineResult.MANUAL_REVIEW,
+          memoryReferences: references,
+          externalRelationTrace: relationTrace });
+        const relation = correlationProjection.relation;
+        if (correlationProjection.status !== 'ADMITTED' || !relation ||
+            !relation.drtSource || !relation.technicalProductTarget) {
+          return manualReview([productReferences[0]]);
+        }
+        const product = new TypedReference(relation.technicalProductTarget.kind, relation.technicalProductTarget.identifier);
+        if (!memory.contains(drt) || !memory.contains(product) ||
+            product.kind !== 'REPORT' || product.identifier === drt.identifier ||
+            product.identifier !== productReferences[0].identifier ||
+            memory.entityId(product) !== 'CONFORMITY_REPORT' ||
+            drt.identifier !== relation.drtSource.identifier ||
+            drt.kind !== relation.drtSource.kind) {
+          return manualReview([drt, product]);
+        }
+        return { result: EngineResult.TRUE, memoryReferences: [drt, product],
+          externalRelationTrace: {
+            decisionId: correlationProjection.decisionId,
+            rdeDigest: correlationProjection.rdeDigest,
+            policy: { id: correlationProjection.policyVersion },
+            calibration: { id: correlationProjection.calibrationId,
+              version: correlationProjection.calibrationVersion },
+            status: correlationProjection.status,
+            reason: 'ADMITTED_CORRELATION_CONSUMED'
+          } };
+      }
+    }
+  });
+}
+
 class PredicateCall {
   constructor(predicateId, argumentsByName = {}) {
     this.predicateId = requireNonEmptyString(predicateId, 'predicateId');
@@ -408,16 +541,17 @@ function assertMemory(memory) {
   }
 }
 
-function evaluateExpression(expression, registry, memory, context) {
+function evaluateExpression(expression, registry, memory, context, correlationProjection) {
   assertMemory(memory);
   if (expression instanceof PredicateCall) {
     const contract = registry.resolve(expression.predicateId);
     const args = contract.argumentSchema.validate(expression.arguments);
-    const resolved = contract.resolver.resolve(args, memory, context);
+    const resolved = contract.resolver.resolve(args, memory, context, correlationProjection);
     if (!resolved || !isPlainObject(resolved) ||
         !Object.prototype.hasOwnProperty.call(resolved, 'result') ||
         !Object.prototype.hasOwnProperty.call(resolved, 'memoryReferences') ||
-        Object.keys(resolved).sort().join(',') !== 'memoryReferences,result' ||
+        !['memoryReferences', 'result'].every(key => Object.prototype.hasOwnProperty.call(resolved, key)) ||
+        Object.keys(resolved).some(key => !['memoryReferences', 'result', 'externalRelationTrace'].includes(key)) ||
         !Array.isArray(resolved.memoryReferences) ||
         resolved.memoryReferences.some(reference => !(reference instanceof TypedReference))) {
       throw new ResultContractError(expression.predicateId + ' resolver must return result and memoryReferences');
@@ -434,7 +568,10 @@ function evaluateExpression(expression, registry, memory, context) {
       arguments: args,
       result,
       argumentReferences: Object.freeze(referencesIn(args).slice()),
-      memoryReferences: Object.freeze(resolved.memoryReferences.slice())
+      memoryReferences: Object.freeze(resolved.memoryReferences.slice()),
+      ...(resolved.externalRelationTrace === undefined ? {} : {
+        externalRelationTrace: immutableCopy(resolved.externalRelationTrace)
+      })
     })]) });
   }
   if (expression instanceof Exists) {
@@ -470,7 +607,7 @@ function evaluateExpression(expression, registry, memory, context) {
   }
   if (expression instanceof All || expression instanceof ForEach || expression instanceof Or) {
     const evaluations = expression.expressions.map(child =>
-      evaluateExpression(child, registry, memory, context));
+      evaluateExpression(child, registry, memory, context, correlationProjection));
     const results = evaluations.map(item => item.result);
     if (results.includes(EngineResult.NOT_APPLICABLE)) {
       throw new CompositionContractError('NOT_APPLICABLE cannot be composed in ALL, OR, or FOR_EACH');
@@ -494,13 +631,16 @@ function combineOr(results) {
   return EngineResult.FALSE;
 }
 
-function evaluateCriterion(criterion, registry, memory) {
+function evaluateCriterion(criterion, registry, memory, correlationProjection = null, executionBinding = null) {
   if (!(criterion instanceof CriterionIR)) throw new EngineContractError('criterion must be CriterionIR');
   if (criterion.applicability !== null) {
     throw new EngineContractError('applicability evaluation is outside the Phase 1 core');
   }
   const context = new ResolverContext({ criterionId: criterion.criterionId, requirementId: criterion.requirementId });
-  const evaluation = evaluateExpression(criterion.expression, registry, memory, context);
+  const evaluation = evaluateExpression(criterion.expression, registry, memory,
+    { ...context, compiledContract: executionBinding && executionBinding.contract,
+      executionPlan: executionBinding && executionBinding.plan,
+      currentSubmissionContext: executionBinding && executionBinding.currentSubmissionContext }, correlationProjection);
   return evaluatedRecord(criterion, evaluation.result, evaluation.trace);
 }
 

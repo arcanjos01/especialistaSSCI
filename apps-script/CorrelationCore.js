@@ -2,6 +2,7 @@
   'use strict';
 
   const decisions = new WeakMap();
+  const engineProjections = new WeakMap();
   const weakMapGet = WeakMap.prototype.get;
   const weakMapSet = WeakMap.prototype.set;
   const weakMapHas = WeakMap.prototype.has;
@@ -576,7 +577,7 @@
     authenticatePlan(contract, plan, view, context);
     const admitted = decision.status === 'ADMITTED' && decision.decision &&
       decision.decision.outcome === 'ADMITTED' && decision.decision.relation;
-    return freeze({
+    const projection = freeze({
       relation: admitted ? copyFrozen(decision.decision.relation, []) : null,
       status: decision.status,
       confidence: admitted ? decision.decision.score : null,
@@ -588,6 +589,17 @@
       calibrationDatasetHash: decision.calibration.datasetHash,
       normativeResult: null
     });
+    apply(weakMapSet, engineProjections, [projection, freeze({ decision, contract, plan, view, context, rde })]);
+    return projection;
+  }
+
+  function isCanonicalEngineCorrelationProjection(projection, contract, plan, view, context) {
+    const binding = apply(weakMapGet, engineProjections, [projection]);
+    return !!binding && binding.contract === contract && binding.plan === plan &&
+      binding.view === view && binding.context === context &&
+      isCanonicalCurrentSubmissionContext(context) && isFrozen(projection) &&
+      projection.normativeResult === null &&
+      (projection.status === 'ADMITTED' || projection.status === 'HUMAN_REVIEW');
   }
 
   Object.defineProperties(global, {
@@ -596,6 +608,7 @@
     makeCorrelationDecision: { value: makeCorrelationDecision, enumerable: true, writable: false, configurable: false },
     isAuthenticatedCorrelationDecision: { value: isAuthenticatedCorrelationDecision, enumerable: true, writable: false, configurable: false },
     readOnlyCorrelationForEngine: { value: readOnlyCorrelationForEngine, enumerable: true, writable: false, configurable: false },
+    isCanonicalEngineCorrelationProjection: { value: isCanonicalEngineCorrelationProjection, enumerable: true, writable: false, configurable: false },
     canonicalCorrelationJson: { value: canonicalJson, enumerable: false, writable: false, configurable: false },
     hashCanonicalCorrelation: { value: hashCanonical, enumerable: false, writable: false, configurable: false }
   });

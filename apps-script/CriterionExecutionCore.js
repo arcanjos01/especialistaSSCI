@@ -342,6 +342,24 @@ function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, arg
   });
 }
 
+function criterionExecutionBindTechnicalProductRelation_(assertIr, contract, plan) {
+  criterionExecutionRequire_(assertIr.name === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT' &&
+    Array.isArray(assertIr.arguments) && assertIr.arguments.length === 2,
+  'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT must declare responsibility and product');
+  const responsibility = assertIr.arguments[0];
+  const product = assertIr.arguments[1];
+  criterionExecutionRequire_(responsibility.type === 'SYMBOL' && product.type === 'SYMBOL' &&
+    responsibility.value === 'RT_002_EXECUCAO_DE_OBRA' && product.value === 'CONFORMITY_REPORT',
+  'unsupported responsibility/product relation');
+  return Object.freeze({
+    expression: new PredicateCall('RESPONSIBILITY_HAS_TECHNICAL_PRODUCT', {
+      responsibility: responsibility.value, technicalProduct: product.value
+    }),
+    binding: Object.freeze({ type: 'DRT_PRODUCT_CORRELATION', responsibility: responsibility.value,
+      technicalProduct: product.value })
+  });
+}
+
 function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assertIr) {
   criterionExecutionRequire_(assertIr && typeof assertIr === 'object' &&
     !Array.isArray(assertIr), 'ASSERT IR node must be an object');
@@ -368,6 +386,11 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
       criterionExecutionRequireKeys_(argument, ['type', 'value'],
         'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
       return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT') {
+      criterionExecutionRequire_(unit.criterion && unit.criterion.id === 'T1_CONFORMITY_REPORT',
+        'DRT/product relation is restricted to T1_CONFORMITY_REPORT');
+      return criterionExecutionBindTechnicalProductRelation_(assertIr, contract, plan);
     }
     criterionExecutionRequire_(assertIr.name === 'EXISTS',
       'executor supports only the canonical EXISTS operator');
@@ -504,10 +527,12 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
     validationExpression: validation === null ? null : validation.expression });
 }
 
-function executePlannedCriterion(contract, plan, unitKey, view) {
+function executePlannedCriterion(contract, plan, unitKey, view, correlationProjection = null,
+  currentSubmissionContext = null) {
   const materialized = materializePlannedCriterion(contract, plan, unitKey, view);
   const registry = new PredicateRegistry([
     responsibilityHasAcceptedDrtEvidencePredicateContract(),
+    responsibilityHasTechnicalProductPredicateContract(),
     ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])
   ]);
   let result;
@@ -525,12 +550,14 @@ function executePlannedCriterion(contract, plan, unitKey, view) {
     } else {
       criterionExecutionRequire_(validationResult.engineResult === EngineResult.TRUE,
         'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE returned an unsupported EngineResult');
-      const assertResult = evaluateCriterion(materialized.criterion, registry, view);
+      const assertResult = evaluateCriterion(materialized.criterion, registry, view,
+        correlationProjection, { contract, plan, currentSubmissionContext });
       result = immutableCopy({ ...assertResult,
         trace: validationResult.trace.concat(assertResult.trace) });
     }
   } else {
-    result = evaluateCriterion(materialized.criterion, registry, view);
+    result = evaluateCriterion(materialized.criterion, registry, view,
+      correlationProjection, { contract, plan, currentSubmissionContext });
   }
   criterionExecutionRequire_(result.criterionId === materialized.metadata.criterionId &&
     result.requirementId === materialized.metadata.requirementId,

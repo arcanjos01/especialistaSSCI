@@ -91,6 +91,23 @@ function readinessPilotSupport_(unit, contract) {
   readinessRequire_(matches.length === 1,
     'COMPILED_CONTRACT_INVALID', 'planned Criterion must exist exactly once');
   const metadata = matches[0];
+  if (unit.criterion.id === 'T1_CONFORMITY_REPORT' &&
+      unit.requirement.id === 'REQ_T1_CONFORMITY_REPORT' &&
+      unit.unitKey === 'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)' &&
+      unit.validate.length === 0 &&
+      metadata.assertIr && metadata.assertIr.type === 'CALL' &&
+      metadata.assertIr.name === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT') {
+    const args = metadata.assertIr.arguments;
+    if (Array.isArray(args) && args.length === 2 &&
+        args[0].type === 'SYMBOL' && args[0].value === 'RT_002_EXECUCAO_DE_OBRA' &&
+        args[1].type === 'SYMBOL' && args[1].value === 'CONFORMITY_REPORT') {
+      const nonconformities = unit.nonconformityReferences &&
+        unit.nonconformityReferences.criterionFail;
+      readinessRequire_(Array.isArray(nonconformities),
+        'PLAN_INVALID', 'planned Criterion FAIL references must be an array');
+      return nonconformities.length <= 1;
+    }
+  }
   let validatedProduct = null;
   if (unit.validate.length > 0) {
     if (unit.validate.length !== 1 ||
