@@ -62,6 +62,7 @@ const {
   const executionViewStringIncludes_ = String.prototype.includes;
   const executionViewStringTrim_ = String.prototype.trim;
   const executionViewHasExactKeys_ = hasExactKeys_;
+  const executionViewCanonicalRdeJson_ = canonicalRdeJson_;
   const executionViewValidateRdeRecordEnvelope_ = validateRdeRecordEnvelope_;
   const executionViewValidateRdeDocumentaryAssociations_ = validateRdeDocumentaryAssociations_;
   const executionViewValidateRdeDrtDeclarationItems_ = validateRdeDrtDeclarationItems_;
@@ -454,13 +455,13 @@ function executionViewRecord(view, reference) {
 }
 
 /**
- * Read-only Process Memory over canonical records projected from RDE 0.2.0 through 0.6.0.
+ * Read-only Process Memory over canonical records projected from RDE 0.2.0 through 0.7.0.
  * Only attributes are exposed by read(); structural relations use dedicated APIs.
  */
 class ImmutableExecutionView {
   constructor(projectionEntries, associationEntries = [], schemaVersion = '0.2.0',
     declarationEntries = [], documentaryDateEntries = [], entityCatalogIdentity,
-    constructionToken, rdeOrigin, rdeDigest, activityEntries = []) {
+    constructionToken, rdeOrigin, rdeDigest, activityEntries = [], scopeEntries = []) {
     if (constructionToken !== executionViewConstructionToken_) {
       throw new executionViewContractError_(
         'ImmutableExecutionView can only be created from an RDE projection'
@@ -507,26 +508,139 @@ class ImmutableExecutionView {
         executionViewGetOwnPropertyNames_(activityEntries).length !== activityEntries.length + 1) {
       throw new executionViewContractError_('activityEntries must be a dense array');
     }
+    if (!executionViewArrayIsArray_(scopeEntries) || executionViewGetOwnPropertySymbols_(scopeEntries).length ||
+        executionViewKeys_(scopeEntries).length !== scopeEntries.length ||
+        executionViewGetOwnPropertyNames_(scopeEntries).length !== scopeEntries.length + 1) {
+      throw new executionViewContractError_('scopeEntries must be a dense array');
+    }
+    const scopeIds = executionViewCreate_(null);
+    const scopeSignatures = executionViewCreate_(null);
+    for (let index = 0; index < scopeEntries.length; index += 1) {
+      const descriptor = executionViewGetOwnPropertyDescriptor_(scopeEntries, String(index));
+      if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+        throw new executionViewContractError_('scopeEntries must contain data entries');
+      }
+      const item = descriptor.value;
+      const required = ['scopeDeclarationItemId', 'drt', 'drtReferenceText', 'product',
+        'productReferenceText', 'smsciText', 'activityServiceText', 'sourceDocument', 'sourceText'];
+      const allowed = executionViewListConcat_(required, ['provenance']);
+      if (!isPlainExecutionObject(item) || executionViewGetOwnPropertySymbols_(item).length ||
+          executionViewGetOwnPropertyNames_(item).length !== executionViewKeys_(item).length ||
+          executionViewListSome_(required, key => !executionViewHasOwn_(item, key)) ||
+          executionViewListSome_(executionViewKeys_(item), key => !executionViewListIncludes_(allowed, key))) {
+        throw new executionViewContractError_('scope entry fields are invalid');
+      }
+      if (executionViewListSome_(executionViewKeys_(item), key => {
+        const field = executionViewGetOwnPropertyDescriptor_(item, key);
+        return !field || !executionViewHasOwn_(field, 'value');
+      })) throw new executionViewContractError_('scope entry fields must be data properties');
+      const textFields = ['scopeDeclarationItemId', 'drtReferenceText', 'productReferenceText',
+        'smsciText', 'activityServiceText', 'sourceText'];
+      for (let fieldIndex = 0; fieldIndex < textFields.length; fieldIndex += 1) {
+        const value = item[textFields[fieldIndex]];
+        if (typeof value !== 'string' || !executionViewTextTrim_(value)) {
+          throw new executionViewContractError_('scope entry text fields must be non-empty strings');
+        }
+      }
+      if (!executionViewTextIncludes_(item.sourceText, item.drtReferenceText) ||
+          !executionViewTextIncludes_(item.sourceText, item.productReferenceText) ||
+          !executionViewTextIncludes_(item.sourceText, item.smsciText) ||
+          !executionViewTextIncludes_(item.sourceText, item.activityServiceText)) {
+        throw new executionViewContractError_('scope sourceText must contain all literal references and texts');
+      }
+      if (!(item.drt instanceof executionViewTypedReference_) || item.drt.kind !== 'DOCUMENT' ||
+          !(item.product instanceof executionViewTypedReference_) ||
+          !(item.sourceDocument instanceof executionViewTypedReference_) ||
+          item.sourceDocument.kind !== 'DOCUMENT') {
+        throw new executionViewContractError_('scope endpoints must be typed references');
+      }
+      if (executionViewHasOwn_(scopeIds, item.scopeDeclarationItemId)) {
+        throw new executionViewContractError_('duplicate scopeDeclarationItemId');
+      }
+      executionViewDefineProperty_(scopeIds, item.scopeDeclarationItemId, { value: true });
+      if (executionViewHasOwn_(item, 'provenance')) {
+        if (!isPlainExecutionObject(item.provenance) || executionViewKeys_(item.provenance).length === 0) {
+          throw new executionViewContractError_('scope provenance must be a non-empty object');
+        }
+        assertStrictExecutionJsonValue(item.provenance);
+      }
+      const signature = executionViewCanonicalRdeJson_({
+        drt: { kind: item.drt.kind, identifier: item.drt.identifier },
+        drtReferenceText: item.drtReferenceText,
+        product: { kind: item.product.kind, identifier: item.product.identifier },
+        productReferenceText: item.productReferenceText,
+        smsciText: item.smsciText,
+        activityServiceText: item.activityServiceText,
+        sourceDocument: { kind: item.sourceDocument.kind, identifier: item.sourceDocument.identifier },
+        sourceText: item.sourceText,
+        provenance: executionViewHasOwn_(item, 'provenance') ? item.provenance : null
+      });
+      if (executionViewHasOwn_(scopeSignatures, signature)) {
+        throw new executionViewContractError_('duplicate scope occurrence');
+      }
+      executionViewDefineProperty_(scopeSignatures, signature, { value: true });
+    }
+    const activityIds = executionViewCreate_(null);
+    for (let index = 0; index < activityEntries.length; index += 1) {
+      const descriptor = executionViewGetOwnPropertyDescriptor_(activityEntries, String(index));
+      if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
+        throw new executionViewContractError_('activityEntries must contain data entries');
+      }
+      const item = descriptor.value;
+      const required = ['activityItemId', 'drt', 'activityServiceText', 'sourceDocument', 'sourceText'];
+      const allowed = executionViewListConcat_(required, ['provenance']);
+      if (!isPlainExecutionObject(item) || executionViewGetOwnPropertySymbols_(item).length ||
+          executionViewGetOwnPropertyNames_(item).length !== executionViewKeys_(item).length ||
+          executionViewListSome_(required, key => !executionViewHasOwn_(item, key)) ||
+          executionViewListSome_(executionViewKeys_(item), key => !executionViewListIncludes_(allowed, key))) {
+        throw new executionViewContractError_('activity entry fields are invalid');
+      }
+      if (executionViewListSome_(executionViewKeys_(item), key => {
+        const field = executionViewGetOwnPropertyDescriptor_(item, key);
+        return !field || !executionViewHasOwn_(field, 'value');
+      })) throw new executionViewContractError_('activity entry fields must be data properties');
+      for (const key of ['activityItemId', 'activityServiceText', 'sourceText']) {
+        if (typeof item[key] !== 'string' || !executionViewTextTrim_(item[key])) {
+          throw new executionViewContractError_('activity entry text fields must be non-empty strings');
+        }
+      }
+      if (!executionViewTextIncludes_(item.sourceText, item.activityServiceText)) {
+        throw new executionViewContractError_('activity sourceText must contain activityServiceText');
+      }
+      if (!(item.drt instanceof executionViewTypedReference_) || item.drt.kind !== 'DOCUMENT' ||
+          !(item.sourceDocument instanceof executionViewTypedReference_) ||
+          item.sourceDocument.kind !== 'DOCUMENT') {
+        throw new executionViewContractError_('activity endpoints must be typed DOCUMENT references');
+      }
+      if (executionViewHasOwn_(activityIds, item.activityItemId)) {
+        throw new executionViewContractError_('duplicate activityItemId');
+      }
+      executionViewDefineProperty_(activityIds, item.activityItemId, { value: true });
+      if (executionViewHasOwn_(item, 'provenance')) assertStrictExecutionJsonValue(item.provenance);
+    }
     for (let index = 0; index < documentaryDateEntries.length; index += 1) {
       const descriptor = executionViewGetOwnPropertyDescriptor_(documentaryDateEntries, String(index));
       if (!descriptor || !executionViewHasOwn_(descriptor, 'value')) {
         throw new executionViewContractError_('documentaryDateEntries must contain data entries');
       }
     }
-    if (!executionViewListIncludes_(['0.2.0', '0.3.0', '0.4.0', '0.5.0', '0.6.0'], schemaVersion)) {
+    if (!executionViewListIncludes_(['0.2.0', '0.3.0', '0.4.0', '0.5.0', '0.6.0', '0.7.0'], schemaVersion)) {
       throw new executionViewContractError_('unsupported execution view schemaVersion');
     }
     if (schemaVersion === '0.2.0' && associationEntries.length) {
       throw new executionViewContractError_('RDE 0.2.0 cannot contain documentary associations');
     }
-    if (schemaVersion !== '0.4.0' && schemaVersion !== '0.5.0' && schemaVersion !== '0.6.0' && declarationEntries.length) {
+    if (schemaVersion !== '0.4.0' && schemaVersion !== '0.5.0' && schemaVersion !== '0.6.0' && schemaVersion !== '0.7.0' && declarationEntries.length) {
       throw new executionViewContractError_('RDE 0.2.0/0.3.0 cannot contain DRT declaration items');
     }
-    if (schemaVersion !== '0.5.0' && schemaVersion !== '0.6.0' && documentaryDateEntries.length) {
-      throw new executionViewContractError_('only RDE 0.5.0 or 0.6.0 can contain documentary date items');
+    if (schemaVersion !== '0.5.0' && schemaVersion !== '0.6.0' && schemaVersion !== '0.7.0' && documentaryDateEntries.length) {
+      throw new executionViewContractError_('only RDE 0.5.0 or later can contain documentary date items');
     }
-    if (schemaVersion !== '0.6.0' && activityEntries.length) {
-      throw new executionViewContractError_('only RDE 0.6.0 can contain activity items');
+    if (schemaVersion !== '0.6.0' && schemaVersion !== '0.7.0' && activityEntries.length) {
+      throw new executionViewContractError_('only RDE 0.6.0 or 0.7.0 can contain activity items');
+    }
+    if (schemaVersion !== '0.7.0' && scopeEntries.length) {
+      throw new executionViewContractError_('only RDE 0.7.0 can contain scope items');
     }
     const records = executionViewCreate_(null);
     const orderedReferences = [];
@@ -641,6 +755,33 @@ class ImmutableExecutionView {
       relationState[key] = 2;
     }
     executionViewListForEach_(orderedReferences, reference => visitParent(reference));
+    const relationEntries = executionViewListConcat_(activityEntries, scopeEntries);
+    for (let index = 0; index < relationEntries.length; index += 1) {
+      const item = relationEntries[index];
+      const drtKey = executionReferenceKey(item.drt);
+      const sourceKey = executionReferenceKey(item.sourceDocument);
+      const drtRecord = executionViewHasOwn_(records, drtKey) ? records[drtKey] : null;
+      const sourceRecord = executionViewHasOwn_(records, sourceKey) ? records[sourceKey] : null;
+      if (!drtRecord || drtRecord.reference.kind !== 'DOCUMENT' ||
+          !executionViewListIncludes_(['ART', 'RRT', 'TRT'], drtRecord.entityId)) {
+        throw new executionViewContractError_('activity/scope DRT endpoint must resolve to concrete ART/RRT/TRT');
+      }
+      if (!sourceRecord || sourceRecord.reference.kind !== 'DOCUMENT') {
+        throw new executionViewContractError_('activity/scope sourceDocument endpoint must resolve to DOCUMENT');
+      }
+      if (executionViewHasOwn_(item, 'product')) {
+        const productKey = executionReferenceKey(item.product);
+        const productRecord = executionViewHasOwn_(records, productKey) ? records[productKey] : null;
+        const productDefinition = productRecord && entityCatalogIdentity[productRecord.entityId];
+        const allowedProductTypes = ['DOCUMENT', 'REPORT', 'TEST_REPORT', 'COMMISSIONING_REPORT'];
+        if (!productRecord || !productDefinition ||
+            !executionViewListIncludes_(allowedProductTypes, productDefinition.TYPE) ||
+            (productDefinition.TYPE === 'DOCUMENT' &&
+              (productDefinition.EXTENDS === 'DRT' || productDefinition.ABSTRACT === true))) {
+          throw new executionViewContractError_('scope product endpoint must resolve to a technical product or concrete document');
+        }
+      }
+    }
     const documentaryAssociations = [];
     const associationIds = executionViewCreate_(null);
     const associationSignatures = executionViewCreate_(null);
@@ -902,6 +1043,7 @@ class ImmutableExecutionView {
       drtDeclarationItems: executionViewFreeze_(drtDeclarationItems),
       documentaryDateItems: executionViewFreeze_(documentaryDateItems),
       activityItems: executionViewFreeze_(executionViewReflectApply_(executionViewArrayMap_, activityEntries, [item => executionViewFreeze_(item)])),
+      scopeItems: executionViewFreeze_(executionViewReflectApply_(executionViewArrayMap_, scopeEntries, [item => executionViewFreeze_(item)])),
       entityCatalogIdentity,
       schemaVersion,
       rdeOrigin,
@@ -971,6 +1113,17 @@ class ImmutableExecutionView {
     }
     const state = executionViewStateGet_(this);
     return executionViewFreeze_(executionViewListFilter_(state.activityItems, item =>
+      executionReferenceKey(item.drt) === executionReferenceKey(reference)));
+  }
+
+  drtScopeDeclarationItems(reference) {
+    const record = executionViewRecord(this, reference);
+    if (record.reference.kind !== 'DOCUMENT' ||
+        (record.entityId !== 'ART' && record.entityId !== 'RRT' && record.entityId !== 'TRT')) {
+      throw new executionViewContractError_('drtScopeDeclarationItems requires a concrete ART, RRT or TRT DOCUMENT reference');
+    }
+    const state = executionViewStateGet_(this);
+    return executionViewFreeze_(executionViewListFilter_(state.scopeItems, item =>
       executionReferenceKey(item.drt) === executionReferenceKey(reference)));
   }
 
@@ -1085,7 +1238,7 @@ class ImmutableExecutionView {
       executionViewGetValidatedRdeDigest_(rde) === digest;
   }
 
-  /** Create the closed documentary projection from a validated RDE 0.2.0 through 0.6.0. */
+  /** Create the closed documentary projection from a validated RDE 0.2.0 through 0.7.0. */
   function projectRdeToExecutionView_(rde, entityCatalog) {
     if (typeof EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_ !== 'function' ||
       !EXECUTION_VIEW_IS_CANONICAL_VALIDATED_RDE_(rde)) {
@@ -1102,12 +1255,12 @@ class ImmutableExecutionView {
   rde = immutableExecutionCopy(rde);
   entityCatalog = immutableExecutionCopy(entityCatalog);
   if (!rde || typeof rde !== 'object' || executionViewArrayIsArray_(rde)) {
-    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.6.0');
+    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.7.0');
   }
   const schemaDescriptor = executionViewGetOwnPropertyDescriptor_(rde, 'schema_version');
   if (!schemaDescriptor || !executionViewHasOwn_(schemaDescriptor, 'value') ||
-      !executionViewListIncludes_(['0.2.0', '0.3.0', '0.4.0', '0.5.0', '0.6.0'], schemaDescriptor.value)) {
-    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.6.0');
+      !executionViewListIncludes_(['0.2.0', '0.3.0', '0.4.0', '0.5.0', '0.6.0', '0.7.0'], schemaDescriptor.value)) {
+    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.7.0');
   }
   const schemaVersion = schemaDescriptor.value;
   if (schemaVersion === '0.2.0' &&
@@ -1119,26 +1272,29 @@ class ImmutableExecutionView {
   const expectedKeys = [
     'schema_version', 'process_id', 'source', 'extraction', 'records', 'extraction_warnings'
   ];
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     executionViewPush_(expectedKeys, 'documentary_associations');
   }
-  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') executionViewPush_(expectedKeys, 'drt_declaration_items');
-  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0') executionViewPush_(expectedKeys, 'documentary_date_items');
-  if (schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') executionViewPush_(expectedKeys, 'drt_declaration_items');
+  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') executionViewPush_(expectedKeys, 'documentary_date_items');
+  if (schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     executionViewPush_(expectedKeys, 'drt_activity_items');
   }
+  if (schemaVersion === '0.7.0') executionViewPush_(expectedKeys, 'drt_scope_declaration_items');
   if (!executionViewHasExactKeys_(rde, expectedKeys) || !executionViewArrayIsArray_(rde.records)) {
-    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.6.0');
+    throw new executionViewContractError_('projection requires a validated RDE 0.2.0 through 0.7.0');
   }
   const documentaryAssociations = schemaVersion === '0.3.0' || schemaVersion === '0.4.0' ||
-    schemaVersion === '0.5.0' || schemaVersion === '0.6.0'
+    schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0'
     ? executionViewGetOwnPropertyDescriptor_(rde, 'documentary_associations').value : [];
-  const drtDeclarationItems = schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0'
+  const drtDeclarationItems = schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0'
     ? executionViewGetOwnPropertyDescriptor_(rde, 'drt_declaration_items').value : [];
-  const documentaryDateItems = schemaVersion === '0.5.0' || schemaVersion === '0.6.0'
+  const documentaryDateItems = schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0'
     ? executionViewGetOwnPropertyDescriptor_(rde, 'documentary_date_items').value : [];
-  const activityItems = schemaVersion === '0.6.0'
+  const activityItems = schemaVersion === '0.6.0' || schemaVersion === '0.7.0'
     ? executionViewGetOwnPropertyDescriptor_(rde, 'drt_activity_items').value : [];
+  const scopeItems = schemaVersion === '0.7.0'
+    ? executionViewGetOwnPropertyDescriptor_(rde, 'drt_scope_declaration_items').value : [];
   if (!entityCatalog || typeof entityCatalog !== 'object') {
     throw new executionViewContractError_('entityCatalog is required for RDE projection');
   }
@@ -1158,13 +1314,13 @@ class ImmutableExecutionView {
       throw new executionViewContractError_(concreteDrtId + ' must be a concrete DOCUMENT extending DRT');
     }
   }
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     executionViewValidateRdeDocumentaryAssociations_(documentaryAssociations, rde.records, entityCatalog);
   }
-  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     executionViewValidateRdeDrtDeclarationItems_(drtDeclarationItems, rde.records, entityCatalog);
   }
-  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     executionViewValidateRdeDocumentaryDateItems_(documentaryDateItems, rde.records, entityCatalog);
   }
   const referencesByRecordId = executionViewCreate_(null);
@@ -1218,7 +1374,7 @@ class ImmutableExecutionView {
     executionViewPush_(entries, entry);
   }
   const associations = [];
-  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.3.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     for (let index = 0; index < documentaryAssociations.length; index += 1) {
       const associationDescriptor = executionViewGetOwnPropertyDescriptor_(
         documentaryAssociations, String(index)
@@ -1240,7 +1396,7 @@ class ImmutableExecutionView {
     }
   }
   const declarations = [];
-  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.4.0' || schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     for (let index = 0; index < drtDeclarationItems.length; index += 1) {
       const declarationDescriptor = executionViewGetOwnPropertyDescriptor_(drtDeclarationItems, String(index));
       if (!declarationDescriptor ||
@@ -1261,7 +1417,7 @@ class ImmutableExecutionView {
     }
   }
   const dates = [];
-  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0') {
+  if (schemaVersion === '0.5.0' || schemaVersion === '0.6.0' || schemaVersion === '0.7.0') {
     for (let index = 0; index < documentaryDateItems.length; index += 1) {
       const dateDescriptor = executionViewGetOwnPropertyDescriptor_(documentaryDateItems, String(index));
       if (!dateDescriptor || !executionViewHasOwn_(dateDescriptor, 'value')) {
@@ -1293,9 +1449,26 @@ class ImmutableExecutionView {
     if (Object.prototype.hasOwnProperty.call(item, 'provenance')) projected.provenance = item.provenance;
     executionViewPush_(projectedActivities, executionViewFreeze_(projected));
   }
+  const projectedScopes = [];
+  for (let index = 0; index < scopeItems.length; index += 1) {
+    const item = scopeItems[index];
+    const projected = {
+      scopeDeclarationItemId: item.scope_declaration_item_id,
+      drt: referencesByRecordId[item.drt_record_id],
+      drtReferenceText: item.drt_reference_text,
+      product: referencesByRecordId[item.product_record_id],
+      productReferenceText: item.product_reference_text,
+      smsciText: item.smsci_text,
+      activityServiceText: item.activity_service_text,
+      sourceDocument: referencesByRecordId[item.source_document],
+      sourceText: item.source_text
+    };
+    if (executionViewHasOwn_(item, 'provenance')) projected.provenance = item.provenance;
+    executionViewPush_(projectedScopes, executionViewFreeze_(projected));
+  }
   return new ImmutableExecutionView(
     entries, associations, schemaVersion, declarations, dates, entityCatalogIdentity,
-    executionViewConstructionToken_, rdeOrigin, rdeDigest, projectedActivities
+    executionViewConstructionToken_, rdeOrigin, rdeDigest, projectedActivities, projectedScopes
   );
 }
 

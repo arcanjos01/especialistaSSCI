@@ -29,6 +29,7 @@ vm.runInContext(source + `
   validateRdeStructure_,
   validateRdeRecordEnvelope_,
     validateRdeActivityItems_,
+    validateRdeDrtScopeDeclarationItems_,
     parseAndValidateOperationalRdeJson_,
     canonicalRdeJson_,
     getValidatedRdeDigest_,
@@ -42,6 +43,7 @@ assert.equal(core.isSupportedRdeSchemaVersion_('0.3.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.4.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.5.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.6.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.7.0'), true);
 const originalArrayIncludes = Array.prototype.includes;
 try {
   vm.runInContext(`
@@ -69,7 +71,7 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.6.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.7.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
@@ -91,7 +93,7 @@ assert.equal(
 );
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.6.0');
+assert.equal(rde.schema_version, '0.7.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
@@ -101,6 +103,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_declaration_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_date_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_activity_items)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_scope_declaration_items)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -311,6 +314,7 @@ delete legacyStructuralRde.documentary_associations;
 delete legacyStructuralRde.drt_declaration_items;
 delete legacyStructuralRde.documentary_date_items;
 delete legacyStructuralRde.drt_activity_items;
+delete legacyStructuralRde.drt_scope_declaration_items;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
 assert.equal(core.parseAndValidateOperationalRdeJson_(
@@ -325,10 +329,12 @@ const legacyV3Rde = { ...operationalRde, schema_version: '0.3.0' };
 delete legacyV3Rde.drt_declaration_items;
 delete legacyV3Rde.documentary_date_items;
 delete legacyV3Rde.drt_activity_items;
+delete legacyV3Rde.drt_scope_declaration_items;
 assert.equal(core.validateRdeStructure_(legacyV3Rde, operationalExpected, entityCatalog), legacyV3Rde);
 const legacyV4Rde = { ...operationalRde, schema_version: '0.4.0' };
 delete legacyV4Rde.documentary_date_items;
 delete legacyV4Rde.drt_activity_items;
+delete legacyV4Rde.drt_scope_declaration_items;
 assert.equal(core.validateRdeStructure_(legacyV4Rde, operationalExpected, entityCatalog), legacyV4Rde);
 const malformedV4AssociationRde = {
   ...legacyV4Rde,
@@ -459,6 +465,7 @@ const legacyV4DeclarationRde = {
 };
 delete legacyV4DeclarationRde.documentary_date_items;
 delete legacyV4DeclarationRde.drt_activity_items;
+delete legacyV4DeclarationRde.drt_scope_declaration_items;
 for (const sourceText of [
   'Somente o sistema de hidrantes está citado.',
   'Atividade: execução de instalação.'
@@ -562,6 +569,7 @@ const activityRde = {
     source_text: 'Atividade: execução de instalação; sistema não declarado.'
   }]
 };
+delete activityRde.drt_scope_declaration_items;
 assert.doesNotThrow(() => core.validateRdeStructure_(activityRde, operationalExpected, declarationCatalog));
 assert.throws(() => core.validateRdeStructure_({
   ...activityRde,
@@ -574,6 +582,80 @@ assert.throws(() => core.validateRdeStructure_({
 assert.doesNotThrow(() => core.validateRdeActivityItems_(
   activityRde.drt_activity_items, activityRde.records, declarationCatalog
 ));
+const scopeCatalog = {
+  ...declarationCatalog,
+  TEST_REPORT: { TYPE: 'TEST_REPORT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} }
+};
+const scopeRecord = record('R_SCOPE_PRODUCT', 'TEST_REPORT', null, 'R_DECL_OTHER_SOURCE', {});
+const scopeItem = {
+  scope_declaration_item_id: 'SCOPE-001', drt_record_id: 'R_DECL_DRT',
+  drt_reference_text: 'ART 12345', product_record_id: 'R_SCOPE_PRODUCT',
+  product_reference_text: 'Relatório RT-777', smsci_text: 'sistema de hidrantes',
+  activity_service_text: 'execução de instalação', source_document: 'R_DECL_SOURCE',
+  source_text: 'A ART 12345 para o Relatório RT-777 abrange sistema de hidrantes e execução de instalação.',
+  provenance: { page: 3, paragraph: 2 }
+};
+const scopeRde = {
+  ...operationalRde,
+  records: declarationRecords.concat([scopeRecord]),
+  drt_scope_declaration_items: [scopeItem]
+};
+assert.doesNotThrow(() => core.validateRdeStructure_(scopeRde, operationalExpected, scopeCatalog));
+assert.doesNotThrow(() => core.validateRdeDrtScopeDeclarationItems_(
+  scopeRde.drt_scope_declaration_items, scopeRde.records, scopeCatalog
+));
+const originalObjectCreate = Object.create;
+try {
+  Object.create = function () { throw new Error('patched Object.create'); };
+  assert.doesNotThrow(() => core.validateRdeDrtScopeDeclarationItems_(
+    scopeRde.drt_scope_declaration_items, scopeRde.records, scopeCatalog
+  ));
+} finally {
+  Object.create = originalObjectCreate;
+}
+for (const [candidate, code] of [
+  [{ ...scopeItem, drt_record_id: 'R_MISSING' }, 'RDE_DRT_SCOPE_DRT_DANGLING'],
+  [{ ...scopeItem, product_record_id: 'R_MISSING' }, 'RDE_DRT_SCOPE_PRODUCT_DANGLING'],
+  [{ ...scopeItem, source_document: 'R_MISSING' }, 'RDE_DRT_SCOPE_SOURCE_INVALID'],
+  [{ ...scopeItem, activity_service_text: 'not in excerpt' }, 'RDE_DRT_SCOPE_TEXT_MISMATCH'],
+  [{ ...scopeItem, extra: true }, 'RDE_DRT_SCOPE_ITEM_INVALID'],
+  [{ ...scopeItem, provenance: [] }, 'RDE_DRT_SCOPE_PROVENANCE_INVALID']
+]) {
+  assert.throws(() => core.validateRdeStructure_({
+    ...scopeRde, drt_scope_declaration_items: [candidate]
+  }, operationalExpected, scopeCatalog), error => error.code === code);
+}
+assert.throws(() => core.validateRdeStructure_({
+  ...scopeRde,
+  drt_scope_declaration_items: [{ ...scopeItem, source_text: 'Sistema de hidrantes para execução de instalação.' }]
+}, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_TEXT_MISMATCH');
+assert.throws(() => core.validateRdeStructure_({
+  ...scopeRde,
+  drt_scope_declaration_items: [scopeItem, { ...scopeItem, scope_declaration_item_id: 'SCOPE-002' }]
+}, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEM_DUPLICATE');
+assert.throws(() => core.validateRdeStructure_({
+  ...scopeRde, drt_scope_declaration_items: new Array(1)
+}, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEMS_INVALID');
+const personAsProduct = record('R_SCOPE_PERSON', 'RT', null, 'R_DECL_SOURCE', {});
+assert.throws(() => core.validateRdeDrtScopeDeclarationItems_([{
+  ...scopeItem, product_record_id: 'R_SCOPE_PERSON'
+}], scopeRde.records.concat([personAsProduct]), scopeCatalog), error =>
+  error.code === 'RDE_DRT_SCOPE_PRODUCT_TYPE_INVALID');
+assert.throws(() => core.validateRdeDrtScopeDeclarationItems_([{
+  ...scopeItem, provenance: null
+}], scopeRde.records, scopeCatalog), error =>
+  error.code === 'RDE_DRT_SCOPE_PROVENANCE_INVALID');
+assert.throws(() => core.validateRdeDrtScopeDeclarationItems_([{
+  ...scopeItem, provenance: {}
+}], scopeRde.records, scopeCatalog), error =>
+  error.code === 'RDE_DRT_SCOPE_PROVENANCE_INVALID');
+const scopeWithAccessor = { ...scopeItem };
+Object.defineProperty(scopeWithAccessor, 'source_text', {
+  enumerable: true, get() { throw new Error('scope accessor must not be evaluated'); }
+});
+assert.throws(() => core.validateRdeDrtScopeDeclarationItems_(
+  [scopeWithAccessor], scopeRde.records, scopeCatalog
+), error => error.code === 'RDE_DRT_SCOPE_ITEM_INVALID');
 const helperNames = ['rdeHasOwn_', 'rdeNonBlankText_', 'rdeLiteralIndexOf_'];
 for (const name of helperNames) {
   const descriptor = vm.runInContext(`Object.getOwnPropertyDescriptor(globalThis, '${name}')`, context);

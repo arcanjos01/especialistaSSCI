@@ -959,7 +959,7 @@ reconciliação operacional explicitamente identificada abaixo: 34 ativos,
 A matriz detalhada entre as linhas 252–287 e as contagens 36/31 preservam
 snapshots históricos anteriores à retirada dos dois Criteria de regularidade
 profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada no checkpoint commitado KB 5.21.0; ela contém 34 Criteria e não contém os dois
+regenerada no checkpoint local RDE 0.7, KB 5.22.0; ela contém 34 Criteria e não contém os dois
 Criteria de regularidade. A applicability atual mantém cinco Criteria não
 selecionáveis, portanto 29 são produtivamente alcançáveis.
 

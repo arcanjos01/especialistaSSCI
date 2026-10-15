@@ -2,8 +2,8 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
-RDE_SCHEMA_VERSION: 0.6.0
-DOCUMENT_VERSION: 1.7.0
+RDE_SCHEMA_VERSION: 0.7.0
+DOCUMENT_VERSION: 1.8.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -115,9 +115,19 @@ explícitos na fonte, com `activity_item_id`, `drt_record_id`,
 não determina compatibilidade ou cobertura e não representa ausência de DRT.
 As ordens das coleções são preservadas. A ordem de `records` é
 determinística dentro da RDE finalizada; ela não é identidade e nunca poderá
-ser usada como identidade durante EXECUTION.
+ser usada como identidade durante EXECUTION. Toda RDE 0.7.0 deverá preservar
+integralmente o envelope e as coleções de 0.6.0 e possuir também
+`drt_scope_declaration_items`, coleção ordenada obrigatória que pode estar
+vazia; "ordenada" aqui significa que a sequência dos itens do array é
+preservada. A ordem de serialização das chaves dos objetos do envelope ou dos
+itens não possui semântica; a validação exige o conjunto de chaves definido
+para cada versão, independentemente de sua ordem. RDE 0.2.0 a 0.6.0 permanecem
+com seus envelopes e semântica anteriores, sem a nova coleção.
 
-Cada registro deverá obedecer ao envelope estrutural abaixo, nesta ordem:
+Cada registro deverá obedecer ao envelope estrutural abaixo. A ordem listada
+documenta os campos do envelope, mas ordem de propriedades em um objeto JSON
+não possui semântica nem é validada; exige-se o conjunto exato de campos da
+versão.
 
 record_id:
 
@@ -356,7 +366,9 @@ END ENTITY record
 Uma mesma entidade deverá possuir sempre a mesma estrutura lógica de
 `attributes`, independentemente do documento.
 
-A ordem dos atributos deverá permanecer invariável.
+A ordem declarada dos atributos deverá permanecer invariável na estrutura
+canônica da Base e na sequência de projeção dos atributos. Isso não impõe
+ordem de propriedades em objetos JSON serializados.
 
 Campos inexistentes deverão permanecer vazios.
 
@@ -428,7 +440,7 @@ interface de consumo pelo Engine deve ser autenticada e somente leitura.
 A representação do sidecar segue o contrato do pipeline definido em
 08_execution_pipeline.txt.
 
-RDE 0.2.0/0.3.0/0.4.0/0.5.0/0.6.0 → IMMUTABLE EXECUTION VIEW
+RDE 0.2.0/0.3.0/0.4.0/0.5.0/0.6.0/0.7.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:
 
@@ -464,12 +476,105 @@ rótulo, valor, documento-fonte e provenance disponível. RDE
 coleção vazia nem prova de completude. A interface preserva literais e não
 interpreta nem compara datas.
 
-Para RDE 0.6.0, `drtActivityItems(drt_ref)` retorna, na ordem da coleção,
+Para RDE 0.6.0 ou posterior, `drtActivityItems(drt_ref)` retorna, na ordem da coleção,
 atividades/serviços individualmente declarados e atribuídos à DRT, preservando
 texto literal, documento-fonte e proveniência disponível. O item não vincula
 atividade a SMSCI ou produto, não determina compatibilidade ou cobertura e sua
 ausência não prova ausência de DRT nem completude documental. RDE anteriores a
 0.6.0 não possuem essa coleção.
+
+Para RDE 0.7.0, `drtScopeDeclarationItems(drt_ref)` retorna, na ordem da
+coleção, os itens com `drt_record_id`, `drt_reference_text`,
+`product_record_id`, `product_reference_text`, `smsci_text`,
+`activity_service_text`, `source_document`, `source_text`,
+`scope_declaration_item_id` e provenance disponível. A interface preserva
+múltiplos itens válidos e conflitos entre eles; não seleciona itens repetidos,
+inconsistentes ou com endpoints não resolvidos. RDE
+0.2.0/0.3.0/0.4.0/0.5.0/0.6.0 não possuem essa coleção; sua ausência não
+representa coleção vazia nem prova de completude.
+
+------------------------------------------------------------------------
+
+DRT SCOPE DECLARATION ITEMS — DRAFT 0.7.0
+
+RDE 0.7.0 pode preservar uma declaração factual explícita que vincule, na
+mesma unidade documental, uma DRT a um produto/documento, a um SMSCI e a uma
+atividade/serviço. Cada item possui exatamente:
+
+scope_declaration_item_id:
+
+drt_record_id:
+
+drt_reference_text:
+
+product_record_id:
+
+product_reference_text:
+
+smsci_text:
+
+activity_service_text:
+
+source_document:
+
+source_text:
+
+provenance: (opcional)
+
+`scope_declaration_item_id` é opaco, único e imutável/estável após o fechamento
+da RDE; a ordem da coleção não substitui sua identidade. `drt_record_id` e
+`product_record_id` devem resolver para registros da mesma RDE; o primeiro é
+ART, RRT ou TRT (`TYPE DOCUMENT`, `EXTENDS DRT`) e o segundo é o produto ou
+documento explicitamente indicado na declaração. `product_record_id` resolve
+exatamente para o `record_id` canônico de um registro cujo tipo seja
+`DOCUMENT` concreto não DRT, `REPORT`, `TEST_REPORT` ou
+`COMMISSIONING_REPORT`, conforme o catálogo de entidades; não é texto, índice,
+posição ou entidade de pessoa, processo ou SMSCI.
+`source_document` resolve para `TYPE DOCUMENT` e deve ser o documento que
+efetivamente contém a declaração conjunta. Ele pode ser diferente dos
+documentos de origem dos registros DRT e produto, desde que a declaração
+identifique ambos de forma explícita e inequívoca. Nenhum endpoint pode ficar
+órfão, ambíguo ou incerto; nesses casos a RDE é estruturalmente inválida e a
+projeção é impedida.
+
+`drt_reference_text`, `product_reference_text`, `smsci_text` e
+`activity_service_text` são literais não vazios e devem ocorrer exatamente em
+`source_text`. As duas referências devem identificar sem ambiguidade os
+endpoints apontados pelos respectivos `record_id`; se isso não puder ser
+estabelecido documentalmente, não emitir o item e registrar insuficiência.
+`source_text` também deve conter a declaração explícita do vínculo entre os
+quatro elementos, preservado sem paráfrase, normalização ou combinação de
+trechos. `provenance`, quando presente, deve ser objeto não vazio contendo
+somente localização/origem disponível; `null` e objeto vazio equivalem à
+ausência e não podem distinguir ocorrências.
+
+Emitir item somente para o vínculo conjunto explícito
+DRT→produto/documento→SMSCI→atividade. Zero itens ou coleção vazia não prova
+ausência. Cada item representa uma única ocorrência documental. `source_text`
+deve conter contexto literal suficiente para localizar inequivocamente a
+ocorrência; quando ocorrências repetidas não puderem ser distinguidas com o
+texto e a proveniência disponíveis, não emitir item e registrar insuficiência
+da extração. Duplicata estrutural com a mesma ocorrência e proveniência deve
+ser rejeitada; ocorrências distinguíveis, ainda que tenham conteúdo idêntico,
+ou ocorrências com proveniências distintas devem ser preservadas. É proibido
+formar produto cartesiano entre listas sem relação explícita, e não há
+cardinalidade máxima imposta entre DRT e sistema/produto. Múltiplos itens
+válidos e conflitos entre eles são preservados. Referência órfã, ambígua ou
+incerta invalida estruturalmente a RDE e impede a projeção.
+
+O domínio do item é a declaração documental, e sua autoria deve ser
+determinada pela unidade documental e pela proveniência. Texto de terceiro
+pode ser preservado como fato da declaração quando a fonte o atribui, mas não
+prova sozinho cobertura normativa da DRT nem autoriza presumir que o terceiro
+declarou o escopo da DRT.
+
+O item não é rotulado como cobertura válida, compatibilidade, atendimento ou
+resultado; não é `DRT_COVERS` e não produz conclusão normativa. Poderá apenas
+ser consumido futuramente por teste após validação e regras autorizadas fora
+da RDE. Se não houver mapeamento canônico de texto para SMSCI ou atividade,
+preservar os literais e proibir conversão por semelhança, sinônimo,
+normalização, código aproximado, embeddings ou LLM. Este draft não cria esse
+mapeamento nem define identidade canônica para SMSCI, atividade ou produto.
 
 `read(ref)` retorna somente `attributes` documentais. `record_id`, `entity_id`,
 `parent_record_id` e `source_document` são metadados estruturais disponíveis

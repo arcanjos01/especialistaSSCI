@@ -96,7 +96,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 | Onda B, re-revisão GPT-6 aceita pelo usuário | candidate temporário `9d293b4f71e66ebfd29b1ea198a587f5ded37f00` (worktree de validação; não commit da branch) | `PASS` focado; findings anteriores fechados; zero findings novos no escopo | Revisor declarou efetivamente Codex/GPT-6, não Sol 6.1; o usuário autorizou aceitar revisão GPT-6. Confirmados 16 finais canônicos, bloqueio de chave HMAC equivalente via NUL, recibo de autoridade distinta e proteção a monkeypatch, e ausência de fixture `ADMITTED`. Gates integrais após fixes: 141 Python, 9 Apps Script, sintaxe JS/Code.gs, runtime byte-identical SHA-256 `7025ebea7f23a429c954c712ee6afe34db04a5cf796a70699e29cc7b3e82b3a6`, release 10/10, KB 5.19.0, pipeline 4.22.0, SOURCE_COMMIT exato `9d293b4f71e66ebfd29b1ea198a587f5ded37f00`, phase guards pela suíte Python, `git diff --check` PASS. Isso aceita a revisão intermediária da Onda B, não declara revisão Sol nem fecha Fase 6. |
 | Onda B, commit e release limpo | `87a85d92bf21cad3afa006334b7fa606383c7014` | Commit criado após GPT-6 PASS aceito pelo usuário; release real PASS | Release em worktree limpa: 10 documentos, `SOURCE_COMMIT=87a85d92bf21cad3afa006334b7fa606383c7014`; enviado no checkpoint seguinte. `.codex-local-evidence/` ficou fora do índice. |
 | Onda D RT-002, commit e push | `140f888023c0fe19ad7ffd1450e41d12002d5111`; tracker `7158a158aa0ee7494e52206636b51eff02f39adc` | Implementação parcial revisada GPT-6 PASS; gates integrais e release PASS; fast-forward enviado | Release em worktree limpa: 10 documentos, SOURCE_COMMIT exato `7158a158aa0ee7494e52206636b51eff02f39adc`. Commit contém executor do predicado RT-002, readiness, fixtures e inventário atualizado. O Criterion continua parcial. |
-| Correção conservadora `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | Candidate sobre `9e8462b8aacc09baa97f2c8c6905745495e55d86` | Implementada; Luna revisor apontou inconsistência de totais/histórico; reconciliação documental corrigida | `SIGNATURE_MECHANISM` é texto FACT-ONLY e não prova verificabilidade documental. Produto existente com texto conhecido ou arbitrário retorna `MANUAL_REVIEW`; os três Criteria dependentes saem de `EXECUTABLE_EXISTING`. Runtime atual: 34/29/5/2; 6 cobertos, 1 parcial e 23 pendentes (inclui o parcial). |
+| Onda D — bloqueio de `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | Commit/push `832b0f2235fbc12ce9ef2f9cbb7082ec1165ff9c` | Luna re-review `PASS`; Codex/GPT-6 `PASS` aceito pelo usuário; revisão Sol 6.1 não confirmada, `SOL_REVIEW=PENDING` | `SIGNATURE_MECHANISM` é texto FACT-ONLY e não prova verificabilidade documental. Produto existente com texto conhecido ou arbitrário retorna `MANUAL_REVIEW`; `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR` saem dos cobertos. 141 Python; 9 Apps Script; sintaxe JS/Code.gs; runtime byte-identical SHA-256 `0c36536ae85ce2994839ad75107dd30ef73d279716bf9bf9db492a746c8f4590`; release limpo 10 documentos, `SOURCE_COMMIT` exato, KB 5.21.0; phase guards/manifests e diff check PASS. Contagem vigente `34/29/5/2/6/1/23`; 23 pendentes inclui o parcial. |
 | Fechamento | — | PENDING | — |
 
 ## Estados finais obrigatórios
@@ -329,3 +329,87 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   admissão operacional validada. A contagem daquele snapshot era
   `34/29/5/2/9/1/20`; a reclassificação de assinatura desta retomada deixa como
   estado vigente `34/29/5/2/6/1/23`. Revisão Sol 6.1 da Fase 6 continua PENDING.
+
+## Onda D — dependências atuais das prioridades restantes
+
+Contagem vigente vem do runtime compilado KB `5.22.0`: 34 Criteria ativos,
+29 produtivos, 5 não selecionáveis, 2 retirados, 6 integralmente cobertos,
+1 parcial e 23 pendentes de cobertura integral (inclui o parcial). As matrizes
+de snapshots anteriores permanecem apenas como histórico.
+
+- Prioridade 1: `T1_DRT_REQUIRED` continua parcial. `T1_DRT_ACTIVITY_EXECUTION`
+  requer atividade/serviço declarado e compatível. RDE 0.6 preserva a atividade
+  literal ligada à DRT, mas não classifica compatibilidade; `RESPONSIBILITY_TYPE`
+  por si só não prova a atividade.
+- Prioridade 2: `T1/T4_DRT_REGISTERED`, `T1/T4_DRT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`,
+  `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA` precisam de seleção
+  autenticada da DRT para cada responsabilidade e comparandos factuais no
+  processo. Status de registro/emissão e assinatura atuais são texto FACT-ONLY;
+  ausência/confusão entre registro, emissão e pagamento não vira FAIL.
+- Prioridade 3: `T1_DRT_SMSCI_COVERAGE`, `T4_IN09_DRT` e folhas `DRT_COVERS`
+  de IN07/08/09/10/12/15 exigem escopo explícito DRT↔SMSCI↔atividade/produto.
+  A RDE 0.6 não contém essas ligações; `documentary_associations` declara
+  relação documental literal, mas não afirma cobertura normativa.
+- Prioridade 4: IN08 precisa de contrato verificável de data/janela de cinco
+  anos e DRT correspondente; IN09 precisa dos itens do relatório e DRT de
+  vistoria/ensaio; IN10 exige provar independência; IN12/15 exigem cobertura
+  explícita. `T4_IN19_FINAL_VERIFICATION` continua dependente de
+  `RESPONSIBILITY_ACTIVITY_COMPATIBLE`, não executado integralmente.
+
+Essas dependências mantêm os Criteria em revisão humana/insuficiência conforme
+os contratos; ausência de associação não comprova ausência de DRT. Nenhuma
+fixture institucional ou extração real foi iniciada. Não há decisão normativa
+humana adicional registrada como requisito imediato nesta reconciliação; a
+validação institucional da correlação permanece separadamente `PENDING`.
+
+## Retomada do checkpoint `832b0f2` — RDE 0.7.0
+
+- Diff contratual RDE 0.7.0 submetido a revisão independente GPT-6. Resultado
+  inicial `FAIL`, sem P0/P1: (1) duas frases históricas podiam sugerir ordem
+  de propriedades JSON; (2) não havia critério suficiente para distinguir
+  repetição literal de duas ocorrências reais sem localização. Ambos foram
+  corrigidos localmente no Documento 09. Re-revisão GPT-6 `PASS`, sem achados
+  remanescentes no escopo contratual; revisão registrada como GPT-6, nunca Sol.
+- A mesma revisão confirmou que a RDE 0.7 ainda não é aceita pelo runtime
+  0.6.0. O parser e `ImmutableExecutionView` precisam acompanhar o contrato
+  antes de release/build. A coleção factual não pode ser consumida como
+  `DRT_COVERS` nem elevar cobertura de Criterion sem mapeamento autorizado.
+- Estado desta retomada: HEAD `832b0f2235fbc12ce9ef2f9cbb7082ec1165ff9c`;
+  diff local em Documento 08/09 e este tracker; `.codex-local-evidence/`
+  permanece não rastreado e fora de qualquer staging. `SOL_REVIEW=PENDING`;
+  `CALIBRATION_GATE=BLOCKED`; cobertura vigente segue `34/29/5/2/6/1/23` até
+  nova compilação e reconciliação verificável.
+- Implementação 0.7 em progresso: `RdeCore.js` valida o envelope e os itens;
+  `ImmutableExecutionView` projeta a coleção somente leitura por DRT, preserva
+  referência ao produto/documento, origem, textos e provenance. Atualizado
+  Documento 06 para refletir a release 5.22.0 (versão 3.10.0), sem implementar
+  geração de relatório. Gates focais RDE/view PASS; gates completos após o
+  último ajuste: 9 suítes Apps Script, 141 testes Python, sintaxe JS e `Code.gs`,
+  runtime byte-identical e `git diff --check` PASS; SHA
+  `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`.
+  Revisão Luna inicial `FAIL` (P1: o trecho não tinha referências literais aos
+  endpoints; P2: construtor de view validava só densidade). Corrigido com
+  `drt_reference_text`/`product_reference_text` obrigatórios, checks literais,
+  clarificação de `source_document` como origem da declaração conjunta e
+  autovalidação/resolução de endpoints pela view. Fixture inclui declaração
+  em terceiro documento explicitamente identificando ambos os endpoints.
+  Re-revisão Luna `PASS`, sem findings. Revisão GPT-6 seguinte `FAIL` com dois
+  P2: whitelist incompleta de tipos para produto e equivalência de provenance
+  ausente/null na assinatura de duplicidade. Corrigidos com tipos canônicos
+  `DOCUMENT` concreto não DRT/`REPORT`/`TEST_REPORT`/`COMMISSIONING_REPORT`,
+  rejeição de provenance null/vazio, assinatura sem flag de presença e testes
+  negativos. Re-revisão GPT-6 `PASS`, com os dois P2 encerrados. GPT-6 foi
+  registrado como GPT-6/Codex, nunca Sol.
+- A re-revisão Luna final encontrou um P2 de consistência: construtor da view
+  não repetia a detecção canônica de duplicata semântica feita pelo parser.
+  Corrigido com assinatura canônica idêntica em `ExecutionViewCore`; testes
+  adicionais cobrem proveniência `null`/vazia e item duplicado com ID diferente.
+  Re-review Luna `PASS`; re-review GPT-6 `PASS` (Codex/GPT-6, não Sol). O
+  revisor anotou P3: a verificação no construtor não tem teste direto de
+  duplicata porque o token é privado; a suíte testa a construção não
+  autorizada e a duplicata semântica na fronteira parser→view. Não há finding
+  P2+ aberto. Gates completos após esse último finding: 9 suítes
+  Apps Script, 141 testes Python, sintaxe JS/Code.gs, runtime byte-identical
+  SHA-256 `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`,
+  `git diff --check` — PASS. Release build limpo, commit/push e revisão Sol 6.1
+  continuam pendentes.

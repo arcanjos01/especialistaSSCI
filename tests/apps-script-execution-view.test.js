@@ -244,6 +244,60 @@ assert.equal(Object.isFrozen(activityItems[0]), true);
 activityItems[0].activityServiceText = 'tampered';
 assert.equal(activityItems[0].activityServiceText, 'execução de instalação');
 assert.deepEqual(JSON.parse(JSON.stringify(activityView.drtActivityItems(drtRef))), JSON.parse(JSON.stringify(activityItems)));
+const scopeEntityCatalog = {
+  ...entityCatalog,
+  TEST_REPORT: { TYPE: 'TEST_REPORT', ATTRIBUTES: [], ATTRIBUTE_TYPES: {} }
+};
+const scopeRde = {
+  ...declarationRde,
+  schema_version: '0.7.0',
+  records: [...declarationRde.records, rdeRecord('R_SCOPE_PRODUCT', 'TEST_REPORT', null, 'R_DRT_RECORD', {})],
+  documentary_date_items: [],
+  drt_activity_items: [],
+  drt_scope_declaration_items: [{
+    scope_declaration_item_id: 'SCOPE-001', drt_record_id: 'R_DRT_RECORD',
+    drt_reference_text: 'ART 12345', product_record_id: 'R_SCOPE_PRODUCT',
+    product_reference_text: 'Relatório RT-777', smsci_text: 'sistema de hidrantes',
+    activity_service_text: 'execução de instalação', source_document: 'R_DRT_SOURCE',
+    source_text: 'A ART 12345 abrange o Relatório RT-777, sistema de hidrantes e execução de instalação.',
+    provenance: { page: 3 }
+  }]
+};
+const scopeExpected = { processId: scopeRde.process_id, sourceFileId: scopeRde.source.file_id };
+for (const provenance of [null, {}]) {
+  assert.throws(() => api.parseAndValidateOperationalRdeJson_(JSON.stringify({
+    ...scopeRde,
+    drt_scope_declaration_items: [{ ...scopeRde.drt_scope_declaration_items[0], provenance }]
+  }), scopeExpected, scopeEntityCatalog), error => error.code === 'RDE_DRT_SCOPE_PROVENANCE_INVALID');
+}
+assert.throws(() => api.parseAndValidateOperationalRdeJson_(JSON.stringify({
+  ...scopeRde,
+  drt_scope_declaration_items: [
+    scopeRde.drt_scope_declaration_items[0],
+    { ...scopeRde.drt_scope_declaration_items[0], scope_declaration_item_id: 'SCOPE-002' }
+  ]
+}), scopeExpected, scopeEntityCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEM_DUPLICATE');
+const scopeView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(scopeRde), { processId: scopeRde.process_id, sourceFileId: scopeRde.source.file_id }, scopeEntityCatalog
+), scopeEntityCatalog);
+const projectedScopes = scopeView.drtScopeDeclarationItems(drtRef);
+assert.deepEqual(JSON.parse(JSON.stringify(projectedScopes)), [{
+  scopeDeclarationItemId: 'SCOPE-001',
+  drt: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
+  drtReferenceText: 'ART 12345',
+  product: { kind: 'TEST_REPORT', identifier: 'R_SCOPE_PRODUCT' },
+  productReferenceText: 'Relatório RT-777',
+  smsciText: 'sistema de hidrantes',
+  activityServiceText: 'execução de instalação',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_SOURCE' },
+  sourceText: 'A ART 12345 abrange o Relatório RT-777, sistema de hidrantes e execução de instalação.',
+  provenance: { page: 3 }
+}]);
+assert.equal(Object.isFrozen(projectedScopes), true);
+assert.equal(Object.isFrozen(projectedScopes[0]), true);
+assert.throws(() => scopeView.drtScopeDeclarationItems(
+  new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
+), /requires a concrete ART, RRT or TRT DOCUMENT reference/);
 const dateRde = {
   ...declarationRde,
   schema_version: '0.5.0',
