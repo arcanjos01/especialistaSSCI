@@ -276,3 +276,23 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
   `01ceb7e43d10875573a3b438dd2755bcb0ef7728`; KB `5.20.0`, pipeline `4.23.0`.
   `SOL_REVIEW` da Fase 6 segue PENDING; Criteria e correlação operacional não
   foram declarados concluídos por este slice.
+- Retomada/checkpoint de 2026-10-15: branch local e `origin` confirmadas em
+  `6414aacca564f90ad3fd904a89f5dc6b34ca4917`; worktree rastreada limpa e
+  `.codex-local-evidence/` não rastreado preservado. KB `5.20.0`, RDE `0.6`,
+  runtime SHA-256 `02f32f20162b2586e67ad5048863c55f03a52cf9f3f31315911dbd73d06d54cf`.
+  Não houve mudança de código nesta retomada. Inspeção confirmou que
+  `T4_IN09_TEST_REPORT` exige `DRT_COVERS` além da presença/conteúdo/assinatura;
+  acrescentar somente fatos sobre itens inspecionados não cobriria o Criterion
+  e não resolveria a semântica documental de cobertura. `T1_DRT_ACTIVITY_EXECUTION`
+  também continua sem predicado seguro: RDE 0.6 conserva atividade literal,
+  enquanto o catálogo RT-002 requer atividade/serviço declarado e compatível;
+  não há mapeamento literal autorizado da extração para a categoria. A
+  integração da sidecar ao Engine continua pendente porque não há consumidor
+  declarado para correlação nos Criteria produtivos; expor a sidecar sem
+  predicate de relação violaria o contrato do Engine. Manter contagens em
+  `34/29/5/2/9/1/20`, `SOL_REVIEW=PENDING`, `CALIBRATION_GATE=BLOCKED` e
+  `CORRELATION_INTEGRATION=PENDING`. Próxima retomada: obter as decisões/dados
+  listados na revisão de blockers, implementar apenas os slices autorizados,
+  repetir gates completos, obter revisão independente corretamente identificada
+  e atualizar o checkpoint. A sessão foi pausada pela sinalização de uso
+  limitado; isto não encerra nem aprova a Fase 6.
