@@ -919,9 +919,13 @@ independentes consumidas; 1 candidato de dependência compartilhada priorizado.
 - Esforço deste checkpoint: cerca de 35 minutos de análise, testes e revisões;
   uma revisão Luna, uma revisão Sol e uma re-review restrita. A mudança de
   integridade e a matriz não aumentaram cobertura integral.
+- Commit `658fa33ae9f280d758d447407c345b7a1ad5cbdd` criado após a aprovação Sol
+  e enviado por fast-forward a `origin/feature/apps-script-engine-core`.
+  Release build real PASS em clone limpo, 10 documentos; `SOURCE_COMMIT` exato
+  `658fa33ae9f280d758d447407c345b7a1ad5cbdd`. SHA runtime permanece
+  `d1078bf77917eb892a7282dfb7e8613b7dc97063e0bbebde96de5fddbfd244ec`.
 - `HUMAN_DECISIONS_REQUIRED=1` para `T4_IN10_COMMISSIONING`; calibração
   operacional `BLOCKED`; validação institucional da correlação `PENDING`.
-  Autorizada promoção deste checkpoint técnico local; antes do próximo lote,
-  falta commit/push seguro e release build limpo. Próximo lote priorizado:
+  Checkpoint técnico local promovido, sem fechar a Fase 6. Próximo lote priorizado:
   consumidor compartilhado das declarações explícitas de escopo RDE 0.7,
   respeitando somente literais RT já autorizados.
