@@ -657,3 +657,17 @@ validação institucional da correlação permanece separadamente `PENDING`.
   byte-identical e `git diff --check`. Build limpo, commit e push deste slice
   ainda pendentes; `SOL_REVIEW=PENDING` permanece para o fechamento integral da
   Fase 6.
+
+### Commit e release do slice RT-002
+
+- Commit de implementação, testes e inventário: `75e41d8c7bb8acef9a70033bee4202a8b21febba`
+  (`Add partial RT-002 activity execution support`).
+- Release build em clone limpo: PASS, 10/10 documentos, KB `5.22.0`,
+  `SOURCE_COMMIT=75e41d8c7bb8acef9a70033bee4202a8b21febba`. O clone limpo e o
+  artefato ficam em `/tmp`; `.codex-local-evidence/` foi preservado e não entrou
+  no commit.
+- Estado desta onda após aprovação GPT-6 aceita pelo usuário: `FINDINGS_OPEN=0`
+  neste slice, `T1_DRT_ACTIVITY_EXECUTION=PARTIAL`; o Criterion continua
+  pendente de cobertura integral. Contagem de fase: 34 ativos, 29 produtivos,
+  5 não selecionáveis, 2 retirados, 6 cobertos, 2 parciais, 23 pendentes.
+  `SOL_REVIEW=PENDING` é mantido para fechamento total da Fase 6.
