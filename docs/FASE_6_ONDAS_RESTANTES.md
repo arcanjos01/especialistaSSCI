@@ -469,10 +469,9 @@ validação institucional da correlação permanece separadamente `PENDING`.
   por ausência ou comparação textual. A admissão automática real permanece
   bloqueada por calibração empírica inexistente; validação institucional
   permanece pendente.
-- Estado de sincronização nesta atualização: HEAD local
-  `c4b9495635f8df87ba724868a31a5deb316d7d77`; ref local de tracking
-  `origin/feature/apps-script-engine-core` aponta para
-  `8872bdea3b8e118e4871751cc4e1d5a26337bdee`, confirmado também por
-  `git ls-remote origin refs/heads/feature/apps-script-engine-core`; push do
-  checkpoint de inventário e deste registro pendente.
-  `.codex-local-evidence/` preservado e fora do Git.
+- Sincronização do checkpoint: tracker commitado em
+  `23c090f05047b83fb42ae338ee4cba1b6da07ff7` e enviado por fast-forward de
+  `8872bdea3b8e118e4871751cc4e1d5a26337bdee`; push PASS. `git ls-remote`
+  confirmou no servidor `23c090f05047b83fb42ae338ee4cba1b6da07ff7`, igual ao
+  HEAD local no momento da checagem. `.codex-local-evidence/` foi preservado e
+  permaneceu fora do Git.
