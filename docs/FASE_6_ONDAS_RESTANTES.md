@@ -405,10 +405,17 @@ validação institucional da correlação permanece separadamente `PENDING`.
   Corrigido com assinatura canônica idêntica em `ExecutionViewCore`; testes
   adicionais cobrem proveniência `null`/vazia e item duplicado com ID diferente.
   Re-review Luna `PASS`; re-review GPT-6 `PASS` (Codex/GPT-6, não Sol). O
-  revisor anotou P3: a verificação no construtor não tem teste direto de
-  duplicata porque o token é privado; a suíte testa a construção não
-  autorizada e a duplicata semântica na fronteira parser→view. Não há finding
-  P2+ aberto. Gates completos após esse último finding: 9 suítes
+  revisor anotou P3 sobre falta de teste que invoque diretamente a verificação
+  defensiva do construtor; isso é inacessível pela API porque exige token
+  privado. Disposição confirmada por revisão independente do subagente com
+  role `luna_economy`, id `01a14568-5782-76c1-9742-76f31fc116af`, resultado
+  `PASS`: a
+  fronteira pública testa duplicata semântica no parser→projeção
+  (`tests/apps-script-execution-view.test.js:273-280`) e rejeita construção
+  fabricada sem token (`:366-376`, `:587-594`). Adicionar test seam público
+  enfraqueceria a autenticação protegida. O P3 está fechado por cobertura da
+  fronteira autorizada; nenhum finding fica aberto neste slice.
+  Gates completos após esse último finding: 9 suítes
   Apps Script, 141 testes Python, sintaxe JS/Code.gs, runtime byte-identical
   SHA-256 `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`,
   `git diff --check` — PASS. Commit/push `745b7b182a66fa6f934b73e35ada440c5556b612`.
@@ -417,3 +424,55 @@ validação institucional da correlação permanece separadamente `PENDING`.
   RDE `1.8.0`, Documento 06 `3.10.0`. `CRITERIA_COVERED` permanece 6; a coleção
   é factual e não fornece mapeamento para `DRT_COVERS`. `SOL_REVIEW=PENDING`;
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
+
+## Checkpoint — reconciliação da matriz vigente e referências (2026-10-15)
+
+- Commit da reconciliação: `c4b9495635f8df87ba724868a31a5deb316d7d77`.
+  Matriz alinhada à KB 5.22.0; duas verificações de regularidade profissional
+  retiradas do conjunto ativo; mapeamentos de relatório T1 corrigidos para
+  RT-002. Não houve aumento artificial de cobertura.
+- Contagem conferida: 36 entradas de matriz = 34 Criteria ativos + 2 retirados;
+  entre os ativos, 29 produtivos e 5 não selecionáveis. Dos produtivos, 6
+  cobertos integralmente, 1 parcial e 22 sem suporte integral (16 dependem de
+  formalização com fontes já catalogadas e 6 carecem de evidência tipada).
+  Pendentes integrais: 23, contando o parcial.
+- Revisão intermediária Luna identificou inconsistências P1/P2, corrigidas.
+  GPT-6/Codex fez revisão independente somente leitura, PASS no escopo deste
+  checkpoint, sem P0/P1/P2. O revisor conferiu as contagens, o artefato de
+  release, o gate de calibração e os limites FACT-ONLY. A revisão Sol 6.1 não
+  foi confirmada: o agente disponível declarou ser Codex baseado em GPT-6,
+  portanto `SOL_REVIEW=PENDING`.
+- O revisor apontou P3 por insuficiência da trilha de execução; findings P2+
+  eram zero. Para tornar a reexecução verificável, o script completo e seu
+  transcript foram preservados fora do Git em
+  `.codex-local-evidence/phase6-gates-c4b9495-verify.sh` e
+  `.codex-local-evidence/phase6-gates-c4b9495-verify2.log`. O script exige o
+  HEAD esperado, worktree limpa e saída de release ainda inexistente; executado
+  em worktree destacada e limpa no HEAD
+  `c4b9495635f8df87ba724868a31a5deb316d7d77`. O transcript registra comandos,
+  corpo do script, cwd/HEAD/status e os
+  resultados: 141 testes Python PASS; 9 suítes Apps Script PASS; sintaxe dos 12
+  módulos JS e `Code.gs` PASS; regeneração em memória e comparação byte a byte
+  do runtime PASS, SHA-256
+  `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`;
+  release de 10 documentos, KB 5.22.0, SOURCE_COMMIT exato
+  `c4b9495635f8df87ba724868a31a5deb316d7d77`; `git diff --check` PASS e status
+  limpo. Validações de manifests e phase guards estão na suíte Python.
+  Re-review GPT-6 do transcript de gates `PASS` (P3 da trilha encerrado);
+  revisão `luna_economy` acima aprovou a disposição do P3 de teste direto.
+  Re-review GPT-6 integrado final `PASS`, sem findings neste escopo.
+  `SOL_REVIEW=PENDING` para aprovação final da Fase 6.
+- Limites técnicos remanescentes: a atividade RT-002 continua como texto
+  literal sem classificador autorizado; os fatos conjuntos RDE 0.7 não
+  implementam predicate normativo consumidor de SMSCI/atividade. Campos
+  textuais de status/assinatura/profissional/endereço/área não autorizam FAIL
+  por ausência ou comparação textual. A admissão automática real permanece
+  bloqueada por calibração empírica inexistente; validação institucional
+  permanece pendente.
+- Estado de sincronização nesta atualização: HEAD local
+  `c4b9495635f8df87ba724868a31a5deb316d7d77`; ref local de tracking
+  `origin/feature/apps-script-engine-core` aponta para
+  `8872bdea3b8e118e4871751cc4e1d5a26337bdee`, confirmado também por
+  `git ls-remote origin refs/heads/feature/apps-script-engine-core`; push do
+  checkpoint de inventário e deste registro pendente.
+  `.codex-local-evidence/` preservado e fora do Git.
