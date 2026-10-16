@@ -475,3 +475,21 @@ validação institucional da correlação permanece separadamente `PENDING`.
   confirmou no servidor `23c090f05047b83fb42ae338ee4cba1b6da07ff7`, igual ao
   HEAD local no momento da checagem. `.codex-local-evidence/` foi preservado e
   permaneceu fora do Git.
+
+## Validação do HEAD publicado — 2026-10-16
+
+- Commit publicado e confirmado no servidor por `git ls-remote`:
+  `0559e87ba649f56e04349d26b3e743da7138d7b8`. Transcript local da consulta:
+  `.codex-local-evidence/phase6-push-0559.log`.
+- Reexecução integral em worktree limpa desse HEAD: 141 testes Python PASS;
+  9 suítes Apps Script PASS; sintaxe de 12 módulos JS e `Code.gs` PASS;
+  regeneração em memória e comparação byte-identical PASS, SHA-256
+  `e4204a4a87a09f173207e3ab26d2f9e0b341614cd5e4756cb96b9b9cd65fa4c9`;
+  release 10/10, KB `5.22.0`, `SOURCE_COMMIT` exato
+  `0559e87ba649f56e04349d26b3e743da7138d7b8`; `git diff --check` e worktree
+  limpa PASS. Script/transcript completos locais, fora do Git:
+  `.codex-local-evidence/phase6-gates-0559-verify.sh` e
+  `.codex-local-evidence/phase6-gates-0559-verify.log`.
+- Esta validação não altera os counts: 34 ativos, 29 produtivos, 6 cobertos,
+  1 parcial, 23 pendentes de cobertura integral. Onda D continua em andamento;
+  calibração operacional e revisão final Sol 6.1 permanecem pendentes.
