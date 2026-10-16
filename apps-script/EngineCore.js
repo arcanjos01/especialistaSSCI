@@ -15,7 +15,7 @@ const ENGINE_OBJECT_GET_PROTOTYPE_OF_ = Object.getPrototypeOf;
 const ENGINE_NUMBER_IS_FINITE_ = Number.isFinite;
 
 const ENGINE_ARRAY_SET_OWN_ = function (array, index, value) {
-  ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [array, String(index), {
+  ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [array, index, {
     value, enumerable: true, writable: true, configurable: true
   }]);
 };
@@ -74,6 +74,8 @@ function isPlainObject(value) {
   const prototype = ENGINE_OBJECT_GET_PROTOTYPE_OF_(value);
   return prototype === null || ENGINE_OBJECT_GET_PROTOTYPE_OF_(prototype) === null;
 }
+
+const ENGINE_IS_PLAIN_OBJECT_ = isPlainObject;
 
 class TypedReference {
   constructor(kind, identifier) {
@@ -401,7 +403,7 @@ function responsibilityDrtActivityExecutionPredicateContract() {
           for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
             const itemDescriptor = ENGINE_REFLECT_APPLY_(
               ENGINE_OBJECT_GET_OWN_PROPERTY_DESCRIPTOR_, Object,
-              [items, String(itemIndex)]
+              [items, itemIndex]
             );
             if (!itemDescriptor || !ENGINE_HAS_OWN_(itemDescriptor, 'value')) {
               throw new ResultContractError(
@@ -482,6 +484,10 @@ function responsibilityHasTechnicalProductPredicateContract() {
             args.technicalProduct !== 'CONFORMITY_REPORT') {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
         }
+        if (!context || !context.executionPlan || !context.currentSubmissionContext) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [],
+            documentaryEvidence: { reason: 'CURRENT_PRESENTATION_UNAVAILABLE' } };
+        }
         if (typeof materializeResponsibilityEvidenceBinding !== 'function' ||
             typeof isCanonicalResponsibilityEvidenceBinding !== 'function') {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
@@ -504,6 +510,30 @@ function responsibilityHasTechnicalProductPredicateContract() {
           throw new ResultContractError(
             'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT selectedComprovante is not an exact memory entity'
           );
+        }
+        const presentationUnavailable = () => ({
+          result: EngineResult.MANUAL_REVIEW,
+          memoryReferences: [sourceAnchor],
+          documentaryEvidence: { reason: 'CURRENT_PRESENTATION_UNAVAILABLE' }
+        });
+        let contextPresentation;
+        try {
+          if (typeof getAuthenticatedPresentationIdentity !== 'function' ||
+              typeof selectCurrentComprovante !== 'function') {
+            return presentationUnavailable();
+          }
+          getAuthenticatedPresentationIdentity(context.currentSubmissionContext);
+          contextPresentation = selectCurrentComprovante(memory,
+            context.currentSubmissionContext);
+        } catch (error) {
+          return presentationUnavailable();
+        }
+        if (!(contextPresentation instanceof TypedReference) ||
+            contextPresentation.kind !== sourceAnchor.kind ||
+            contextPresentation.identifier !== sourceAnchor.identifier) {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [sourceAnchor],
+            documentaryEvidence: { reason: 'CURRENT_PRESENTATION_MISMATCH' } };
         }
         const bindingUnavailable = () => ({
           result: EngineResult.MANUAL_REVIEW,
@@ -552,12 +582,83 @@ function responsibilityHasTechnicalProductPredicateContract() {
             memory.entityId(productReferences[0]) !== 'CONFORMITY_REPORT') {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: productReferences };
         }
+        const product = productReferences[0];
+        if (typeof memory.documentaryAssociations === 'function') {
+          let associations;
+          try {
+            associations = memory.documentaryAssociations(drt);
+          } catch (error) {
+            associations = null;
+          }
+          if (!ENGINE_ARRAY_IS_ARRAY_(associations)) {
+            return { result: EngineResult.MANUAL_REVIEW,
+              memoryReferences: [drt, product],
+              documentaryEvidence: { reason: 'DOCUMENTARY_ASSOCIATIONS_UNAVAILABLE' } };
+          }
+          const exactAssociations = [];
+          const associationLength = ENGINE_OWN_DATA_VALUE_(associations, 'length');
+          for (let index = 0; index < associationLength; index += 1) {
+            const association = ENGINE_OWN_DATA_VALUE_(associations, index);
+            if (!ENGINE_IS_PLAIN_OBJECT_(association)) continue;
+            const left = ENGINE_OWN_DATA_VALUE_(association, 'left');
+            const right = ENGINE_OWN_DATA_VALUE_(association, 'right');
+            const sourceDocument = ENGINE_OWN_DATA_VALUE_(association, 'sourceDocument');
+            const associationId = ENGINE_OWN_DATA_VALUE_(association, 'associationId');
+            const statementText = ENGINE_OWN_DATA_VALUE_(association, 'statementText');
+            if (!(left instanceof TypedReference) || !(right instanceof TypedReference) ||
+                !(sourceDocument instanceof TypedReference) ||
+                sourceDocument.kind !== 'DOCUMENT' || !memory.contains(sourceDocument) ||
+                typeof associationId !== 'string' || !associationId ||
+                typeof statementText !== 'string' || !statementText) continue;
+            const matches = (left.kind === drt.kind && left.identifier === drt.identifier &&
+                right.kind === product.kind && right.identifier === product.identifier) ||
+              (right.kind === drt.kind && right.identifier === drt.identifier &&
+                left.kind === product.kind && left.identifier === product.identifier);
+            if (matches) ENGINE_ARRAY_SET_OWN_(exactAssociations,
+              ENGINE_OWN_DATA_VALUE_(exactAssociations, 'length'), association);
+          }
+          if (exactAssociations.length > 1) {
+            const ambiguousReferences = [drt, product];
+            const ambiguousIds = [];
+            for (let index = 0; index < ENGINE_OWN_DATA_VALUE_(exactAssociations, 'length'); index += 1) {
+              const association = ENGINE_OWN_DATA_VALUE_(exactAssociations, index);
+              ENGINE_ARRAY_SET_OWN_(ambiguousReferences,
+                ENGINE_OWN_DATA_VALUE_(ambiguousReferences, 'length'),
+                ENGINE_OWN_DATA_VALUE_(association, 'sourceDocument'));
+              ENGINE_ARRAY_SET_OWN_(ambiguousIds,
+                ENGINE_OWN_DATA_VALUE_(ambiguousIds, 'length'),
+                ENGINE_OWN_DATA_VALUE_(association, 'associationId'));
+            }
+            return { result: EngineResult.MANUAL_REVIEW,
+              memoryReferences: ambiguousReferences,
+              documentaryEvidence: { reason: 'DOCUMENTARY_ASSOCIATION_AMBIGUOUS',
+                associationIds: ambiguousIds } };
+          }
+          if (exactAssociations.length === 1) {
+            const association = exactAssociations[0];
+            return { result: EngineResult.TRUE,
+              memoryReferences: [drt, product, association.sourceDocument],
+              documentaryEvidence: {
+                associationId: ENGINE_OWN_DATA_VALUE_(association, 'associationId'),
+                left: ENGINE_OWN_DATA_VALUE_(association, 'left'),
+                right: ENGINE_OWN_DATA_VALUE_(association, 'right'),
+                sourceDocument: ENGINE_OWN_DATA_VALUE_(association, 'sourceDocument'),
+                statementText: ENGINE_OWN_DATA_VALUE_(association, 'statementText'),
+                provenance: ENGINE_OWN_DATA_VALUE_(association, 'provenance') === undefined
+                  ? null : ENGINE_OWN_DATA_VALUE_(association, 'provenance')
+              } };
+          }
+        } else {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [drt, product],
+            documentaryEvidence: { reason: 'DOCUMENTARY_ASSOCIATIONS_UNAVAILABLE' } };
+        }
         if (typeof isCanonicalEngineCorrelationProjection !== 'function' ||
             !isCanonicalEngineCorrelationProjection(correlationProjection,
               context.compiledContract, context.executionPlan, memory,
               context.currentSubmissionContext)) {
           return { result: EngineResult.MANUAL_REVIEW,
-            memoryReferences: [productReferences[0]],
+            memoryReferences: [product],
             externalRelationTrace: { reason: 'CORRELATION_PROJECTION_REJECTED' } };
         }
         const relationTrace = {
@@ -577,16 +678,17 @@ function responsibilityHasTechnicalProductPredicateContract() {
             !relation.drtSource || !relation.technicalProductTarget) {
           return manualReview([productReferences[0]]);
         }
-        const product = new TypedReference(relation.technicalProductTarget.kind, relation.technicalProductTarget.identifier);
-        if (!memory.contains(drt) || !memory.contains(product) ||
-            product.kind !== 'REPORT' || product.identifier === drt.identifier ||
-            product.identifier !== productReferences[0].identifier ||
-            memory.entityId(product) !== 'CONFORMITY_REPORT' ||
+        const correlatedProduct = new TypedReference(relation.technicalProductTarget.kind, relation.technicalProductTarget.identifier);
+        if (!memory.contains(drt) || !memory.contains(correlatedProduct) ||
+            correlatedProduct.kind !== 'REPORT' || correlatedProduct.identifier === drt.identifier ||
+            correlatedProduct.identifier !== product.identifier ||
+            memory.entityId(correlatedProduct) !== 'CONFORMITY_REPORT' ||
             drt.identifier !== relation.drtSource.identifier ||
             drt.kind !== relation.drtSource.kind) {
-          return manualReview([drt, product]);
+          return manualReview([drt, correlatedProduct]);
         }
-        return { result: EngineResult.TRUE, memoryReferences: [drt, product],
+        return { result: EngineResult.MANUAL_REVIEW,
+          memoryReferences: [drt, correlatedProduct],
           externalRelationTrace: {
             decisionId: correlationProjection.decisionId,
             rdeDigest: correlationProjection.rdeDigest,
@@ -594,7 +696,7 @@ function responsibilityHasTechnicalProductPredicateContract() {
             calibration: { id: correlationProjection.calibrationId,
               version: correlationProjection.calibrationVersion },
             status: correlationProjection.status,
-            reason: 'ADMITTED_CORRELATION_CONSUMED'
+            reason: 'ADMITTED_CORRELATION_CONTEXT_ONLY'
           } };
       }
     }

@@ -18,6 +18,12 @@ function criterionExecutionRequire_(condition, message) {
   if (!condition) throw new CriterionExecutionIntegrityError(message);
 }
 
+function criterionExecutionStop_(message) {
+  const error = new CriterionExecutionIntegrityError(message);
+  error.code = 'EXECUTION_INTEGRITY_ERROR';
+  throw error;
+}
+
 function criterionExecutionReferenceSnapshot_(reference) {
   return Object.freeze({ kind: reference.kind, identifier: reference.identifier });
 }
@@ -558,8 +564,43 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
     validationExpression: validation === null ? null : validation.expression });
 }
 
+function criterionExecutionRequirePresentationBinding_(plan, view, context) {
+  const planned = plan.selectedComprovante &&
+    plan.selectedComprovante.kind === 'DOCUMENT' &&
+    typeof plan.selectedComprovante.identifier === 'string'
+    ? new CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_(
+      plan.selectedComprovante.kind, plan.selectedComprovante.identifier) : null;
+  if (!planned || !view.contains(planned)) {
+    criterionExecutionStop_('frozen plan has no presentation in its immutable execution view');
+  }
+  if (context === null || context === undefined) {
+    criterionExecutionStop_('authenticated current submission context is required for Criterion execution');
+  }
+  if (typeof getAuthenticatedPresentationIdentity !== 'function' ||
+      typeof selectCurrentComprovante !== 'function') {
+    criterionExecutionStop_('authenticated presentation binding is unavailable');
+  }
+  let presentation;
+  try {
+    getAuthenticatedPresentationIdentity(context);
+    presentation = selectCurrentComprovante(view, context);
+  } catch (error) {
+    criterionExecutionStop_('current submission context cannot authenticate this execution view');
+  }
+  if (!(presentation instanceof CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_) ||
+      presentation.kind !== planned.kind || presentation.identifier !== planned.identifier) {
+    criterionExecutionStop_('current submission presentation differs from frozen execution plan');
+  }
+}
+
 function executePlannedCriterion(contract, plan, unitKey, view, correlationProjection = null,
   currentSubmissionContext = null) {
+  criterionExecutionRequire_(typeof isImmutableExecutionView === 'function' &&
+    isImmutableExecutionView(view), 'execution requires an ImmutableExecutionView');
+  criterionExecutionRequire_(typeof isCanonicalFrozenExecutionPlan === 'function' &&
+    isCanonicalFrozenExecutionPlan(plan, contract, view),
+  'canonical frozen execution plan is required for presentation binding');
+  criterionExecutionRequirePresentationBinding_(plan, view, currentSubmissionContext);
   const materialized = materializePlannedCriterion(contract, plan, unitKey, view);
   const registry = new PredicateRegistry([
     responsibilityHasAcceptedDrtEvidencePredicateContract(),

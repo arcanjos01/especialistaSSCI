@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.5
+# VERSION 4.6
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -76,11 +76,21 @@ RESPONSIBILITY_HAS_TECHNICAL_PRODUCT
 This relation-only predicate is declared for the current authorized tuple
 RT_002_EXECUCAO_DE_OBRA and CONFORMITY_REPORT only. It returns TRUE only when
 the exact RT-002 DRT binding is present, the exact CONFORMITY_REPORT endpoint
-has entity type REPORT, and the relation is supplied by an authenticated
-documentary association or by the exact admitted correlation sidecar bound to
-the current execution context. Documentary provenance and external relation
-provenance remain distinct. The explicit documentary-association route is
-unsupported by the current executor and therefore returns MANUAL_REVIEW.
+has entity type REPORT, and the relation is supplied by an explicit
+documentary association read from the canonical ImmutableExecutionView derived
+from the parser-validated RDE. An explicit documentary-association route may
+be consumed only when exactly one validated RDE association binds that DRT to
+that exact report endpoint and carries its source-document reference and
+literal statement text; available provenance is preserved. This RDE-origin
+check is the trust boundary for an explicit documentary fact; per-association
+provenance remains optional under the RDE contract. The association is
+contextual evidence only; it remains FACT-ONLY and is not rewritten or
+promoted into another association type. An ambiguous explicit association
+requires MANUAL_REVIEW. Invalid RDE associations are rejected at validation
+before execution. If an independently authenticated admitted correlation
+sidecar is the only relation available, it is traceable contextual input and
+the predicate returns MANUAL_REVIEW; the inferred relation alone shall never
+produce TRUE, PASS, satisfy the Criterion or create a Nonconformity.
 Because this tuple is REQUIRED, FALSE is permitted only when the exact
 CONFORMITY_REPORT endpoint is absent from the validated execution view.
 Missing or ambiguous RT-002 evidence, or a missing or blocked relation, is

@@ -245,12 +245,25 @@ function prepare(options) {
     processId: rawRde.process_id, sourceFileId: rawRde.source.file_id
   }, contract.entityCatalog);
   const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
-  const resolution = api.resolveCbmscApplicability(
-    view, currentContext(options && options.requestDate), contract
-  );
+  const submissionContext = currentContext(options && options.requestDate);
+  const resolution = api.resolveCbmscApplicability(view, submissionContext, contract);
   const plan = api.materializeFrozenExecutionPlan(contract, resolution, view);
-  return { rde, view, resolution, plan };
+  planSubmissionContexts.set(plan, submissionContext);
+  return { rde, view, resolution, plan, submissionContext };
 }
+
+const planSubmissionContexts = new WeakMap();
+const executePlannedCriterionWithoutDefaultContext = api.executePlannedCriterion;
+const executePlannedCriterionWithoutContext = executePlannedCriterionWithoutDefaultContext;
+api.executePlannedCriterion = function (runtimeContract, plan, unitKey, view,
+  correlationProjection = null, submissionContext = undefined) {
+  const authenticatedContext = submissionContext === undefined
+    ? planSubmissionContexts.get(plan) : submissionContext;
+  return executePlannedCriterionWithoutDefaultContext(
+    runtimeContract, plan, unitKey, view, correlationProjection,
+    authenticatedContext === undefined ? null : authenticatedContext
+  );
+};
 
 const pilotMetadata = contract.criteria.find(item => item.criterionId === 'T4_IN08_MANUAL');
 assert.deepEqual(JSON.parse(JSON.stringify(pilotMetadata.assertIr)), {
@@ -500,7 +513,7 @@ const mismatchedPlan = mismatchedApi.materializeFrozenExecutionPlan(
 assert.throws(() => mismatchedApi.executePlannedCriterion(
   mismatchedApi.COMPILED_RUNTIME_CONTRACT, mismatchedPlan,
   CONFORMITY_REPORT_SIGNED_UNIT, mismatchedView
-), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 
 const positive = prepare({ includeGas: true, includeManual: true });
 assert.equal(positive.plan.PLANNED_EXECUTION_UNITS.some(unit => unit.unitKey === PILOT_UNIT), true);
@@ -522,6 +535,9 @@ assert.deepEqual(JSON.parse(JSON.stringify(positiveResult.trace[0].memoryReferen
   { kind: 'MANUAL', identifier: 'MANUAL_CLASSIFICATION' }
 ]);
 assert.equal(Object.hasOwn(positiveResult, 'nonconformityOnFalse'), false);
+assert.throws(() => executePlannedCriterionWithoutContext(
+  contract, positive.plan, PILOT_UNIT, positive.view
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 assert.equal(positiveResult.traceability.declarationSource, '04_table4.txt');
 assert.equal(positiveResult.traceability.unitKey, PILOT_UNIT);
 
@@ -849,6 +865,19 @@ vm.runInContext(`
   const allTestContracts = new WeakSet();
   const allTestPlans = new WeakMap();
   const allTestViews = new WeakSet();
+  const allTestSubmissionContext = Object.freeze({ fixture: 'AUTHENTICATED_TEST_ONLY' });
+  Object.defineProperty(globalThis, 'getAuthenticatedPresentationIdentity', {
+    value: value => {
+      if (value !== allTestSubmissionContext) throw new Error('unauthenticated test context');
+      return Object.freeze({ protocolIdentifier: 'TEST_ONLY' });
+    }
+  });
+  Object.defineProperty(globalThis, 'selectCurrentComprovante', {
+    value: (view, value) => {
+      if (value !== allTestSubmissionContext) throw new Error('wrong test context');
+      return view.selectedComprovante;
+    }
+  });
   Object.defineProperty(globalThis, 'isCanonicalCompiledRuntimeContract', {
     value: value => allTestContracts.has(value)
   });
@@ -884,7 +913,9 @@ vm.runInContext(`
       references[entityId] = presentEntities.includes(entityId)
         ? Object.freeze([new TypedReference('TEST_DOCUMENT', entityId)]) : Object.freeze([]);
     }
+    const selectedComprovante = new TypedReference('DOCUMENT', 'DOC_CURRENT');
     const view = Object.freeze({
+      selectedComprovante,
       referencesByEntity: entityId => references[entityId] || Object.freeze([]),
       sourceDocument: reference => new TypedReference('DOCUMENT', 'SOURCE_' + reference.identifier),
       contains: reference => reference.kind === 'DOCUMENT' ||
@@ -903,10 +934,12 @@ vm.runInContext(`
       })
     });
     const plan = Object.freeze({
+      selectedComprovante: Object.freeze({ kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }),
       PROCESS_SMSCI: Object.freeze([]), PLANNED_EXECUTION_UNITS: Object.freeze([unit])
     });
     allTestPlans.set(plan, { contract, view });
-    return { contract, plan, view, unitKey: unit.unitKey };
+    return { contract, plan, view, unitKey: unit.unitKey,
+      submissionContext: allTestSubmissionContext };
   };
 `, allContext);
 vm.runInContext(fs.readFileSync(
@@ -918,7 +951,8 @@ const runAllFixture = (assertIr, presentEntities) => {
   return vm.runInContext(`(() => {
     const fixture = createAllTestFixture(testIr, testPresentEntities);
     return executePlannedCriterion(
-      fixture.contract, fixture.plan, fixture.unitKey, fixture.view
+      fixture.contract, fixture.plan, fixture.unitKey, fixture.view, null,
+      fixture.submissionContext
     );
   })()`, allContext);
 };

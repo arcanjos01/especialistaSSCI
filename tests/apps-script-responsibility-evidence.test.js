@@ -105,6 +105,15 @@ function currentContext() {
   });
 }
 
+const executePlannedCriterionWithoutDefaultContext = api.executePlannedCriterion;
+api.executePlannedCriterion = function (runtimeContract, plan, unitKey, view,
+  correlationProjection = null, submissionContext = null) {
+  return executePlannedCriterionWithoutDefaultContext(
+    runtimeContract, plan, unitKey, view, correlationProjection,
+    submissionContext || currentContext()
+  );
+};
+
 function buildRde(codes = [], drts = []) {
   const records = [{
     record_id: 'DOC_CURRENT',

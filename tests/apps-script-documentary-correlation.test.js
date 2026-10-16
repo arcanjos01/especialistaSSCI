@@ -63,7 +63,12 @@ vm.runInContext(`globalThis.api = {
   getValidatedRdeDigest_,
   verifyEmpiricalCalibration_,
   loadAuthenticatedCorrelationConfiguration_,
-  executePlannedCriterion
+  executePlannedCriterion,
+  PredicateCall,
+  PredicateRegistry,
+  CriterionIR,
+  evaluateCriterion,
+  responsibilityHasTechnicalProductPredicateContract
 };`, context);
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
@@ -93,6 +98,23 @@ function makeRde(options = {}) {
     attributes: { STRUCTURALLY_COMPLETE: true, LEGIBLE: true, VERIFIABLE: true },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SECTION' }
   }];
+  if (options.otherPresentation) {
+    records.push({
+      record_id: 'DOC_OTHER',
+      entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
+      parent_record_id: null,
+      source_document: 'DOC_OTHER',
+      attributes: { PROTOCOL_IDENTIFIER: 'OTHER_PROTOCOL', REQUEST_DATE: '2026-01-28', RE_IDENTIFIER: 'TEST_ONLY_RE' },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'OTHER_CURRENT' }
+    }, {
+      record_id: 'SECTION_OTHER',
+      entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA',
+      parent_record_id: 'DOC_OTHER',
+      source_document: 'DOC_OTHER',
+      attributes: { STRUCTURALLY_COMPLETE: true, LEGIBLE: true, VERIFIABLE: true },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'OTHER_SECTION' }
+    });
+  }
   const drts = options.drts || [{ id: 'DRT_1', entity: 'ART' }];
   drts.forEach((drt, index) => records.push({
     record_id: drt.id,
@@ -131,7 +153,7 @@ function makeRde(options = {}) {
     source: { file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf', mime_type: 'application/pdf', source_url: 'TEST_ONLY_URL', sha256: '0'.repeat(64) },
     extraction: { provider: 'TEST_ONLY', extractor_version: 'TEST_ONLY', created_at: '2026-10-14T12:00:00.000Z' },
     records,
-    documentary_associations: [],
+    documentary_associations: options.associations || [],
     drt_declaration_items: [],
     documentary_date_items: [],
     extraction_warnings: []
@@ -533,6 +555,212 @@ assert.throws(() => api.readOnlyCorrelationForEngine(policyDecision, contract, c
 // End-to-end T1 relation: the admitted decision exists only through test fixtures;
 // CALIBRATION_GATE remains blocked unless the fixture supplies a distinct authority receipt.
 const conformity = prepare({ products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }] });
+function explicitConformityAssociation(id, statementText) {
+  return {
+    association_id: id,
+    left_record_id: 'DRT_1',
+    right_record_id: 'PRODUCT_1',
+    source_document: 'SOURCE_PRODUCT_1',
+    statement_text: statementText,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ASSOCIATION_' + id }
+  };
+}
+const explicitConformity = prepare({
+  products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }],
+  associations: [explicitConformityAssociation('ASSOC_1', 'DRT_1 associado explicitamente ao PRODUCT_1.')]
+});
+const explicitConformityBeforeExecution = JSON.stringify(explicitConformity.rde);
+const explicitConformityResult = api.executePlannedCriterion(
+  contract, explicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', explicitConformity.view,
+  null, explicitConformity.submissionContext
+);
+assert.equal(explicitConformityResult.engineResult, 'TRUE');
+assert.equal(explicitConformityResult.pipelineResult, 'PASS');
+const explicitAssociationTrace = explicitConformityResult.trace.find(
+  entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(explicitAssociationTrace.documentaryEvidence)), {
+  associationId: 'ASSOC_1',
+  left: { kind: 'DOCUMENT', identifier: 'DRT_1' },
+  right: { kind: 'REPORT', identifier: 'PRODUCT_1' },
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'SOURCE_PRODUCT_1' },
+  statementText: 'DRT_1 associado explicitamente ao PRODUCT_1.',
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ASSOCIATION_ASSOC_1' }
+});
+assert.deepEqual(JSON.parse(JSON.stringify(explicitAssociationTrace.memoryReferences)), [
+  { kind: 'DOCUMENT', identifier: 'DRT_1' },
+  { kind: 'REPORT', identifier: 'PRODUCT_1' },
+  { kind: 'DOCUMENT', identifier: 'SOURCE_PRODUCT_1' }
+]);
+const replayAcrossPresentations = prepare({
+  otherPresentation: true,
+  products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }],
+  associations: [explicitConformityAssociation('ASSOC_1', 'DRT_1 associado explicitamente ao PRODUCT_1.')]
+});
+const otherPresentationContext = makeContext('OTHER_PROTOCOL');
+assert.throws(() => api.executePlannedCriterion(
+  contract, replayAcrossPresentations.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)',
+  replayAcrossPresentations.view, null, otherPresentationContext
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+assert.throws(() => api.executePlannedCriterion(
+  contract, replayAcrossPresentations.plan,
+  'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)',
+  replayAcrossPresentations.view, null, otherPresentationContext
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+assert.equal(JSON.stringify(explicitConformity.rde), explicitConformityBeforeExecution);
+assert.throws(() => api.executePlannedCriterion(
+  contract, explicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)',
+  { ...explicitConformity.view }, null, explicitConformity.submissionContext
+), /ImmutableExecutionView/);
+assert.throws(() => api.executePlannedCriterion(
+  contract, explicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
+  null, conformity.submissionContext
+));
+const directConformityCriterion = new api.CriterionIR({
+  criterionId: 'T1_CONFORMITY_REPORT', requirementId: 'REQ_T1_CONFORMITY_REPORT',
+  expression: new api.PredicateCall('RESPONSIBILITY_HAS_TECHNICAL_PRODUCT', {
+    responsibility: 'RT_002_EXECUCAO_DE_OBRA', technicalProduct: 'CONFORMITY_REPORT'
+  }), nonconformityOnFalse: 'NC_T1_003'
+});
+const directConformityRegistry = new api.PredicateRegistry([
+  api.responsibilityHasTechnicalProductPredicateContract()
+]);
+const directWithoutAuthenticatedContext = api.evaluateCriterion(
+  directConformityCriterion, directConformityRegistry, explicitConformity.view, null,
+  { contract, plan: explicitConformity.plan, currentSubmissionContext: null }
+);
+assert.equal(directWithoutAuthenticatedContext.engineResult, 'MANUAL_REVIEW');
+assert.equal(directWithoutAuthenticatedContext.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(directWithoutAuthenticatedContext.nonconformityOnFalse, undefined);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  directWithoutAuthenticatedContext.trace[0].documentaryEvidence
+)), { reason: 'CURRENT_PRESENTATION_UNAVAILABLE' });
+context.savedArrayIsArray = vm.runInContext('Array.isArray', context);
+context.savedArrayFilter = vm.runInContext('Array.prototype.filter', context);
+try {
+  vm.runInContext(`
+    Array.isArrayOriginal = Array.isArray;
+    Array.prototype.filterOriginal = Array.prototype.filter;
+    Array.isArray = function (value) {
+      return Array.isArrayOriginal(value) && !(value.length === 1 &&
+        value[0] && value[0].associationId === 'ASSOC_1');
+    };
+    Array.prototype.filter = function (callback, thisArg) {
+      if (this.length === 1 && this[0] && this[0].associationId === 'ASSOC_1') return [];
+      return Array.prototype.filterOriginal.call(this, callback, thisArg);
+    };
+  `, context);
+  const explicitUnderPatchedArrays = api.evaluateCriterion(
+    directConformityCriterion, directConformityRegistry, explicitConformity.view, null,
+    { contract, plan: explicitConformity.plan,
+      currentSubmissionContext: explicitConformity.submissionContext }
+  );
+  assert.equal(explicitUnderPatchedArrays.engineResult, 'TRUE');
+  assert.equal(explicitUnderPatchedArrays.pipelineResult, 'PASS');
+} finally {
+  vm.runInContext(`
+    Array.isArray = savedArrayIsArray;
+    Array.prototype.filter = savedArrayFilter;
+    delete Array.isArrayOriginal;
+    delete Array.prototype.filterOriginal;
+  `, context);
+  delete context.savedArrayIsArray;
+  delete context.savedArrayFilter;
+}
+
+const ambiguousExplicitConformity = prepare({
+  products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }],
+  associations: [
+    explicitConformityAssociation('ASSOC_1', 'DRT_1 associado explicitamente ao PRODUCT_1.'),
+    explicitConformityAssociation('ASSOC_2', 'Nova declaração explícita DRT_1 → PRODUCT_1.')
+  ]
+});
+const ambiguousExplicitResult = api.executePlannedCriterion(
+  contract, ambiguousExplicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', ambiguousExplicitConformity.view,
+  null, ambiguousExplicitConformity.submissionContext
+);
+assert.equal(ambiguousExplicitResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(ambiguousExplicitResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(ambiguousExplicitResult.nonconformityOnFalse, undefined);
+assert.deepEqual(JSON.parse(JSON.stringify(ambiguousExplicitResult.trace[0].documentaryEvidence)), {
+  reason: 'DOCUMENTARY_ASSOCIATION_AMBIGUOUS', associationIds: ['ASSOC_1', 'ASSOC_2']
+});
+vm.runInContext(`
+  const originalStringForAssociationAdversary = String;
+  String = value => typeof value === 'number' ? '0' : originalStringForAssociationAdversary(value);
+`, context);
+try {
+  const ambiguousUnderPatchedString = api.executePlannedCriterion(
+    contract, ambiguousExplicitConformity.plan,
+    'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)',
+    ambiguousExplicitConformity.view, null, ambiguousExplicitConformity.submissionContext
+  );
+  assert.equal(ambiguousUnderPatchedString.engineResult, 'MANUAL_REVIEW');
+  assert.equal(ambiguousUnderPatchedString.pipelineResult, 'MANUAL_REVIEW');
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    ambiguousUnderPatchedString.trace[0].documentaryEvidence.associationIds
+  )), ['ASSOC_1', 'ASSOC_2']);
+} finally {
+  vm.runInContext('String = originalStringForAssociationAdversary; delete originalStringForAssociationAdversary;', context);
+}
+vm.runInContext(`
+  const originalPlainObjectForAssociationAdversary = isPlainObject;
+  isPlainObject = value => value && value.associationId === 'ASSOC_2'
+    ? false : originalPlainObjectForAssociationAdversary(value);
+`, context);
+try {
+  const ambiguousUnderPatchedPlainObject = api.executePlannedCriterion(
+    contract, ambiguousExplicitConformity.plan,
+    'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)',
+    ambiguousExplicitConformity.view, null, ambiguousExplicitConformity.submissionContext
+  );
+  assert.equal(ambiguousUnderPatchedPlainObject.engineResult, 'MANUAL_REVIEW');
+  assert.equal(ambiguousUnderPatchedPlainObject.pipelineResult, 'MANUAL_REVIEW');
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    ambiguousUnderPatchedPlainObject.trace[0].documentaryEvidence.associationIds
+  )), ['ASSOC_1', 'ASSOC_2']);
+} finally {
+  vm.runInContext(`
+    isPlainObject = originalPlainObjectForAssociationAdversary;
+    delete originalPlainObjectForAssociationAdversary;
+  `, context);
+}
+
+const unrelatedExplicitConformity = prepare({
+  products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }],
+  associations: [{
+    ...explicitConformityAssociation('ASSOC_UNRELATED', 'Comprovante associado ao relatório.'),
+    left_record_id: 'DOC_CURRENT'
+  }]
+});
+const unrelatedExplicitResult = api.executePlannedCriterion(
+  contract, unrelatedExplicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', unrelatedExplicitConformity.view,
+  null, unrelatedExplicitConformity.submissionContext
+);
+assert.equal(unrelatedExplicitResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(unrelatedExplicitResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(unrelatedExplicitResult.nonconformityOnFalse, undefined);
+
+const multipleDrtExplicitConformity = prepare({
+  drts: [{ id: 'DRT_1', entity: 'ART' }, { id: 'DRT_2', entity: 'RRT' }],
+  products: [{ id: 'PRODUCT_1', entity: 'CONFORMITY_REPORT' }],
+  associations: [explicitConformityAssociation('ASSOC_1', 'DRT_1 associado explicitamente ao PRODUCT_1.')]
+});
+const multipleDrtExplicitResult = api.executePlannedCriterion(
+  contract, multipleDrtExplicitConformity.plan,
+  'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', multipleDrtExplicitConformity.view,
+  null, multipleDrtExplicitConformity.submissionContext
+);
+assert.equal(multipleDrtExplicitResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(multipleDrtExplicitResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(multipleDrtExplicitResult.nonconformityOnFalse, undefined);
+
 const conformityPolicy = testPolicy({ technicalProductIds: ['CONFORMITY_REPORT'] });
 const conformityCalibration = {
   calibrationId: 'TEST_ONLY_E2E_CALIBRATION', version: 'fixture-e2e-v1',
@@ -562,8 +790,9 @@ const conformityResult = api.executePlannedCriterion(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
   admittedProjection, conformity.submissionContext
 );
-assert.equal(conformityResult.engineResult, 'TRUE');
-assert.equal(conformityResult.pipelineResult, 'PASS');
+assert.equal(conformityResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(conformityResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(conformityResult.nonconformityOnFalse, undefined);
 const conformityRelationTrace = conformityResult.trace.find(
   entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
 );
@@ -575,7 +804,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(conformityRelationTrace.externalRelat
   calibration: { id: conformityCalibration.calibrationId,
     version: conformityCalibration.version },
   status: 'ADMITTED',
-  reason: 'ADMITTED_CORRELATION_CONSUMED'
+  reason: 'ADMITTED_CORRELATION_CONTEXT_ONLY'
 });
 assert.deepEqual(JSON.parse(JSON.stringify(conformityRelationTrace.memoryReferences)), [
   { kind: 'DOCUMENT', identifier: 'DRT_1' },

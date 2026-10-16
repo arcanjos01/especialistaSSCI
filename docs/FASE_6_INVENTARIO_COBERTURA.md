@@ -242,9 +242,9 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
 define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
-## Matriz por Criterion (estado reconciliado na KB 5.22.0)
+## Matriz por Criterion (estado reconciliado na KB 5.23.0)
 
-As colunas estruturais acompanham a Base vigente KB 5.22.0. Criteria retirados
+As colunas estruturais acompanham a Base vigente KB 5.23.0. Criteria retirados
 permanecem listados somente para rastreabilidade histórica e estão marcados
 `WITHDRAWN`; não integram os 34 ativos nem os 29 produtivos. Campos: Criterion,
 Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT, VALIDATE,
@@ -257,7 +257,7 @@ fonte canônica.
 | T1_DRT_REGISTERED | REQ_T1_DRT_REGISTERED | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, REGISTERED)` | — | NC_T1_004 | RT requerida, DRT, REGISTERED | SOURCE_DEFINED_NEEDS_FORMALIZATION: RDE preserva status de registro como texto FACT-ONLY; faltam semântica tipada e seleção por responsabilidade sem converter ausência em FAIL | 03_table1.txt:34-49; 01_entities.txt:62-80; 09_Especificacao_da_RDE.txt:146-172; 00_engine.txt:245-248 |
 | T1_DRT_SIGNED | REQ_T1_DRT_SIGNED | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, SIGNED)` | — | NC_T1_005 | RT requerida, DRT, SIGNED | SOURCE_DEFINED_NEEDS_FORMALIZATION: signatário/mecanismo podem ser fatos textuais; não há resultado tipado de autenticidade/verificabilidade documental | 03_table1.txt:53-68; 01_entities.txt:62-83,132-138; 00_engine.txt:293-317 |
 | T1_DRT_PROFESSIONAL_REGULARITY | REQ_T1_DRT_PROFESSIONAL_REGULARITY | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_PROFESSIONAL_REGULARITY(REQUIRED_TECHNICAL_RESPONSIBILITY)` | same predicate in Requirement VALIDATE | NC_T1_009 | RT requerida, DRT.COUNCIL_STATE/PROFESSIONAL_REGULARITY | WITHDRAWN: não selecionar nem reintroduzir sem decisão normativa própria | histórico da retirada autorizada; snapshot baseline 6f82475, `knowledge-base/03_table1.txt:72-88` |
-| T1_CONFORMITY_REPORT | REQ_T1_CONFORMITY_REPORT | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_HAS_TECHNICAL_PRODUCT(RT_002_EXECUCAO_DE_OBRA, CONFORMITY_REPORT)` | — | NC_T1_003 | RT-002, produto técnico/relatório | SOURCE_DEFINED_NEEDS_FORMALIZATION: vínculo RT-002→relatório formalizado; associação documental explícita não é consumida e admissão inferida permanece bloqueada sem calibração empírica válida | 03_table1.txt:76-90; 02_requirements.txt:74-84; Anexo A RT-002; Documento 11 §5,8; 00_engine.txt:78-87 |
+| T1_CONFORMITY_REPORT | REQ_T1_CONFORMITY_REPORT | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_HAS_TECHNICAL_PRODUCT(RT_002_EXECUCAO_DE_OBRA, CONFORMITY_REPORT)` | — | NC_T1_003 | RT-002, produto técnico/relatório | PARTIAL_EXECUTION_SUPPORT: TRUE somente com associação documental explícita única entre DRT vinculada e REPORT exato, com sourceDocument e literal rastreados; vínculo ausente/ambíguo fica MANUAL_REVIEW. Correlação assistida continua bloqueada sem calibração empírica válida | 03_table1.txt:76-90; 02_requirements.txt:74-84; Anexo A RT-002; Documento 11 §5,8; RDE 1.8 §DOCUMENTARY_ASSOCIATIONS; 00_engine.txt:78-94 |
 | T1_DRT_RI_LEGAL_ENTITY | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RI | PROCESS/RI, RT requerida, DRT.RI_NAME | SOURCE_DEFINED_NEEDS_FORMALIZATION: RI_NAME existe como fato; a RDE não expõe identificador legal da parte na DRT nem comparandos tipados completos; diferença de nomes não pode produzir FAIL | 03_table1.txt:97-111; 02_requirements.txt:97-110; 01_entities.txt:62-91,140-152; 00_engine.txt:255-266 |
 | T1_DRT_RT_NAME | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_RT_MATCHES_PRODUCT(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RT | DRT.RT_NAME, produto técnico, RT requerida | SOURCE_DEFINED_NEEDS_FORMALIZATION: RT_NAME existe como fato; falta vínculo tipado ao produto que satisfaz a mesma RT e comparando documental suficiente | 03_table1.txt:115-129; 02_requirements.txt:97-110; 01_entities.txt:62-91; 00_engine.txt:268-291 |
 | T1_DRT_ADDRESS | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, ADDRESS)` | — | NC_T1_006_ADDRESS | PROCESS, DRT.ADDRESS, RT requerida | SOURCE_DEFINED_NEEDS_FORMALIZATION: PROPERTY_ADDRESS_TEXT existe como fato; falta comparando tipado do imóvel/processo e contrato que não transforme diferença textual em FAIL | 03_table1.txt:133-148; 02_requirements.txt:97-110; 01_entities.txt:62-91 |
@@ -969,34 +969,34 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. O único quantitativo vigente é a
 reconciliação operacional explicitamente identificada abaixo: 34 ativos,
-29 produtivos, 6 cobertos, 2 parciais e 23 pendentes de cobertura integral.
+29 produtivos, 6 cobertos, 3 parciais e 23 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados na
-KB 5.22.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+KB 5.23.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada no checkpoint local RDE 0.7, KB 5.22.0; ela contém 34 Criteria e não contém os dois
+regenerada no checkpoint local RDE 0.7, KB 5.23.0; ela contém 34 Criteria e não contém os dois
 Criteria de regularidade. A applicability atual mantém cinco Criteria não
 selecionáveis, portanto 29 são produtivamente alcançáveis.
 
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 6 | `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
-| `PARTIAL_EXECUTION_SUPPORT` | 2 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. `T1_DRT_ACTIVITY_EXECUTION`: exact individual activity literal from the versioned catalog can produce TRUE for every bound RT-002 DRT; ambiguity or insufficient evidence produces MANUAL_REVIEW. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 15 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
+| `PARTIAL_EXECUTION_SUPPORT` | 3 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. `T1_DRT_ACTIVITY_EXECUTION`: exact individual activity literal from the versioned catalog can produce TRUE for every bound RT-002 DRT; ambiguity or insufficient evidence produces MANUAL_REVIEW. `T1_CONFORMITY_REPORT`: one explicit documentary association may satisfy this exact relation predicate; missing/ambiguous relation stays MANUAL_REVIEW; inferred correlation admission remains blocked without empirical calibration. |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 14 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
-| `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 29 Criteria produtivos conforme revisão de contratos atual. |
+| `HUMAN_NORMATIVE_DECISION_REQUIRED` | 1 | `T4_IN10_COMMISSIONING`: confirmar se a exigência de independência da IRV Tabela 4 é fundamento institucional suficiente, pois IN 10, art. 41 e Anexo B citados no Requirement não a expressam. A divergência foi identificada na reconciliação de produtividade de 2026-10-16; até decisão, não implementar resultado de independência nem alterar o Requirement. |
 
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=6`, `CRITERIA_PARTIAL=2` (`T1_DRT_REQUIRED` e
-`T1_DRT_ACTIVITY_EXECUTION`) e `CRITERIA_PENDING=23`, contando os parciais como
-pendentes de cobertura integral. Há 21 Criteria sem suporte integral além dos
-dois parciais. A contagem de retirados
+ativo), `CRITERIA_COVERED=6`, `CRITERIA_PARTIAL=3` (`T1_DRT_REQUIRED`,
+`T1_DRT_ACTIVITY_EXECUTION` e `T1_CONFORMITY_REPORT`) e `CRITERIA_PENDING=23`,
+contando os parciais como pendentes de cobertura integral. Há 20 Criteria sem
+suporte integral além dos três parciais. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
-retirados. O PASS da formalização RDE 0.4.0 não aumenta os 6 cobertos. Os 15 casos
+retirados. O PASS da formalização RDE 0.4.0 não aumenta os 6 cobertos. Os 14 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
