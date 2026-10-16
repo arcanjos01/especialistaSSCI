@@ -370,7 +370,10 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
       responsibilityId: responsibility.responsibilityId,
       catalogIdentifier: responsibility.catalogIdentifier,
       documentaryResponsibilityType: responsibility.documentaryResponsibilityType,
-      requirementIds: responsibility.requirementIds
+      requirementIds: responsibility.requirementIds,
+      machineCompatibleActivityLiterals: contract.responsibilityCatalog &&
+        contract.responsibilityCatalog[catalogIdentifier] &&
+        contract.responsibilityCatalog[catalogIdentifier].machineCompatibleActivityLiterals
     },
     evidence
   });

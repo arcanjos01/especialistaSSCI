@@ -13,7 +13,8 @@ for (const relativePath of [
   '../apps-script/CurrentSubmissionContextCore.js',
   '../apps-script/CbmscApplicabilityCore.js',
   '../apps-script/ExecutionPlanCore.js',
-  '../apps-script/ResponsibilityEvidenceCore.js'
+  '../apps-script/ResponsibilityEvidenceCore.js',
+  '../apps-script/CriterionExecutionCore.js'
 ]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
 }
@@ -32,7 +33,8 @@ vm.runInContext(`globalThis.api = {
   isCanonicalFrozenExecutionPlan,
   isCanonicalCbmscApplicabilityResolution,
   isCanonicalResponsibilityEvidenceBinding,
-  ResponsibilityEvidenceIntegrityError
+  ResponsibilityEvidenceIntegrityError,
+  executePlannedCriterion
 };`, context);
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
@@ -244,6 +246,8 @@ const binding = api.materializeResponsibilityEvidenceBinding(
 assert.equal(Object.isFrozen(binding), true);
 assert.equal(Object.isFrozen(binding.evidence), true);
 assert.equal(binding.evidence.length, 2);
+assert.deepEqual(JSON.parse(JSON.stringify(binding.responsibility.machineCompatibleActivityLiterals)),
+  ['EXECUÇÃO']);
 assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.entityId))), ['ART', 'TRT']);
 assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.selectionFact.value))), ['EXECUCAO', 'EXECUCAO']);
 assert.equal(binding.evidence.every(item => item.reference.kind === 'DOCUMENT'), true);
@@ -251,6 +255,317 @@ assert.equal(binding.evidence.every(item => item.sourceDocument.kind === 'DOCUME
 assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   binding, contract, base.plan, base.view
 ), true);
+
+function withVmObjectPrototypeProperty(key, descriptor, callback) {
+  const objectPrototype = vm.runInContext('Object.prototype', context);
+  const previousDescriptor = Object.getOwnPropertyDescriptor(objectPrototype, key);
+  Object.defineProperty(objectPrototype, key, descriptor);
+  try {
+    return callback();
+  } finally {
+    if (previousDescriptor) Object.defineProperty(objectPrototype, key, previousDescriptor);
+    else delete objectPrototype[key];
+  }
+}
+
+function activityCase(activityServiceText, secondActivityServiceText = null, options = {}) {
+  const raw = buildRde([], [{ entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } }]);
+  raw.schema_version = '0.6.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = [{
+    activity_item_id: 'ACT_0', drt_record_id: 'DRT_0', activity_service_text: activityServiceText,
+    source_document: 'DRT_0', source_text: 'Atividade: ' + activityServiceText,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_0' }
+  }];
+  if (secondActivityServiceText !== null) raw.drt_activity_items.push({
+    activity_item_id: 'ACT_1', drt_record_id: 'DRT_0', activity_service_text: secondActivityServiceText,
+    source_document: 'DRT_0', source_text: 'Atividade adicional: ' + secondActivityServiceText,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_1' }
+  });
+  if (options.omitDocumentProvenance) {
+    delete raw.records.find(record => record.record_id === 'DRT_0').provenance;
+  }
+  if (options.omitActivityProvenance) {
+    delete raw.drt_activity_items[0].provenance;
+  }
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  const unitKey = 'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)';
+  const execute = () => api.executePlannedCriterion(contract, plan, unitKey, view);
+  let run = execute;
+  if (options.inheritItemProvenance) {
+    const next = run;
+    run = () => withVmObjectPrototypeProperty('provenance', {
+      value: { sourceKind: 'FORGED', sourceReference: 'INHERITED' },
+      enumerable: true, writable: true, configurable: true
+    }, next);
+  }
+  if (options.inheritExpectedLiteralSetter) {
+    const next = run;
+    run = () => withVmObjectPrototypeProperty('expectedActivityLiterals', {
+      set: options.inheritExpectedLiteralSetter, configurable: true
+    }, next);
+  }
+  return run();
+}
+
+function activityAbsentCase() {
+  const raw = buildRde([], [{ entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } }]);
+  raw.schema_version = '0.6.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = [];
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  return api.executePlannedCriterion(contract, plan,
+    'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)', view);
+}
+
+function activityMultipleDrtCase(secondActivityServiceText = 'EXECUÇÃO') {
+  const raw = buildRde([], [
+    { entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } },
+    { entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } }
+  ]);
+  raw.schema_version = '0.6.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = [{
+    activity_item_id: 'ACT_0', drt_record_id: 'DRT_0', activity_service_text: 'EXECUÇÃO',
+    source_document: 'DRT_0', source_text: 'Atividade: EXECUÇÃO',
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_0' }
+  }];
+  if (secondActivityServiceText !== null) raw.drt_activity_items.push({
+    activity_item_id: 'ACT_1', drt_record_id: 'DRT_1',
+    activity_service_text: secondActivityServiceText,
+    source_document: 'DRT_1', source_text: 'Atividade: ' + secondActivityServiceText,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_1' }
+  });
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  return api.executePlannedCriterion(contract, plan,
+    'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)', view);
+}
+
+const activityPositive = activityCase('EXECUÇÃO');
+assert.equal(activityPositive.engineResult, 'TRUE');
+assert.equal(activityPositive.pipelineResult, 'PASS');
+assert.equal(activityPositive.trace[0].predicateId, 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION');
+assert.deepEqual(JSON.parse(JSON.stringify(activityPositive.trace.map(entry => entry.predicateId))),
+  ['RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION']);
+assert.equal(activityPositive.trace[0].memoryReferences[0].identifier, 'DRT_0');
+const expectedActivityTrace = {
+  activityItemId: 'ACT_0', drt: { kind: 'DOCUMENT', identifier: 'DRT_0' },
+  activityServiceText: 'EXECUÇÃO',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'DRT_0' },
+  sourceText: 'Atividade: EXECUÇÃO',
+  itemProvenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_0' },
+  sourceProvenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_0' }
+};
+for (const traceEntry of activityPositive.trace) {
+  assert.deepEqual(JSON.parse(JSON.stringify(traceEntry.documentaryEvidence[0].activityItems[0])),
+    expectedActivityTrace);
+}
+const nativeActivityMap = vm.runInContext('Array.prototype.map', context);
+context.__nativeActivityMap = nativeActivityMap;
+assert.equal(vm.runInContext(
+  'Object.getOwnPropertyDescriptor(globalThis, "responsibilityDrtActivityExecutionPredicateContract").writable',
+  context
+), false);
+try {
+  vm.runInContext(`
+    Array.prototype.map = function (callback, receiver) {
+      const forged = [];
+      for (let index = 0; index < this.length; index += 1) {
+        const value = this[index];
+        if (value && value.activityItemId === 'ACT_0') {
+          forged[index] = Object.assign({}, value, {
+            activityServiceText: 'EXECUÇÃO', sourceText: 'FORGED'
+          });
+        } else {
+          forged[index] = __nativeActivityMap.call(this, callback, receiver)[index];
+        }
+      }
+      return forged;
+    };
+  `, context);
+  assert.throws(() => vm.runInContext(`Object.defineProperty(globalThis,
+    'responsibilityDrtActivityExecutionPredicateContract', {
+      value: function () { return { resolver: { resolve: () => ({ result: 'TRUE' }) } }; }
+    })`, context), /Cannot redefine property/);
+  const adversarialActivity = activityCase('INSTALAÇÃO');
+  assert.equal(adversarialActivity.engineResult, 'MANUAL_REVIEW');
+  assert.equal(adversarialActivity.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(adversarialActivity.trace[0].predicateId,
+    'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION');
+  assert.equal(adversarialActivity.trace[0].documentaryEvidence[0].activityItems[0]
+    .activityServiceText, 'INSTALAÇÃO');
+  assert.equal(adversarialActivity.trace[0].documentaryEvidence[0].activityItems[0]
+    .sourceText, 'Atividade: INSTALAÇÃO');
+} finally {
+  vm.runInContext('Array.prototype.map = __nativeActivityMap;', context);
+  delete context.__nativeActivityMap;
+}
+
+try {
+  vm.runInContext(`globalThis.engineArraySetOwn_ = function (array, index, value) {
+    const forged = Object.assign({}, value, {
+      activityServiceText: 'EXECUÇÃO', sourceText: 'FORGED'
+    });
+    Object.defineProperty(array, String(index), {
+      value: forged, enumerable: true, writable: true, configurable: true
+    });
+  };`, context);
+  const helperShadowAttack = activityCase('INSTALAÇÃO');
+  assert.equal(helperShadowAttack.engineResult, 'MANUAL_REVIEW');
+  assert.equal(helperShadowAttack.trace[0].documentaryEvidence[0].activityItems[0]
+    .activityServiceText, 'INSTALAÇÃO');
+  assert.equal(helperShadowAttack.trace[0].documentaryEvidence[0].activityItems[0]
+    .sourceText, 'Atividade: INSTALAÇÃO');
+} finally {
+  vm.runInContext('delete globalThis.engineArraySetOwn_;', context);
+}
+
+const nativeEngineDefineProperty = vm.runInContext('Object.defineProperty', context);
+context.__nativeEngineDefineProperty = nativeEngineDefineProperty;
+try {
+  vm.runInContext(`Object.defineProperty = function (target, key, descriptor) {
+    if (key === 'expectedActivityLiterals' && descriptor &&
+        Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      descriptor = Object.assign({}, descriptor, { value: ['INSTALAÇÃO'] });
+    }
+    return __nativeEngineDefineProperty(target, key, descriptor);
+  };`, context);
+  const definePropertyAttack = activityCase('INSTALAÇÃO');
+  assert.equal(definePropertyAttack.engineResult, 'MANUAL_REVIEW');
+  assert.equal(definePropertyAttack.trace[0].documentaryEvidence[0].activityItems[0]
+    .activityServiceText, 'INSTALAÇÃO');
+} finally {
+  vm.runInContext('Object.defineProperty = __nativeEngineDefineProperty;', context);
+  delete context.__nativeEngineDefineProperty;
+}
+
+for (const [activity, options] of [
+  ['EXECUÇÃO', { omitDocumentProvenance: true }],
+  ['EXECUÇÃO', { omitActivityProvenance: true }],
+  ['INSTALAÇÃO', { omitDocumentProvenance: true }]
+]) {
+  const insufficientProvenance = activityCase(activity, null, options);
+  assert.equal(insufficientProvenance.engineResult, 'MANUAL_REVIEW');
+  assert.equal(insufficientProvenance.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(Object.prototype.hasOwnProperty.call(
+    insufficientProvenance, 'nonconformityOnFalse'), false);
+  const snapshot = insufficientProvenance.trace[0].documentaryEvidence[0].activityItems[0];
+  assert.equal(snapshot.activityServiceText, activity);
+  assert.equal(snapshot.sourceProvenance === null || snapshot.itemProvenance === null, true);
+}
+const inheritedProvenanceAttack = activityCase('EXECUÇÃO', null, {
+  omitActivityProvenance: true,
+  inheritItemProvenance: true
+});
+assert.equal(inheritedProvenanceAttack.engineResult, 'MANUAL_REVIEW');
+assert.equal(inheritedProvenanceAttack.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(inheritedProvenanceAttack.trace[0].documentaryEvidence[0].activityItems[0]
+  .itemProvenance, null);
+let inheritedLiteralSetterCalls = 0;
+const inheritedLiteralSetterAttack = activityCase('INSTALAÇÃO', null, {
+  inheritExpectedLiteralSetter(value) {
+    inheritedLiteralSetterCalls += 1;
+    Object.defineProperty(this, 'expectedActivityLiterals', {
+      value: ['INSTALAÇÃO'], enumerable: true, writable: true, configurable: true
+    });
+  }
+});
+assert.equal(inheritedLiteralSetterCalls, 0,
+  'ArgumentSchema must define own fields without invoking inherited setters');
+assert.equal(inheritedLiteralSetterAttack.engineResult, 'MANUAL_REVIEW');
+assert.equal(inheritedLiteralSetterAttack.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(inheritedLiteralSetterAttack.trace[0].documentaryEvidence[0].activityItems[0]
+  .activityServiceText, 'INSTALAÇÃO');
+for (const result of [activityAbsentCase(), activityCase('execução'),
+  activityCase('EXECUÇÃO; INSTALAÇÃO'), activityCase('EXECUÇÃO', 'INSTALAÇÃO')]) {
+  assert.equal(result.engineResult, 'MANUAL_REVIEW');
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(Object.prototype.hasOwnProperty.call(result, 'nonconformityOnFalse'), false);
+}
+assert.equal(activityCase('EXECUÇÃO', 'EXECUÇÃO').engineResult, 'TRUE');
+const twoDrtPositive = activityMultipleDrtCase('EXECUÇÃO');
+assert.equal(twoDrtPositive.engineResult, 'TRUE');
+assert.deepEqual(JSON.parse(JSON.stringify(twoDrtPositive.trace[0].memoryReferences.map(ref => ref.identifier))),
+  ['DRT_0', 'DRT_1']);
+const twoDrtTrace = twoDrtPositive.trace[0].documentaryEvidence.map(item => ({
+  drt: item.drt.identifier,
+  activities: item.activityItems.map(activity => activity.activityItemId)
+}));
+assert.deepEqual(JSON.parse(JSON.stringify(twoDrtTrace)), [
+  { drt: 'DRT_0', activities: ['ACT_0'] },
+  { drt: 'DRT_1', activities: ['ACT_1'] }
+]);
+const twoDrtConflict = activityMultipleDrtCase('INSTALAÇÃO');
+assert.equal(twoDrtConflict.engineResult, 'MANUAL_REVIEW');
+assert.deepEqual(JSON.parse(JSON.stringify(twoDrtConflict.trace[0].documentaryEvidence.map(item => item.drt.identifier))),
+  ['DRT_0', 'DRT_1']);
+assert.equal(twoDrtConflict.trace[0].documentaryEvidence[1].activityItems[0]
+  .activityServiceText, 'INSTALAÇÃO');
+const twoDrtMissing = activityMultipleDrtCase(null);
+assert.equal(twoDrtMissing.engineResult, 'MANUAL_REVIEW');
+const twoDrtMissingTrace = twoDrtMissing.trace[0].documentaryEvidence.map(item => ({
+  drt: item.drt.identifier,
+  activities: item.activityItems.length
+}));
+assert.deepEqual(JSON.parse(JSON.stringify(twoDrtMissingTrace)), [
+  { drt: 'DRT_0', activities: 1 },
+  { drt: 'DRT_1', activities: 0 }
+]);
+
+const activityArrayPrototype = vm.runInContext('Array.prototype', context);
+const originalActivityIndexDescriptor = Object.getOwnPropertyDescriptor(activityArrayPrototype, '0');
+let inheritedSnapshotSetterCalls = 0;
+context.__activitySnapshotSetter = function (value) {
+  if (value && value.activityItemId === 'ACT_0') {
+    inheritedSnapshotSetterCalls += 1;
+    value = Object.assign({}, value, {
+      activityServiceText: 'EXECUÇÃO', sourceText: 'FORGED'
+    });
+  }
+  Object.defineProperty(this, '0', {
+    value, enumerable: true, writable: true, configurable: true
+  });
+};
+try {
+  vm.runInContext("Object.defineProperty(Array.prototype, '0', {\n" +
+    "configurable: true, set: __activitySnapshotSetter\n})", context);
+  const inheritedSetterAttack = activityCase('INSTALAÇÃO');
+  assert.equal(inheritedSnapshotSetterCalls, 0,
+    'snapshot writes must bypass inherited Array index setters');
+  assert.equal(inheritedSetterAttack.engineResult, 'MANUAL_REVIEW');
+  assert.equal(inheritedSetterAttack.trace[0].documentaryEvidence[0].activityItems[0]
+    .activityServiceText, 'INSTALAÇÃO');
+  assert.equal(inheritedSetterAttack.trace[0].documentaryEvidence[0].activityItems[0]
+    .sourceText, 'Atividade: INSTALAÇÃO');
+} finally {
+  if (originalActivityIndexDescriptor) {
+    Object.defineProperty(activityArrayPrototype, '0', originalActivityIndexDescriptor);
+  } else {
+    delete activityArrayPrototype[0];
+  }
+  delete context.__activitySnapshotSetter;
+}
 
 for (const helperName of [
   'executionReferenceKey',

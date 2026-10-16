@@ -11,6 +11,8 @@ class CriterionExecutionIntegrityError extends Error {
 }
 
 const CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_ = TypedReference;
+const CRITERION_EXECUTION_ACTIVITY_PREDICATE_FACTORY_ =
+  responsibilityDrtActivityExecutionPredicateContract;
 
 function criterionExecutionRequire_(condition, message) {
   if (!condition) throw new CriterionExecutionIntegrityError(message);
@@ -126,9 +128,18 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, view, techni
 }
 
 function criterionExecutionTechnicalProductValidation_(contract, requirementMetadata,
-  metadata, unit, view) {
+  metadata, unit, plan, view) {
   const validate = requirementMetadata.validate;
   if (!Array.isArray(validate) || validate.length === 0) return null;
+  if (metadata.criterionId === 'T1_DRT_ACTIVITY_EXECUTION') {
+    criterionExecutionRequire_(validate.length === 1 &&
+      validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
+      Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
+      Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
+    'RESPONSIBILITY_ACTIVITY_COMPATIBLE VALIDATE metadata is invalid');
+    return criterionExecutionBindResponsibilityEvidence_(contract, plan, view,
+      { type: 'SYMBOL', value: 'RT_002_EXECUCAO_DE_OBRA' }, metadata.criterionId);
+  }
   criterionExecutionRequire_(validate.length === 1 &&
     validate[0] === 'TECHNICAL_PRODUCT_ATTRIBUTE' &&
     Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
@@ -299,7 +310,7 @@ function criterionExecutionRequireKeys_(value, expected, label) {
   label + ' has unsupported or residual fields');
 }
 
-function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument) {
+function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument, criterionId) {
   criterionExecutionRequire_(argument && argument.type === 'SYMBOL' &&
     argument.value === 'RT_002_EXECUCAO_DE_OBRA',
   'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE requires RT_002_EXECUCAO_DE_OBRA');
@@ -329,6 +340,16 @@ function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, arg
     criterionExecutionRequire_(view.contains(reference),
       'RT-002 evidence reference does not belong to the ImmutableExecutionView');
     evidenceReferences[evidenceReferences.length] = reference;
+  }
+  if (criterionId === 'T1_DRT_ACTIVITY_EXECUTION') {
+    return Object.freeze({
+      expression: new PredicateCall('RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', {
+        evidenceReferences,
+        expectedActivityLiterals: binding.responsibility.machineCompatibleActivityLiterals
+      }),
+      binding: immutableCopy({ type: 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION',
+        responsibility: binding.responsibility, evidence: binding.evidence })
+    });
   }
   return Object.freeze({
     expression: new PredicateCall('RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE', {
@@ -385,7 +406,17 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
       const argument = assertIr.arguments[0];
       criterionExecutionRequireKeys_(argument, ['type', 'value'],
         'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
-      return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument);
+      return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument,
+        unit.criterion.id);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE') {
+      criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
+        'RESPONSIBILITY_ACTIVITY_COMPATIBLE must declare exactly one argument');
+      const argument = assertIr.arguments[0];
+      criterionExecutionRequireKeys_(argument, ['type', 'value'],
+        'RESPONSIBILITY_ACTIVITY_COMPATIBLE argument');
+      return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument,
+        unit.criterion.id);
     }
     if (assertIr.name === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT') {
       criterionExecutionRequire_(unit.criterion && unit.criterion.id === 'T1_CONFORMITY_REPORT',
@@ -467,7 +498,7 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
     Array.isArray(unit.plannedBindings) && unit.plannedBindings.length === 0,
   'Phase 4 pilot does not execute iterative Criteria');
   const validation = criterionExecutionTechnicalProductValidation_(
-    contract, requirementMetadata, metadata, unit, view
+    contract, requirementMetadata, metadata, unit, plan, view
   );
   if (validation === null) {
     criterionExecutionRequire_(Array.isArray(unit.validate) && unit.validate.length === 0 &&
@@ -482,7 +513,7 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   const materialized = criterionExecutionMaterializeAssert_(
     contract, plan, view, unit, metadata.assertIr
   );
-  if (validation !== null) {
+  if (validation !== null && validation.binding.type === 'TECHNICAL_PRODUCT_ATTRIBUTE') {
     criterionExecutionRequireProductValidationAnchor_(
       metadata.assertIr, validation.binding.technicalProduct
     );
@@ -532,6 +563,7 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
   const materialized = materializePlannedCriterion(contract, plan, unitKey, view);
   const registry = new PredicateRegistry([
     responsibilityHasAcceptedDrtEvidencePredicateContract(),
+    CRITERION_EXECUTION_ACTIVITY_PREDICATE_FACTORY_(),
     responsibilityHasTechnicalProductPredicateContract(),
     ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])
   ]);

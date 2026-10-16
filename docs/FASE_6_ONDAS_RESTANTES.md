@@ -59,7 +59,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PENDING; assinatura reclassificada; 6 cobertos, 1 parcial e 23 pendentes de cobertura integral (inclui o parcial)` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PARTIAL; assinatura reclassificada; 6 cobertos, 2 parciais e 23 pendentes de cobertura integral (incluem os parciais)` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -334,13 +334,14 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 
 Contagem vigente vem do runtime compilado KB `5.22.0`: 34 Criteria ativos,
 29 produtivos, 5 não selecionáveis, 2 retirados, 6 integralmente cobertos,
-1 parcial e 23 pendentes de cobertura integral (inclui o parcial). As matrizes
+2 parciais e 23 pendentes de cobertura integral (incluem os parciais). As matrizes
 de snapshots anteriores permanecem apenas como histórico.
 
-- Prioridade 1: `T1_DRT_REQUIRED` continua parcial. `T1_DRT_ACTIVITY_EXECUTION`
-  requer atividade/serviço declarado e compatível. RDE 0.6 preserva a atividade
-  literal ligada à DRT, mas não classifica compatibilidade; `RESPONSIBILITY_TYPE`
-  por si só não prova a atividade.
+- Prioridade 1: `T1_DRT_REQUIRED` e `T1_DRT_ACTIVITY_EXECUTION` têm suporte
+  parcial. A segunda só produz TRUE com literal individual exata `EXECUÇÃO`
+  proveniente do catálogo RT-002 versionado, para cada DRT autenticada vinculada;
+  falta de item, valor composto/diferente, conflito ou evidência insuficiente
+  produz MANUAL_REVIEW. Não há normalização nem classificação de texto livre.
 - Prioridade 2: `T1/T4_DRT_REGISTERED`, `T1/T4_DRT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`,
   `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA` precisam de seleção
   autenticada da DRT para cada responsabilidade e comparandos factuais no
@@ -491,5 +492,168 @@ validação institucional da correlação permanece separadamente `PENDING`.
   `.codex-local-evidence/phase6-gates-0559-verify.sh` e
   `.codex-local-evidence/phase6-gates-0559-verify.log`.
 - Esta validação não altera os counts: 34 ativos, 29 produtivos, 6 cobertos,
-  1 parcial, 23 pendentes de cobertura integral. Onda D continua em andamento;
+  2 parciais, 23 pendentes de cobertura integral. Onda D continua em andamento;
   calibração operacional e revisão final Sol 6.1 permanecem pendentes.
+
+## Onda D — auditoria direta das fontes da Prioridade 1/2 (2026-10-16)
+
+- Conferi o PDF oficial local `references/irv habitese.pdf`, Tabela 1, p. 4:
+  exige identificar DRT registrada e emitida no conselho, paga e não rascunho,
+  além de assinatura digital do RT ou certificação digital do Conselho. A
+  tabela não enumera valores canônicos de status nem um resultado de verificação
+  autenticado que possa ser consumido pelo Engine.
+- O Anexo A, entrada RT-002, declara `DRT_RESPONSIBILITY_TYPE: EXECUCAO` e
+  `COMPATIBLE_ACTIVITIES: EXECUÇÃO, conforme atividade/serviço declarado na
+  DRT`. O contrato Engine limita `RESPONSIBILITY_TYPE` ao binding declarado;
+  não permite normalizar natureza para atividade. RDE `drt_activity_items`
+  preserva texto literal, sem classificador normativo.
+- Resultado: o catálogo já autoriza a categoria `EXECUÇÃO` para RT-002; a
+  lacuna está em interpretar, sem inferência, o texto livre de atividade/
+  serviço da DRT como declaração dessa categoria. A possibilidade de aceitar
+  correspondência literal exata como suporte parcial está em avaliação; não se
+  conclui que toda implementação parcial seja inviável.
+  `T1_DRT_REGISTERED`/`T4_DRT_REGISTERED` continuam pendentes porque status
+  FACT-ONLY não equivale a registro/emissão autenticados. Ausência, ambiguidade
+  ou texto desconhecido permanece insuficiente; nenhum FAIL/NC é criado por
+  inferência.
+- Para registro/emissão, os atributos RDE atuais são FACT-ONLY e não contêm um
+  resultado autenticado tipado que autorize conclusão binária; isso impede
+  converter seu texto diretamente em PASS/FAIL, mas ainda será avaliado se há
+  uma implementação segura de insuficiência/readiness que avance a cobertura.
+  No momento da auditoria de fontes, ainda não havia alteração normativa, de
+  código ou aumento de cobertura neste slice; EXTRACTION de processos
+  institucionais reais permanece fora desta fase.
+- Revisão independente do subagente role `luna_economy`, id
+  `01a14575-8abb-79f2-bbbc-7f15d483b165`, `PASS`: fontes e limites FACT-ONLY
+  conferem; não há inferência normativa na conclusão.
+
+### Candidato de suporte parcial — em revisão independente
+
+- Implementação local em `EngineCore.js` e `CriterionExecutionCore.js`: o
+  Engine consulta `drtActivityItems` diretamente na visão imutável; não recebe
+  o texto de atividade como argumento confiado. O resultado só é `TRUE` se
+  cada DRT autenticada do binding RT-002 tiver pelo menos um item e todos os
+  itens declararem literalmente `EXECUÇÃO`. Sem itens, com frase composta ou
+  valor diferente, o resultado é `MANUAL_REVIEW`; não há FAIL/NC a partir
+  desses casos. Não normaliza caixa, acento ou espaços.
+- `VALIDATE RESPONSIBILITY_ACTIVITY_COMPATIBLE` é executado antes do `ASSERT`,
+  conforme 00_engine; quando a validação retorna `MANUAL_REVIEW`, a asserção é
+  suspensa. A trilha do resultado preserva item, literal, DRT, documento-fonte,
+  trecho-fonte e proveniência disponível. Fixture positiva e casos ausentes,
+  diferentes/compostos e múltiplos itens estão em testes.
+- Este é suporte parcial autorizado pelo mapeamento literal no Anexo A, não
+  cobertura integral de `T1_DRT_ACTIVITY_EXECUTION`. A literal está no catálogo
+  versionado 2.4 com source map; o Engine recebe a lista pelo binding autenticado
+  e permanece genérico. Parser e contrato compilado rejeitam lista malformada,
+  valor sem correspondência exata e proveniência ausente.
+- Revisor GPT-6 aceito pelo usuário avaliou a política antes da implementação
+  como defensável sob condições de autenticidade, literal individual, aplicação
+  a cada DRT e rastreabilidade; não avaliou nem aprovou este diff de runtime.
+  Revisão final Sol 6.1 permanece `PENDING`.
+
+### Ciclo RT-002 atual — catálogo e execução parcial
+
+- Candidate sobre `a2de33078acb2ce4fae8bc03915916a952aae6c5`. O Anexo A 2.4
+  fornece `MACHINE_COMPATIBLE_ACTIVITY_LITERALS` por lista JSON e source map;
+  parser, release compiler, runtime compilado, binding autenticado e Engine
+  consomem a mesma lista sem hardcode do literal no núcleo.
+- Cobertura reconciliada: `CRITERIA_ACTIVE=34`, `CRITERIA_PRODUCTIVE=29`,
+  `CRITERIA_NOT_SELECTABLE=5`, `CRITERIA_WITHDRAWN=2`, `CRITERIA_COVERED=6`,
+  `CRITERIA_PARTIAL=2`, `CRITERIA_PENDING=23` (os parciais permanecem pendentes
+  de cobertura integral). `T1_DRT_ACTIVITY_EXECUTION` não é contado como coberto.
+- Revisão intermediária role `luna_economy`, revisor declarou-se Codex/GPT-6:
+  `PASS` para o candidate de catálogo, binding, Engine e trace. Isso não é
+  revisão Sol. A revisão final independente Sol 6.1 permanece `PENDING`.
+- Próximos gates: rejeição do parser (JSON inválido, correspondência não exata
+  e source map ausente), suítes integrais, release limpo e revisão independente
+  GPT-6.1-Sol; corrigir findings e repetir o ciclo se houver apontamentos.
+
+### Revisão adversarial do candidate RT-002 — correção em andamento
+
+- Revisão solicitada ao agente `gpt-6.1-sol`, somente leitura, retornou identidade
+  declarada `Codex/GPT-6`; registro honesto: GPT-6 independente, não Sol 6.1.
+  Resultado `FAIL`, sem bloqueio normativo. Findings: (1) setter herdado em
+  `Array.prototype[0]` podia forjar snapshot/trace e obter PASS; (2) readiness
+  rejeitava o novo VALIDATE e mantinha o Criterion como unsupported; (3) faltavam
+  fixtures com múltiplas DRTs; (4) uma frase de contagem ainda dizia 16 em vez de
+  15 formalizações pendentes. Nenhum arquivo foi alterado pelo revisor.
+- Correções locais: snapshots e array documental agora recebem índices por
+  `Object.defineProperty` capturado; teste instala setter adversarial e exige
+  MANUAL_REVIEW com texto/proveniência originais; readiness reconhece somente
+  Requirement/VALIDATE/mapeamento/predicate canônicos de RT-002 e testa unidade
+  materializável; fixtures cobrem duas DRTs compatíveis, conflitantes e sem
+  atividade; inventário corrigido para 15 SOURCE_DEFINED restantes.
+- Testes focais `apps-script-responsibility-evidence` e
+  `apps-script-validated-execution-readiness`: PASS após as correções. Revisão
+  independente de re-review e gates integrais ainda pendentes. A aprovação GPT-6
+  desta rodada não é registrada como Sol; o usuário aceitou revisão GPT-6, que
+  pode ser identificada separadamente caso o novo revisor declare essa identidade.
+- Re-review intermediária role `luna_economy`, declarou `Codex`, `FAIL` residual:
+  o teste cobria setter herdado, mas não índice de dados herdado em um array
+  esparso; o resolver ainda lia `items[index]` diretamente. Readiness, casos
+  de duas DRTs, proveniência e contagem atual passaram na revisão. Correção
+  adicional: o Engine exige descriptor de dado próprio em cada índice; novo
+  teste injeta `Array.prototype[0]` como dado forjado em coleção esparsa e exige
+  rejeição por integridade. Revisão e gates após este fix pendentes.
+- A revisão final subsequente, solicitada ao modelo `gpt-6.1-sol`, declarou
+  identidade `Codex/GPT-6` e `FAIL` com dois achados reproduzidos: helper de
+  escrita ainda substituível no escopo global permitia forjar PASS/trace; ausência
+  de provenance no registro-fonte resultava em exceção. As correções substituem
+  helpers por bindings `const` fechados, normalizam provenance ausente a `null`
+  no trace e encaminham a situação para `MANUAL_REVIEW`; testes atacam a sombra
+  global do helper e provenance ausente no documento/atividade, com resultado
+  sem FAIL/NC. Nenhum arquivo foi alterado por revisores. Na ocasião do finding,
+  gates e re-review estavam pendentes; seu fechamento consta no registro abaixo.
+- Correções do ciclo final: `ENGINE_ARRAY_SET_OWN_`/`ENGINE_HAS_OWN_` agora são
+  bindings lexicais imutáveis; teste de sombra global não altera resultado nem
+  trace. Provenance documental ou do item ausente vira marcador `null` no trace
+  e `MANUAL_REVIEW`, não exceção. Re-review intermediária role `luna_economy`,
+  identidade declarada Codex/GPT-6: `PASS`, zero findings abertos.
+- Gates integrais após estas correções: 143 testes Python PASS; 9 suítes Apps
+  Script PASS; sintaxe de todos os módulos JS e `node --check < Code.gs` PASS;
+  runtime byte-identical, SHA-256 `6700e5b95b49822d5149a924cd8efb4db1f077b00671a3e682ebc54083dd40a7`;
+  SHA-256 `Code.gs` `7cd96549af8ad1514dcedce6728633b4b907d55ca358a93afef6369764b144c3`;
+  manifests/phase guards exercitados pela suíte Python; `git diff --check` PASS.
+  Build de release em worktree limpa aguarda aprovação final e commit.
+- Re-review final GPT-6 seguinte: `FAIL`, dois findings adicionais, identidade
+  declarada Codex/GPT-6, somente leitura. Monkeypatch global de
+  `Object.defineProperty` adulterava `immutableCopy` e permitia trocar os
+  `expectedActivityLiterals`; provenance herdada de `Object.prototype` era lida
+  como fato próprio. Corrigido usando a intrinsic capturada na cópia de
+  argumentos, e leitura de todos os campos factuais da atividade somente por
+  own data descriptor; testes atacam o monkeypatch e a provenance herdada, ambos
+  exigindo `MANUAL_REVIEW` sem FAIL/NC.
+- Primeira leitura estreita da Luna marcou `FAIL` por não encontrar os novos
+  testes na suíte de integração; a checagem dirigida abriu
+  `tests/apps-script-responsibility-evidence.test.js` e confirmou os testes de
+  monkeypatch, helper sombreado, provenance ausente e provenance herdada:
+  `PASS`, findings anteriores encerrados. Gates integrais após os últimos fixes:
+  143 Python, 9 Apps Script, sintaxe JS/Code.gs, runtime byte-identical
+  `6700e5b95b49822d5149a924cd8efb4db1f077b00671a3e682ebc54083dd40a7`, manifests/
+  phase guards e `git diff --check` — PASS. Revisão final independente pendente.
+- A revisão final seguinte declarou Codex/GPT-6 e encontrou: setter de
+  `Object.prototype.expectedActivityLiterals` podia interceptar a atribuição no
+  `ArgumentSchema` e alterar os literais autenticados; o resumo de cobertura do
+  inventário ainda dizia `1 parcial`. Corrigido definindo cada argumento como
+  propriedade própria não gravável via intrinsic capturada, com fixture do
+  setter exigindo zero chamadas e `MANUAL_REVIEW`; quantitativo vigente corrigido
+  para 2 parciais. O candidato requer novo ciclo integral, re-review Luna e
+  revisão final GPT-6 aceita pelo usuário.
+- Re-review Luna direcionada: `PASS`, identidade declarada Codex/GPT-6, somente
+  leitura; confirmou que o setter herdado não intercepta `ArgumentSchema`, o
+  teste exige zero chamadas e findings anteriores/provenance e contagem vigente
+  estão reconciliados. Gates integrais após o fix: 143 testes Python e 9 suítes
+  Apps Script PASS; sintaxe JS/Code.gs PASS; runtime byte-identical SHA-256
+  `6700e5b95b49822d5149a924cd8efb4db1f077b00671a3e682ebc54083dd40a7`; manifests/
+  phase guards e `git diff --check` PASS. Build release limpo e revisão final
+  GPT-6 independente pendentes naquele marco.
+- Revisão final do slice RT-002: `PASS`, zero findings, somente leitura. O agente
+  solicitado como `gpt-6.1-sol` declarou identidade efetiva `Codex/GPT-6`; o
+  usuário aceitou revisão GPT-6. Sol Web não pôde iniciar por falha de seleção/
+  verificação do modelo. Este PASS é registrado como `GPT6_PASS_USER_ACCEPTED`,
+  não como aprovação Sol 6.1. Revisou catálogo, binding, Engine, readiness,
+  trace/provenance, insuficiências, regressões adversariais e contagens. Foram
+  confirmados 143 Python e 9 suítes Apps Script, sintaxe JS/Code.gs, runtime
+  byte-identical e `git diff --check`. Build limpo, commit e push deste slice
+  ainda pendentes; `SOL_REVIEW=PENDING` permanece para o fechamento integral da
+  Fase 6.

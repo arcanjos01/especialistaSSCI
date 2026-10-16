@@ -184,7 +184,10 @@ assert.ok(prepared.coverage.materializableUnitKeys.includes(
 assert.ok(!prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)'
 ));
-assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)'
+));
+assert.ok(!prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)'
 ));
 assert.ok(prepared.coverage.materializableUnitKeys.includes(

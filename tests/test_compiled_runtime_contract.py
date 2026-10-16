@@ -42,6 +42,11 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         artifact = ARTIFACT.read_text(encoding="utf-8")
         self.assertIn("GENERATED_DERIVED_ARTIFACT", artifact)
         self.assertIn("DO_NOT_EDIT_AS_NORMATIVE_SOURCE", artifact)
+        self.assertEqual(
+            self.contract["responsibilityCatalog"]["RT-002"]["machineCompatibleActivityLiterals"],
+            ["EXECUÇÃO"],
+        )
+        self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.4")
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
         self.assertEqual(self.contract["knowledgeBase"]["version"], "5.22.0")
         self.assertEqual(

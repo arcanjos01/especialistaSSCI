@@ -428,11 +428,11 @@ def parse_entity_catalog(text: str) -> dict[str, dict[str, object]]:
     return {entity_id: resolve(entity_id) for entity_id in declarations}
 
 
-def _parse_rt_catalog_types(text: str) -> dict[str, str | None]:
+def _parse_rt_catalog_contract(text: str) -> dict[str, dict[str, object]]:
     matches = list(re.finditer(r"^### (RT-\d+)\s*$", text, re.M))
     if not matches:
         raise ValueError("catálogo RT sem entradas")
-    result: dict[str, str | None] = {}
+    result: dict[str, dict[str, object]] = {}
     for index, match in enumerate(matches):
         identifier = match.group(1)
         if identifier in result:
@@ -457,8 +457,52 @@ def _parse_rt_catalog_types(text: str) -> dict[str, str | None]:
                 raise ValueError(
                     f"DRT_RESPONSIBILITY_TYPE sem source map em NORMATIVE_SOURCES: {identifier}"
                 )
-        result[identifier] = value
+        literal_values = re.findall(
+            r"^MACHINE_COMPATIBLE_ACTIVITY_LITERALS:\s*(.+?)\s*$", block, re.M
+        )
+        if len(literal_values) > 1:
+            raise ValueError(f"MACHINE_COMPATIBLE_ACTIVITY_LITERALS ambíguo em {identifier}")
+        try:
+            literals = [] if not literal_values else json.loads(literal_values[0])
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"MACHINE_COMPATIBLE_ACTIVITY_LITERALS deve ser array JSON em {identifier}"
+            ) from error
+        if not isinstance(literals, list) or any(
+            not isinstance(literal, str) or not literal for literal in literals
+        ) or len(set(literals)) != len(literals):
+            raise ValueError(
+                f"MACHINE_COMPATIBLE_ACTIVITY_LITERALS inválido ou duplicado em {identifier}"
+            )
+        if literals:
+            compatible = re.findall(
+                r"^COMPATIBLE_ACTIVITIES:\s*(.+?)(?=\n[A-Z_]+:|\Z)", block, re.M | re.S
+            )
+            segments = re.split(r"[;,]", compatible[0]) if len(compatible) == 1 else []
+            if len(compatible) != 1 or any(literal not in [part.strip() for part in segments]
+                                           for literal in literals):
+                raise ValueError(
+                    f"literais de atividade sem correspondência exata em COMPATIBLE_ACTIVITIES: {identifier}"
+                )
+            source_map = re.search(
+                r"^NORMATIVE_SOURCES:\s*(.*?)(?=^[A-Z_]+:|\Z)", block, re.M | re.S
+            )
+            if source_map is None or "MACHINE_COMPATIBLE_ACTIVITY_LITERALS" not in source_map.group(1):
+                raise ValueError(
+                    f"MACHINE_COMPATIBLE_ACTIVITY_LITERALS sem source map em NORMATIVE_SOURCES: {identifier}"
+                )
+        result[identifier] = {
+            "documentaryResponsibilityType": value,
+            "machineCompatibleActivityLiterals": literals,
+        }
     return result
+
+
+def _parse_rt_catalog_types(text: str) -> dict[str, str | None]:
+    return {
+        identifier: item["documentaryResponsibilityType"]
+        for identifier, item in _parse_rt_catalog_contract(text).items()
+    }
 
 
 
@@ -641,7 +685,11 @@ def compile_runtime_contract() -> dict[str, object]:
     requirement_text = REQUIREMENTS.read_text(encoding="utf-8")
     criteria_texts = tuple(path.read_text(encoding="utf-8") for path in CRITERIA_SOURCES)
     entities = parse_entity_catalog(ENTITIES.read_text(encoding="utf-8"))
-    rt_catalog_types = _parse_rt_catalog_types(RT_CATALOG.read_text(encoding="utf-8"))
+    rt_catalog = _parse_rt_catalog_contract(RT_CATALOG.read_text(encoding="utf-8"))
+    rt_catalog_types = {
+        identifier: item["documentaryResponsibilityType"]
+        for identifier, item in rt_catalog.items()
+    }
     requirements = _parse_requirement_metadata(requirement_text, rt_catalog_types)
     criteria = _parse_criterion_metadata(
         *criteria_texts,
@@ -730,7 +778,11 @@ def compile_runtime_contract() -> dict[str, object]:
             "version": re.search(r"^KNOWLEDGE_BASE_VERSION:\s*(\S+)", pipeline_text, re.M).group(1),
             "documentVersions": dict(manifest),
         },
+        "responsibilityCatalogVersion": re.search(
+            r"^# versão\s+(\S+)", RT_CATALOG.read_text(encoding="utf-8"), re.M
+        ).group(1),
         "entityCatalog": entities,
+        "responsibilityCatalog": rt_catalog,
         "officialEsciTargets": official_map,
         "requirements": requirements,
         "criteria": criteria,

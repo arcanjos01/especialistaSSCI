@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import unittest
+from tools.build_knowledge_base_release import _parse_rt_catalog_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +74,39 @@ class RtCatalogContractTests(unittest.TestCase):
         for identifier, entry in self.entries.items():
             if identifier != "RT-002":
                 self.assertNotIn("DRT_RESPONSIBILITY_TYPE:", entry)
+
+    def test_rt002_machine_activity_literal_is_explicit_and_exact(self):
+        rt002 = self.entries["RT-002"]
+        self.assertRegex(rt002, r'(?m)^MACHINE_COMPATIBLE_ACTIVITY_LITERALS: \["EXECUÇÃO"\]$')
+        self.assertIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS", rt002.split("NORMATIVE_SOURCES:", 1)[1])
+        for identifier, entry in self.entries.items():
+            if identifier != "RT-002":
+                self.assertNotIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS:", entry)
+
+    def test_machine_activity_literal_contract_rejects_malformed_or_unsupported_data(self):
+        malformed = self.text.replace(
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO"]',
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: EXECUÇÃO',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "array JSON"):
+            _parse_rt_catalog_contract(malformed)
+
+        substring_only = self.text.replace(
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO"]',
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO DECLARADA"]',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "correspondência exata"):
+            _parse_rt_catalog_contract(substring_only)
+
+        missing_source = self.text.replace(
+            "  MACHINE_COMPATIBLE_ACTIVITY_LITERALS:\n",
+            "  COMPATIBLE_ACTIVITIES:\n",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "sem source map"):
+            _parse_rt_catalog_contract(missing_source)
 
     def test_execution_and_regularization_are_separate_routes(self):
         for identifier in ("RT-002", "RT-003"):

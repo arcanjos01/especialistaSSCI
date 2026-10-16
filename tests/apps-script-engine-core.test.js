@@ -15,10 +15,14 @@ globalThis.engineCore = {
   ResolverContext, PredicateContract, PredicateRegistry, PredicateCall,
   Exists, AssertLiteral, All, Or, ForEach, CriterionIR, evaluateExpression,
   evaluateCriterion, normalizeEngineResult, propagateResult,
-  technicalProductAttributePredicateContract
+  technicalProductAttributePredicateContract,
+  responsibilityDrtActivityExecutionPredicateContract
 };`, context);
 const E = context.engineCore;
-const { EngineResult: ER, PipelineResult: PR } = E;
+const {
+  EngineResult: ER, PipelineResult: PR,
+  responsibilityDrtActivityExecutionPredicateContract
+} = E;
 
 function memory(references = []) {
   const present = new Set(references.map(ref => ref.kind + ':' + ref.identifier));
@@ -79,6 +83,35 @@ assert(Object.isFrozen(registry.resolve('TEST_TRUE').resolver));
 assert.throws(() => registry.resolve('MISSING'), /predicate not found/);
 assert.equal(Reflect.set(registry._contracts, 'TEST_FALSE', contract('TEST_FALSE', ER.FALSE)), false);
 assert.equal(Reflect.set(registry.resolve('TEST_TRUE').resolver, 'resolve', () => ER.FALSE), false);
+
+const activityPredicate = responsibilityDrtActivityExecutionPredicateContract();
+const sparseDrtRef = new E.TypedReference('DOCUMENT', 'DRT_SPARSE');
+const sparseActivityItems = vm.runInContext('new Array(1)', context);
+const activityArrayPrototype = vm.runInContext('Array.prototype', context);
+const priorActivityIndex = Object.getOwnPropertyDescriptor(activityArrayPrototype, '0');
+try {
+  Object.defineProperty(activityArrayPrototype, '0', {
+    value: {
+      activityItemId: 'FORGED', drt: sparseDrtRef,
+      sourceDocument: sparseDrtRef, activityServiceText: 'EXECUÇÃO',
+      sourceText: 'FORGED'
+    },
+    enumerable: true, writable: true, configurable: true
+  });
+  assert.throws(() => activityPredicate.resolver.resolve({
+    evidenceReferences: [sparseDrtRef],
+    expectedActivityLiterals: ['EXECUÇÃO']
+  }, {
+    contains: () => true,
+    drtActivityItems: () => sparseActivityItems
+  }), /must contain own data items/);
+} finally {
+  if (priorActivityIndex) {
+    Object.defineProperty(activityArrayPrototype, '0', priorActivityIndex);
+  } else {
+    delete activityArrayPrototype[0];
+  }
+}
 
 const ctx = new E.ResolverContext({ criterionId: 'C', requirementId: 'R' });
 assert.throws(() => E.evaluateExpression(new E.PredicateCall('TEST_TRUE', { subject: ref }),
@@ -344,7 +377,7 @@ assert.equal(Object.hasOwn(falseRecord, 'nonconformity'), false);
 const nestedArgs = { subject: ref, payload: { tags: ['a', 'b'] } };
 const immutableCall = new E.PredicateCall('TEST_TRUE', nestedArgs);
 nestedArgs.payload.tags.push('mutated');
-assert.deepEqual(immutableCall.arguments.payload.tags, ['a', 'b']);
+assert.equal(JSON.stringify(immutableCall.arguments.payload.tags), '["a","b"]');
 assert(Object.isFrozen(immutableCall.arguments.payload.tags));
 assert(Object.isFrozen(immutableCall.arguments.payload));
 assert(Object.isFrozen(immutableCall));

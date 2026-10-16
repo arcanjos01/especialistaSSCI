@@ -1,5 +1,37 @@
 /* Núcleo agnóstico do Criterion IR. Sem APIs Apps Script ou dependências externas. */
 
+const ENGINE_ARRAY_IS_ARRAY_ = Array.isArray;
+const ENGINE_ARRAY_INCLUDES_ = Array.prototype.includes;
+const ENGINE_ARRAY_CONCAT_ = Array.prototype.concat;
+const ENGINE_ARRAY_MAP_ = Array.prototype.map;
+const ENGINE_ARRAY_SORT_ = Array.prototype.sort;
+const ENGINE_REFLECT_APPLY_ = Reflect.apply;
+const ENGINE_OBJECT_KEYS_ = Object.keys;
+const ENGINE_OBJECT_DEFINE_PROPERTY_ = Object.defineProperty;
+const ENGINE_OBJECT_GET_OWN_PROPERTY_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
+const ENGINE_OBJECT_HAS_OWN_PROPERTY_ = Object.prototype.hasOwnProperty;
+const ENGINE_OBJECT_TO_STRING_ = Object.prototype.toString;
+const ENGINE_OBJECT_GET_PROTOTYPE_OF_ = Object.getPrototypeOf;
+const ENGINE_NUMBER_IS_FINITE_ = Number.isFinite;
+
+const ENGINE_ARRAY_SET_OWN_ = function (array, index, value) {
+  ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [array, String(index), {
+    value, enumerable: true, writable: true, configurable: true
+  }]);
+};
+
+const ENGINE_HAS_OWN_ = function (object, key) {
+  return ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_HAS_OWN_PROPERTY_, object, [key]);
+};
+
+const ENGINE_OWN_DATA_VALUE_ = function (object, key) {
+  if (!object || (typeof object !== 'object' && typeof object !== 'function')) return undefined;
+  const descriptor = ENGINE_REFLECT_APPLY_(
+    ENGINE_OBJECT_GET_OWN_PROPERTY_DESCRIPTOR_, Object, [object, key]
+  );
+  return descriptor && ENGINE_HAS_OWN_(descriptor, 'value') ? descriptor.value : undefined;
+};
+
 const EngineResult = Object.freeze({
   TRUE: 'TRUE',
   FALSE: 'FALSE',
@@ -38,9 +70,9 @@ function requireNonEmptyString(value, label) {
 }
 
 function isPlainObject(value) {
-  if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === null || Object.getPrototypeOf(prototype) === null;
+  if (!value || ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_TO_STRING_, value, []) !== '[object Object]') return false;
+  const prototype = ENGINE_OBJECT_GET_PROTOTYPE_OF_(value);
+  return prototype === null || ENGINE_OBJECT_GET_PROTOTYPE_OF_(prototype) === null;
 }
 
 class TypedReference {
@@ -72,22 +104,32 @@ class ArgumentSpec {
 function immutableCopy(value, active = []) {
   if (value instanceof TypedReference) return value;
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (Array.isArray(value)) {
-    if (active.includes(value)) throw new ArgumentContractError('cyclic argument values are not supported');
-    const nextActive = active.concat([value]);
-    return Object.freeze(value.map(item => immutableCopy(item, nextActive)));
+  if (typeof value === 'number' && ENGINE_NUMBER_IS_FINITE_(value)) return value;
+  if (ENGINE_ARRAY_IS_ARRAY_(value)) {
+    if (ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_INCLUDES_, active, [value])) {
+      throw new ArgumentContractError('cyclic argument values are not supported');
+    }
+    const nextActive = ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_CONCAT_, active, [[value]]);
+    const copy = ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_MAP_, value, [
+      item => immutableCopy(item, nextActive)
+    ]);
+    return Object.freeze(copy);
   }
   if (isPlainObject(value)) {
-    if (active.includes(value)) throw new ArgumentContractError('cyclic argument values are not supported');
-    const nextActive = active.concat(value);
+    if (ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_INCLUDES_, active, [value])) {
+      throw new ArgumentContractError('cyclic argument values are not supported');
+    }
+    const nextActive = ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_CONCAT_, active, [value]);
     const copy = {};
-    Object.keys(value).sort().forEach(key => {
-      Object.defineProperty(copy, key, {
+    const keys = ENGINE_OBJECT_KEYS_(value);
+    ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_SORT_, keys, []);
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [copy, key, {
         value: immutableCopy(value[key], nextActive), enumerable: true,
         writable: false, configurable: false
-      });
-    });
+      }]);
+    }
     return Object.freeze(copy);
   }
   throw new ArgumentContractError('argument values must be immutable JSON-like values or TypedReference');
@@ -119,7 +161,7 @@ class ArgumentSchema {
     }
     const validated = {};
     this.specs.forEach(spec => {
-      if (!Object.prototype.hasOwnProperty.call(argumentsByName, spec.name)) {
+      if (!ENGINE_HAS_OWN_(argumentsByName, spec.name)) {
         if (spec.required) {
           throw new ArgumentContractError('missing required argument: ' + spec.name);
         }
@@ -131,7 +173,10 @@ class ArgumentSchema {
         throw new ArgumentContractError('argument ' + spec.name + ' must be a collection');
       }
       values.forEach(item => validateArgumentKind(spec, item));
-      validated[spec.name] = immutableCopy(spec.many ? values : value);
+      ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [validated, spec.name, {
+        value: immutableCopy(spec.many ? values : value),
+        enumerable: true, writable: false, configurable: false
+      }]);
     });
     return Object.freeze(validated);
   }
@@ -197,19 +242,20 @@ class PredicateRegistry {
       if (!(contract instanceof PredicateContract)) {
         throw new EngineContractError('registry entries must be PredicateContract');
       }
-      if (Object.prototype.hasOwnProperty.call(entries, contract.predicateId)) {
+      if (ENGINE_HAS_OWN_(entries, contract.predicateId)) {
         throw new EngineContractError('duplicate predicateId: ' + contract.predicateId);
       }
-      Object.defineProperty(entries, contract.predicateId, {
+      ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object,
+        [entries, contract.predicateId, {
         value: contract, enumerable: true, writable: false, configurable: false
-      });
+        }]);
     });
     this._contracts = Object.freeze(entries);
     Object.freeze(this);
   }
 
   resolve(predicateId) {
-    if (!Object.prototype.hasOwnProperty.call(this._contracts, predicateId)) {
+    if (!ENGINE_HAS_OWN_(this._contracts, predicateId)) {
       throw new PredicateNotFoundError('predicate not found: ' + predicateId);
     }
     return this._contracts[predicateId];
@@ -303,6 +349,124 @@ function responsibilityHasAcceptedDrtEvidencePredicateContract() {
     }
   });
 }
+
+function responsibilityDrtActivityExecutionPredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true }),
+      new ArgumentSpec({ name: 'expectedActivityLiterals', kind: ArgumentKind.TEXT, many: true })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory) {
+        if (args.evidenceReferences.length === 0) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences,
+            documentaryEvidence: [] };
+        }
+        if (!memory || typeof memory.contains !== 'function' ||
+            typeof memory.drtActivityItems !== 'function') {
+          throw new EngineContractError(
+            'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION requires read-only Process Memory'
+          );
+        }
+        if (args.expectedActivityLiterals.length === 0) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences,
+            documentaryEvidence: [] };
+        }
+        for (let literalIndex = 0; literalIndex < args.expectedActivityLiterals.length; literalIndex += 1) {
+          if (typeof args.expectedActivityLiterals[literalIndex] !== 'string' ||
+              !args.expectedActivityLiterals[literalIndex]) {
+            return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences,
+              documentaryEvidence: [] };
+          }
+        }
+        const documentaryEvidence = [];
+        let everyDrtDeclaresExpectedActivity = true;
+        for (let index = 0; index < args.evidenceReferences.length; index += 1) {
+          const reference = args.evidenceReferences[index];
+          if (!(reference instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+              reference.kind !== 'DOCUMENT' || !memory.contains(reference)) {
+            throw new ResultContractError(
+              'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION evidence reference is not in Process Memory'
+            );
+          }
+          const items = memory.drtActivityItems(reference);
+          if (!ENGINE_ARRAY_IS_ARRAY_(items)) {
+            throw new ResultContractError(
+              'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION returned an invalid activity collection'
+            );
+          }
+          const itemSnapshots = [];
+          for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+            const itemDescriptor = ENGINE_REFLECT_APPLY_(
+              ENGINE_OBJECT_GET_OWN_PROPERTY_DESCRIPTOR_, Object,
+              [items, String(itemIndex)]
+            );
+            if (!itemDescriptor || !ENGINE_HAS_OWN_(itemDescriptor, 'value')) {
+              throw new ResultContractError(
+                'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION activity collection must contain own data items'
+              );
+            }
+            const item = itemDescriptor.value;
+            const sourceDocument = ENGINE_OWN_DATA_VALUE_(item, 'sourceDocument');
+            const activityItemId = ENGINE_OWN_DATA_VALUE_(item, 'activityItemId');
+            const activityServiceText = ENGINE_OWN_DATA_VALUE_(item, 'activityServiceText');
+            const sourceText = ENGINE_OWN_DATA_VALUE_(item, 'sourceText');
+            if (!item || !(sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+                sourceDocument.kind !== 'DOCUMENT' || typeof activityItemId !== 'string' ||
+                typeof activityServiceText !== 'string' || typeof sourceText !== 'string') {
+              throw new ResultContractError(
+                'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION returned an invalid activity item'
+              );
+            }
+            const rawItemProvenance = ENGINE_OWN_DATA_VALUE_(item, 'provenance');
+            const itemProvenance = rawItemProvenance === undefined ? null : rawItemProvenance;
+            const sourceProvenance = typeof memory.provenance === 'function'
+              ? memory.provenance(sourceDocument) : null;
+            if (itemProvenance === null || sourceProvenance === null ||
+                sourceProvenance === undefined) {
+              everyDrtDeclaresExpectedActivity = false;
+            }
+            ENGINE_ARRAY_SET_OWN_(itemSnapshots, itemIndex, {
+              activityItemId,
+              drt: reference,
+              activityServiceText,
+              sourceDocument,
+              sourceText,
+              itemProvenance,
+              sourceProvenance: sourceProvenance === undefined ? null : sourceProvenance
+            });
+          }
+          ENGINE_ARRAY_SET_OWN_(documentaryEvidence, index, {
+            drt: reference, activityItems: itemSnapshots
+          });
+          if (items.length === 0) everyDrtDeclaresExpectedActivity = false;
+          for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+            const item = itemSnapshots[itemIndex];
+            let matchesCatalogLiteral = false;
+            for (let literalIndex = 0; literalIndex < args.expectedActivityLiterals.length; literalIndex += 1) {
+              if (item && item.activityServiceText === args.expectedActivityLiterals[literalIndex]) {
+                matchesCatalogLiteral = true;
+              }
+            }
+            if (!matchesCatalogLiteral) {
+              everyDrtDeclaresExpectedActivity = false;
+            }
+          }
+        }
+        return { result: everyDrtDeclaresExpectedActivity ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
+          memoryReferences: args.evidenceReferences,
+          documentaryEvidence };
+      }
+    }
+  });
+}
+
+Object.defineProperty(globalThis, 'responsibilityDrtActivityExecutionPredicateContract', {
+  value: responsibilityDrtActivityExecutionPredicateContract,
+  enumerable: true, writable: false, configurable: false
+});
 
 function responsibilityHasTechnicalProductPredicateContract() {
   return new PredicateContract({
@@ -549,10 +713,12 @@ function evaluateExpression(expression, registry, memory, context, correlationPr
     const args = contract.argumentSchema.validate(expression.arguments);
     const resolved = contract.resolver.resolve(args, memory, context, correlationProjection);
     if (!resolved || !isPlainObject(resolved) ||
-        !Object.prototype.hasOwnProperty.call(resolved, 'result') ||
-        !Object.prototype.hasOwnProperty.call(resolved, 'memoryReferences') ||
-        !['memoryReferences', 'result'].every(key => Object.prototype.hasOwnProperty.call(resolved, key)) ||
-        Object.keys(resolved).some(key => !['memoryReferences', 'result', 'externalRelationTrace'].includes(key)) ||
+        !ENGINE_HAS_OWN_(resolved, 'result') ||
+        !ENGINE_HAS_OWN_(resolved, 'memoryReferences') ||
+        !['memoryReferences', 'result'].every(key => ENGINE_HAS_OWN_(resolved, key)) ||
+        Object.keys(resolved).some(key => ![
+          'memoryReferences', 'result', 'externalRelationTrace', 'documentaryEvidence'
+        ].includes(key)) ||
         !Array.isArray(resolved.memoryReferences) ||
         resolved.memoryReferences.some(reference => !(reference instanceof TypedReference))) {
       throw new ResultContractError(expression.predicateId + ' resolver must return result and memoryReferences');
@@ -572,6 +738,9 @@ function evaluateExpression(expression, registry, memory, context, correlationPr
       memoryReferences: Object.freeze(resolved.memoryReferences.slice()),
       ...(resolved.externalRelationTrace === undefined ? {} : {
         externalRelationTrace: immutableCopy(resolved.externalRelationTrace)
+      }),
+      ...(resolved.documentaryEvidence === undefined ? {} : {
+        documentaryEvidence: immutableCopy(resolved.documentaryEvidence)
       })
     })]) });
   }
@@ -653,7 +822,7 @@ function normalizeEngineResult(engineResult) {
     MANUAL_REVIEW: [PipelineResult.MANUAL_REVIEW, 'IDENTITY'],
     UNKNOWN: [PipelineResult.MANUAL_REVIEW, 'UNKNOWN_TO_MANUAL_REVIEW']
   };
-  if (!Object.prototype.hasOwnProperty.call(mapping, engineResult)) {
+  if (!ENGINE_HAS_OWN_(mapping, engineResult)) {
     throw new ResultContractError('unknown EngineResult: ' + engineResult);
   }
   return Object.freeze({
@@ -700,9 +869,9 @@ function propagateResult({ criterionId, requirementId, source, sourceUnit, sourc
           entry.requirementId !== source.requirementId)) {
       throw new EngineContractError('EVALUATED propagation source is missing its result trace');
     }
-  } else if (Object.prototype.hasOwnProperty.call(source, 'engineResult') ||
-      Object.prototype.hasOwnProperty.call(source, 'normalization') ||
-      Object.prototype.hasOwnProperty.call(source, 'trace') ||
+  } else if (ENGINE_HAS_OWN_(source, 'engineResult') ||
+      ENGINE_HAS_OWN_(source, 'normalization') ||
+      ENGINE_HAS_OWN_(source, 'trace') ||
       !Array.isArray(source.causalChain) || !source.causalChain.length ||
       source.evaluationPerformed !== false || !source.source || !source.propagationCause ||
       !source.criterionId || !source.requirementId) {

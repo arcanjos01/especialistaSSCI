@@ -263,7 +263,7 @@ fonte canônica.
 | T1_DRT_ADDRESS | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, ADDRESS)` | — | NC_T1_006_ADDRESS | PROCESS, DRT.ADDRESS, RT requerida | SOURCE_DEFINED_NEEDS_FORMALIZATION: PROPERTY_ADDRESS_TEXT existe como fato; falta comparando tipado do imóvel/processo e contrato que não transforme diferença textual em FAIL | 03_table1.txt:133-148; 02_requirements.txt:97-110; 01_entities.txt:62-91 |
 | T1_DRT_AREA | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, AREA)` | — | NC_T1_006_AREA | PROCESS, DRT.AREA, RT requerida | SOURCE_DEFINED_NEEDS_FORMALIZATION: PROPERTY_AREA_TEXT existe como fato; falta comparando tipado do imóvel/processo e contrato que não transforme diferença textual em FAIL | 03_table1.txt:152-167; 02_requirements.txt:97-110; 01_entities.txt:62-91 |
 | T1_CONFORMITY_REPORT_SIGNED | REQ_T1_CONFORMITY_REPORT_SIGNED | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `TECHNICAL_PRODUCT_ATTRIBUTE(CONFORMITY_REPORT, SIGNED)` | — | — | produto técnico/relatório, SIGNED | SOURCE_DEFINED_NEEDS_FORMALIZATION: produto expõe SIGNATURE_MECHANISM textual FACT-ONLY; ausência/nome do mecanismo não atesta autenticidade ou identidade do signatário | 03_table1.txt:171-187; 02_requirements.txt:86-96; Anexo A RT-002; 01_entities.txt:1475-1492; 00_engine.txt:293-317 |
-| T1_DRT_ACTIVITY_EXECUTION | REQ_T1_DRT_ACTIVITY_EXECUTION | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_ACTIVITY_COMPATIBLE(RT_002_EXECUCAO_DE_OBRA)` | — | NC_T1_008 | RT-002, DRT, atividade | SOURCE_DEFINED_NEEDS_FORMALIZATION: RT-002 existe; atividade declarada é texto factual e não há regra autorizada de classificação/mapeamento executável | 03_table1.txt:192-206; 02_requirements.txt:50-59; Anexo A RT-002; RDE 0.6/0.7 `drt_activity_items`; Documento 11 §6 |
+| T1_DRT_ACTIVITY_EXECUTION | REQ_T1_DRT_ACTIVITY_EXECUTION | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_ACTIVITY_COMPATIBLE(RT_002_EXECUCAO_DE_OBRA)` | `RESPONSIBILITY_ACTIVITY_COMPATIBLE(RT_002_EXECUCAO_DE_OBRA)` | NC_T1_008 | RT-002, DRT, atividade | PARTIAL_EXECUTION_SUPPORT: pode produzir TRUE somente para literal exata individual `EXECUÇÃO` declarada por cada DRT vinculada e proveniente do catálogo versionado; texto composto, ausência, conflito ou outro literal resulta em MANUAL_REVIEW | 03_table1.txt:192-206; 02_requirements.txt:50-59; Anexo A RT-002; RDE 0.6/0.7 `drt_activity_items`; Documento 11 §6 |
 | T1_DRT_SMSCI_COVERAGE | REQ_T1_DRT_SMSCI | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_003_EXECUCAO_DE_SISTEMA` | `WORKLIST.SMSCI` | `RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI(RT_003_EXECUCAO_DE_SISTEMA, WORKLIST.SMSCI)` | — | NC_T1_002 | RT-003, DRT, SMSCI, WORKLIST.SMSCI | SOURCE_DEFINED_NEEDS_FORMALIZATION: RDE 0.7 representa a declaração conjunta literal DRT/produto/SMSCI/atividade; falta mapeamento tipado ao WORKLIST.SMSCI e consumo pelo predicado, sem inferir cobertura | 03_table1.txt:210-227; 02_requirements.txt:62-71; Anexo A RT-003; RDE 1.8 § DRT SCOPE DECLARATION ITEMS; 08_execution_pipeline.txt:503-525,574-577 |
 | T4_DRT_REGISTERED | REQ_T1_DRT_REGISTERED | 4 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, REGISTERED)` | — | NC_T4_017 | RT requerida, DRT, REGISTERED | SOURCE_DEFINED_NEEDS_FORMALIZATION: RDE preserva status de registro como texto FACT-ONLY; faltam semântica tipada e seleção por responsabilidade sem converter ausência em FAIL | 04_table4.txt:14-29; 01_entities.txt:62-80; 09_Especificacao_da_RDE.txt:146-172; 00_engine.txt:245-248 |
 | T4_DRT_SIGNED | REQ_T1_DRT_SIGNED | 4 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, SIGNED)` | — | — | RT requerida, DRT, SIGNED | SOURCE_DEFINED_NEEDS_FORMALIZATION: signatário/mecanismo podem ser fatos textuais; não há resultado tipado de autenticidade/verificabilidade documental | 04_table4.txt:33-48; 01_entities.txt:62-83,132-138; 00_engine.txt:293-317 |
@@ -969,7 +969,7 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. O único quantitativo vigente é a
 reconciliação operacional explicitamente identificada abaixo: 34 ativos,
-29 produtivos, 6 cobertos, 1 parcial e 23 pendentes de cobertura integral.
+29 produtivos, 6 cobertos, 2 parciais e 23 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados na
 KB 5.22.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
@@ -982,8 +982,8 @@ selecionáveis, portanto 29 são produtivamente alcançáveis.
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 6 | `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_LEGACY_DOCUMENTATION` |
-| `PARTIAL_EXECUTION_SUPPORT` | 1 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 16 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
+| `PARTIAL_EXECUTION_SUPPORT` | 2 | `T1_DRT_REQUIRED`: exact typed RT-002 evidence can produce TRUE; empty/incompatible binding produces MANUAL_REVIEW and never proves absence or creates FAIL/NC. `T1_DRT_ACTIVITY_EXECUTION`: exact individual activity literal from the versioned catalog can produce TRUE for every bound RT-002 DRT; ambiguity or insufficient evidence produces MANUAL_REVIEW. |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 15 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_DRT_SMSCI_COVERAGE`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
 | `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | Nenhum entre os 29 Criteria produtivos conforme revisão de contratos atual. |
@@ -991,11 +991,12 @@ selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=6`, `CRITERIA_PARTIAL=1` (`T1_DRT_REQUIRED`) e
-`CRITERIA_PENDING=23`, contando o parcial como pendente de cobertura integral.
-Há 22 Criteria sem suporte integral além do parcial. A contagem de retirados
+ativo), `CRITERIA_COVERED=6`, `CRITERIA_PARTIAL=2` (`T1_DRT_REQUIRED` e
+`T1_DRT_ACTIVITY_EXECUTION`) e `CRITERIA_PENDING=23`, contando os parciais como
+pendentes de cobertura integral. Há 21 Criteria sem suporte integral além dos
+dois parciais. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
-retirados. O PASS da formalização RDE 0.4.0 não aumenta os 6 cobertos. Os 16 casos
+retirados. O PASS da formalização RDE 0.4.0 não aumenta os 6 cobertos. Os 15 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
