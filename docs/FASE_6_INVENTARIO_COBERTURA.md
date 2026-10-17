@@ -340,12 +340,15 @@ deste documento e na seção de revisão contratual agregada.
 **Reconciliação vigente após F6-DEC-001 e RDE 0.7:** MC-001 e MC-004 são
 `SOURCE_DEFINED_NEEDS_FORMALIZATION`; o Anexo A Rev. 2 contém entradas
 concretas RT-002/003/005/006/007/014/015. RDE 0.7 também representa declarações
-conjuntas literais DRT-produto-SMSCI-atividade. Essas declarações não
-classificam texto livre, não provam cobertura e ainda não são consumidas como
-predicado normativo para as verificações de SMSCI/atividade. A matriz vigente
-acima e a contagem reconciliada abaixo registram o estado atual; as fichas
-MC-001/004 imediatamente anteriores preservam somente o snapshot histórico
-pré-decisão.
+conjuntas literais DRT-produto-SMSCI-atividade. O Engine agora consome essa
+declaração de forma parcial para o tuple já declarado por
+`T1_DRT_SMSCI_COVERAGE`: RT-003, cada SMSCI da `WORKLIST` e a atividade literal
+do catálogo; ausência ou conflito permanece `MANUAL_REVIEW`. O consumo não
+classifica texto livre, não altera a RDE e não constitui cobertura integral do
+Criterion. As declarações ainda não são consumidas genericamente para as demais
+verificações de atividade/SMSCI. A matriz vigente acima e a contagem
+reconciliada abaixo registram o estado atual; as fichas MC-001/004 imediatamente
+anteriores preservam somente o snapshot histórico pré-decisão.
 
 ### Modelo contratual submetido a Sol
 
