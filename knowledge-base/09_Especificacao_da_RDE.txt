@@ -537,6 +537,7 @@ identifique ambos de forma explícita e inequívoca. Nenhum endpoint pode ficar
 órfão, ambíguo ou incerto; nesses casos a RDE é estruturalmente inválida e a
 projeção é impedida.
 
+
 `drt_reference_text`, `product_reference_text`, `smsci_text` e
 `activity_service_text` são literais não vazios e devem ocorrer exatamente em
 `source_text`. As duas referências devem identificar sem ambiguidade os

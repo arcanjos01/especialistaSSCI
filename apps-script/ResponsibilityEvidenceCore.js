@@ -290,7 +290,7 @@ function resolvedRequiredTechnicalResponsibilities(contract, plan, view) {
 function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogIdentifier) {
   responsibilityAuthenticate_(contract, plan, view);
   responsibilityRequire_(
-    catalogIdentifier === 'RT-002',
+    catalogIdentifier === 'RT-002' || catalogIdentifier === 'RT-003',
     'responsibility evidence binding is not implemented for ' + catalogIdentifier
   );
 
@@ -307,7 +307,7 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
     'resolved responsibility must exist exactly once for ' + catalogIdentifier
   );
   responsibilityRequire_(
-    typeof responsibility.documentaryResponsibilityType === 'string',
+    catalogIdentifier === 'RT-003' || typeof responsibility.documentaryResponsibilityType === 'string',
     'resolved responsibility has no documentary responsibility type contract'
   );
 
@@ -346,8 +346,8 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
       );
 
       const facts = record.value;
-      if (!facts ||
-          facts.RESPONSIBILITY_TYPE !== responsibility.documentaryResponsibilityType) {
+      if (!facts || (catalogIdentifier !== 'RT-003' &&
+          facts.RESPONSIBILITY_TYPE !== responsibility.documentaryResponsibilityType)) {
         continue;
       }
 
@@ -369,7 +369,8 @@ function materializeResponsibilityEvidenceBinding(contract, plan, view, catalogI
     responsibility: {
       responsibilityId: responsibility.responsibilityId,
       catalogIdentifier: responsibility.catalogIdentifier,
-      documentaryResponsibilityType: responsibility.documentaryResponsibilityType,
+      documentaryResponsibilityType: responsibility.documentaryResponsibilityType === undefined
+        ? null : responsibility.documentaryResponsibilityType,
       requirementIds: responsibility.requirementIds,
       machineCompatibleActivityLiterals: contract.responsibilityCatalog &&
         contract.responsibilityCatalog[catalogIdentifier] &&

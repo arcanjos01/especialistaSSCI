@@ -70,6 +70,13 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
       Object.keys(argument).sort().join(',') === 'type,value' &&
       argument.type === 'SYMBOL' && argument.value === 'RT_002_EXECUCAO_DE_OBRA';
   }
+  if (assertIr.name === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI') {
+    return Array.isArray(assertIr.arguments) && assertIr.arguments.length === 2 &&
+      assertIr.arguments[0] && assertIr.arguments[0].type === 'SYMBOL' &&
+      assertIr.arguments[0].value === 'RT_003_EXECUCAO_DE_SISTEMA' &&
+      assertIr.arguments[1] && assertIr.arguments[1].type === 'SYMBOL' &&
+      assertIr.arguments[1].value === 'WORKLIST.SMSCI';
+  }
   if (assertIr.name !== 'EXISTS') return false;
 
   readinessRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
@@ -85,10 +92,37 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
 }
 
 function readinessPilotSupport_(unit, contract) {
-  if (unit.iterationSource !== null || !Array.isArray(unit.plannedBindings) ||
+  readinessRequire_(unit && typeof unit === 'object' && !Array.isArray(unit),
+    'PLAN_INVALID', 'planned execution unit must be an object');
+  readinessRequire_(unit.criterion && typeof unit.criterion.id === 'string' &&
+    unit.requirement && typeof unit.requirement.id === 'string',
+  'PLAN_INVALID', 'planned execution unit identity is invalid');
+  readinessRequire_(Array.isArray(unit.plannedBindings) && Array.isArray(unit.validate) &&
+    Array.isArray(unit.criterionValidate), 'PLAN_INVALID',
+  'planned execution unit collections are invalid');
+  const smsciCoverage = unit.criterion && unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE' &&
+    unit.requirement && unit.requirement.id === 'REQ_T1_DRT_SMSCI';
+  if ((!smsciCoverage && unit.iterationSource !== null) || !Array.isArray(unit.plannedBindings) ||
       unit.plannedBindings.length !== 0 || !Array.isArray(unit.validate) ||
       !Array.isArray(unit.criterionValidate) ||
       unit.criterionValidate.length !== 0) {
+    if (!smsciCoverage) return false;
+  }
+  if (smsciCoverage) {
+    readinessRequire_(unit.iterationSource === 'WORKLIST.SMSCI' &&
+      unit.plannedBindings.length > 0 && unit.plannedBindings.every(binding =>
+        binding && typeof binding === 'object' && !Array.isArray(binding) &&
+        Object.keys(binding).sort().join(',') === 'target' &&
+        typeof binding.target === 'string' && binding.target),
+    'PLAN_INVALID', 'SMSCI planned bindings are malformed');
+    const criterionMetadata = contract.criteria.find(item => item &&
+      item.criterionId === unit.criterion.id);
+    readinessRequire_(criterionMetadata, 'COMPILED_CONTRACT_INVALID',
+      'planned SMSCI Criterion metadata is missing');
+    return unit.iterationSource === 'WORKLIST.SMSCI' && unit.plannedBindings.length > 0 &&
+      readinessAssertSupported_(criterionMetadata.assertIr, contract, null);
+  }
+  if (unit.iterationSource !== null) {
     return false;
   }
 
@@ -179,10 +213,17 @@ function readinessPilotSupport_(unit, contract) {
 }
 
 function readinessInspectPlan_(plan, contract, view) {
+  readinessRequire_(plan && Array.isArray(plan.PLANNED_EXECUTION_UNITS), 'PLAN_INVALID',
+    'planned execution units must be an array');
+  readinessRequire_(plan && Array.isArray(plan.PLANNED_EXECUTION_UNITS),
+    'PLAN_INVALID', 'frozen execution plan has no valid planned unit collection');
   const plannedUnitKeys = [];
   const materializableUnitKeys = [];
   const unsupportedUnitKeys = [];
   for (const unit of plan.PLANNED_EXECUTION_UNITS) {
+    readinessRequire_(unit && typeof unit === 'object' && typeof unit.unitKey === 'string' &&
+      unit.unitKey && unit.criterion && unit.requirement,
+    'PLAN_INVALID', 'planned execution unit is malformed');
     plannedUnitKeys.push(unit.unitKey);
     if (!readinessPilotSupport_(unit, contract)) {
       unsupportedUnitKeys.push(unit.unitKey);

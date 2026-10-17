@@ -634,6 +634,10 @@ assert.throws(() => core.validateRdeStructure_({
   drt_scope_declaration_items: [scopeItem, { ...scopeItem, scope_declaration_item_id: 'SCOPE-002' }]
 }, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEM_DUPLICATE');
 assert.throws(() => core.validateRdeStructure_({
+  ...scopeRde,
+  drt_scope_declaration_items: [scopeItem, { ...scopeItem }]
+}, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEM_ID_DUPLICATE');
+assert.throws(() => core.validateRdeStructure_({
   ...scopeRde, drt_scope_declaration_items: new Array(1)
 }, operationalExpected, scopeCatalog), error => error.code === 'RDE_DRT_SCOPE_ITEMS_INVALID');
 const personAsProduct = record('R_SCOPE_PERSON', 'RT', null, 'R_DECL_SOURCE', {});

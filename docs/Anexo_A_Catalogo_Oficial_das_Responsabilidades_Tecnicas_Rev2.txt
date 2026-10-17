@@ -1,6 +1,6 @@
 ANEXO A – Catálogo Oficial Interno das Responsabilidades Técnicas
 
-# versão 2.4
+# versão 2.5
 
 Status: Documento Normativo Interno da Base de Conhecimento
 
@@ -322,6 +322,7 @@ SMSCI_IEL; a applicability e IN técnica definem a seleção efetiva.
 QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
 profissões sem fundamento legal/profissional autorizado.
 COMPATIBLE_ACTIVITIES: EXECUÇÃO dos SMSCI declarados.
+MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO dos SMSCI declarados."]
 CONDITIONAL_SUBSTITUTE_ACTIVITY: REGULARIZAÇÃO somente na via substitutiva e
 composta do art. 108, § 6º, da IN 01: pressupostos de execução sem/por outro
 profissional, viabilidade de regularização, DRT de regularização e laudo de
@@ -342,6 +343,8 @@ NORMATIVE_SOURCES:
 - IDENTIFIER/INTERNAL_IDENTIFIER: decisão humana F6-DEC-001 e histórico
   Git; IDs internos, não códigos normativos CBMSC.
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES:
+  IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
+- MACHINE_COMPATIBLE_ACTIVITY_LITERALS:
   IN 01 Parte 1, art. 108, III; IRV Habite-se, Anexo A/Tabela 1.
 - QUALIFIED_PROFESSIONALS: placeholder genérico conforme F6-DEC-001; as fontes
   consultadas não enumeram categorias profissionais específicas por RT.

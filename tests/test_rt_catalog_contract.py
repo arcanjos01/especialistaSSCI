@@ -75,12 +75,15 @@ class RtCatalogContractTests(unittest.TestCase):
             if identifier != "RT-002":
                 self.assertNotIn("DRT_RESPONSIBILITY_TYPE:", entry)
 
-    def test_rt002_machine_activity_literal_is_explicit_and_exact(self):
+    def test_machine_activity_literals_are_explicit_and_exact(self):
         rt002 = self.entries["RT-002"]
         self.assertRegex(rt002, r'(?m)^MACHINE_COMPATIBLE_ACTIVITY_LITERALS: \["EXECUÇÃO"\]$')
         self.assertIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS", rt002.split("NORMATIVE_SOURCES:", 1)[1])
         for identifier, entry in self.entries.items():
-            if identifier != "RT-002":
+            if identifier == "RT-003":
+                self.assertRegex(entry, r'(?m)^MACHINE_COMPATIBLE_ACTIVITY_LITERALS: \["EXECUÇÃO dos SMSCI declarados\."\]$')
+                self.assertIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS", entry.split("NORMATIVE_SOURCES:", 1)[1])
+            elif identifier != "RT-002":
                 self.assertNotIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS:", entry)
 
     def test_machine_activity_literal_contract_rejects_malformed_or_unsupported_data(self):
@@ -107,6 +110,14 @@ class RtCatalogContractTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "sem source map"):
             _parse_rt_catalog_contract(missing_source)
+
+        rt003_substring = self.text.replace(
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO dos SMSCI declarados."]',
+            'MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["EXECUÇÃO"]',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "correspondência exata"):
+            _parse_rt_catalog_contract(rt003_substring)
 
     def test_execution_and_regularization_are_separate_routes(self):
         for identifier in ("RT-002", "RT-003"):

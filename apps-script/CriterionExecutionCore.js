@@ -369,6 +369,46 @@ function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, arg
   });
 }
 
+function criterionExecutionBindSmsciCoverage_(contract, plan, view, unit) {
+  criterionExecutionRequire_(unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE' &&
+    unit.iterationSource === 'WORKLIST.SMSCI' && Array.isArray(unit.plannedBindings) &&
+    unit.plannedBindings.length > 0,
+  'RT-003 SMSCI coverage requires authenticated WORKLIST.SMSCI bindings');
+  const binding = materializeResponsibilityEvidenceBinding(contract, plan, view, 'RT-003');
+  criterionExecutionRequire_(isCanonicalResponsibilityEvidenceBinding(binding, contract, plan, view),
+    'canonical RT-003 ResponsibilityEvidenceBinding is required');
+  const literalList = binding.responsibility.machineCompatibleActivityLiterals;
+  criterionExecutionRequire_(Array.isArray(literalList) && literalList.length === 1 &&
+    literalList[0] === 'EXECUÇÃO dos SMSCI declarados.',
+  'RT-003 activity literal contract is invalid');
+  const evidenceReferences = [];
+  for (let index = 0; index < binding.evidence.length; index += 1) {
+    const evidence = binding.evidence[index];
+    const reference = new CRITERION_EXECUTION_TYPED_REFERENCE_CLASS_(
+      evidence.reference.kind, evidence.reference.identifier);
+    criterionExecutionRequire_(view.contains(reference) && typeof view.drtScopeDeclarationItems === 'function',
+      'RT-003 evidence reference is not a scope-capable DRT');
+    evidenceReferences[evidenceReferences.length] = reference;
+  }
+  const expressions = unit.plannedBindings.map(planBinding => {
+    const target = planBinding && planBinding.target;
+    const entity = contract.entityCatalog && contract.entityCatalog[target];
+    criterionExecutionRequire_(entity && entity.TYPE === 'SMSCI' &&
+      typeof entity.OFFICIAL_ESCI_CODE === 'string' && entity.OFFICIAL_ESCI_CODE,
+    'WORKLIST.SMSCI target lacks canonical OFFICIAL_ESCI_CODE');
+    return new PredicateCall('RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI', {
+      evidenceReferences, expectedSmsciCode: entity.OFFICIAL_ESCI_CODE,
+      expectedActivityLiteral: literalList[0]
+    });
+  });
+  return Object.freeze({
+    expression: new All(expressions),
+    binding: immutableCopy({ type: 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI',
+      responsibility: binding.responsibility, evidence: binding.evidence, evidenceReferences,
+      worklist: unit.plannedBindings })
+  });
+}
+
 function criterionExecutionBindTechnicalProductRelation_(assertIr, contract, plan) {
   criterionExecutionRequire_(assertIr.name === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT' &&
     Array.isArray(assertIr.arguments) && assertIr.arguments.length === 2,
@@ -414,6 +454,9 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
       return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument,
         unit.criterion.id);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI') {
+      return criterionExecutionBindSmsciCoverage_(contract, plan, view, unit);
     }
     if (assertIr.name === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE') {
       criterionExecutionRequire_(Array.isArray(assertIr.arguments) && assertIr.arguments.length === 1,
@@ -500,9 +543,9 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   criterionExecutionRequire_(unit.appliesTo ===
     (metadata.appliesTo === undefined ? null : metadata.appliesTo),
   'planned unit APPLIES_TO differs from compiled Criterion');
-  criterionExecutionRequire_(unit.iterationSource === null &&
-    Array.isArray(unit.plannedBindings) && unit.plannedBindings.length === 0,
-  'Phase 4 pilot does not execute iterative Criteria');
+  criterionExecutionRequire_(unit.iterationSource === null ||
+    (unit.iterationSource === 'WORKLIST.SMSCI' && unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE'),
+  'unsupported iterative Criterion');
   const validation = criterionExecutionTechnicalProductValidation_(
     contract, requirementMetadata, metadata, unit, plan, view
   );
@@ -605,6 +648,7 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
   const registry = new PredicateRegistry([
     responsibilityHasAcceptedDrtEvidencePredicateContract(),
     CRITERION_EXECUTION_ACTIVITY_PREDICATE_FACTORY_(),
+    responsibilityIsSatisfiedForSmsciPredicateContract(),
     responsibilityHasTechnicalProductPredicateContract(),
     ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])
   ]);

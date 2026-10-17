@@ -929,3 +929,72 @@ independentes consumidas; 1 candidato de dependência compartilhada priorizado.
   Checkpoint técnico local promovido, sem fechar a Fase 6. Próximo lote priorizado:
   consumidor compartilhado das declarações explícitas de escopo RDE 0.7,
   respeitando somente literais RT já autorizados.
+
+## Lote RT-003 — consumidor explícito de escopo por SMSCI (2026-10-16)
+
+### Fronteira de confiança após revisão Codex/GPT-6 (não Sol 6.1)
+
+O Engine mantém uma única porta autenticada para `RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI`:
+o resolver deriva o binding RT-003 completo e ordenado de `contract/plan/view` e
+recusa qualquer conjunto de referências diferente. A mesma validação é usada
+por `executePlannedCriterion`, `evaluateCriterion` e chamadas diretas ao
+resolver. Isso cobre conjuntamente a memória sintética e a omissão de DRT:
+sem view imutável autenticada, ou sem todo o binding canônico, o resultado é
+`MANUAL_REVIEW`; somente depois são avaliadas as declarações documentais.
+Também foi fixado no consumidor RT-003 que `source_document` deve ser a origem
+da DRT exata, preservando declarações de terceiro como fato RDE sem cobertura
+normativa.
+
+- Base: `315104a5fd629fdd640073655f729becd3e2ff9b`; candidato local ainda
+  sem commit. KB `5.25.0`, Engine `4.8`, catálogo RT `2.5`.
+- Resultado: `T1_DRT_SMSCI_COVERAGE` continua **parcial**. A cobertura integral
+  permanece `6/29`; parcial `3 → 4`; pendente integral `23 → 23`. Nenhum
+  Criterion integral foi fechado. Dependência técnica compartilhada encerrada:
+  consumir `drt_scope_declaration_items` da memória imutável para unidades
+  autenticadas de `WORKLIST.SMSCI`, com atividade literal do catálogo e trace
+  dos DRTs, produtos e fontes. Ausência/conflito fica em `MANUAL_REVIEW` sem
+  criar FAIL/NC.
+- Bloqueios: nenhum novo. Permanece uma decisão humana sobre a independência
+  de `T4_IN10_COMMISSIONING`; calibração inferida segue `BLOCKED`; validação
+  normativa institucional e transição `VALIDATED_TO_ANALYZED` seguem `PENDING`.
+- Gates após as correções da fronteira: 143 testes Python PASS; nove suítes
+  Apps Script PASS; sintaxe de todos os módulos/testes JS e `apps-script/Code.gs`
+  PASS; duas regenerações byte-idênticas PASS, SHA-256
+  `c0442776cc32be0cb10841d891f98623248cf6716734285f48b0379d0099f80d`;
+  `git diff --check` PASS. Release limpo PASS, 10 documentos, KB `5.25.0`,
+  `SOURCE_COMMIT=db65f23708eecdb8d9fecc9e0ff0d336f3551af9`.
+- Revisões: a primeira revisão independente Luna retornou `FAIL`, com um
+  finding HIGH (memória sintética podia satisfazer o predicate pela API do
+  Engine) e um MEDIUM (teste tratava item RDE idêntico duplicado como válido).
+  Correção local: autenticação exige ImmutableExecutionView, contrato, plano e
+  CurrentSubmissionContext canônicos e apresentação igual ao comprovante do
+  plano; memória sintética resulta em `MANUAL_REVIEW`. A duplicidade não é mais
+  aceita no teste; a RDE rejeita IDs repetidos e a regressão verifica o código
+  de erro. Re-review independente focado Luna retornou `PASS`: os dois
+  findings foram fechados, com zero achados bloqueantes novos. Uma revisão
+  adversarial Codex/GPT-6 (não Sol) retornou `FAIL`: dois HIGH (omissão de DRT
+  na API pública e declaração de terceiro aceita como cobertura) e um LOW
+  documental. A fronteira comum foi corrigida; re-review independente Luna
+  confirmou os dois HIGH fechados. A revisão arquitetural final GPT-6 retornou
+  `PASS` para promoção deste lote parcial, sem findings HIGH/MEDIUM; o revisor
+  confirmou a identidade como GPT-6, não Sol. A revisão também apontou um LOW
+  de rastreabilidade no tracker (status de commit desatualizado e linha de
+  correção incompleta), corrigido nesta atualização. Este GPT-6 foi aceito pelo
+  usuário como alternativa de revisão; `SOL_6_1=PENDING` permanece explícito.
+  `FINDINGS_OPEN=0`.
+- Esforço aproximado: 95 minutos entre implementação assistida, análise de
+  produtividade, integração, testes e ciclos de revisão. Benefício demonstrado: declarações
+  válidas do sistema em análise são rastreáveis na execução do Criterion
+  explícito, inclusive com múltiplas DRTs/produtos; cobertura integral não
+  aumentou.
+- Re-review do finding MEDIUM de rastreabilidade: Luna independente `PASS`;
+  declaração conflitante, produto e fonte estão no trace e o resultado segue
+  `MANUAL_REVIEW`, sem FAIL/Nonconformity ou mutação da RDE.
+- Snapshot limpo revisado: `511a5dc02bc5d0cae57d8421ee6bade1195cef54`; release
+  build PASS em `/tmp/phase6-rt003-release-iZ2yd9/output`, com os dez arquivos
+  da Base. O hash do runtime regenerado é
+  `c0442776cc32be0cb10841d891f98623248cf6716734285f48b0379d0099f80d`.
+- Promoção deste lote parcial autorizada pela revisão GPT-6 aceita pelo usuário;
+  a identidade não é registrada como Sol 6.1. Próximo passo funcional:
+  prosseguir pelos Criteria independentes priorizados na matriz, mantendo a
+  revisão Sol 6.1 pendente para a consolidação arquitetural final da Fase 6.

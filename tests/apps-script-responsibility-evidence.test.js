@@ -34,7 +34,11 @@ vm.runInContext(`globalThis.api = {
   isCanonicalCbmscApplicabilityResolution,
   isCanonicalResponsibilityEvidenceBinding,
   ResponsibilityEvidenceIntegrityError,
-  executePlannedCriterion
+  executePlannedCriterion,
+  evaluateCriterion,
+  PredicateRegistry,
+  CriterionIR,
+  PredicateCall
 };`, context);
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
@@ -1588,9 +1592,10 @@ const cmarDomain = api.resolvedRequiredTechnicalResponsibilities(
 );
 assert.equal(cmarDomain.some(item => item.catalogIdentifier === 'RT-007'), false);
 
-assert.throws(() => api.materializeResponsibilityEvidenceBinding(
+const rt003Binding = api.materializeResponsibilityEvidenceBinding(
   contract, pressurization.plan, pressurization.view, 'RT-003'
-), error => error && error.code === 'RESPONSIBILITY_EVIDENCE_INTEGRITY_ERROR');
+);
+assert.equal(rt003Binding.responsibility.catalogIdentifier, 'RT-003');
 
 const equivalent = prepare([], [
   { entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } }
@@ -1607,5 +1612,165 @@ base.rde.records.find(item => item.record_id === 'DRT_0').attributes.RESPONSIBIL
   'VISTORIA_ENSAIO';
 assert.equal(binding.evidence.length, 2);
 assert.deepEqual(JSON.parse(JSON.stringify(binding.evidence.map(item => item.selectionFact.value))), ['EXECUCAO', 'EXECUCAO']);
+
+// RT-003 is evaluated from immutable memory, never from a caller supplied scope list.
+const smsciPredicate = vm.runInContext('responsibilityIsSatisfiedForSmsciPredicateContract()', context);
+const smsciDrt = new api.TypedReference('DOCUMENT', 'DRT_0');
+const smsciProduct = new api.TypedReference('REPORT', 'REPORT_0');
+const smsciSource = new api.TypedReference('DOCUMENT', 'DRT_0');
+const smsciItem = Object.freeze({ drt: smsciDrt, product: smsciProduct,
+  sourceDocument: smsciSource, smsciText: 'IE', activityServiceText: 'EXECUÇÃO dos SMSCI declarados.',
+  drtReferenceText: 'DRT-0', productReferenceText: 'REL-0', sourceText: 'declaração', });
+const smsciMemory = {
+  contains(reference) {
+    return reference && ((reference.kind === 'DOCUMENT' && reference.identifier === 'DRT_0') ||
+      (reference.kind === 'REPORT' && reference.identifier === 'REPORT_0'));
+  },
+  drtScopeDeclarationItems() { return [smsciItem]; }
+};
+const smsciArgs = { evidenceReferences: [smsciDrt], expectedSmsciCode: 'IE',
+  expectedActivityLiteral: 'EXECUÇÃO dos SMSCI declarados.' };
+const smsciPositive = smsciPredicate.resolver.resolve(smsciArgs, smsciMemory);
+assert.equal(smsciPositive.result, 'MANUAL_REVIEW');
+assert.deepEqual(JSON.parse(JSON.stringify(smsciPositive.memoryReferences)), []);
+assert.throws(() => smsciPredicate.argumentSchema.validate({
+  scopeItems: [], expectedSmsciCode: 'IE', expectedActivityLiteral: smsciArgs.expectedActivityLiteral
+}), /unknown arguments/);
+const conflictMemory = { ...smsciMemory, drtScopeDeclarationItems() { return [smsciItem,
+  { ...smsciItem, activityServiceText: 'INSTALAÇÃO' }]; } };
+assert.equal(smsciPredicate.resolver.resolve(smsciArgs, conflictMemory).result, 'MANUAL_REVIEW');
+
+function prepareSmsciCoverage(scopeItems) {
+  const raw = buildRde(['SPDE'], [
+    { entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } },
+    { entityId: 'TRT', attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' } }
+  ]);
+  raw.schema_version = '0.7.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = [];
+  raw.records.push(
+    { record_id: 'PRODUCT_0', entity_id: 'CONFORMITY_REPORT', parent_record_id: null,
+      source_document: 'DRT_0', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'PRODUCT_0' } },
+    { record_id: 'PRODUCT_1', entity_id: 'CONFORMITY_REPORT', parent_record_id: null,
+      source_document: 'DRT_1', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'PRODUCT_1' } }
+  );
+  raw.drt_scope_declaration_items = scopeItems;
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  return { plan, view };
+}
+
+function executeSmsciCoverage(scopeItems) {
+  const prepared = prepareSmsciCoverage(scopeItems);
+  return api.executePlannedCriterion(contract, prepared.plan,
+    'UNIT_KEY (REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)', prepared.view);
+}
+
+const scopeFixture = (drt, product, id, smsci = 'SPDE', activity = 'EXECUÇÃO dos SMSCI declarados.',
+  sourceDocument = drt) => ({
+  scope_declaration_item_id: id, drt_record_id: drt, drt_reference_text: drt,
+  product_record_id: product, product_reference_text: product, smsci_text: smsci,
+  activity_service_text: activity, source_document: sourceDocument,
+  source_text: drt + ' ' + product + ' ' + smsci + ' ' + activity,
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: id }
+});
+
+const omissionPrepared = prepareSmsciCoverage([
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_POSITIVE'),
+  scopeFixture('DRT_1', 'PRODUCT_1', 'SCOPE_CONFLICT', 'SPDE', 'ATIVIDADE CONFLITANTE')
+]);
+const omissionExecute = api.executePlannedCriterion(contract, omissionPrepared.plan,
+  'UNIT_KEY (REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)', omissionPrepared.view);
+assert.equal(omissionExecute.engineResult, 'MANUAL_REVIEW');
+const omissionBinding = api.materializeResponsibilityEvidenceBinding(
+  contract, omissionPrepared.plan, omissionPrepared.view, 'RT-003');
+const omissionCriterion = new api.CriterionIR({
+  criterionId: 'TEST_RT003_PUBLIC_OMISSION',
+  requirementId: 'TEST_RT003_PUBLIC_OMISSION',
+  expression: new api.PredicateCall('RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI', {
+    evidenceReferences: [new api.TypedReference('DOCUMENT', 'DRT_0')],
+    expectedSmsciCode: 'SPDE', expectedActivityLiteral: 'EXECUÇÃO dos SMSCI declarados.'
+  })
+});
+const omissionPublic = api.evaluateCriterion(omissionCriterion, new api.PredicateRegistry([
+  vm.runInContext('responsibilityIsSatisfiedForSmsciPredicateContract()', context)
+]), omissionPrepared.view, null, {
+  contract, plan: omissionPrepared.plan, currentSubmissionContext: currentContext()
+});
+assert.equal(omissionBinding.evidence.length >= 2, true);
+assert.equal(omissionPublic.engineResult, 'MANUAL_REVIEW');
+for (const substituted of [
+  { expectedSmsciCode: 'CF', expectedActivityLiteral: 'EXECUÇÃO dos SMSCI declarados.' },
+  { expectedSmsciCode: 'SPDE', expectedActivityLiteral: 'ATIVIDADE SUBSTITUÍDA' }
+]) {
+  const substitutedCriterion = new api.CriterionIR({
+    criterionId: 'T1_DRT_SMSCI_COVERAGE', requirementId: 'REQ_T1_DRT_SMSCI',
+    expression: new api.PredicateCall('RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI', {
+      evidenceReferences: [new api.TypedReference('DOCUMENT', 'DRT_0')], ...substituted
+    })
+  });
+  const substitutedResult = api.evaluateCriterion(substitutedCriterion,
+    new api.PredicateRegistry([vm.runInContext(
+      'responsibilityIsSatisfiedForSmsciPredicateContract()', context)]),
+    omissionPrepared.view, null, {
+      contract, plan: omissionPrepared.plan, currentSubmissionContext: currentContext()
+    });
+  assert.equal(substitutedResult.engineResult, 'MANUAL_REVIEW');
+}
+
+const integrationPositive = executeSmsciCoverage([
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_0'),
+  scopeFixture('DRT_1', 'PRODUCT_1', 'SCOPE_1'),
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_OTHER', 'CF', 'OUTRA DECLARAÇÃO')
+]);
+assert.equal(integrationPositive.engineResult, 'TRUE');
+assert.equal(integrationPositive.pipelineResult, 'PASS');
+assert.equal(integrationPositive.nonconformityOnFalse, undefined);
+assert.equal(integrationPositive.trace.some(entry =>
+  entry.predicateId === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI' &&
+  entry.result === 'TRUE' && entry.documentaryEvidence.length === 2), true);
+const positiveTrace = integrationPositive.trace.find(entry =>
+  entry.predicateId === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI');
+assert.deepEqual(JSON.parse(JSON.stringify(positiveTrace.memoryReferences.map(ref => ref.identifier))),
+  ['DRT_0', 'DRT_1', 'PRODUCT_0', 'DRT_0', 'PRODUCT_1', 'DRT_1']);
+
+const integrationAbsent = executeSmsciCoverage([]);
+assert.equal(integrationAbsent.engineResult, 'MANUAL_REVIEW');
+assert.equal(integrationAbsent.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(integrationAbsent.nonconformityOnFalse, undefined);
+
+const integrationConflict = executeSmsciCoverage([
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_CONFLICT_A'),
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_CONFLICT_B', 'SPDE', 'ATIVIDADE CONFLITANTE')
+]);
+assert.equal(integrationConflict.engineResult, 'MANUAL_REVIEW');
+assert.equal(integrationConflict.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(integrationConflict.nonconformityOnFalse, undefined);
+const conflictTrace = integrationConflict.trace.find(entry =>
+  entry.predicateId === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI');
+assert.deepEqual(JSON.parse(JSON.stringify(conflictTrace.memoryReferences.map(ref => ref.identifier))),
+  ['DRT_0', 'DRT_1', 'PRODUCT_0', 'DRT_0', 'PRODUCT_0', 'DRT_0']);
+const conflictingTraceItem = conflictTrace.documentaryEvidence.find(item =>
+  item.scopeDeclarationItemId === 'SCOPE_CONFLICT_B');
+assert.deepEqual(JSON.parse(JSON.stringify({
+  item: conflictingTraceItem.scopeDeclarationItemId,
+  product: conflictingTraceItem.product.identifier,
+  sourceDocument: conflictingTraceItem.sourceDocument.identifier
+})), { item: 'SCOPE_CONFLICT_B', product: 'PRODUCT_0', sourceDocument: 'DRT_0' });
+
+const thirdPartyDeclaration = executeSmsciCoverage([
+  scopeFixture('DRT_0', 'PRODUCT_0', 'SCOPE_THIRD_PARTY', 'SPDE',
+    'EXECUÇÃO dos SMSCI declarados.', 'DOC_CURRENT')
+]);
+assert.equal(thirdPartyDeclaration.engineResult, 'MANUAL_REVIEW');
+assert.equal(thirdPartyDeclaration.pipelineResult, 'MANUAL_REVIEW');
 
 console.log('apps-script-responsibility-evidence: PASS');

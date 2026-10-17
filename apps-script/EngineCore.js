@@ -465,8 +465,178 @@ function responsibilityDrtActivityExecutionPredicateContract() {
   });
 }
 
+function responsibilityIsSatisfiedForSmsciPredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true }),
+      new ArgumentSpec({ name: 'expectedSmsciCode', kind: ArgumentKind.TEXT }),
+      new ArgumentSpec({ name: 'expectedActivityLiteral', kind: ArgumentKind.TEXT })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory, context) {
+        const authenticatedExecution = context &&
+          typeof isImmutableExecutionView === 'function' &&
+          isImmutableExecutionView(memory) &&
+          typeof isCanonicalCompiledRuntimeContract === 'function' &&
+          isCanonicalCompiledRuntimeContract(context.compiledContract) &&
+          typeof isCanonicalFrozenExecutionPlan === 'function' &&
+          isCanonicalFrozenExecutionPlan(context.executionPlan, context.compiledContract, memory) &&
+          typeof isCanonicalCurrentSubmissionContext === 'function' &&
+          isCanonicalCurrentSubmissionContext(context.currentSubmissionContext) &&
+          typeof selectCurrentComprovante === 'function';
+        if (!authenticatedExecution) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        let selectedPresentation;
+        try {
+          selectedPresentation = selectCurrentComprovante(memory,
+            context.currentSubmissionContext);
+        } catch (error) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        const plannedPresentation = context.executionPlan.selectedComprovante;
+        if (!plannedPresentation || plannedPresentation.kind !== 'DOCUMENT' ||
+            typeof plannedPresentation.identifier !== 'string' ||
+            !(selectedPresentation instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+            selectedPresentation.kind !== plannedPresentation.kind ||
+            selectedPresentation.identifier !== plannedPresentation.identifier) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (!context || context.criterionId !== 'T1_DRT_SMSCI_COVERAGE' ||
+            context.requirementId !== 'REQ_T1_DRT_SMSCI' ||
+            !context.executionPlan || !Array.isArray(context.executionPlan.PLANNED_EXECUTION_UNITS) ||
+            !context.compiledContract || !context.compiledContract.entityCatalog ||
+            !context.compiledContract.responsibilityCatalog) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        const rt003Catalog = context.compiledContract.responsibilityCatalog['RT-003'];
+        const catalogActivities = rt003Catalog && rt003Catalog.machineCompatibleActivityLiterals;
+        if (!Array.isArray(catalogActivities) || catalogActivities.length !== 1 ||
+            args.expectedActivityLiteral !== catalogActivities[0] ||
+            !Array.isArray(context.executionPlan.PLANNED_EXECUTION_UNITS) ||
+            !context.executionPlan.PLANNED_EXECUTION_UNITS.some(unit =>
+            unit && unit.requirement && unit.requirement.id === 'REQ_T1_DRT_SMSCI' &&
+              unit.criterion && unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE' &&
+              unit.iterationSource === 'WORKLIST.SMSCI' &&
+              Array.isArray(unit.plannedBindings) && unit.plannedBindings.some(binding => {
+                const entity = context.compiledContract.entityCatalog[binding && binding.target];
+                return entity && entity.TYPE === 'SMSCI' &&
+                  entity.OFFICIAL_ESCI_CODE === args.expectedSmsciCode;
+              }))) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (!memory || typeof memory.contains !== 'function' ||
+            typeof memory.drtScopeDeclarationItems !== 'function') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (typeof materializeResponsibilityEvidenceBinding !== 'function' ||
+            typeof isCanonicalResponsibilityEvidenceBinding !== 'function') {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        let canonicalBinding;
+        try {
+          canonicalBinding = materializeResponsibilityEvidenceBinding(
+            context.compiledContract, context.executionPlan, memory, 'RT-003');
+        } catch (error) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        if (!isCanonicalResponsibilityEvidenceBinding(canonicalBinding,
+              context.compiledContract, context.executionPlan, memory)) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+        }
+        const canonicalEvidence = canonicalBinding.evidence || [];
+        if (args.evidenceReferences.length !== canonicalEvidence.length ||
+            args.evidenceReferences.some((reference, index) => {
+              const canonicalReference = canonicalEvidence[index] && canonicalEvidence[index].reference;
+              return !canonicalReference || reference.kind !== canonicalReference.kind ||
+                reference.identifier !== canonicalReference.identifier;
+            })) {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: args.evidenceReferences.slice() };
+        }
+        const candidates = [];
+        const conflictingDeclarations = [];
+        let conflictingDeclaration = false;
+        const memoryReferences = args.evidenceReferences.slice();
+        for (let referenceIndex = 0; referenceIndex < args.evidenceReferences.length; referenceIndex += 1) {
+          const drt = args.evidenceReferences[referenceIndex];
+          if (!(drt instanceof ENGINE_TYPED_REFERENCE_CLASS_) || drt.kind !== 'DOCUMENT' ||
+              !memory.contains(drt)) {
+            return { result: EngineResult.MANUAL_REVIEW, memoryReferences };
+          }
+          const items = memory.drtScopeDeclarationItems(drt);
+          if (!ENGINE_ARRAY_IS_ARRAY_(items)) {
+            return { result: EngineResult.MANUAL_REVIEW, memoryReferences };
+          }
+          for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+            const item = items[itemIndex];
+            if (!item || !(item.drt instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+                item.drt.kind !== 'DOCUMENT' || item.drt.identifier !== drt.identifier) continue;
+            // Ignore declarations for other SMSCI before contradiction checks.
+            if (item.smsciText !== args.expectedSmsciCode) continue;
+            if (item.activityServiceText !== args.expectedActivityLiteral ||
+                !(item.product instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+                !(item.sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+                item.sourceDocument.kind !== 'DOCUMENT' || !memory.contains(item.product) ||
+                !memory.contains(item.sourceDocument) ||
+                typeof item.drtReferenceText !== 'string' || typeof item.productReferenceText !== 'string' ||
+                typeof item.sourceText !== 'string') {
+              conflictingDeclaration = true;
+              conflictingDeclarations[conflictingDeclarations.length] = item;
+              if (item.product instanceof ENGINE_TYPED_REFERENCE_CLASS_) {
+                memoryReferences[memoryReferences.length] = item.product;
+              }
+              if (item.sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_) {
+                memoryReferences[memoryReferences.length] = item.sourceDocument;
+              }
+              continue;
+            }
+            let drtSourceDocument;
+            try {
+              drtSourceDocument = typeof memory.sourceDocument === 'function'
+                ? memory.sourceDocument(drt) : null;
+            } catch (error) {
+              drtSourceDocument = null;
+            }
+            if (!(drtSourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+                item.sourceDocument.kind !== drtSourceDocument.kind ||
+                item.sourceDocument.identifier !== drtSourceDocument.identifier) {
+              conflictingDeclaration = true;
+              conflictingDeclarations[conflictingDeclarations.length] = item;
+              memoryReferences[memoryReferences.length] = item.product;
+              memoryReferences[memoryReferences.length] = item.sourceDocument;
+              continue;
+            }
+            candidates[candidates.length] = item;
+            memoryReferences[memoryReferences.length] = item.product;
+            memoryReferences[memoryReferences.length] = item.sourceDocument;
+          }
+        }
+        // Distinct DRTs/products may each make the same exact declaration.
+        // Their identities are evidence, not a conflict in the declared scope.
+        const signatures = candidates.map(item => JSON.stringify({
+          smsci: item.smsciText,
+          activity: item.activityServiceText
+        }));
+        const uniqueSignatures = Array.from(new Set(signatures));
+        const result = candidates.length > 0 && uniqueSignatures.length === 1 &&
+          !conflictingDeclaration
+          ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW;
+        return { result, memoryReferences,
+          documentaryEvidence: candidates.concat(conflictingDeclarations) };
+      }
+    }
+  });
+}
+
 Object.defineProperty(globalThis, 'responsibilityDrtActivityExecutionPredicateContract', {
   value: responsibilityDrtActivityExecutionPredicateContract,
+  enumerable: true, writable: false, configurable: false
+});
+Object.defineProperty(globalThis, 'responsibilityIsSatisfiedForSmsciPredicateContract', {
+  value: responsibilityIsSatisfiedForSmsciPredicateContract,
   enumerable: true, writable: false, configurable: false
 });
 

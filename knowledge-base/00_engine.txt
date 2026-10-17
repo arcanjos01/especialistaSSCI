@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.6
+# VERSION 4.8
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -241,6 +241,27 @@ CRITERION UNLESS AN EXPLICIT NORMATIVE REQUIREMENT ESTABLISHES SUCH IDENTITY.
 DRT_COVERS RETURNS TRUE ONLY WHEN THE DRT EXPLICITLY COVERS THE DOCUMENT, SMSCI AND REQUIRED ACTIVITY.
 
 DRT_SET_COVERS_ALL RETURNS TRUE WHEN ONE GENERAL DRT EXPLICITLY COVERS ALL SMSCI OR WHEN THE UNION OF DRT SCOPES COVERS ALL SMSCI.
+
+RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI
+
+This predicate consumes only canonical DRT evidence references and derives all
+scope declarations from the immutable execution memory. Public callers shall
+not supply an arbitrary scope-item collection. The resolver authenticates the
+complete ordered RT-003 evidence binding against the compiled contract, frozen
+plan and immutable view; direct resolver and public evaluator calls fail closed
+when that boundary is absent or incomplete. TRUE requires at least one
+complete declaration matching the exact DRT, technical product, official
+SMSCI code, activity literal and source document. For RT-003, the declaration's
+source document must be the source document of that exact DRT; a third-party
+declaration does not establish normative RT-003 coverage. Multiple declarations,
+DRTs or products are accepted when their declarations are exact and mutually
+consistent; conflicting or incomplete declarations return MANUAL_REVIEW.
+The result contract always includes result and memoryReferences, and preserves
+all contributing DRT, product and source-document references. Relation data
+from an inferred or assisted correlation sidecar alone shall never produce
+PASS, satisfy a Criterion or create a Nonconformity. Exact documentary DRT
+scope declarations may satisfy only the explicitly declared Criterion through
+this predicate.
 
 ALL_DRT_HAVE_ACTIVITY RETURNS TRUE ONLY WHEN EACH DRT USED AS EVIDENCE DECLARES THE REQUIRED ACTIVITY.
 
