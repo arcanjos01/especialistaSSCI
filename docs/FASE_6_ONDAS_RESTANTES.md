@@ -990,11 +990,14 @@ normativa.
 - Re-review do finding MEDIUM de rastreabilidade: Luna independente `PASS`;
   declaração conflitante, produto e fonte estão no trace e o resultado segue
   `MANUAL_REVIEW`, sem FAIL/Nonconformity ou mutação da RDE.
-- Snapshot limpo revisado: `511a5dc02bc5d0cae57d8421ee6bade1195cef54`; release
-  build PASS em `/tmp/phase6-rt003-release-iZ2yd9/output`, com os dez arquivos
-  da Base. O hash do runtime regenerado é
+- Snapshot limpo revisado: `511a5dc02bc5d0cae57d8421ee6bade1195cef54`. Commit
+  promovido e enviado por fast-forward: `17b6ba9c179416c7f73dc46650e9598a1f04e049`.
+  O release build exato desse commit passou em
+  `/tmp/phase6-rt003-pushed-release-rfZWjr/output`, contendo os dez documentos
+  da Base, `KNOWLEDGE_BASE_VERSION=5.25.0` e `SOURCE_COMMIT` igual ao SHA
+  promovido. Hash do runtime regenerado:
   `c0442776cc32be0cb10841d891f98623248cf6716734285f48b0379d0099f80d`.
-- Promoção deste lote parcial autorizada pela revisão GPT-6 aceita pelo usuário;
-  a identidade não é registrada como Sol 6.1. Próximo passo funcional:
-  prosseguir pelos Criteria independentes priorizados na matriz, mantendo a
-  revisão Sol 6.1 pendente para a consolidação arquitetural final da Fase 6.
+- A revisão arquitetural GPT-6 foi aceita pelo usuário para promover este lote;
+  a identidade não é registrada como Sol 6.1 e `SOL_6_1=PENDING` permanece para
+  a consolidação final da Fase 6. Próximo passo funcional: prosseguir pelos
+  Criteria independentes priorizados na matriz.
