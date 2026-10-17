@@ -26,7 +26,7 @@ globalThis.testApi = {
   PredicateRegistry,
   PredicateCall,
   CriterionIR,
-  evaluateCriterion,
+  evaluateCriterion: evaluateCriterion_,
   ImmutableExecutionView,
   projectRdeToExecutionView_
 };`, context);

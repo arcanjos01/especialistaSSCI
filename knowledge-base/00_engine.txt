@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.8
+# VERSION 4.9
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -263,7 +263,9 @@ PASS, satisfy a Criterion or create a Nonconformity. Exact documentary DRT
 scope declarations may satisfy only the explicitly declared Criterion through
 this predicate.
 
-ALL_DRT_HAVE_ACTIVITY RETURNS TRUE ONLY WHEN EACH DRT USED AS EVIDENCE DECLARES THE REQUIRED ACTIVITY.
+ALL_DRT_HAVE_ACTIVITY RETURNS TRUE ONLY WHEN EACH DRT USED AS EVIDENCE DECLARES THE REQUIRED ACTIVITY. For the RT-002 activity criterion, at least one exact catalog-authorized `EXECUÇÃO` declaration in each selected DRT is sufficient when that item and its source document have provenance. Other explicitly declared activities do not negate that declaration; preserve every activity and any available provenance in the trace. Missing provenance on an unrelated activity does not negate a separately traceable `EXECUÇÃO` item. This rule is specific to RT-002 and does not decide professional-scope compatibility between an activity and an SMSCI.
+
+THE ENGINE SHALL NOT DETERMINE WHETHER A DECLARED DRT ACTIVITY OR SERVICE IS WITHIN A PROFESSIONAL COUNCIL'S SCOPE FOR AN SMSCI. In particular, do not infer or validate activity-to-SMSCI compatibility for RT-005, RT-006 or RT-014. Preserve and expose the literal declaration and its provenance for the inspector; absence, ambiguity or a non-matching literal shall not create an incompatibility result or Nonconformity. The separate RT-002 `EXECUÇÃO` check above tests only the explicitly required declaration and does not adjudicate professional scope.
 
 HAS_DRT_ACTIVITY ACCEPTS ONE OR MORE DRTS, INCLUDING ONE DRT WITH MORE THAN ONE EXPLICIT ACTIVITY.
 
@@ -272,6 +274,27 @@ VALID_WITHIN_YEARS RETURNS UNKNOWN WHEN THE ISSUE DATE CANNOT BE VERIFIED.
 REPORT_CONTAINS RETURNS TRUE ONLY WHEN ALL REQUIRED ITEMS ARE IDENTIFIED IN THE REPORT.
 
 REPORT_PREPARED_BY_INDEPENDENT_PARTY RETURNS UNKNOWN WHEN INDEPENDENCE CANNOT BE VERIFIED FROM THE SOURCES.
+
+# COUNCIL STATUS CLASSIFICATION VOCABULARY
+
+The source statuses in ART (CREA), RRT (CAU) and TRT (CFT) remain independent
+documentary facts. Consumers may use only these controlled semantic categories:
+
+- registration: `REGISTERED`, `NOT_REGISTERED`, `DRAFT`, `UNKNOWN`, `OTHER`;
+- issuance: `ISSUED`, `NOT_ISSUED`, `DRAFT`, `UNKNOWN`, `OTHER`;
+- payment: `PAID`, `UNPAID`, `UNKNOWN`, `OTHER`.
+
+Each classification must preserve the exact source literal and provenance and
+must come from an explicit, versioned mapping keyed by document type, issuing
+council and status field. There is no global lexical equivalence among ART,
+RRT and TRT and no substring, synonym or model-based normalization. Missing or
+ambiguous facts and unmapped literals are `UNKNOWN`/`OTHER` and require
+`MANUAL_REVIEW`; they do not by themselves produce `FAIL` or a Nonconformity.
+For the `REGISTERED` Criteria, the IRV condition is conjunctive: registration
+is `REGISTERED`, issuance is `ISSUED`, payment is `PAID`, and no status says
+`DRAFT`. Until explicit mappings for each council/document type are supplied,
+this vocabulary is preparatory and does not authorize the Engine to classify
+raw status strings.
 
 COUNCIL_STATE, COUNCIL_REGISTRATION_STATUS, COUNCIL_ISSUANCE_STATUS AND
 COUNCIL_PAYMENT_STATUS ARE DOCUMENTARY FACTS. THEY SHALL NOT, BY THEMSELVES,

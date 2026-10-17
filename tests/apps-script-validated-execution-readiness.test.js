@@ -190,6 +190,12 @@ assert.ok(prepared.coverage.materializableUnitKeys.includes(
 assert.ok(!prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)'
 ));
+assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_DRT_REGISTERED, T1_DRT_REGISTERED)'
+));
+assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_DRT_REGISTERED, T4_DRT_REGISTERED)'
+));
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)'
 ));

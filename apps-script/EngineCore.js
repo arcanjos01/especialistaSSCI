@@ -309,6 +309,77 @@ function technicalProductAttributePredicateContract() {
   });
 }
 
+function authenticateRt002DrtPredicate_(args, memory, context, predicateId) {
+  const expected = predicateId === 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION'
+    ? { requirementId: 'REQ_T1_DRT_ACTIVITY_EXECUTION', criterionId: 'T1_DRT_ACTIVITY_EXECUTION' }
+    : { requirementId: 'REQ_T1_DRT_REQUIRED', criterionId: 'T1_DRT_REQUIRED' };
+  const authenticatedExecution = context &&
+    typeof isImmutableExecutionView === 'function' && isImmutableExecutionView(memory) &&
+    typeof isCanonicalCompiledRuntimeContract === 'function' &&
+      isCanonicalCompiledRuntimeContract(context.compiledContract) &&
+    typeof isCanonicalFrozenExecutionPlan === 'function' &&
+      isCanonicalFrozenExecutionPlan(context.executionPlan, context.compiledContract, memory) &&
+    typeof isCanonicalCurrentSubmissionContext === 'function' &&
+      isCanonicalCurrentSubmissionContext(context.currentSubmissionContext) &&
+    typeof selectCurrentComprovante === 'function' &&
+    context.requirementId === expected.requirementId &&
+    context.criterionId === expected.criterionId &&
+    Array.isArray(context.executionPlan.PLANNED_EXECUTION_UNITS) &&
+    context.executionPlan.PLANNED_EXECUTION_UNITS.some(unit =>
+      unit && unit.requirement && unit.requirement.id === expected.requirementId &&
+      unit.criterion && unit.criterion.id === expected.criterionId);
+  if (!authenticatedExecution) return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  let selectedPresentation;
+  try {
+    getAuthenticatedPresentationIdentity(context.currentSubmissionContext);
+    selectedPresentation = selectCurrentComprovante(memory, context.currentSubmissionContext);
+  } catch (error) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  const plannedPresentation = context.executionPlan.selectedComprovante;
+  if (!plannedPresentation || plannedPresentation.kind !== 'DOCUMENT' ||
+      !(selectedPresentation instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+      selectedPresentation.kind !== plannedPresentation.kind ||
+      selectedPresentation.identifier !== plannedPresentation.identifier) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  if (typeof materializeResponsibilityEvidenceBinding !== 'function' ||
+      typeof isCanonicalResponsibilityEvidenceBinding !== 'function') {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  let binding;
+  try {
+    binding = materializeResponsibilityEvidenceBinding(
+      context.compiledContract, context.executionPlan, memory, 'RT-002');
+  } catch (error) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  if (!isCanonicalResponsibilityEvidenceBinding(binding,
+        context.compiledContract, context.executionPlan, memory)) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences.slice() };
+  }
+  const evidence = binding.evidence || [];
+  if (args.evidenceReferences.length !== evidence.length ||
+      args.evidenceReferences.some((reference, index) => {
+        const expectedReference = evidence[index] && evidence[index].reference;
+        return !expectedReference || reference.kind !== expectedReference.kind ||
+          reference.identifier !== expectedReference.identifier;
+      })) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences.slice() };
+  }
+  if (predicateId === 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION') {
+    const catalog = context.compiledContract.responsibilityCatalog &&
+      context.compiledContract.responsibilityCatalog['RT-002'];
+    const literals = catalog && catalog.machineCompatibleActivityLiterals;
+    if (!Array.isArray(literals) || literals.length === 0 ||
+        args.expectedActivityLiterals.length !== literals.length ||
+        args.expectedActivityLiterals.some((literal, index) => literal !== literals[index])) {
+      return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences.slice() };
+    }
+  }
+  return null;
+}
+
 function responsibilityHasAcceptedDrtEvidencePredicateContract() {
   return new PredicateContract({
     predicateId: 'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE',
@@ -317,7 +388,10 @@ function responsibilityHasAcceptedDrtEvidencePredicateContract() {
     ]),
     resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
     resolver: {
-      resolve(args, memory) {
+      resolve(args, memory, context) {
+        const gate = authenticateRt002DrtPredicate_(args, memory, context,
+          'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE');
+        if (gate) return gate;
         if (args.evidenceReferences.length === 0) {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
         }
@@ -361,7 +435,10 @@ function responsibilityDrtActivityExecutionPredicateContract() {
     ]),
     resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
     resolver: {
-      resolve(args, memory) {
+      resolve(args, memory, context) {
+        const gate = authenticateRt002DrtPredicate_(args, memory, context,
+          'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION');
+        if (gate) return gate;
         if (args.evidenceReferences.length === 0) {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: args.evidenceReferences,
             documentaryEvidence: [] };
@@ -426,10 +503,6 @@ function responsibilityDrtActivityExecutionPredicateContract() {
             const itemProvenance = rawItemProvenance === undefined ? null : rawItemProvenance;
             const sourceProvenance = typeof memory.provenance === 'function'
               ? memory.provenance(sourceDocument) : null;
-            if (itemProvenance === null || sourceProvenance === null ||
-                sourceProvenance === undefined) {
-              everyDrtDeclaresExpectedActivity = false;
-            }
             ENGINE_ARRAY_SET_OWN_(itemSnapshots, itemIndex, {
               activityItemId,
               drt: reference,
@@ -443,7 +516,7 @@ function responsibilityDrtActivityExecutionPredicateContract() {
           ENGINE_ARRAY_SET_OWN_(documentaryEvidence, index, {
             drt: reference, activityItems: itemSnapshots
           });
-          if (items.length === 0) everyDrtDeclaresExpectedActivity = false;
+          let thisDrtDeclaresExpectedActivity = false;
           for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
             const item = itemSnapshots[itemIndex];
             let matchesCatalogLiteral = false;
@@ -452,9 +525,13 @@ function responsibilityDrtActivityExecutionPredicateContract() {
                 matchesCatalogLiteral = true;
               }
             }
-            if (!matchesCatalogLiteral) {
-              everyDrtDeclaresExpectedActivity = false;
+            if (matchesCatalogLiteral && item.itemProvenance !== null &&
+                item.sourceProvenance !== null && item.sourceProvenance !== undefined) {
+              thisDrtDeclaresExpectedActivity = true;
             }
+          }
+          if (items.length === 0 || !thisDrtDeclaresExpectedActivity) {
+            everyDrtDeclaresExpectedActivity = false;
           }
         }
         return { result: everyDrtDeclaresExpectedActivity ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
@@ -1073,10 +1150,71 @@ function combineOr(results) {
   return EngineResult.FALSE;
 }
 
-function evaluateCriterion(criterion, registry, memory, correlationProjection = null, executionBinding = null) {
+function canonicalExecutionBindingIsValid_(binding, memory) {
+  if (!binding || typeof binding.unitKey !== 'string' || !binding.unitKey ||
+      (binding.role !== 'ASSERT' && binding.role !== 'VALIDATE') ||
+      typeof isImmutableExecutionView !== 'function' ||
+      !isImmutableExecutionView(memory) ||
+      typeof isCanonicalCompiledRuntimeContract !== 'function' ||
+      !isCanonicalCompiledRuntimeContract(binding.contract) ||
+      typeof isCanonicalFrozenExecutionPlan !== 'function' ||
+      !isCanonicalFrozenExecutionPlan(binding.plan, binding.contract, memory) ||
+      typeof isCanonicalCurrentSubmissionContext !== 'function' ||
+      !isCanonicalCurrentSubmissionContext(binding.currentSubmissionContext) ||
+      typeof getAuthenticatedPresentationIdentity !== 'function' ||
+      typeof selectCurrentComprovante !== 'function') return false;
+  try {
+    getAuthenticatedPresentationIdentity(binding.currentSubmissionContext);
+    const selected = selectCurrentComprovante(memory, binding.currentSubmissionContext);
+    const planned = binding.plan.selectedComprovante;
+    return selected instanceof TypedReference && planned &&
+      selected.kind === planned.kind && selected.identifier === planned.identifier;
+  } catch (error) {
+    return false;
+  }
+}
+
+function executionIntegrityError_(message) {
+  if (typeof criterionExecutionStop_ === 'function') criterionExecutionStop_(message);
+  const error = new EngineContractError(message);
+  error.code = 'EXECUTION_INTEGRITY_ERROR';
+  throw error;
+}
+
+function evaluateCriterion_(criterion, registry, memory, correlationProjection = null, executionBinding = null) {
   if (!(criterion instanceof CriterionIR)) throw new EngineContractError('criterion must be CriterionIR');
   if (criterion.applicability !== null) {
     throw new EngineContractError('applicability evaluation is outside the Phase 1 core');
+  }
+  if (executionBinding !== null) {
+    const bindingValid = canonicalExecutionBindingIsValid_(executionBinding, memory) &&
+      typeof materializePlannedCriterion === 'function';
+    if (!bindingValid) {
+      executionIntegrityError_('execution binding is invalid');
+    }
+    let expectedCriterion;
+    try {
+      const materialized = materializePlannedCriterion(
+        executionBinding.contract, executionBinding.plan, executionBinding.unitKey, memory);
+      if (!materialized.unit || materialized.unit.unitKey !== executionBinding.unitKey) {
+        executionIntegrityError_('materialized execution binding differs from requested unit');
+      }
+      expectedCriterion = executionBinding.role === 'VALIDATE'
+        ? new CriterionIR({
+          criterionId: materialized.criterion.criterionId,
+          requirementId: materialized.criterion.requirementId,
+          expression: materialized.validationExpression,
+          expectedResult: EngineResult.TRUE,
+          traceability: materialized.criterion.traceability
+        })
+        : materialized.criterion;
+    } catch (error) {
+      executionIntegrityError_('execution binding materialization failed');
+    }
+    if (JSON.stringify(canonicalCriterionExecutionValue_(criterion)) !==
+        JSON.stringify(canonicalCriterionExecutionValue_(expectedCriterion))) {
+      executionIntegrityError_('criterion differs from frozen execution binding');
+    }
   }
   const context = new ResolverContext({ criterionId: criterion.criterionId, requirementId: criterion.requirementId });
   const evaluation = evaluateExpression(criterion.expression, registry, memory,
@@ -1084,6 +1222,23 @@ function evaluateCriterion(criterion, registry, memory, correlationProjection = 
       executionPlan: executionBinding && executionBinding.plan,
       currentSubmissionContext: executionBinding && executionBinding.currentSubmissionContext }, correlationProjection);
   return evaluatedRecord(criterion, evaluation.result, evaluation.trace);
+}
+
+function canonicalCriterionExecutionValue_(value) {
+  if (Array.isArray(value)) return value.map(canonicalCriterionExecutionValue_);
+  if (value && typeof value === 'object') {
+    const result = { __type: value.constructor && value.constructor.name || 'Object' };
+    Object.keys(value).sort().forEach(key => {
+      Object.defineProperty(result, key, {
+        value: canonicalCriterionExecutionValue_(value[key]),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    });
+    return result;
+  }
+  return value;
 }
 
 function normalizeEngineResult(engineResult) {

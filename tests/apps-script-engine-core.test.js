@@ -14,7 +14,8 @@ globalThis.engineCore = {
   CompositionContractError, TypedReference, ArgumentSpec, ArgumentSchema,
   ResolverContext, PredicateContract, PredicateRegistry, PredicateCall,
   Exists, AssertLiteral, All, Or, ForEach, CriterionIR, evaluateExpression,
-  evaluateCriterion, normalizeEngineResult, propagateResult,
+  evaluateCriterion_: evaluateCriterion_, evaluateCriterion: evaluateCriterion_,
+  normalizeEngineResult, propagateResult,
   technicalProductAttributePredicateContract,
   responsibilityDrtActivityExecutionPredicateContract
 };`, context);
@@ -98,13 +99,13 @@ try {
     },
     enumerable: true, writable: true, configurable: true
   });
-  assert.throws(() => activityPredicate.resolver.resolve({
+  assert.equal(activityPredicate.resolver.resolve({
     evidenceReferences: [sparseDrtRef],
     expectedActivityLiterals: ['EXECUÇÃO']
   }, {
     contains: () => true,
     drtActivityItems: () => sparseActivityItems
-  }), /must contain own data items/);
+  }).result, ER.MANUAL_REVIEW);
 } finally {
   if (priorActivityIndex) {
     Object.defineProperty(activityArrayPrototype, '0', priorActivityIndex);

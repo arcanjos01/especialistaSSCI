@@ -661,20 +661,21 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
       expectedResult: EngineResult.TRUE,
       traceability: materialized.criterion.traceability
     });
-    const validationResult = evaluateCriterion(validationCriterion, registry, view);
+    const validationResult = evaluateCriterion_(validationCriterion, registry, view,
+      correlationProjection, { contract, plan, unitKey, role: 'VALIDATE', currentSubmissionContext });
     if (validationResult.engineResult === EngineResult.MANUAL_REVIEW) {
       result = validationResult;
     } else {
       criterionExecutionRequire_(validationResult.engineResult === EngineResult.TRUE,
         'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE returned an unsupported EngineResult');
-      const assertResult = evaluateCriterion(materialized.criterion, registry, view,
-        correlationProjection, { contract, plan, currentSubmissionContext });
+      const assertResult = evaluateCriterion_(materialized.criterion, registry, view,
+        correlationProjection, { contract, plan, unitKey, role: 'ASSERT', currentSubmissionContext });
       result = immutableCopy({ ...assertResult,
         trace: validationResult.trace.concat(assertResult.trace) });
     }
   } else {
-    result = evaluateCriterion(materialized.criterion, registry, view,
-      correlationProjection, { contract, plan, currentSubmissionContext });
+    result = evaluateCriterion_(materialized.criterion, registry, view,
+      correlationProjection, { contract, plan, unitKey, role: 'ASSERT', currentSubmissionContext });
   }
   criterionExecutionRequire_(result.criterionId === materialized.metadata.criterionId &&
     result.requirementId === materialized.metadata.requirementId,

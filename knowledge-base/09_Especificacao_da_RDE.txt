@@ -3,7 +3,7 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 PURPOSE
 
 RDE_SCHEMA_VERSION: 0.7.0
-DOCUMENT_VERSION: 1.8.0
+DOCUMENT_VERSION: 1.9.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -168,6 +168,11 @@ autorizado pelo contrato de extração. `COUNCIL_STATE`,
 `COUNCIL_PAYMENT_STATUS` permanecem fatos documentais separados; não geram,
 isoladamente, conclusão de regularidade profissional, habilitação ou
 conformidade.
+
+Os fatos de status de ART, RRT e TRT permanecem textos literais independentes
+na RDE. O contrato de consumo controlado e seus estados semânticos estão
+definidos em `00_engine.txt`; esta RDE não materializa uma normalização,
+substitui o literal, nem infere um status a partir dos demais campos.
 
 `parent_record_id` é obrigatório. É `null` para um registro raiz `DOCUMENT`;
 em `DOCUMENT_SECTION` aponta para o registro `DOCUMENT` pai; em

@@ -786,11 +786,15 @@ validação institucional da correlação permanece separadamente `PENDING`.
 
 ### Estado reconciliado e regra de classificação
 
-Fonte: HEAD `4e2adc7a8cf689a15b7203ed64b5a555471ee9f7` mais o candidato local
-não commitado. Base `5.23.0`: 34 ativos, 29 produtivos, 6 integralmente
-cobertos, 3 parciais e 23 pendentes integrais; 5 não selecionáveis e 2
-retirados ficam fora da matriz. Os três parciais são `T1_DRT_REQUIRED`,
-`T1_DRT_ACTIVITY_EXECUTION` e `T1_CONFORMITY_REPORT`.
+Fonte reconciliada em 2026-10-16: HEAD remoto `1b1503266abca949a25d37231fcddc3b8198208b`
+mais o lote local não commitado de autenticação do `evaluateCriterion`.
+Knowledge Base `5.25.0`: 34 Criteria ativos, 29 produtivos, 6 integralmente
+cobertos, 4 parciais e 23 pendentes integrais; 5 não selecionáveis e 2
+retirados ficam fora da matriz. Os quatro parciais são `T1_DRT_REQUIRED`,
+`T1_DRT_ACTIVITY_EXECUTION`, `T1_CONFORMITY_REPORT` e
+`T1_DRT_SMSCI_COVERAGE`. Nenhum dos 23 pode ser declarado integralmente coberto
+apenas com o estado atual; cobertura parcial ou caminho positivo não equivale
+a suporte completo.
 
 Nenhum dos 23 está integralmente implementável somente com o estado atual:
 alguns já têm caminho positivo ou contratos declarativos, mas não completam os
@@ -821,43 +825,42 @@ Criterion, não uma autorização para inferir fatos ou resultados.
 | `T4_IN09_DRT` | `T+F` | Comparar declarações explícitas de execução e vistoria/ensaio, DRTs e SMSCI de pressurização com tokens autorizados; preservar múltiplos profissionais e insuficiência. |
 | `T4_IN09_TEST_REPORT` | `T+F` | Fatos individualizados sobre os componentes requeridos pelo art. 122, vínculo explícito DRT-produto-SMSCI-atividade e assinatura verificável; não completar itens de normas NBR por inferência. |
 | `T4_IN09_CHECKLIST` | `F+T` | Evidência verificável de assinatura na checklist exata e consumo pelo predicado de produto já declarado. |
-| `T4_IN10_COMMISSIONING` | `H+F+T` | Ver decisão humana abaixo; também exige partes/papéis e vínculos documentais suficientes para testar independência, DRT e assinatura. Diferença de nomes não basta. |
+| `T4_IN10_COMMISSIONING` | `F+T` | Fundamento normativo resolvido na decisão abaixo; faltam partes/papéis e vínculos documentais suficientes para testar independência, DRT e assinatura. Diferença de nomes não basta. |
 | `T4_IN12_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório SDAI e evidência verificável de assinatura. |
 | `T4_IN15_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório sprinkler e evidência verificável de assinatura. |
 | `T4_IN18_CMAR` | `F+T` | Evidência verificável de assinatura na declaração CMAR e consumo pelo predicado já declarado; não criar RT-007 autônoma. |
 | `T4_IN19_FINAL_VERIFICATION` | `T+F` | Binding da DRT de verificação final ao serviço/atividade autorizados para RT-007; manter separado de checklist IN09 e sem criar associação por nome. |
 
-### Decisão normativa que pode ser necessária
+### Decisão de fundamento IN10/IRV — resolvida pelo usuário
 
-`T4_IN10_COMMISSIONING` contém `REQUIRE INDEPENDENT_PARTY` em
-`knowledge-base/02_requirements.txt` (REQ_IN10_COMMISSIONING). A Base atribui a
-regra à IN 10, art. 41 e Anexo B; o inventário de fontes registra que esses
-trechos não expressam a independência, enquanto a IRV Tabela 4 a exige para
-controle mecânico de fumaça. Isso é um conflito de fundamento, não algo que o
-Engine possa decidir. Até decisão humana sobre a autoridade aplicável, não
-implementar resultado de independência nem alterar o Requirement.
+`REQUIRE INDEPENDENT_PARTY` em `knowledge-base/02_requirements.txt`
+(`REQ_IN10_COMMISSIONING`) é sustentado pela IRV Habite-se 2024, Anexo A,
+Tabela 4, p. 9, e pelo art. 41 da IN 10. Em 2026-10-17, o usuário confirmou
+que a IRV tem precedência sobre a IN para fins de fiscalização. A leitura
+anterior de que a IN 10 não dizia independência estava incorreta: o art. 41
+expressa a mesma exigência para controle de fumaça mecânico.
 
-Alternativas para autoridade competente: (A) confirmar que a IRV Tabela 4 é
-fundamento institucional suficiente para exigir independência e identificar o
-alcance aplicável; (B) determinar que somente a IN 10 governa essa verificação e
-revisar formalmente a Base. Recomendação: resolver a autoridade documental
-antes do executor, preservando o Criterion atual e sua pendência até a decisão.
-Nenhuma outra alteração normativa humana está identificada como pré-requisito
-dos demais Criteria no inventário vigente. A validação institucional da
-correlação continua separadamente `PENDING` e não bloqueia o desenvolvimento
-técnico local autorizado.
+A condição aplica-se a equipe/profissional de comissionamento sem vínculo
+técnico com o projeto ou execução, em sistema de controle de fumaça mecânico.
+“RT diferente do solicitante” isoladamente não prova independência. A decisão
+de autoridade está encerrada; `T4_IN10_COMMISSIONING` ainda depende de fatos
+documentais que permitam verificar o modo mecânico e os vínculos entre os
+participantes. Não alterar o Requirement nem generalizar para outros SMSCI.
+`NORMATIVE_INSTITUTIONAL_VALIDATION` da correlação continua separadamente
+`PENDING`.
 
 ### Dependências compartilhadas e lotes prioritários
 
 | Ordem | Contrato compartilhado | Critérios potencialmente afetados | Motivo/limite |
 |---|---|---|---|
 | 0 | Fechar o candidato já aberto: execução exata da associação documental explícita e binding autenticado à apresentação/RDE | `T1_CONFORMITY_REPORT` | Corrige a trilha de correlação já em andamento; não gera cobertura integral sem calibração válida para inferências. Revisar uma vez após gates completos; re-review somente dos achados. |
-| 1 | Consumidor genérico de declarações RDE 0.7: DRT↔produto↔SMSCI↔atividade, com endpoints e literais exatos, múltiplas responsabilidades e insuficiência | Até 8: `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN09_DRT`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` | Maior desbloqueio determinístico a partir de fatos já previstos pela RDE; não prova assinatura, conteúdo, validade temporal nem resultado integral por si só. Primeiro candidato funcional após fechamento do atual. |
-| 2 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 11: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR` | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
-| 3 | Comparandos tipados de pessoa jurídica, RT, endereço e área vinculados a processo/DRT/produto | 4: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA` | Fonte define comparações conservadoras; fatos do processo e relações exatas precisam existir. Bloquear resultado conclusivo se faltarem. |
-| 4 | Datas e itens de relatório estruturados com origem, associação ao produto e escopo de exaustividade | 2 principais: `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`; também requisitos de laudos/comissionamentos relacionados | Não inventar datas, conteúdo NBR ou presença de itens não extraídos. |
-| 5 | Decisão humana sobre fundamento da independência | 1: `T4_IN10_COMMISSIONING` | Bloqueado até decisão; avançar em paralelo nos lotes independentes. |
-| 6 | Dataset rotulado, calibração por Base/tipo de vínculo e caller de produção autenticado | 1: associação inferida em `T1_CONFORMITY_REPORT` | `CALIBRATION_GATE=BLOCKED`; política 0,80 não autoriza admissão operacional sem calibração empírica. |
+| 1 | Predicado compartilhado de estado DRT `REGISTERED`, com binding por RT e preservação separada de registro, emissão e pagamento | 2: `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED` | Menor alcance, porém usa os três fatos já tipados na RDE e tem regra-fonte explícita na IRV. Próximo lote de menor dependência após formalizar vocabulário exato; não assumir que fixture seja vocabulário canônico. |
+| 2 | Consumidor de declarações RDE 0.7: DRT↔produto↔SMSCI↔atividade, endpoints exatos, múltiplas responsabilidades e insuficiência | Potencial teórico até 8: `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN09_DRT`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` | RDE não determina cobertura; `DRT_COVERS` está definido no Engine, mas os Criteria de produtos exigem RT-014/RT-006 e RT-005, cujas compatibilidades/literais não estão completamente mapeadas no catálogo. Sem essa formalização autorizada, novo consumidor não aumentaria cobertura segura. Não prova assinatura, conteúdo ou validade temporal. |
+| 3 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 11: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR` | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
+| 4 | Comparandos tipados de pessoa jurídica, RT, endereço e área vinculados a processo/DRT/produto | 4: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA` | Fonte define comparações conservadoras; fatos do processo e relações exatas precisam existir. Bloquear resultado conclusivo se faltarem. |
+| 5 | Datas e itens de relatório estruturados com origem, associação ao produto e escopo de exaustividade | 2 principais: `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`; também requisitos de laudos/comissionamentos relacionados | Não inventar datas, conteúdo NBR ou presença de itens não extraídos. |
+| 6 | Decisão humana sobre fundamento da independência | 1: `T4_IN10_COMMISSIONING` | Bloqueado até decisão; avançar em paralelo nos lotes independentes. |
+| 7 | Dataset rotulado, calibração por Base/tipo de vínculo e caller de produção autenticado | 1: associação inferida em `T1_CONFORMITY_REPORT` | `CALIBRATION_GATE=BLOCKED`; política 0,80 não autoriza admissão operacional sem calibração empírica. |
 
 ### Modelo de ameaça por fronteira efetiva
 
@@ -1001,3 +1004,283 @@ normativa.
   a identidade não é registrada como Sol 6.1 e `SOL_6_1=PENDING` permanece para
   a consolidação final da Fase 6. Próximo passo funcional: prosseguir pelos
   Criteria independentes priorizados na matriz.
+
+### Fechamento da fronteira pública de avaliação — candidato local (2026-10-16)
+
+- Base: HEAD remoto `1b1503266abca949a25d37231fcddc3b8198208b`; alterações ainda
+  não commitadas. Re-review independente focada encontrou inicialmente HIGH:
+  `evaluateCriterion` avaliava sem binding quando a API pública era chamada
+  diretamente.
+- Correção de fronteira: a função passou a `evaluateCriterion_` (privada para
+  clientes `google.script.run`); o pipeline continua chamando-a somente com
+  binding e contexto autenticados. `executePlannedCriterion` é a entrada
+  pública e mantém validação do plano, view e apresentação. Teste verifica que
+  o símbolo `evaluateCriterion` não está exposto. Re-review Luna independente:
+  `PASS`; finding HIGH fechado. Limite: revisão estática e de testes, sem
+  execução do Apps Script implantado.
+- Cobertura e benefício: integral `6/29 → 6/29`; parcial `4 → 4`; pendentes
+  integrais `23 → 23`. Nenhum Criterion ganho; fecha uma rota direta de
+  avaliação sem plano/contexto e mantém a execução operacional autenticada.
+- Gates neste candidato: Python `143/143`; Apps Script `9/9`; `node --check`
+  nos módulos e testes JS, sintaxe de `Code.gs`, manifests/guards cobertos pela
+  suíte Python e `git diff --check`: `PASS`. Runtime SHA-256
+  `c0442776cc32be0cb10841d891f98623248cf6716734285f48b0379d0099f80d`; teste
+  Python de regeneração byte-identical: `PASS`. Release build `PASS` em
+  worktree temporária limpa, com dez documentos e KB `5.25.0`; snapshot fonte
+  `f048b13cc16722a939830b36308be49f80f4ccff` e saída
+  `/tmp/phase6-release-candidate.ZICjDu/release-output`. Esse commit existe
+  somente na worktree temporária de validação e não promove o branch de trabalho.
+  `SOL_6_1=PENDING`.
+- Revisões desta correção: uma revisão independente encontrou o HIGH e uma
+  re-review focada confirmou o fechamento. Esforço adicional aproximado:
+  15 minutos. Nenhum novo blocker; findings abertos neste escopo: zero.
+- A revisão arquitetural selecionada via modelo `gpt-6.1-sol` retornou
+  `PASS`, mas o próprio revisor identificou sua execução como GPT-6, não Sol
+  6.1. O resultado é registrado como GPT-6 independente aceito previamente
+  pelo usuário, mas não satisfaz o gate atual que exige Sol 6.1. Sem commit ou
+  push; `SOL_6_1=PENDING`. O release build da árvore exata foi posteriormente
+  validado em worktree temporária limpa, sem promover o branch.
+- Tentativas via `chatgpt-web/gpt-5.6-sol` e `chatgpt-web/gpt-5.6-sol-instant`
+  terminaram sem executar: o serviço informou capacidade esgotada. Não são
+  aprovações nem findings; o gate Sol 6.1 continua pendente. A árvore e os
+  checkpoints foram preservados para retomada.
+- Nova tentativa `chatgpt-web/gpt-5.6-sol` também retornou capacidade
+  esgotada; nenhuma revisão Sol foi realizada neste ciclo.
+
+### Blocker factual/técnico identificado — `T4_IN09_DRT`
+
+- A IRV Habite-se 2024, Tabela 4, p. 7, declara DRT de execução e DRT de
+  vistoria/ensaio para pressurização/gradiente de pressão. O Requirement usa
+  RT-003 e RT-005; o Criterion usa os tokens `EXECUCAO` e `VISTORIA_ENSAIO`.
+- O Anexo A define para RT-005 `COMPATIBLE_ACTIVITIES: VISTORIA/INSPEÇÃO` e
+  não declara `MACHINE_COMPATIBLE_ACTIVITY_LITERALS`. O contrato do Anexo diz
+  que cada machine literal deve ser uma string exata já declarada em
+  `COMPATIBLE_ACTIVITIES`, sem sinônimos ou normalização. A IRV descreve a
+  exigência documental, mas não formaliza o mapeamento de extração do token
+  `VISTORIA_ENSAIO` para uma expressão literal na DRT.
+- Alternativas: (A) autoridade da Base/catalogação formaliza um literal exato
+  de RT-005 e seu vínculo ao token do Criterion, com fonte e teste; (B) manter
+  a validação RT-005 em `MANUAL_REVIEW` até existir essa formalização. Recomenda-se
+  B enquanto A não for aprovada. Não alterar Requirement/Criterion, não mapear
+  por semelhança e não produzir FAIL/NC por coleção RDE vazia. T4_IN09_DRT
+  permanece pendente de cobertura integral.
+- Executor Luna confirmou o blocker e não acrescentou código para RT-005;
+  testes focalizados de responsabilidade, Criterion piloto e Engine Core
+  passaram. Ganho integral deste lote: zero; não houve novo blocker normativo
+  confirmado, mas há uma formalização de Base pendente e uma revisão Sol 6.1
+  indisponível.
+
+### Dependência compartilhada de status DRT — `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`
+
+- A IRV Habite-se 2024, Tabela 1, p. 4, descreve a condição composta: DRT
+  registrada e emitida no Conselho, paga e não rascunho; a causa menciona falta
+  de registro de emissão/rascunho. A Base declara `REGISTERED` nos dois
+  Criteria. A RDE já preserva `COUNCIL_REGISTRATION_STATUS`,
+  `COUNCIL_ISSUANCE_STATUS` e `COUNCIL_PAYMENT_STATUS` como fatos TEXT
+  distintos, sem inferência entre eles.
+- A revisão de implementação Luna parou antes de codificar: o contrato não
+  define vocabulário literal fechado para esses campos. Strings positivas
+  usadas em fixtures (`registrada`, `emitida`, `paga`) não são autoridade para
+  criar mapeamento. Alternativas: (A) formalizar vocabulário controlado e
+  mapeamento de extração, preservando o literal original e provenance; (B)
+  manter o resultado em `MANUAL_REVIEW` até o contrato de status ser aprovado.
+  Recomenda-se B até formalizar A; nunca inferir emissão/pagamento do registro
+  isolado nem gerar NC quando algum status estiver ausente/ambíguo.
+- Ganho desta análise: zero Criteria; dependência de um único contrato
+  compartilhado para dois Criteria, agora priorizado como primeiro lote
+  funcional depois de resolvido o vocabulário. Não altera `HUMAN_DECISIONS_REQUIRED`
+  por enquanto; é blocker de formalização técnica, distinto da decisão IN10.
+- `python -m unittest discover -s tests -p 'test*.py'`: `143/143 PASS` após a
+  atualização do inventário. Sem código alterado nesta análise; o lote anterior
+  mantém os gates completos registrados acima.
+
+### Blocker de binding e completude — `T4_IN19_FINAL_VERIFICATION`
+
+- Revisão independente somente leitura confirmou que o Criterion não pode ser
+  concluído pelo executor atual sem contrato adicional: a entidade
+  `LOW_VOLTAGE_FINAL_VERIFICATION_DRT` está tipada como `DRT`, enquanto a RDE
+  materializa evidências concretas como documentos `ART`/`RRT`/`TRT` que estendem
+  DRT; o binding de responsabilidade existente suporta apenas RT-002/RT-003.
+- RT-007 consta do Anexo A, mas não possui `MACHINE_COMPATIBLE_ACTIVITY_LITERALS`.
+  A RDE não define que coleção vazia seja completa nem prova ausência de DRT.
+  Logo, não é seguro transformar `EXISTS` ou ausência do item em resultado
+  positivo/negativo, nem gerar NC_T4_014 por inferência.
+- Alternativas: (A) formalizar a ligação da declaração factual da RDE à evidência
+  documental concreta e à RT-007/atividade, incluindo literal autorizado e
+  regra de completude/insuficiência; (B) manter MANUAL_REVIEW até esse contrato
+  ser autorizado. Recomenda-se B. A fonte normativa confirma o requisito de
+  verificação final, mas não resolve o contrato de representação/binding.
+- Resultado do lote de diagnóstico: cobertura integral +0; parcial +0; blocker
+  técnico confirmado +1; decisão normativa humana nova +0. A revisão não alterou
+  código nem critérios. O inventário registra a limitação e mantém o Criterion
+  pendente de cobertura integral.
+
+### Checagem do menor lote funcional — `T1_DRT_REQUIRED`
+
+- A verificação delimitada Luna confirmou que o Criterion não pode ser fechado
+  integralmente sem contrato adicional para cardinalidade, conflito e
+  insuficiência. O binding autenticado de RT-002 comprova presença positiva;
+  binding vazio não carrega semântica de ausência da DRT. A fixture de
+  multiplicidade RT-002 atual resulta `TRUE`, embora não exista contrato que
+  determine quando múltiplas evidências são inequívocas ou exigem
+  `MANUAL_REVIEW`.
+- Alternativas: (A) formalizar no contrato da Base/RDE a semântica para múltiplas
+  DRTs e completude da coleção; (B) deixar o caso múltiplo e a ausência de
+  binding em `MANUAL_REVIEW`. Recomenda-se B até A ser autorizada. Não se altera
+  o Requirement nem se converte ausência em FAIL/NC_T1_001.
+- Resultado: integral `6/29 → 6/29`; parcial `4 → 4`; pendentes integrais
+  `23 → 23`; blocker técnico compartilhável +1; decisão normativa humana +0.
+  Luna executou `node tests/apps-script-pilot-criterion.test.js`,
+  `node tests/apps-script-responsibility-evidence.test.js` e `git diff --check`;
+  todos passaram. Sem implementação ou revisão adversarial adicional neste
+  lote; esforço limitado à auditoria do caminho RT-002 e às suítes focadas.
+
+### Revisão arquitetural independente do candidato — 2026-10-16
+
+- O revisor solicitado como GPT-6.1 Sol identificou-se como GPT-6. Resultado:
+  `FAIL` para o candidato local; não é registrado como Sol 6.1. A revisão foi
+  somente leitura e abrangeu Engine, pipeline, RDE, documentos arquiteturais,
+  integração de correlação e readiness.
+- `P2 / MEDIUM`: `evaluateCriterion_` converte binding inválido ou falha de
+  materialização em registro EVALUATED/MANUAL_REVIEW com `evaluationPerformed`
+  verdadeiro e trace vazio. Isso mascara falha de integridade como resultado
+  executado, contrariando `08_execution_pipeline.txt` § consolidação. A entrada
+  pública ainda rejeita binding inválido antes da avaliação; nenhum PASS público
+  não autorizado foi demonstrado.
+- `P3 / LOW`: o teste de referência trocada omite `unitKey`/`role` e termina na
+  rejeição preliminar, sem exercer a divergência da referência. O revisor
+  reproduziu rejeição correta com contexto completo; falta fixar essa regressão
+  na suíte.
+- Demais superfícies revisadas: fronteira pública autenticada, sidecar de
+  correlação separado de associações explícitas, correlação incapaz de gerar
+  PASS isoladamente e readiness sem permitir análise foram consideradas
+  compatíveis nos cenários examinados. Calibração real continua bloqueada.
+- Correção: binding inválido, divergência de unidade/Criterion e falha de
+  materialização agora encerram a execução com `EXECUTION_INTEGRITY_ERROR`, sem
+  fabricar resultado ou trace. MANUAL_REVIEW emitido por predicates para
+  insuficiência documental preserva sua semântica. Testes herdados foram
+  atualizados para exigir erro de integridade; o teste P3 agora fornece contexto
+  autenticado completo e exercita a referência/expressão divergente.
+- Re-review Luna independente: `P2 PASS`, `P3 PASS`; sem regressão observada em
+  MANUAL_REVIEW documental, exceções, caminhos ASSERT/VALIDATE ou fronteira
+  pública. As três suítes focadas passaram.
+- Gates completos após a correção: Python `143/143`; Apps Script `9/9`;
+  `node --check` em módulos e testes JS e sintaxe de `Code.gs`; regeneração
+  byte-idêntica e testes de manifests/phase guards; `git diff --check` — PASS.
+  SHA-256 de `CompiledRuntimeContract.js`:
+  `c0442776cc32be0cb10841d891f98623248cf6716734285f48b0379d0099f80d`.
+  Release build PASS na worktree temporária limpa do snapshot técnico
+  `e26ac898ade491e122c9240f7fae74aadebec3ae`; compilou os dez documentos da KB.
+  A análise `DRT_COVERS` abaixo alterou somente este tracker; não alterou as
+  entradas do release nem o código coberto pelos gates.
+- Findings deste review: `FINDINGS_OPEN=0`. O candidato ainda não foi
+  promovido: revisor identificou-se como GPT-6, não Sol 6.1; revisão arquitetural
+  final Sol 6.1 permanece `PENDING`. Não houve ganho de Criteria neste lote.
+- Tentativas de revisão final via `chatgpt-web/gpt-5.6-sol`,
+  `chatgpt-web/gpt-5.6-sol-instant` e nova tentativa Sol web retornaram
+  `Selected model is at capacity`; nenhuma foi tratada como revisão concluída.
+  O GPT-6 independente foi usado conforme aceite anterior do usuário e a
+  re-review Luna encerrou os achados; ambos os registros permanecem distintos
+  do gate final Sol 6.1.
+- Nova tentativa nesta retomada, após liberar agentes concluídos e com o diff
+  reconciliado, também falhou com `Selected model is at capacity`; nenhum agente
+  Sol executou a revisão. `SOL_6_1=PENDING`, sem commit/push.
+- A tentativa repetida após fechar os agentes ambientais Hubble/Popper também
+  retornou indisponibilidade/capacidade; a ferramenta não iniciou Sol 6.1. Para
+  retomar promoção: revisão arquitetural Sol 6.1 disponível e `PASS`. Para
+  cobertura: decisões/fatos catalográficos pendentes para RT-005/006/014,
+  vocabulário de status DRT, semântica de cardinalidade/insuficiência RT-002,
+  evidências de assinatura/datas/conteúdo; `T4_IN10_COMMISSIONING` depende de
+  decisão normativa humana. Critérios afetados permanecem na matriz sem FAIL
+  inferido. Calibração real continua `BLOCKED`.
+
+### Limite real de alcance do contrato `DRT_COVERS`
+
+- `00_engine.txt` já define o resultado positivo de `DRT_COVERS`: a DRT deve
+  declarar explicitamente o documento, SMSCI e atividade requeridos. RDE 0.7
+  preserva esses quatro endpoints como fatos, mas declara que o item não é
+  cobertura normativa e que texto de terceiro não prova sozinho o escopo da
+  DRT. Portanto, a coleção RDE isolada não autoriza `PASS`.
+- A análise de Requirements limita o alcance funcional imediato: IN07, IN10,
+  IN12 e IN15 requerem RT-014; IN08 e IN09 test report requerem RT-006; IN09
+  também separa RT-003 e RT-005. O Anexo A traz literal máquina para RT-002 e
+  RT-003, mas não resolve a compatibilidade de atividade de RT-006, registra
+  RT-005 sem literal e exige código/descrição específica em parte do escopo, e
+  dá condições diferentes por SMSCI para RT-014. Logo, a estimativa “até 8” é
+  apenas potencial após formalização catálogo/fonte, não cobertura desbloqueável
+  apenas codificando o leitor da RDE.
+- Alternativas: (A) formalizar, com fonte autorizada, os literais/compatibilidade
+  por RT e SMSCI e a autoridade da declaração que pode provar o escopo da DRT;
+  (B) manter DRT_COVERS em MANUAL_REVIEW para esses casos até existir esse
+  mapeamento. Recomenda-se B; não inferir pelo nome do produto ou por atividade
+  semanticamente parecida. A exceção RT-003 já consumida por
+  `T1_DRT_SMSCI_COVERAGE` permanece restrita ao Criterion e aos tokens exatos
+  que seu contrato declara.
+- Lote de análise: Criteria integrais antes/depois `6/29 → 6/29`; parciais
+  `4 → 4`; novo código `0`; revisão independente/re-review `0` (análise local
+  das fontes); benefício: remove alcance superestimado e evita implementar um
+  executor que só produziria MANUAL_REVIEW sem cobrir as exigências vigentes.
+  A pendência técnica/catálogo continua registrada por Criterion na matriz.
+
+### Retomada da revisão final — 2026-10-17
+
+- Worktree conferido: branch `feature/apps-script-engine-core`, HEAD local e
+  remoto `1b1503266abca949a25d37231fcddc3b8198208b`; alterações locais e
+  `.codex-local-evidence/` preservados.
+- Gates reexecutados no candidato: 9/9 suítes Apps Script, 143/143 testes
+  Python, sintaxe de módulos/testes JS e `Code.gs`, `git diff --check` — PASS.
+- Revisão final solicitada a `chatgpt-web/gpt-5.6-sol` após liberar slots de
+  agentes terminou antes de iniciar com `Selected model is at capacity`; não é
+  revisão, finding ou aprovação. `SOL_6_1=PENDING`; nenhum commit/push ou ganho
+  de Criterion nesta retomada.
+- HISTÓRICO SUPERSEDIDO (decisão do usuário em 2026-10-17): o texto anterior
+  dizia que a segunda atividade explícita na DRT RT-002 obrigava
+  `MANUAL_REVIEW`. O usuário decidiu que o literal exato `EXECUÇÃO` basta para
+  o fato requerido mesmo quando a DRT declara outras atividades. A
+  implementação e os testes foram ajustados para essa decisão; isso não
+  atesta competência profissional. `T1_DRT_ACTIVITY_EXECUTION` segue parcial
+  por lacunas independentes de binding, ausência/conflito e completude da
+  extração.
+- HISTÓRICO SUPERSEDIDO: tentativas anteriores de revisão Sol terminaram por
+  indisponibilidade do modelo. Em 2026-10-17 o usuário respondeu às questões
+  sobre independência em IN10/IRV, limite do sistema nas RT-005/006/014 e
+  atividades adicionais em RT-002. As decisões estão registradas nesta
+  documentação; a revisão Sol atual do lote e seu resultado devem ser
+  registrados no fechamento desta etapa.
+
+### Fechamento da formalização factual e documental — 2026-10-17
+
+- Decisões formalizadas: (1) a exigência de independência para o Criterion
+  IN10 tem fundamento na IRV Habite-se 2024, Anexo A, Tabela 4, p. 9, e no
+  art. 41 da IN 10; a precedência da IRV em fiscalização foi confirmada pelo
+  usuário; (2) compatibilidade atividade↔SMSCI em RT-005/006/014 não é
+  verificada pelo sistema; fatos e proveniência permanecem documentais;
+  (3) em RT-002, a literal exata `EXECUÇÃO` sustenta o fato requerido mesmo
+  junto de atividades adicionais, sem atestar competência profissional;
+  (4) vocabulário controlado de status considera ART/RRT/TRT sem interpretar
+  texto bruto da RDE nem criar regularização normativa.
+- Foram corrigidos os registros históricos contraditórios de IN10 e RT-002.
+  Primeira re-review Sol encontrou P2/P3 documentais e um marcador `H` ainda
+  ativo na matriz. Correções foram aplicadas; re-review independente Sol 6.1
+  final: `PASS`, achados anteriores fechados nos quatro pontos examinados,
+  `NOVOS_ACHADOS=0` no recorte.
+- Critérios integrais antes/depois: `6/29 → 6/29`; parciais: `4 → 4`;
+  pendentes de cobertura integral: `23 → 23`; blockers de decisão normativa
+  humana nesta questão: `1 → 0`. `T4_IN10_COMMISSIONING` segue bloqueado por
+  evidência/contrato técnico, não por decisão humana. Nenhum Criterion foi
+  promovido por formalização de vocabulário ou texto.
+- Testes/gates no candidato final: Python `143/143`; Apps Script `9/9`;
+  sintaxe de todos os módulos/testes JS e `Code.gs`; runtime regenerado duas
+  vezes byte-identical, SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
+  manifests e guards exercitados pela suíte Python; `git diff --check` — PASS.
+  Release build real pendente de worktree limpa após consolidação do commit.
+- Esforço: uma revisão Sol inicial (FAIL documental) e uma re-review Sol
+  focada (PASS); uma rodada consolidada de gates após correções, além dos
+  testes direcionados anteriores de RT-002/readiness/status. Benefício
+  operacional: não computar competência por atividade excedente, não fazer
+  julgamento atividade↔SMSCI reservado aos conselhos, e eliminar a falsa
+  pendência normativa de IN10, preservando as lacunas reais de evidência.
+- `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` (correlação IA),
+  `VALIDATED_TO_ANALYZED=PENDING` e `CALIBRATION_GATE=BLOCKED` permanecem
+  inalterados. Esta formalização não fecha a Fase 6.

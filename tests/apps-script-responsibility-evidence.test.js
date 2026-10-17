@@ -35,10 +35,11 @@ vm.runInContext(`globalThis.api = {
   isCanonicalResponsibilityEvidenceBinding,
   ResponsibilityEvidenceIntegrityError,
   executePlannedCriterion,
-  evaluateCriterion,
+  evaluateCriterion: evaluateCriterion_,
   PredicateRegistry,
   CriterionIR,
-  PredicateCall
+  PredicateCall,
+  responsibilityHasAcceptedDrtEvidencePredicateContract
 };`, context);
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
@@ -269,6 +270,43 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   binding, contract, base.plan, base.view
 ), true);
 
+const directRt002Criterion = new api.CriterionIR({
+  criterionId: 'T1_DRT_REQUIRED', requirementId: 'REQ_T1_DRT_REQUIRED',
+  expression: new api.PredicateCall('RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE', {
+    evidenceReferences: [new api.TypedReference('DOCUMENT', 'DRT_0')]
+  }), expectedResult: 'TRUE', traceability: { declarationSource: 'TEST_ONLY' }
+});
+const directRt002Registry = new api.PredicateRegistry([
+  api.responsibilityHasAcceptedDrtEvidencePredicateContract()
+]);
+const syntheticMemory = {
+  contains: () => true,
+  read: () => ({ RESPONSIBILITY_TYPE: 'EXECUCAO' })
+};
+assert.equal(api.evaluateCriterion(
+  directRt002Criterion, directRt002Registry, syntheticMemory
+).engineResult, 'MANUAL_REVIEW');
+assert.throws(() => api.evaluateCriterion(
+  directRt002Criterion, directRt002Registry, base.view, null, {
+    contract, plan: base.plan, unitKey: 'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)',
+    role: 'ASSERT', currentSubmissionContext: currentContext()
+  }
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+
+const directRt002ActivityCriterion = new api.CriterionIR({
+  criterionId: 'T1_DRT_ACTIVITY_EXECUTION', requirementId: 'REQ_T1_DRT_ACTIVITY_EXECUTION',
+  expression: new api.PredicateCall('RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', {
+    evidenceReferences: [new api.TypedReference('DOCUMENT', 'DRT_0')],
+    expectedActivityLiterals: ['EXECUÇÃO']
+  }), expectedResult: 'TRUE', traceability: { declarationSource: 'TEST_ONLY' }
+});
+const directRt002ActivityRegistry = new api.PredicateRegistry([
+  vm.runInContext('responsibilityDrtActivityExecutionPredicateContract()', context)
+]);
+assert.equal(api.evaluateCriterion(
+  directRt002ActivityCriterion, directRt002ActivityRegistry, syntheticMemory
+).engineResult, 'MANUAL_REVIEW');
+
 function withVmObjectPrototypeProperty(key, descriptor, callback) {
   const objectPrototype = vm.runInContext('Object.prototype', context);
   const previousDescriptor = Object.getOwnPropertyDescriptor(objectPrototype, key);
@@ -303,6 +341,9 @@ function activityCase(activityServiceText, secondActivityServiceText = null, opt
   if (options.omitActivityProvenance) {
     delete raw.drt_activity_items[0].provenance;
   }
+  if (options.omitAdditionalActivityProvenance && raw.drt_activity_items[1]) {
+    delete raw.drt_activity_items[1].provenance;
+  }
   const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
     processId: raw.process_id, sourceFileId: raw.source.file_id
   }, contract.entityCatalog);
@@ -325,7 +366,8 @@ function activityCase(activityServiceText, secondActivityServiceText = null, opt
       set: options.inheritExpectedLiteralSetter, configurable: true
     }, next);
   }
-  return run();
+  const result = run();
+  return options.returnContext ? { result, view, plan } : result;
 }
 
 function activityAbsentCase() {
@@ -382,6 +424,47 @@ assert.equal(activityPositive.trace[0].predicateId, 'RESPONSIBILITY_DRT_ACTIVITY
 assert.deepEqual(JSON.parse(JSON.stringify(activityPositive.trace.map(entry => entry.predicateId))),
   ['RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION']);
 assert.equal(activityPositive.trace[0].memoryReferences[0].identifier, 'DRT_0');
+
+const activityWithAdditionalService = activityCase('EXECUÇÃO', 'ATIVIDADE ADICIONAL NÃO CATALOGADA');
+assert.equal(activityWithAdditionalService.engineResult, 'TRUE');
+assert.equal(activityWithAdditionalService.pipelineResult, 'PASS');
+assert.deepEqual(JSON.parse(JSON.stringify(
+  activityWithAdditionalService.trace[0].documentaryEvidence[0].activityItems
+    .map(item => item.activityServiceText)
+)), ['EXECUÇÃO', 'ATIVIDADE ADICIONAL NÃO CATALOGADA']);
+const unprovenancedAdditionalService = activityCase(
+  'EXECUÇÃO', 'ATIVIDADE ADICIONAL', { omitAdditionalActivityProvenance: true }
+);
+assert.equal(unprovenancedAdditionalService.engineResult, 'TRUE');
+assert.equal(unprovenancedAdditionalService.pipelineResult, 'PASS');
+assert.equal(
+  unprovenancedAdditionalService.trace[0].documentaryEvidence[0].activityItems[1].itemProvenance,
+  null
+);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  unprovenancedAdditionalService.trace[0].documentaryEvidence[0].activityItems[0].itemProvenance
+)), { sourceKind: 'TEST_ONLY', sourceReference: 'ITEM_0' });
+
+const noExecutionDespiteAdditionalService = activityCase('INSTALAÇÃO', 'ATIVIDADE ADICIONAL');
+assert.equal(noExecutionDespiteAdditionalService.engineResult, 'MANUAL_REVIEW');
+assert.equal(noExecutionDespiteAdditionalService.pipelineResult, 'MANUAL_REVIEW');
+
+const authenticatedActivity = activityCase('EXECUÇÃO', null, { returnContext: true });
+const substitutedActivityCriterion = new api.CriterionIR({
+  criterionId: 'T1_DRT_ACTIVITY_EXECUTION', requirementId: 'REQ_T1_DRT_ACTIVITY_EXECUTION',
+  expression: new api.PredicateCall('RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', {
+    evidenceReferences: [new api.TypedReference('DOCUMENT', 'ART_0')],
+    expectedActivityLiterals: ['EXECUÇÃO']
+  }), expectedResult: 'TRUE', traceability: { declarationSource: 'TEST_ONLY' }
+});
+assert.throws(() => api.evaluateCriterion(
+  substitutedActivityCriterion, directRt002ActivityRegistry, authenticatedActivity.view,
+  null, {
+    contract, plan: authenticatedActivity.plan,
+    unitKey: 'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)',
+    role: 'ASSERT', currentSubmissionContext: currentContext()
+  }
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 const expectedActivityTrace = {
   activityItemId: 'ACT_0', drt: { kind: 'DOCUMENT', identifier: 'DRT_0' },
   activityServiceText: 'EXECUÇÃO',
@@ -439,7 +522,7 @@ try {
   vm.runInContext(`globalThis.engineArraySetOwn_ = function (array, index, value) {
     const forged = Object.assign({}, value, {
       activityServiceText: 'EXECUÇÃO', sourceText: 'FORGED'
-    });
+    })
     Object.defineProperty(array, String(index), {
       value: forged, enumerable: true, writable: true, configurable: true
     });
@@ -511,14 +594,26 @@ assert.equal(inheritedLiteralSetterAttack.pipelineResult, 'MANUAL_REVIEW');
 assert.equal(inheritedLiteralSetterAttack.trace[0].documentaryEvidence[0].activityItems[0]
   .activityServiceText, 'INSTALAÇÃO');
 for (const result of [activityAbsentCase(), activityCase('execução'),
-  activityCase('EXECUÇÃO; INSTALAÇÃO'), activityCase('EXECUÇÃO', 'INSTALAÇÃO')]) {
+  activityCase('EXECUÇÃO; INSTALAÇÃO')]) {
   assert.equal(result.engineResult, 'MANUAL_REVIEW');
   assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(Object.prototype.hasOwnProperty.call(result, 'nonconformityOnFalse'), false);
 }
 assert.equal(activityCase('EXECUÇÃO', 'EXECUÇÃO').engineResult, 'TRUE');
+const executionPlusOtherActivity = activityCase('EXECUÇÃO', 'INSTALAÇÃO');
+assert.equal(executionPlusOtherActivity.engineResult, 'TRUE');
+assert.equal(executionPlusOtherActivity.pipelineResult, 'PASS');
+assert.deepEqual(JSON.parse(JSON.stringify(
+  executionPlusOtherActivity.trace[0].documentaryEvidence[0].activityItems
+    .map(item => item.activityServiceText)
+)), ['EXECUÇÃO', 'INSTALAÇÃO']);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  executionPlusOtherActivity.trace[0].documentaryEvidence[0].activityItems
+    .map(item => item.itemProvenance.sourceReference)
+)), ['ITEM_0', 'ITEM_1']);
 const twoDrtPositive = activityMultipleDrtCase('EXECUÇÃO');
 assert.equal(twoDrtPositive.engineResult, 'TRUE');
+assert.equal(twoDrtPositive.pipelineResult, 'PASS');
 assert.deepEqual(JSON.parse(JSON.stringify(twoDrtPositive.trace[0].memoryReferences.map(ref => ref.identifier))),
   ['DRT_0', 'DRT_1']);
 const twoDrtTrace = twoDrtPositive.trace[0].documentaryEvidence.map(item => ({
@@ -531,6 +626,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(twoDrtTrace)), [
 ]);
 const twoDrtConflict = activityMultipleDrtCase('INSTALAÇÃO');
 assert.equal(twoDrtConflict.engineResult, 'MANUAL_REVIEW');
+assert.equal(twoDrtConflict.pipelineResult, 'MANUAL_REVIEW');
 assert.deepEqual(JSON.parse(JSON.stringify(twoDrtConflict.trace[0].documentaryEvidence.map(item => item.drt.identifier))),
   ['DRT_0', 'DRT_1']);
 assert.equal(twoDrtConflict.trace[0].documentaryEvidence[1].activityItems[0]
@@ -1700,13 +1796,14 @@ const omissionCriterion = new api.CriterionIR({
     expectedSmsciCode: 'SPDE', expectedActivityLiteral: 'EXECUÇÃO dos SMSCI declarados.'
   })
 });
-const omissionPublic = api.evaluateCriterion(omissionCriterion, new api.PredicateRegistry([
+assert.throws(() => api.evaluateCriterion(omissionCriterion, new api.PredicateRegistry([
   vm.runInContext('responsibilityIsSatisfiedForSmsciPredicateContract()', context)
 ]), omissionPrepared.view, null, {
-  contract, plan: omissionPrepared.plan, currentSubmissionContext: currentContext()
-});
+  contract, plan: omissionPrepared.plan,
+  unitKey: 'UNIT_KEY (REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)',
+  role: 'ASSERT', currentSubmissionContext: currentContext()
+}), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 assert.equal(omissionBinding.evidence.length >= 2, true);
-assert.equal(omissionPublic.engineResult, 'MANUAL_REVIEW');
 for (const substituted of [
   { expectedSmsciCode: 'CF', expectedActivityLiteral: 'EXECUÇÃO dos SMSCI declarados.' },
   { expectedSmsciCode: 'SPDE', expectedActivityLiteral: 'ATIVIDADE SUBSTITUÍDA' }
@@ -1717,13 +1814,14 @@ for (const substituted of [
       evidenceReferences: [new api.TypedReference('DOCUMENT', 'DRT_0')], ...substituted
     })
   });
-  const substitutedResult = api.evaluateCriterion(substitutedCriterion,
+  assert.throws(() => api.evaluateCriterion(substitutedCriterion,
     new api.PredicateRegistry([vm.runInContext(
       'responsibilityIsSatisfiedForSmsciPredicateContract()', context)]),
     omissionPrepared.view, null, {
-      contract, plan: omissionPrepared.plan, currentSubmissionContext: currentContext()
-    });
-  assert.equal(substitutedResult.engineResult, 'MANUAL_REVIEW');
+      contract, plan: omissionPrepared.plan,
+      unitKey: 'UNIT_KEY (REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)',
+      role: 'ASSERT', currentSubmissionContext: currentContext()
+    }), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 }
 
 const integrationPositive = executeSmsciCoverage([

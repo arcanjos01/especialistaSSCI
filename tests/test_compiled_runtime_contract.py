@@ -48,10 +48,14 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.5")
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.25.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.26.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
             "3.8.0",
+        )
+        self.assertEqual(
+            self.contract["knowledgeBase"]["documentVersions"]["00_engine.txt"],
+            "4.9.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
@@ -63,15 +67,15 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["06_reports.txt"],
-            "3.13.0",
+            "3.14.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["08_execution_pipeline.txt"],
-            "4.27.0",
+            "4.28.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["09_Especificacao_da_RDE.txt"],
-            "1.8.0",
+            "1.9.0",
         )
 
     def test_runtime_contract_uses_private_identity_brand_and_locked_global(self):

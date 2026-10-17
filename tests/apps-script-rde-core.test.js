@@ -840,6 +840,20 @@ const drtFactRecords = [
 ];
 const drtFactSnapshot = JSON.stringify(drtFactRecords);
 assert.doesNotThrow(() => validateRecords(drtFactRecords, compiledContract.entityCatalog));
+for (const [index, entityId] of ['ART', 'RRT', 'TRT'].entries()) {
+  const statusRecord = drtFactRecords.find(item => item.record_id === 'R_DRT_FACT_' + entityId);
+  assert.equal(statusRecord.entity_id, entityId);
+  assert.deepEqual(JSON.parse(JSON.stringify({
+    registration: statusRecord.attributes.COUNCIL_REGISTRATION_STATUS,
+    issuance: statusRecord.attributes.COUNCIL_ISSUANCE_STATUS,
+    payment: statusRecord.attributes.COUNCIL_PAYMENT_STATUS
+  })), {
+    registration: drtFactFields.COUNCIL_REGISTRATION_STATUS,
+    issuance: drtFactFields.COUNCIL_ISSUANCE_STATUS,
+    payment: drtFactFields.COUNCIL_PAYMENT_STATUS
+  }, entityId);
+  assert.equal(statusRecord.provenance.page, index + 3);
+}
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE_ABSTRACT', 'PPCI', null, 'R_DRT_SOURCE_ABSTRACT', {}, { page: 1 }),
   record('R_DRT_ABSTRACT', 'DRT', null, 'R_DRT_SOURCE_ABSTRACT',

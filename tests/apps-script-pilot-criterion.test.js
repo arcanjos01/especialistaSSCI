@@ -30,6 +30,11 @@ vm.runInContext(
   'materializeResponsibilityEvidenceBinding,' +
   'isCanonicalResponsibilityEvidenceBinding,' +
   'materializePlannedCriterion,' +
+  'evaluateCriterion: evaluateCriterion_,' +
+  'CriterionIR,' +
+  'AssertLiteral,' +
+  'Or,' +
+  'PredicateRegistry,' +
   'executePlannedCriterion,' +
   'CriterionExecutionIntegrityError' +
   '};',
@@ -37,6 +42,9 @@ vm.runInContext(
 );
 const api = context.api;
 const contract = api.COMPILED_RUNTIME_CONTRACT;
+
+assert.equal(vm.runInContext("typeof evaluateCriterion", context), 'undefined');
+assert.equal(vm.runInContext("typeof evaluateCriterion_", context), 'function');
 
 for (const name of [
   'materializePlannedCriterion',
@@ -535,11 +543,54 @@ assert.deepEqual(JSON.parse(JSON.stringify(positiveResult.trace[0].memoryReferen
   { kind: 'MANUAL', identifier: 'MANUAL_CLASSIFICATION' }
 ]);
 assert.equal(Object.hasOwn(positiveResult, 'nonconformityOnFalse'), false);
+assert.throws(() => api.evaluateCriterion(
+  positiveMaterialized.criterion, new api.PredicateRegistry([]), positive.view, null,
+  { contract, plan: positive.plan, unitKey: PILOT_UNIT, role: 'ASSERT',
+    currentSubmissionContext: null }
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 assert.throws(() => executePlannedCriterionWithoutContext(
   contract, positive.plan, PILOT_UNIT, positive.view
 ), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 assert.equal(positiveResult.traceability.declarationSource, '04_table4.txt');
 assert.equal(positiveResult.traceability.unitKey, PILOT_UNIT);
+
+function forgedAssertLiteralTrue() {
+  const literal = Object.create(api.AssertLiteral.prototype);
+  Object.defineProperties(literal, {
+    value: { value: api.EngineResult.TRUE, enumerable: true },
+    documentaryReferences: { value: [], enumerable: true }
+  });
+  return literal;
+}
+
+const forgedExecutionBinding = {
+  contract, plan: positive.plan, unitKey: PILOT_UNIT, role: 'ASSERT',
+  currentSubmissionContext: currentContext(),
+  materialized: {
+    criterion: new api.CriterionIR({
+      criterionId: 'T4_IN08_MANUAL', requirementId: 'REQ_IN08_MANUAL',
+      expression: forgedAssertLiteralTrue(),
+      expectedResult: api.EngineResult.TRUE,
+      traceability: positiveMaterialized.criterion.traceability
+    }),
+    unit: { unitKey: PILOT_UNIT }
+  }
+};
+for (const expression of [
+  forgedAssertLiteralTrue(),
+  new api.Or([forgedAssertLiteralTrue()])
+]) {
+  const forgedCriterion = new api.CriterionIR({
+    criterionId: positiveMaterialized.criterion.criterionId,
+    requirementId: positiveMaterialized.criterion.requirementId,
+    expression,
+    expectedResult: positiveMaterialized.criterion.expectedResult,
+    traceability: positiveMaterialized.criterion.traceability
+  });
+  assert.throws(() => api.evaluateCriterion(
+    forgedCriterion, new api.PredicateRegistry([]), positive.view, null, forgedExecutionBinding
+  ), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+}
 
 // RT-002 DRT presence consumes only the authenticated, type-matched binding.
 const executionDrt = prepare({ includeGas: false, executionDrts: [{
@@ -889,6 +940,9 @@ vm.runInContext(`
   });
   Object.defineProperty(globalThis, 'isImmutableExecutionView', {
     value: view => allTestViews.has(view)
+  });
+  Object.defineProperty(globalThis, 'isCanonicalCurrentSubmissionContext', {
+    value: value => value === allTestSubmissionContext
   });
   globalThis.createAllTestFixture = function (assertIr, presentEntities) {
     const requirements = Object.freeze([Object.freeze({

@@ -64,10 +64,11 @@ vm.runInContext(`globalThis.api = {
   verifyEmpiricalCalibration_,
   loadAuthenticatedCorrelationConfiguration_,
   executePlannedCriterion,
+  materializePlannedCriterion,
   PredicateCall,
   PredicateRegistry,
   CriterionIR,
-  evaluateCriterion,
+  evaluateCriterion: evaluateCriterion_,
   responsibilityHasTechnicalProductPredicateContract
 };`, context);
 const api = context.api;
@@ -620,24 +621,38 @@ assert.throws(() => api.executePlannedCriterion(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', conformity.view,
   null, conformity.submissionContext
 ));
-const directConformityCriterion = new api.CriterionIR({
-  criterionId: 'T1_CONFORMITY_REPORT', requirementId: 'REQ_T1_CONFORMITY_REPORT',
-  expression: new api.PredicateCall('RESPONSIBILITY_HAS_TECHNICAL_PRODUCT', {
-    responsibility: 'RT_002_EXECUCAO_DE_OBRA', technicalProduct: 'CONFORMITY_REPORT'
-  }), nonconformityOnFalse: 'NC_T1_003'
-});
+const conformityUnitKey = 'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)';
+const directConformityCriterion = api.materializePlannedCriterion(
+  contract, explicitConformity.plan, conformityUnitKey, explicitConformity.view
+).criterion;
 const directConformityRegistry = new api.PredicateRegistry([
   api.responsibilityHasTechnicalProductPredicateContract()
 ]);
-const directWithoutAuthenticatedContext = api.evaluateCriterion(
+assert.throws(() => api.evaluateCriterion(
   directConformityCriterion, directConformityRegistry, explicitConformity.view, null,
-  { contract, plan: explicitConformity.plan, currentSubmissionContext: null }
+  { contract, plan: explicitConformity.plan, unitKey: conformityUnitKey,
+    role: 'ASSERT', currentSubmissionContext: null }
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+assert.throws(() => api.evaluateCriterion(
+  directConformityCriterion, directConformityRegistry, explicitConformity.view, null,
+  { contract, plan: explicitConformity.plan, unitKey: conformityUnitKey,
+    role: 'ASSERT', currentSubmissionContext: otherPresentationContext }
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+const technicalProductResolver = api.responsibilityHasTechnicalProductPredicateContract();
+const technicalProductArgs = technicalProductResolver.argumentSchema.validate(
+  directConformityCriterion.expression.arguments
 );
-assert.equal(directWithoutAuthenticatedContext.engineResult, 'MANUAL_REVIEW');
-assert.equal(directWithoutAuthenticatedContext.pipelineResult, 'MANUAL_REVIEW');
-assert.equal(directWithoutAuthenticatedContext.nonconformityOnFalse, undefined);
+const directResolverWithoutAuthenticatedContext = technicalProductResolver.resolver.resolve(
+  technicalProductArgs, explicitConformity.view, {
+    requirementId: directConformityCriterion.requirementId,
+    criterionId: directConformityCriterion.criterionId,
+    compiledContract: contract,
+    executionPlan: explicitConformity.plan,
+    currentSubmissionContext: null
+  }
+);
 assert.deepEqual(JSON.parse(JSON.stringify(
-  directWithoutAuthenticatedContext.trace[0].documentaryEvidence
+  directResolverWithoutAuthenticatedContext.documentaryEvidence
 )), { reason: 'CURRENT_PRESENTATION_UNAVAILABLE' });
 context.savedArrayIsArray = vm.runInContext('Array.isArray', context);
 context.savedArrayFilter = vm.runInContext('Array.prototype.filter', context);
@@ -656,7 +671,8 @@ try {
   `, context);
   const explicitUnderPatchedArrays = api.evaluateCriterion(
     directConformityCriterion, directConformityRegistry, explicitConformity.view, null,
-    { contract, plan: explicitConformity.plan,
+    { contract, plan: explicitConformity.plan, unitKey: conformityUnitKey,
+      role: 'ASSERT',
       currentSubmissionContext: explicitConformity.submissionContext }
   );
   assert.equal(explicitUnderPatchedArrays.engineResult, 'TRUE');
