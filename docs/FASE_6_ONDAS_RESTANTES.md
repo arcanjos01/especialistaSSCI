@@ -1920,6 +1920,12 @@ normativa.
   foram re-revistos pelo GPT-6: `PASS`, P2 fechado; casos insuficientes resultam
   `MANUAL_REVIEW`/sem NC e o caso completo permanece `TRUE/PASS`. Revisão Sol
   6.1 final da Fase 6 permanece pendente; este parecer não é registrado como Sol.
-  Release build limpo ainda pendente de commit. A pasta
-  `.codex-local-evidence/` foi preservada e não faz parte das alterações
-  rastreadas.
+  Após a re-review, os gates completos passaram: Python 144/144; Apps Script
+  9/9; sintaxe todos JS/testes e `Code.gs`; runtime duplamente regenerado e
+  byte-idêntico, SHA-256 `c89480ab54b030996c7678bf72ef94b45ad3ddfd4ac83de10e872cec21952aa0`;
+  `git diff --check` PASS; validadores de manifest/versão PASS. O commit
+  `295a144cc8c765a5eb9b24aedc3eac7e94a7b0bd` foi enviado por fast-forward.
+  Release build limpo desse SHA: PASS, dez documentos, manifest 10/10, KB
+  `5.28.0`, `SOURCE_COMMIT` exato. Não há script de phase guard separado neste
+  checkout. A pasta `.codex-local-evidence/` foi preservada e não faz parte das
+  alterações rastreadas.
