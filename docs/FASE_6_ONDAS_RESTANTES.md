@@ -1494,6 +1494,12 @@ normativa.
   negativos, esse binder precisa consumir estado autenticado de ausência ou
   encaminhar a falta de inventário para insuficiência; os testes atuais incluem
   expectativas de ausência que deverão ser revistas conforme a decisão.
+- A mesma função executa cinco dos seis Criteria atualmente listados como
+  `EXECUTABLE_EXISTING`: `T4_IN08_MANUAL`, `T4_IN09_MANUAL`,
+  `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING` e
+  `T4_IN19_LEGACY_DOCUMENTATION`. Um novo gate deve preservar esses positivos
+  e somente permitir `DOCUMENT_ABSENCE`/FAIL quando o inventário autenticado
+  provar ausência; a falta de inventário não pode regredir para FAIL.
 - `ARCHITECTURAL_CONFLICT=OPEN`: foi solicitada decisão ao usuário entre
   (A) inventário FACT-ONLY completo na EXTRACTION e avaliação de ausência em
   EXECUTION, com não classificados/incompletos encaminhados a revisão, ou
