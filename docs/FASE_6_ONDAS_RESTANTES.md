@@ -1882,5 +1882,9 @@ normativa.
   candidate completos: Python 144/144; Apps Script 9/9; `node --check` em todos
   JS e sintaxe `Code.gs`; `git diff --check`; regeneração dupla byte-idêntica,
   SHA-256 `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`.
-  Manifests/phase guards passaram pela suíte Python; release build em worktree
-  limpa, commit/push ainda pendentes.
+  Manifests/phase guards passaram pela suíte Python. Commit funcional/documental
+  `fb881455483ac352ad4dd3a73e09a267bca2bf31` foi enviado por fast-forward.
+  Release build em worktree limpa desse SHA: `PASS`, 10 documentos, manifest
+  `10/10`, KB `5.27.0`, `SOURCE_COMMIT` exato. O artefato foi construído do
+  commit candidato que contém todas as alterações funcionais; o checkpoint
+  subsequente deste tracker é somente documental.
