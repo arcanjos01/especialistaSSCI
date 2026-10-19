@@ -1396,3 +1396,16 @@ normativa.
 - Commit `c45e756d0a875340f0785b474739d7347613f465` enviado por fast-forward
   para `origin/feature/apps-script-engine-core`; contagem ahead/behind `0/0`.
   Revisão Sol 6.1 final da Fase 6 permanece `PENDING`.
+
+### Validação de HEAD após reconciliação da decisão IN10 — 2026-10-19
+
+- HEAD remoto/local `c503285099476f6cf4b52d3a94c7debd32cfb702`; release build
+  executado em worktree limpa destacada: `PASS`, 10 documentos,
+  `SOURCE_COMMIT` exatamente igual ao HEAD. Python `143/143`, Apps Script
+  `9/9` e `git diff --check` passaram após a reconciliação documental da
+  decisão do usuário. SHA-256 do runtime permaneceu
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`.
+- Esse lote corrigiu a rastreabilidade da decisão IN10; não alterou runtime
+  ou Base nem aumentou cobertura: `CRITERIA_COVERED=6/29`, `PARTIAL=4`,
+  `PENDING=23`. Falta confirmar identidade do solicitante/RT e o modo mecânico
+  por fatos documentais autorizados. `SOL_REVIEW` final permanece `PENDING`.
