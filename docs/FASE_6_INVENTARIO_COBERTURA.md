@@ -1096,3 +1096,15 @@ revisar o slice antes de promoção; portanto, essas contagens são de candidate
 não constituem fechamento arquitetural da onda. `CALIBRATION_GATE=BLOCKED`,
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e `VALIDATED_TO_ANALYZED=PENDING`
 permanecem inalterados.
+
+O candidate foi commitado em `295a144cc8c765a5eb9b24aedc3eac7e94a7b0bd` e
+enviado à branch de trabalho; o tracker foi atualizado em
+`b4a3f373cc185b5d5b62fed27327cfad8109aae6`. A revisão GPT-6 inicial identificou
+P2 sobre proveniência ausente; a correção normaliza proveniência ausente para
+`null`, preserva `MANUAL_REVIEW` sem NC e foi aprovada em re-review GPT-6
+estritamente dirigida. A suíte completa pós-correção passou: Python 144/144,
+Apps Script 9/9, sintaxe JS/Code.gs, regeneração runtime byte-idêntica (SHA-256
+`c89480ab54b030996c7678bf72ef94b45ad3ddfd4ac83de10e872cec21952aa0`) e
+`git diff --check`. Release limpo do commit funcional contém 10 documentos,
+manifest 10/10, KB 5.28.0 e `SOURCE_COMMIT` exato. A aprovação Sol final da
+Fase 6 permanece pendente.
