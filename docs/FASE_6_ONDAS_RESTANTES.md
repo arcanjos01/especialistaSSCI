@@ -1605,6 +1605,10 @@ normativa.
 - `LUNA_TARGETED_RE_REVIEW=PASS` para o finding de proveniência. Isso encerra a
   revisão do candidate deste lote; a revisão Sol final da Fase 6 continua
   pendente e ainda não há promoção final da fase.
+- Checkpoint do lote consolidado e publicado em
+  `fe8b68ca4c525df0141f2dc37ddd13ba18f38f28`; `origin/feature/apps-script-engine-core`
+  foi verificado no mesmo SHA. `.codex-local-evidence/` continua não rastreado
+  e fora do commit.
 - Reconcilei a cobertura candidate em `docs/FASE_6_INVENTARIO_COBERTURA.md`:
   `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`, `COVERED=2`, `PARTIAL=8`,
   `PENDING=27`. Quatro Criteria antes marcados integrais passam a parciais,
