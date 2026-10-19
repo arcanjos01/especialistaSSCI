@@ -1738,11 +1738,15 @@ normativa.
   por JSON o envelope RDE completo antes/depois de
   `parseAndValidateOperationalRdeJson_` para ART, RRT e TRT. O teste focal foi
   executado nesta retomada — `node tests/apps-script-rde-core.test.js` — PASS.
-- Re-review independente, somente leitura e limitada ao finding P2:
-  `PASS`, zero findings. O revisor confirmou os três casos e a comparação do
-  envelope completo em `tests/apps-script-rde-core.test.js:857-890`, e a
-  implementação de parse/validação que devolve a RDE congelada em
-  `apps-script/RdeCore.js:1485-1503`. Nenhuma revisão geral foi reaberta.
+- Re-review independente, somente leitura e limitada ao finding P2, pelo
+  agente Schrodinger: `PASS`, zero findings. O revisor confirmou os três casos
+  e a comparação do envelope completo em
+  `tests/apps-script-rde-core.test.js:857-890`, e a implementação de
+  parse/validação que devolve a RDE congelada em
+  `apps-script/RdeCore.js:1485-1503`. A criação de Luna retornou limite de
+  threads; portanto a re-review específica de Luna fica `PENDING`, sem atribuir
+  a ela ou a Sol 6.1 o PASS de Schrodinger. Nenhuma revisão geral foi reaberta
+  e não houve tentativas repetidas de criação de revisor.
 - Gates no candidato local, que contém apenas documentação além do HEAD
   publicado: Python `144/144 PASS`; suítes Apps Script `9/9 PASS`; `node
   --check` em todos os módulos/testes JS e `Code.gs` PASS; regeneração do
