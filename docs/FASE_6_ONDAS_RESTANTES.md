@@ -807,7 +807,7 @@ Criterion, não uma autorização para inferir fatos ou resultados.
 
 | Criterion | Classe | Dependência concreta que falta para cobertura integral |
 |---|---|---|
-| `T1_DRT_REQUIRED` | `T` | Binding por RT-002 já prova presença; fechar seleção/consumo de todos os vínculos documentais e estados de conflito/insuficiência sem tratar vínculo ausente como prova de ausência de DRT. |
+| `T1_DRT_REQUIRED` | `T` | O caminho existencial enumera todas as DRTs explicitamente tipadas RT-002 e mantém todas no trace; nenhuma cardinalidade/seleção é exigida pela Base. Falta apenas a prova autenticada de ausência para produzir a consequência `NC_T1_001`; binding vazio continua `MANUAL_REVIEW`. |
 | `T1_DRT_REGISTERED` | `T+F` | Consumir o status de registro da DRT exata para cada RT requerida; faltam vocabulário factual verificável e binding sem confundir registro, emissão e pagamento. |
 | `T1_DRT_SIGNED` | `T+F` | Binding DRT/RT e fato que demonstre assinatura verificável; `SIGNATURE_MECHANISM` textual, isoladamente, não autentica assinatura. |
 | `T1_CONFORMITY_REPORT` | `T+C` | O ramo de associação explícita exata existe no candidato; admissão de vínculo inferido ainda depende de calibração empírica válida e caller de produção. Sem esses gates, manter inferências em revisão humana. |
@@ -1120,17 +1120,27 @@ normativa.
 
 ### Checagem do menor lote funcional — `T1_DRT_REQUIRED`
 
-- A verificação delimitada Luna confirmou que o Criterion não pode ser fechado
-  integralmente sem contrato adicional para cardinalidade, conflito e
-  insuficiência. O binding autenticado de RT-002 comprova presença positiva;
-  binding vazio não carrega semântica de ausência da DRT. A fixture de
-  multiplicidade RT-002 atual resulta `TRUE`, embora não exista contrato que
-  determine quando múltiplas evidências são inequívocas ou exigem
-  `MANUAL_REVIEW`.
-- Alternativas: (A) formalizar no contrato da Base/RDE a semântica para múltiplas
-  DRTs e completude da coleção; (B) deixar o caso múltiplo e a ausência de
-  binding em `MANUAL_REVIEW`. Recomenda-se B até A ser autorizada. Não se altera
-  o Requirement nem se converte ausência em FAIL/NC_T1_001.
+- Reauditoria do código e da fonte: `T1_DRT_REQUIRED` declara
+  `RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE(RT_002_EXECUCAO_DE_OBRA)`. O binder
+  percorre todas as formas concretas ART/RRT/TRT e inclui cada documento com o
+  fato exato `RESPONSIBILITY_TYPE=EXECUCAO`; o Engine valida e preserva todas as
+  referências. A Base não declara cardinalidade máxima nem seleção de uma
+  DRT. Portanto, multiplicidade por si só não é ambiguidade nem exige nova
+  regra: havendo uma ou mais evidências exatas, a verificação existencial é
+  `TRUE`.
+- Evidência executável já existente: `tests/apps-script-pilot-criterion.test.js`
+  cria duas DRTs RT-002, confirma que ambas entram no binding, que o resultado
+  é `TRUE` e que as duas referências aparecem no trace. Não há fundamento para
+  abrir novo executor ou contrato de cardinalidade neste Criterion.
+- Blocker residual único: zero DRTs vinculadas não prova que a DRT não foi
+  submetida. Sem inventário completo/autenticado, o resultado permanece
+  `MANUAL_REVIEW`; só uma prova explícita de `DOCUMENT_ABSENCE` poderia
+  sustentar `FALSE` e `NC_T1_001`. A cobertura integral continua bloqueada pelo
+  contrato compartilhado de inventário, não por multiplicidade.
+- Esta reauditoria não altera código, Requirement ou Criterion. Ganho de
+  cobertura: zero; reduz um blocker previamente superestimado (cardinalidade/
+  conflito) ao blocker real da prova de ausência. O teste focal será executado
+  para confirmar o comportamento descrito.
 - Resultado: integral `6/29 → 6/29`; parcial `4 → 4`; pendentes integrais
   `23 → 23`; blocker técnico compartilhável +1; decisão normativa humana +0.
   Luna executou `node tests/apps-script-pilot-criterion.test.js`,
@@ -1717,3 +1727,35 @@ normativa.
   [Confea, Resolução nº 1.137/2023](https://normativos.confea.org.br/Ementas/Visualizar?id=76099),
   [CAU/BR, Resolução nº 91/2014](https://transparencia.caubr.gov.br/resolucao91/),
   [CFT, Manual de Geração de TRT v1.2](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
+
+### Retomada dirigida — P2 da preservação integral da RDE (2026-10-19)
+
+- Estado inicial preservado: branch `feature/apps-script-engine-core`, HEAD
+  `a839af50cea797a5d5b909358c2b883ceaf0c9ec`, sincronizado com `origin`;
+  alterações locais de documentação mantidas e `.codex-local-evidence/`
+  preservado fora do Git.
+- A correção do P2 já está no histórico do HEAD (`c45e756`): o teste compara
+  por JSON o envelope RDE completo antes/depois de
+  `parseAndValidateOperationalRdeJson_` para ART, RRT e TRT. O teste focal foi
+  executado nesta retomada — `node tests/apps-script-rde-core.test.js` — PASS.
+- Re-review independente, somente leitura e limitada ao finding P2:
+  `PASS`, zero findings. O revisor confirmou os três casos e a comparação do
+  envelope completo em `tests/apps-script-rde-core.test.js:857-890`, e a
+  implementação de parse/validação que devolve a RDE congelada em
+  `apps-script/RdeCore.js:1485-1503`. Nenhuma revisão geral foi reaberta.
+- Gates no candidato local, que contém apenas documentação além do HEAD
+  publicado: Python `144/144 PASS`; suítes Apps Script `9/9 PASS`; `node
+  --check` em todos os módulos/testes JS e `Code.gs` PASS; regeneração do
+  runtime PASS e byte-idêntica, SHA-256
+  `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8` antes e
+  depois; `git diff --check` PASS. Build de release do novo SHA publicado será
+  registrado após o commit.
+- A reauditoria focal de `T1_DRT_REQUIRED` corrigiu o inventário: multiplicidade
+  não é blocker, pois o Criterion é existencial e o binder/trace preserva todas
+  as DRTs explicitamente classificadas como RT-002. O único blocker residual
+  para cobertura integral é prova autenticada de ausência/inventário completo;
+  cobertura continua sem ganho. Atualizados o inventário e a matriz de
+  dependências, sem alterar código ou semântica normativa.
+- `.codex-local-evidence/` permanece não rastreado e não será incluído no
+  commit. Próxima etapa: commit/push somente das duas atualizações de
+  documentação e build de release no SHA publicado exato.
