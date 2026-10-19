@@ -1485,6 +1485,13 @@ normativa.
   não pode converter ausência de binding RT-002 ou de atividade em
   `FALSE`/NC_T1_001/NC_T1_008. O estado conservador permanece
   `MANUAL_REVIEW`; os dois Criteria continuam parciais.
+- Ponto de código verificado: `criterionExecutionBindExists_` em
+  `apps-script/CriterionExecutionCore.js` cria atualmente uma referência
+  `DOCUMENT_ABSENCE` sempre que `referencesByEntity` retorna coleção vazia, sem
+  consultar inventário/completude. Antes de promover novos resultados
+  negativos, esse binder precisa consumir estado autenticado de ausência ou
+  encaminhar a falta de inventário para insuficiência; os testes atuais incluem
+  expectativas de ausência que deverão ser revistas conforme a decisão.
 - `ARCHITECTURAL_CONFLICT=OPEN`: foi solicitada decisão ao usuário entre
   (A) inventário FACT-ONLY completo na EXTRACTION e avaliação de ausência em
   EXECUTION, com não classificados/incompletos encaminhados a revisão, ou
