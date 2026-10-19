@@ -825,7 +825,7 @@ Criterion, não uma autorização para inferir fatos ou resultados.
 | `T4_IN09_DRT` | `T+F` | Comparar declarações explícitas de execução e vistoria/ensaio, DRTs e SMSCI de pressurização com tokens autorizados; preservar múltiplos profissionais e insuficiência. |
 | `T4_IN09_TEST_REPORT` | `T+F` | Fatos individualizados sobre os componentes requeridos pelo art. 122, vínculo explícito DRT-produto-SMSCI-atividade e assinatura verificável; não completar itens de normas NBR por inferência. |
 | `T4_IN09_CHECKLIST` | `F+T` | Evidência verificável de assinatura na checklist exata e consumo pelo predicado de produto já declarado. |
-| `T4_IN10_COMMISSIONING` | `F+T` | Fundamento normativo resolvido na decisão abaixo; faltam partes/papéis e vínculos documentais suficientes para testar independência, DRT e assinatura. Diferença de nomes não basta. |
+| `T4_IN10_COMMISSIONING` | `F+T` | Decisão operacional do usuário: basta a equipe/profissional RT do comissionamento ser distinta da pessoa solicitante; faltam fatos estruturados e autenticados para identificar esses papéis, distinguir controle de fumaça mecânico e vincular DRT/assinatura ao relatório. |
 | `T4_IN12_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório SDAI e evidência verificável de assinatura. |
 | `T4_IN15_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório sprinkler e evidência verificável de assinatura. |
 | `T4_IN18_CMAR` | `F+T` | Evidência verificável de assinatura na declaração CMAR e consumo pelo predicado já declarado; não criar RT-007 autônoma. |
@@ -840,14 +840,17 @@ que a IRV tem precedência sobre a IN para fins de fiscalização. A leitura
 anterior de que a IN 10 não dizia independência estava incorreta: o art. 41
 expressa a mesma exigência para controle de fumaça mecânico.
 
-A condição aplica-se a equipe/profissional de comissionamento sem vínculo
-técnico com o projeto ou execução, em sistema de controle de fumaça mecânico.
-“RT diferente do solicitante” isoladamente não prova independência. A decisão
-de autoridade está encerrada; `T4_IN10_COMMISSIONING` ainda depende de fatos
-documentais que permitam verificar o modo mecânico e os vínculos entre os
-participantes. Não alterar o Requirement nem generalizar para outros SMSCI.
-`NORMATIVE_INSTITUTIONAL_VALIDATION` da correlação continua separadamente
-`PENDING`.
+Para a verificação implementada no projeto, o usuário decidiu que basta a
+equipe/profissional RT que preparou o comissionamento ser distinta da pessoa
+solicitante. Esta é a decisão operacional do usuário para o sistema; não é
+redação literal da IRV. A decisão sobre a suficiência desse critério está
+encerrada. Permanecem ausentes fatos documentais estruturados e autenticados
+que identifiquem solicitante e RT autor do relatório, além de um fato que
+distinga controle de fumaça mecânico de outros casos de `SMSCI_SMOKE_CONTROL`.
+Até esses fatos existirem, não produzir resultado conclusivo, `FAIL` ou NC por
+inferência; manter revisão humana. Não generalizar esta regra para outros
+SMSCI. `NORMATIVE_INSTITUTIONAL_VALIDATION` da correlação continua
+separadamente `PENDING`.
 
 ### Dependências compartilhadas e lotes prioritários
 
@@ -859,7 +862,7 @@ participantes. Não alterar o Requirement nem generalizar para outros SMSCI.
 | 3 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 11: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR` | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
 | 4 | Comparandos tipados de pessoa jurídica, RT, endereço e área vinculados a processo/DRT/produto | 4: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA` | Fonte define comparações conservadoras; fatos do processo e relações exatas precisam existir. Bloquear resultado conclusivo se faltarem. |
 | 5 | Datas e itens de relatório estruturados com origem, associação ao produto e escopo de exaustividade | 2 principais: `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`; também requisitos de laudos/comissionamentos relacionados | Não inventar datas, conteúdo NBR ou presença de itens não extraídos. |
-| 6 | Decisão humana sobre fundamento da independência | 1: `T4_IN10_COMMISSIONING` | Bloqueado até decisão; avançar em paralelo nos lotes independentes. |
+| 6 | Fatos RDE autenticados de solicitante e RT autor do relatório, mais aplicabilidade mecânica | 1: `T4_IN10_COMMISSIONING` | A decisão operacional do usuário está registrada; não há atributos estruturados para provar os papéis/identidades nem distinguir controle mecânico. Manter revisão humana até formalizar e extrair esses fatos. |
 | 7 | Dataset rotulado, calibração por Base/tipo de vínculo e caller de produção autenticado | 1: associação inferida em `T1_CONFORMITY_REPORT` | `CALIBRATION_GATE=BLOCKED`; política 0,80 não autoriza admissão operacional sem calibração empírica. |
 
 ### Modelo de ameaça por fronteira efetiva
