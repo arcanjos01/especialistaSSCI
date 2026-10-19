@@ -1077,3 +1077,22 @@ Achados da onda fechados após revisão independente: `F6-001`, `F6-001R1`, `F6-
 Gates no functional candidate: 137 testes Python; oito suítes Apps Script; sintaxe de todos os `apps-script/*.js` e `Code.gs`; regeneração byte-idêntica de `CompiledRuntimeContract.js`; release build; phase guards; `git diff --check`. SHA-256 do runtime: `0aa193089407300efec8e7f9872ec358a71d9ab2c3ad37a843bde2a353248344`.
 
 Cobertura antes/depois: `9/31` → `9/31` (`COVERAGE_GAIN=0`). Nenhum Criterion integral foi fechado por esta infraestrutura; KB permanece em `5.16.0`. `FASE_6_STATUS=PARTIAL`; `PROMOTION=NOT_AUTHORIZED`. Próxima ação autorizada: continuar a cobertura progressiva da Fase 6 dentro dos contratos normativos existentes. Fase 7, processos reais, EXTRACTION real e OpenAI Decisions não foram iniciados.
+
+## Candidate de cobertura — T4_IN19_FINAL_VERIFICATION (2026-10-19)
+
+O executor materializa a validação documental explícita da DRT de verificação
+final da instalação elétrica de baixa tensão, com vínculo autenticado à
+apresentação corrente, documento ART/RRT/TRT, item de atividade e proveniência.
+Fixture positiva reproduz `TRUE/PASS`; item ausente ou atividade diferente
+permanece `MANUAL_REVIEW`, sem Nonconformity. Readiness comprova somente
+planejamento/materialização do unit IEL. A validação refere-se ao fato documental
+declarado e não certifica competência profissional nem, isoladamente,
+atendimento normativo.
+
+Cobertura provisória do candidate: `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`,
+`COVERED=10`, `PARTIAL=1`, `PENDING=19`, `WITHDRAWN=2`, não selecionáveis=5.
+Ganho integral nesta onda: +1 (`T4_IN19_FINAL_VERIFICATION`). Sol 6.1 ainda deve
+revisar o slice antes de promoção; portanto, essas contagens são de candidate e
+não constituem fechamento arquitetural da onda. `CALIBRATION_GATE=BLOCKED`,
+`NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e `VALIDATED_TO_ANALYZED=PENDING`
+permanecem inalterados.

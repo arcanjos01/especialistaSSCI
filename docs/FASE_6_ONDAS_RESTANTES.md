@@ -1888,3 +1888,38 @@ normativa.
   `10/10`, KB `5.27.0`, `SOURCE_COMMIT` exato. O artefato foi construído do
   commit candidato que contém todas as alterações funcionais; o checkpoint
   subsequente deste tracker é somente documental.
+
+### Onda D — DRT de verificação final elétrica IN 19 (candidate local 2026-10-19)
+
+- O contrato de `T4_IN19_FINAL_VERIFICATION` já exigia `LOW_VOLTAGE_FINAL_VERIFICATION_DRT`
+  e validava `RESPONSIBILITY_ACTIVITY_COMPATIBLE`; a fonte oficial mapeia essa
+  verificação final de instalação elétrica de baixa tensão à RT-007. A mudança
+  delimita a atividade literal a esse Requirement IN19 e preserva fora desse
+  mapping CMAR e checklist IN 09.
+- Implementado binding tipado, autenticado ao plano/contexto/apresentação atual,
+  RDE e documento ART/RRT/TRT exatos; atividade, documento, proveniência e
+  evidências constam no trace. Declaração positiva exata produz TRUE/PASS;
+  item ausente ou atividade não correspondente resulta MANUAL_REVIEW, sem
+  Nonconformity. Sem fato inventado ou regra de competência profissional.
+- Readiness agora reconhece somente o unit/Requirement/RT-007 canônico. A fixture
+  IEL comprova planejamento e materialização; os testes separados exercitam
+  execução positiva, atividade ausente e literal diferente. Houve ganho
+  operacional verificável: a unidade antes não era materializável e agora pode
+  ser executada quando a RDE validada contém o vínculo explícito.
+- Cobertura provisória do candidate: `CRITERIA_COVERED=10/29` (ganho +1),
+  `PARTIAL=1`, `PENDING=19`; nenhum blocker normativo novo. O benefício não
+  comprova correspondência normativa além da literal documental formalizada.
+- Gates consolidados: Python `144/144`; Apps Script `9/9`; sintaxe de todos os
+  módulos JS/testes e `Code.gs`; runtime regenerado duas vezes byte-idêntico,
+  SHA-256 `c89480ab54b030996c7678bf72ef94b45ad3ddfd4ac83de10e872cec21952aa0`;
+  `git diff --check` PASS. Testes de manifest/versões passaram dentro da suíte
+  Python. Nenhum script de phase guard separado existe neste checkout.
+- Revisão arquitetural independente inicial (GPT-6, somente leitura) apontou
+  um P2: provenance ausente lançava exceção ao congelar o trace. Correção e
+  regressões dirigidas para provenance ausente do registro e do documento ART
+  foram re-revistos pelo GPT-6: `PASS`, P2 fechado; casos insuficientes resultam
+  `MANUAL_REVIEW`/sem NC e o caso completo permanece `TRUE/PASS`. Revisão Sol
+  6.1 final da Fase 6 permanece pendente; este parecer não é registrado como Sol.
+  Release build limpo ainda pendente de commit. A pasta
+  `.codex-local-evidence/` foi preservada e não faz parte das alterações
+  rastreadas.

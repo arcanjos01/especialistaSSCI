@@ -1,6 +1,6 @@
 ANEXO A – Catálogo Oficial Interno das Responsabilidades Técnicas
 
-# versão 2.5
+# versão 2.6
 
 Status: Documento Normativo Interno da Base de Conhecimento
 
@@ -473,8 +473,8 @@ APPLICABLE_SMSCI: Instalação elétrica de baixa tensão, no escopo da IN 19,
 art. 18, III.
 QUALIFIED_PROFESSIONALS: NORMATIVELY_AUTHORIZED_PROFESSIONAL. Não enumerar
 profissões sem fonte autorizadora.
-COMPATIBLE_ACTIVITIES: Verificação final de instalação elétrica de baixa
-tensão conforme IN 19, art. 18, III.
+COMPATIBLE_ACTIVITIES: verificação final da instalação elétrica de baixa tensão
+MACHINE_COMPATIBLE_ACTIVITY_LITERALS: ["verificação final da instalação elétrica de baixa tensão"]
 ACCEPTED_DOCUMENTARY_EVIDENCE: DRT de verificação final da instalação elétrica.
 ASSOCIATED_TECHNICAL_PRODUCTS: `UNRESOLVED_ATTRIBUTE ASSOCIATED_TECHNICAL_PRODUCTS`;
 a IN 19, art. 18, III, exige a DRT como evidência, não define Produto Técnico
@@ -490,6 +490,8 @@ NORMATIVE_SOURCES:
 - DESCRIPTION/PURPOSE/NATURE/APPLICABLE_SMSCI/COMPATIBLE_ACTIVITIES/
   ACCEPTED_DOCUMENTARY_EVIDENCE/GENERAL_VALIDATION_CRITERIA:
   IN 19, art. 18, III e parágrafo único.
+- MACHINE_COMPATIBLE_ACTIVITY_LITERALS: literal exato da documentação exigida
+  pela IN 19, art. 18, III; sem normalização ou inferência de escopo profissional.
 - ASSOCIATED_TECHNICAL_PRODUCTS: IN 19, art. 18, III não define Produto
   Técnico da RT; `UNRESOLVED_ATTRIBUTE` conforme Documento 11, §§ 4–8.
 - OBSERVATIONS (mappings atuais/conformidade/CMAR): IN 01, art. 65 e Anexo I;

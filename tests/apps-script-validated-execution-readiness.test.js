@@ -214,6 +214,7 @@ const in19Prepared = api.prepareValidatedExecutionReadiness(
 for (const unitKey of [
   'UNIT_KEY (REQ_IN19_EXECUTION, T4_IN19_EXECUTION)',
   'UNIT_KEY (REQ_IN19_GROUNDING, T4_IN19_GROUNDING)',
+  'UNIT_KEY (REQ_IN19_FINAL_VERIFICATION, T4_IN19_FINAL_VERIFICATION)',
 ]) {
   assert.ok(in19Prepared.coverage.plannedUnitKeys.includes(unitKey), unitKey + ' planned');
   assert.ok(in19Prepared.coverage.materializableUnitKeys.includes(unitKey), unitKey + ' materializable');

@@ -150,6 +150,43 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
   metadata, unit, plan, view) {
   const validate = requirementMetadata.validate;
   if (!Array.isArray(validate) || validate.length === 0) return null;
+  if (metadata.criterionId === 'T4_IN19_FINAL_VERIFICATION') {
+    criterionExecutionRequire_(metadata.requirementId === 'REQ_IN19_FINAL_VERIFICATION' &&
+      validate.length === 1 && validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
+      Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
+      Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
+    'RT-007 final-verification VALIDATE metadata is invalid');
+    criterionExecutionRequire_(typeof resolvedRequiredTechnicalResponsibilities === 'function',
+      'canonical responsibility domain resolver is required');
+    const domain = resolvedRequiredTechnicalResponsibilities(contract, plan, view);
+    const matches = domain.filter(item => item && item.catalogIdentifier === 'RT-007' &&
+      item.requirementIds && item.requirementIds.includes('REQ_IN19_FINAL_VERIFICATION'));
+    criterionExecutionRequire_(matches.length === 1 &&
+      matches[0].responsibilityId === 'RT_007_AVALIACAO_TECNICA',
+    'the frozen plan must resolve exactly the canonical RT-007 requirement mapping');
+    const catalog = contract.responsibilityCatalog && contract.responsibilityCatalog['RT-007'];
+    const literals = catalog && catalog.machineCompatibleActivityLiterals;
+    criterionExecutionRequire_(Array.isArray(literals) && literals.length === 1 &&
+      literals[0] === 'verificação final da instalação elétrica de baixa tensão',
+    'RT-007 final-verification activity literal is invalid');
+    criterionExecutionRequire_(typeof view.referencesByEntity === 'function',
+      'ImmutableExecutionView must expose typed final-verification DRT facts');
+    const evidenceReferences = view.referencesByEntity('LOW_VOLTAGE_FINAL_VERIFICATION_DRT');
+    criterionExecutionRequire_(Array.isArray(evidenceReferences),
+      'final-verification DRT references are invalid');
+    return Object.freeze({
+      expression: new PredicateCall('RESPONSIBILITY_DRT_ACTIVITY_FINAL_VERIFICATION', {
+        evidenceReferences,
+        expectedActivityLiterals: literals
+      }),
+      binding: immutableCopy({
+        type: 'RT007_FINAL_VERIFICATION_ACTIVITY',
+        responsibility: matches[0],
+        evidenceReferences: evidenceReferences.map(criterionExecutionReferenceSnapshot_),
+        expectedActivityLiterals: literals
+      })
+    });
+  }
   if (metadata.criterionId === 'T1_DRT_ACTIVITY_EXECUTION') {
     criterionExecutionRequire_(validate.length === 1 &&
       validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
@@ -679,6 +716,7 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
   const registry = new PredicateRegistry([
     responsibilityHasAcceptedDrtEvidencePredicateContract(),
     CRITERION_EXECUTION_ACTIVITY_PREDICATE_FACTORY_(),
+    responsibilityDrtActivityFinalVerificationPredicateContract(),
     responsibilityIsSatisfiedForSmsciPredicateContract(),
     responsibilityHasTechnicalProductPredicateContract(),
     ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])

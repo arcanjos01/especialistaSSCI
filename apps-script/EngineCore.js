@@ -542,6 +542,202 @@ function responsibilityDrtActivityExecutionPredicateContract() {
   });
 }
 
+function authenticateRt007FinalVerificationPredicate_(args, memory, context) {
+  const authenticatedExecution = context &&
+    typeof isImmutableExecutionView === 'function' && isImmutableExecutionView(memory) &&
+    typeof isCanonicalCompiledRuntimeContract === 'function' &&
+      isCanonicalCompiledRuntimeContract(context.compiledContract) &&
+    typeof isCanonicalFrozenExecutionPlan === 'function' &&
+      isCanonicalFrozenExecutionPlan(context.executionPlan, context.compiledContract, memory) &&
+    typeof isCanonicalCurrentSubmissionContext === 'function' &&
+      isCanonicalCurrentSubmissionContext(context.currentSubmissionContext) &&
+    typeof selectCurrentComprovante === 'function' &&
+    context.requirementId === 'REQ_IN19_FINAL_VERIFICATION' &&
+    context.criterionId === 'T4_IN19_FINAL_VERIFICATION' &&
+    ENGINE_ARRAY_IS_ARRAY_(context.executionPlan.PLANNED_EXECUTION_UNITS);
+  if (!authenticatedExecution) return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  let plannedUnitFound = false;
+  for (let index = 0; index < context.executionPlan.PLANNED_EXECUTION_UNITS.length; index += 1) {
+    const unit = ENGINE_OWN_DATA_VALUE_(context.executionPlan.PLANNED_EXECUTION_UNITS, String(index));
+    const requirement = ENGINE_OWN_DATA_VALUE_(unit, 'requirement');
+    const criterion = ENGINE_OWN_DATA_VALUE_(unit, 'criterion');
+    if (ENGINE_OWN_DATA_VALUE_(requirement, 'id') === context.requirementId &&
+        ENGINE_OWN_DATA_VALUE_(criterion, 'id') === context.criterionId) plannedUnitFound = true;
+  }
+  if (!plannedUnitFound) return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  let selectedPresentation;
+  try {
+    getAuthenticatedPresentationIdentity(context.currentSubmissionContext);
+    selectedPresentation = selectCurrentComprovante(memory, context.currentSubmissionContext);
+  } catch (error) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  const plannedPresentation = ENGINE_OWN_DATA_VALUE_(context.executionPlan, 'selectedComprovante');
+  if (!plannedPresentation || !selectedPresentation ||
+      selectedPresentation.kind !== plannedPresentation.kind ||
+      selectedPresentation.identifier !== plannedPresentation.identifier) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  let domain;
+  let expectedReferences;
+  try {
+    domain = resolvedRequiredTechnicalResponsibilities(context.compiledContract,
+      context.executionPlan, memory);
+    expectedReferences = memory.referencesByEntity('LOW_VOLTAGE_FINAL_VERIFICATION_DRT');
+  } catch (error) {
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  }
+  let mappingCount = 0;
+  for (let index = 0; index < domain.length; index += 1) {
+    const item = domain[index];
+    const requirementIds = item && item.requirementIds;
+    let hasRequirement = false;
+    if (ENGINE_ARRAY_IS_ARRAY_(requirementIds)) {
+      for (let requirementIndex = 0; requirementIndex < requirementIds.length; requirementIndex += 1) {
+        if (requirementIds[requirementIndex] === 'REQ_IN19_FINAL_VERIFICATION') hasRequirement = true;
+      }
+    }
+    if (item && item.catalogIdentifier === 'RT-007' &&
+        item.responsibilityId === 'RT_007_AVALIACAO_TECNICA' && hasRequirement) mappingCount += 1;
+  }
+  const responsibilityCatalog = ENGINE_OWN_DATA_VALUE_(context.compiledContract, 'responsibilityCatalog');
+  const catalog = ENGINE_OWN_DATA_VALUE_(responsibilityCatalog, 'RT-007');
+  const literals = ENGINE_OWN_DATA_VALUE_(catalog, 'machineCompatibleActivityLiterals');
+  let referencesMatch = ENGINE_ARRAY_IS_ARRAY_(expectedReferences) &&
+    ENGINE_ARRAY_IS_ARRAY_(args.evidenceReferences) && args.evidenceReferences.length === expectedReferences.length;
+  if (referencesMatch) {
+    for (let index = 0; index < expectedReferences.length; index += 1) {
+      const expected = ENGINE_OWN_DATA_VALUE_(expectedReferences, String(index));
+      const reference = ENGINE_OWN_DATA_VALUE_(args.evidenceReferences, String(index));
+      if (!expected || !reference ||
+          ENGINE_OWN_DATA_VALUE_(reference, 'kind') !== ENGINE_OWN_DATA_VALUE_(expected, 'kind') ||
+          ENGINE_OWN_DATA_VALUE_(reference, 'identifier') !== ENGINE_OWN_DATA_VALUE_(expected, 'identifier') ||
+          ENGINE_OWN_DATA_VALUE_(reference, 'kind') !== 'DRT') referencesMatch = false;
+    }
+  }
+  const literalsMatch = ENGINE_ARRAY_IS_ARRAY_(literals) && literals.length === 1 &&
+    ENGINE_ARRAY_IS_ARRAY_(args.expectedActivityLiterals) && args.expectedActivityLiterals.length === literals.length &&
+    ENGINE_OWN_DATA_VALUE_(args.expectedActivityLiterals, '0') === literals[0] &&
+    literals[0] === 'verificação final da instalação elétrica de baixa tensão';
+  if (mappingCount !== 1 || !referencesMatch || !literalsMatch) {
+    const memoryReferences = [];
+    if (ENGINE_ARRAY_IS_ARRAY_(args.evidenceReferences)) {
+      for (let index = 0; index < args.evidenceReferences.length; index += 1) {
+        ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length,
+          ENGINE_OWN_DATA_VALUE_(args.evidenceReferences, String(index)));
+      }
+    }
+    return { result: EngineResult.MANUAL_REVIEW, memoryReferences };
+  }
+  return null;
+}
+
+function responsibilityDrtActivityFinalVerificationPredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_DRT_ACTIVITY_FINAL_VERIFICATION',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true }),
+      new ArgumentSpec({ name: 'expectedActivityLiterals', kind: ArgumentKind.TEXT, many: true })
+    ]),
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory, context) {
+        const gate = authenticateRt007FinalVerificationPredicate_(args, memory, context);
+        if (gate) return gate;
+        if (args.evidenceReferences.length === 0) {
+          return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [], documentaryEvidence: [] };
+        }
+        if (typeof memory.sourceDocument !== 'function' ||
+            typeof memory.entityId !== 'function' || typeof memory.drtActivityItems !== 'function' ||
+            typeof memory.provenance !== 'function') {
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: copyEvidenceReferences(), documentaryEvidence: [] };
+        }
+        const memoryReferences = [];
+        const documentaryEvidence = [];
+        let everyDeclarationVerified = true;
+        const copyEvidenceReferences = function () {
+          const copy = [];
+          for (let copyIndex = 0; copyIndex < args.evidenceReferences.length; copyIndex += 1) {
+            ENGINE_ARRAY_SET_OWN_(copy, copy.length,
+              ENGINE_OWN_DATA_VALUE_(args.evidenceReferences, String(copyIndex)));
+          }
+          return copy;
+        };
+        for (let index = 0; index < args.evidenceReferences.length; index += 1) {
+          const drt = args.evidenceReferences[index];
+          if (!(drt instanceof ENGINE_TYPED_REFERENCE_CLASS_) || drt.kind !== 'DRT' ||
+              !memory.contains(drt)) {
+            return { result: EngineResult.MANUAL_REVIEW,
+              memoryReferences: copyEvidenceReferences(), documentaryEvidence: [] };
+          }
+          const sourceDocument = memory.sourceDocument(drt);
+          if (!(sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+              sourceDocument.kind !== 'DOCUMENT' || !memory.contains(sourceDocument) ||
+          !ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_INCLUDES_, ['ART', 'RRT', 'TRT'],
+            [memory.entityId(sourceDocument)])) {
+            everyDeclarationVerified = false;
+            ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length, drt);
+            documentaryEvidence[index] = { finalVerificationDrt: drt,
+              reason: 'CONCRETE_DRT_SOURCE_UNAVAILABLE' };
+            continue;
+          }
+          let activities;
+          try {
+            activities = memory.drtActivityItems(sourceDocument);
+          } catch (error) {
+            activities = [];
+          }
+          if (!ENGINE_ARRAY_IS_ARRAY_(activities)) {
+            return { result: EngineResult.MANUAL_REVIEW,
+              memoryReferences: copyEvidenceReferences(), documentaryEvidence: [] };
+          }
+          const itemSnapshots = [];
+          let matched = false;
+          const rawSourceProvenance = memory.provenance(sourceDocument);
+          const rawRoleProvenance = memory.provenance(drt);
+          const sourceProvenance = rawSourceProvenance === undefined || rawSourceProvenance === null
+            ? null : rawSourceProvenance;
+          const roleProvenance = rawRoleProvenance === undefined || rawRoleProvenance === null
+            ? null : rawRoleProvenance;
+          for (let itemIndex = 0; itemIndex < activities.length; itemIndex += 1) {
+            const item = activities[itemIndex];
+            const itemProvenance = ENGINE_OWN_DATA_VALUE_(item, 'provenance');
+            const activityServiceText = ENGINE_OWN_DATA_VALUE_(item, 'activityServiceText');
+            const activityItemId = ENGINE_OWN_DATA_VALUE_(item, 'activityItemId');
+            const itemSourceDocument = ENGINE_OWN_DATA_VALUE_(item, 'sourceDocument');
+            const sourceText = ENGINE_OWN_DATA_VALUE_(item, 'sourceText');
+            const matchesLiteral = activityServiceText === args.expectedActivityLiterals[0] &&
+              itemSourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_ &&
+              itemSourceDocument.kind === sourceDocument.kind &&
+              itemSourceDocument.identifier === sourceDocument.identifier;
+            ENGINE_ARRAY_SET_OWN_(itemSnapshots, itemIndex, {
+              activityItemId,
+              activityServiceText,
+              sourceDocument: itemSourceDocument,
+              sourceText,
+              itemProvenance: itemProvenance === undefined ? null : itemProvenance,
+              sourceProvenance: sourceProvenance === undefined ? null : sourceProvenance
+            });
+            if (matchesLiteral && itemProvenance !== undefined && itemProvenance !== null &&
+                rawSourceProvenance !== undefined && rawSourceProvenance !== null &&
+                rawRoleProvenance !== undefined && rawRoleProvenance !== null) matched = true;
+          }
+          ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length, drt);
+          ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length, sourceDocument);
+          ENGINE_ARRAY_SET_OWN_(documentaryEvidence, index, {
+            finalVerificationDrt: drt, sourceDocument,
+            roleProvenance, sourceProvenance, activities: itemSnapshots
+          });
+          if (!matched) everyDeclarationVerified = false;
+        }
+        return { result: everyDeclarationVerified ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
+          memoryReferences, documentaryEvidence };
+      }
+    }
+  });
+}
+
 function responsibilityIsSatisfiedForSmsciPredicateContract() {
   return new PredicateContract({
     predicateId: 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI',
@@ -710,6 +906,10 @@ function responsibilityIsSatisfiedForSmsciPredicateContract() {
 
 Object.defineProperty(globalThis, 'responsibilityDrtActivityExecutionPredicateContract', {
   value: responsibilityDrtActivityExecutionPredicateContract,
+  enumerable: true, writable: false, configurable: false
+});
+Object.defineProperty(globalThis, 'responsibilityDrtActivityFinalVerificationPredicateContract', {
+  value: responsibilityDrtActivityFinalVerificationPredicateContract,
   enumerable: true, writable: false, configurable: false
 });
 Object.defineProperty(globalThis, 'responsibilityIsSatisfiedForSmsciPredicateContract', {

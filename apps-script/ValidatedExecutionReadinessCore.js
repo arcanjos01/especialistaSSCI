@@ -68,7 +68,9 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
     const argument = assertIr.arguments[0];
     return !!argument && typeof argument === 'object' && !Array.isArray(argument) &&
       Object.keys(argument).sort().join(',') === 'type,value' &&
-      argument.type === 'SYMBOL' && argument.value === 'RT_002_EXECUCAO_DE_OBRA';
+      argument.type === 'SYMBOL' &&
+      (argument.value === 'RT_002_EXECUCAO_DE_OBRA' ||
+        argument.value === 'RT_007_AVALIACAO_TECNICA');
   }
   if (assertIr.name === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI') {
     return Array.isArray(assertIr.arguments) && assertIr.arguments.length === 2 &&
@@ -132,6 +134,32 @@ function readinessPilotSupport_(unit, contract) {
   readinessRequire_(matches.length === 1,
     'COMPILED_CONTRACT_INVALID', 'planned Criterion must exist exactly once');
   const metadata = matches[0];
+  if (unit.criterion.id === 'T4_IN19_FINAL_VERIFICATION' &&
+      unit.requirement.id === 'REQ_IN19_FINAL_VERIFICATION' &&
+      unit.unitKey === 'UNIT_KEY (REQ_IN19_FINAL_VERIFICATION, T4_IN19_FINAL_VERIFICATION)') {
+    const requirements = contract.requirements.filter(item =>
+      item && item.requirementId === unit.requirement.id
+    );
+    const requirement = requirements.length === 1 ? requirements[0] : null;
+    const mappings = requirement && requirement.responsibilityMappings;
+    const validMapping = Array.isArray(mappings) && mappings.length === 1 && mappings[0] &&
+      mappings[0].catalogIdentifier === 'RT-007' &&
+      mappings[0].responsibilityId === 'RT_007_AVALIACAO_TECNICA';
+    const expectedAssert = metadata.assertIr;
+    const validAssert = expectedAssert && expectedAssert.type === 'CALL' &&
+      expectedAssert.name === 'EXISTS' && Array.isArray(expectedAssert.arguments) &&
+      expectedAssert.arguments.length === 1 && expectedAssert.arguments[0] &&
+      expectedAssert.arguments[0].type === 'SYMBOL' &&
+      expectedAssert.arguments[0].value === 'LOW_VOLTAGE_FINAL_VERIFICATION_DRT';
+    return unit.validate.length === 1 &&
+      unit.validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
+      requirement && Array.isArray(requirement.validate) && requirement.validate.length === 1 &&
+      requirement.validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
+      JSON.stringify(unit.validate) === JSON.stringify(requirement.validate) &&
+      validMapping && validAssert && Array.isArray(metadata.validate) &&
+      metadata.validate.length === 0 &&
+      readinessAssertSupported_(expectedAssert, contract, null);
+  }
   if (unit.criterion.id === 'T1_DRT_ACTIVITY_EXECUTION' &&
       unit.requirement.id === 'REQ_T1_DRT_ACTIVITY_EXECUTION') {
     const requirements = contract.requirements.filter(item =>

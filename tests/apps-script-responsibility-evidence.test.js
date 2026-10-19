@@ -447,6 +447,42 @@ function activityMixedDrtTypeCase(includeTrtActivity = true) {
   };
 }
 
+function in19FinalVerificationCase(activityText =
+  'verificação final da instalação elétrica de baixa tensão', options = {}) {
+  const raw = buildRde(['IEL'], [{
+    entityId: 'ART', attributes: { RESPONSIBILITY_TYPE: 'VISTORIA_ENSAIO' }
+  }]);
+  raw.schema_version = '0.6.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = activityText === null ? [] : [{
+    activity_item_id: 'FINAL_VERIFICATION_ACTIVITY', drt_record_id: 'DRT_0',
+    activity_service_text: activityText, source_document: 'DRT_0',
+    source_text: 'Atividade declarada: ' + activityText,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'FINAL_VERIFICATION_ACTIVITY' }
+  }];
+  raw.records.push({
+    record_id: 'ROLE_FINAL_VERIFICATION', entity_id: 'LOW_VOLTAGE_FINAL_VERIFICATION_DRT',
+    parent_record_id: null, source_document: 'DRT_0', attributes: {},
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'FINAL_VERIFICATION_ROLE' }
+  });
+  if (options.omitRoleProvenance) {
+    delete raw.records.find(record => record.record_id === 'ROLE_FINAL_VERIFICATION').provenance;
+  }
+  if (options.omitSourceDocumentProvenance) {
+    delete raw.records.find(record => record.record_id === 'DRT_0').provenance;
+  }
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  const unitKey = 'UNIT_KEY (REQ_IN19_FINAL_VERIFICATION, T4_IN19_FINAL_VERIFICATION)';
+  return { view, plan, result: api.executePlannedCriterion(contract, plan, unitKey, view) };
+}
+
 const activityPositive = activityCase('EXECUÇÃO');
 assert.equal(activityPositive.engineResult, 'TRUE');
 assert.equal(activityPositive.pipelineResult, 'PASS');
@@ -454,6 +490,38 @@ assert.equal(activityPositive.trace[0].predicateId, 'RESPONSIBILITY_DRT_ACTIVITY
 assert.deepEqual(JSON.parse(JSON.stringify(activityPositive.trace.map(entry => entry.predicateId))),
   ['RESPONSIBILITY_DRT_ACTIVITY_EXECUTION', 'RESPONSIBILITY_DRT_ACTIVITY_EXECUTION']);
 assert.equal(activityPositive.trace[0].memoryReferences[0].identifier, 'DRT_0');
+
+const in19FinalVerificationPositive = in19FinalVerificationCase();
+assert.equal(in19FinalVerificationPositive.result.engineResult, 'TRUE');
+assert.equal(in19FinalVerificationPositive.result.pipelineResult, 'PASS');
+assert.equal(in19FinalVerificationPositive.result.trace[0].predicateId,
+  'RESPONSIBILITY_DRT_ACTIVITY_FINAL_VERIFICATION');
+assert.equal(in19FinalVerificationPositive.result.nonconformityOnFalse, undefined);
+assert.equal(in19FinalVerificationPositive.result.trace[0].documentaryEvidence[0]
+  .activities[0].activityServiceText,
+'verificação final da instalação elétrica de baixa tensão');
+assert.equal(in19FinalVerificationPositive.result.trace[0].documentaryEvidence[0]
+  .sourceDocument.identifier, 'DRT_0');
+const in19FinalVerificationMissing = in19FinalVerificationCase(null);
+assert.equal(in19FinalVerificationMissing.result.engineResult, 'MANUAL_REVIEW');
+assert.equal(in19FinalVerificationMissing.result.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(in19FinalVerificationMissing.result.nonconformityOnFalse, undefined);
+const in19FinalVerificationWrongActivity = in19FinalVerificationCase('execução');
+assert.equal(in19FinalVerificationWrongActivity.result.engineResult, 'MANUAL_REVIEW');
+assert.equal(in19FinalVerificationWrongActivity.result.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(in19FinalVerificationWrongActivity.result.nonconformityOnFalse, undefined);
+for (const [provenanceGap, missingProvenanceField] of [
+  [{ omitRoleProvenance: true }, 'roleProvenance'],
+  [{ omitSourceDocumentProvenance: true }, 'sourceProvenance'],
+]) {
+  const result = in19FinalVerificationCase(
+    'verificação final da instalação elétrica de baixa tensão', provenanceGap
+  ).result;
+  assert.equal(result.engineResult, 'MANUAL_REVIEW');
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(result.nonconformityOnFalse, undefined);
+  assert.equal(result.trace[0].documentaryEvidence[0][missingProvenanceField], null);
+}
 
 const activityWithAdditionalService = activityCase('EXECUÇÃO', 'ATIVIDADE ADICIONAL NÃO CATALOGADA');
 assert.equal(activityWithAdditionalService.engineResult, 'TRUE');

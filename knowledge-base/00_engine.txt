@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.10
+# VERSION 4.11
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -218,6 +218,8 @@ DRT_SET_DRTCOVERS_ALL()
 
 ALL_DRT_HAVE_ACTIVITY()
 
+RESPONSIBILITY_DRT_ACTIVITY_FINAL_VERIFICATION()
+
 MAIN_EXECUTION_DRT()
 
 RETURNS
@@ -268,6 +270,18 @@ ALL_DRT_HAVE_ACTIVITY RETURNS TRUE ONLY WHEN EACH DRT USED AS EVIDENCE DECLARES 
 THE ENGINE SHALL NOT DETERMINE WHETHER A DECLARED DRT ACTIVITY OR SERVICE IS WITHIN A PROFESSIONAL COUNCIL'S SCOPE FOR AN SMSCI. In particular, do not infer or validate activity-to-SMSCI compatibility for RT-005, RT-006 or RT-014. Preserve and expose the literal declaration and its provenance for the inspector; absence, ambiguity or a non-matching literal shall not create an incompatibility result or Nonconformity. The separate RT-002 `EXECUÇÃO` check above tests only the explicitly required declaration and does not adjudicate professional scope.
 
 HAS_DRT_ACTIVITY ACCEPTS ONE OR MORE DRTS, INCLUDING ONE DRT WITH MORE THAN ONE EXPLICIT ACTIVITY.
+
+RESPONSIBILITY_DRT_ACTIVITY_FINAL_VERIFICATION RETURNS TRUE ONLY WHEN EACH
+selected `LOW_VOLTAGE_FINAL_VERIFICATION_DRT` fact is linked by its exact
+`source_document` to a concrete ART, RRT or TRT record, and that document has
+an individual `drt_activity_items` fact whose activity text exactly equals an
+RT-007 `MACHINE_COMPATIBLE_ACTIVITY_LITERALS` entry, with provenance on both
+the activity item and source document. The check establishes only the
+documented final-verification activity required by IN 19, art. 18, III; it
+does not determine professional competence or activity-to-SMSCI scope.
+Missing, ambiguous, unmatched, or insufficiently sourced facts return
+`MANUAL_REVIEW`, never `FALSE` or a Nonconformity when inventory and extraction
+completeness are unproven.
 
 VALID_WITHIN_YEARS RETURNS UNKNOWN WHEN THE ISSUE DATE CANNOT BE VERIFIED.
 

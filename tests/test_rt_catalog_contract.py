@@ -83,6 +83,9 @@ class RtCatalogContractTests(unittest.TestCase):
             if identifier == "RT-003":
                 self.assertRegex(entry, r'(?m)^MACHINE_COMPATIBLE_ACTIVITY_LITERALS: \["EXECUÇÃO dos SMSCI declarados\."\]$')
                 self.assertIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS", entry.split("NORMATIVE_SOURCES:", 1)[1])
+            elif identifier == "RT-007":
+                self.assertRegex(entry, r'(?m)^MACHINE_COMPATIBLE_ACTIVITY_LITERALS: \["verificação final da instalação elétrica de baixa tensão"\]$')
+                self.assertIn("IN 19, art. 18, III", entry.split("NORMATIVE_SOURCES:", 1)[1])
             elif identifier != "RT-002":
                 self.assertNotIn("MACHINE_COMPATIBLE_ACTIVITY_LITERALS:", entry)
 

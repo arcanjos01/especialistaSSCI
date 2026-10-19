@@ -46,16 +46,20 @@ class CompiledRuntimeContractTests(unittest.TestCase):
             self.contract["responsibilityCatalog"]["RT-002"]["machineCompatibleActivityLiterals"],
             ["EXECUÇÃO"],
         )
-        self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.5")
+        self.assertEqual(
+            self.contract["responsibilityCatalog"]["RT-007"]["machineCompatibleActivityLiterals"],
+            ["verificação final da instalação elétrica de baixa tensão"],
+        )
+        self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.6")
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.27.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.28.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
             "3.8.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["00_engine.txt"],
-            "4.10.0",
+            "4.11.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
@@ -67,11 +71,11 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["06_reports.txt"],
-            "3.15.0",
+            "3.16.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["08_execution_pipeline.txt"],
-            "4.29.0",
+            "4.30.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["09_Especificacao_da_RDE.txt"],
