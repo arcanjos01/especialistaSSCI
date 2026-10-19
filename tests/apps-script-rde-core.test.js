@@ -854,6 +854,36 @@ for (const [index, entityId] of ['ART', 'RRT', 'TRT'].entries()) {
   }, entityId);
   assert.equal(statusRecord.provenance.page, index + 3);
 }
+const statusLiteralCases = [
+  ['ART', 'registrada no CREA-SC', 'emitida eletronicamente', 'paga'],
+  ['RRT', 'registro provisório', 'rascunho', 'isenta de taxa'],
+  ['TRT', 'validada pelo conselho', 'aguardando emissão', 'status indisponível']
+];
+for (const [index, [entityId, registration, issuance, payment]] of statusLiteralCases.entries()) {
+  const rawStatus = record('R_RAW_STATUS_' + entityId, entityId, null,
+    'R_RAW_STATUS_' + entityId, {
+      COUNCIL_REGISTRATION_STATUS: registration,
+      COUNCIL_ISSUANCE_STATUS: issuance,
+      COUNCIL_PAYMENT_STATUS: payment
+    }, { page: index + 1, field: 'status-literal', text: 'literal-' + entityId });
+  const statusRde = {
+    ...operationalRde,
+    records: [rawStatus]
+  };
+  const validatedStatusRde = core.parseAndValidateOperationalRdeJson_(
+    JSON.stringify(statusRde), operationalExpected, compiledContract.entityCatalog
+  );
+  const roundTrippedStatusRecord = validatedStatusRde.records[0];
+  assert.deepEqual(JSON.parse(JSON.stringify([
+    roundTrippedStatusRecord.attributes.COUNCIL_REGISTRATION_STATUS,
+    roundTrippedStatusRecord.attributes.COUNCIL_ISSUANCE_STATUS,
+    roundTrippedStatusRecord.attributes.COUNCIL_PAYMENT_STATUS
+  ])), [registration, issuance, payment], entityId);
+  assert.deepEqual(JSON.parse(JSON.stringify(roundTrippedStatusRecord.provenance)), {
+    page: index + 1, field: 'status-literal', text: 'literal-' + entityId
+  }, entityId);
+  assert.equal(Object.hasOwn(roundTrippedStatusRecord.attributes, 'COUNCIL_STATUS_CLASSIFICATION'), false, entityId);
+}
 assert.throws(() => validateRecords([
   record('R_DRT_SOURCE_ABSTRACT', 'PPCI', null, 'R_DRT_SOURCE_ABSTRACT', {}, { page: 1 }),
   record('R_DRT_ABSTRACT', 'DRT', null, 'R_DRT_SOURCE_ABSTRACT',

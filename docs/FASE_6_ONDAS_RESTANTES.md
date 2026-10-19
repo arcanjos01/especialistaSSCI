@@ -1331,7 +1331,14 @@ normativa.
   revisão confirmou candidatos para os dois pares e compatibilidade com a
   regra DRT×produtos em `CorrelationCore.js:245-268`. Teste focal
   `apps-script-documentary-correlation.test.js` e `git diff --check` passaram.
-  Gates completos pós-lote, commit e push ainda pendentes.
+  Gates pós-lote completos: 143 Python, 9 suítes Apps Script, sintaxe JS e
+  Code.gs, regeneração byte-identical (SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`),
+  manifests/guards pela suíte Python e diff check — PASS. Commit/push
+  `c22d0b7568e371996cb57fb254feb8fbe986fff4` enviados por fast-forward.
+  Release real PASS em worktree limpa: 10 documentos,
+  `SOURCE_COMMIT=c22d0b7568e371996cb57fb254feb8fbe986fff4`. A revisão final
+  independente Sol 6.1 da Fase 6 continua `PENDING`.
 - Ganho: Criteria integrais `6/29 → 6/29`; parciais `4 → 4`; pendentes
   integrais `23 → 23`. Blockers fechados: 0 Criteria; cobertura adversarial
   obrigatória `19/20 → 20/20` vetores explicitamente demonstrados. Benefício:
@@ -1342,3 +1349,46 @@ normativa.
 - `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
   `VALIDATED_TO_ANALYZED=PENDING` permanecem inalterados. Nenhuma admissão
   automática real foi validada.
+
+### Fechamento da formalização preparatória de status ART/RRT/TRT — 2026-10-19
+
+- Formalização canônica confirmada em `knowledge-base/00_engine.txt` (vocabulário
+  de classificação de status) e `knowledge-base/09_Especificacao_da_RDE.txt`
+  (preservação de fatos literais): categorias separadas para registro,
+  emissão e pagamento; preservação do literal e proveniência; mapeamento
+  versionado explicitamente por tipo documental, conselho emissor e campo;
+  valor ausente/ambíguo/não mapeado permanece insuficiente, com revisão
+  humana, sem `FAIL`/Nonconformity automática. O contrato aplica-se a ART,
+  RRT e TRT.
+- Adicionado teste focal em `tests/apps-script-rde-core.test.js`: status
+  distintos e ambíguos de ART/RRT/TRT permanecem literalmente inalterados e
+  com proveniência, sem campo de classificação sintetizado pela RDE. Isso
+  verifica a fronteira FACT ONLY; não testa nem cria equivalências por
+  conselho.
+- Estado desta etapa: `STATUS_VOCABULARY_CONTRACT=FORMALIZED_PREPARATORY`;
+  `STATUS_MAPPING_ART_RRT_TRT=BLOCKED` até existirem mapeamentos versionados
+  sustentados por fonte autorizada para cada conselho/tipo/campo. A IRV
+  sustenta a condição composta de fiscalização, mas não enumera esses
+  mapeamentos. Critérios `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED` não ganham
+  cobertura integral com esta formalização.
+- Ganho funcional: Criteria integrais `6/29 → 6/29`; parciais `4 → 4`;
+  pendentes integrais `23 → 23`. Benefício contratual: os status distintos
+  seguem rastreáveis como fatos; o contrato proíbe equiparar, por exemplo,
+  “isenta de taxa” a `PAID` ou mapear “rascunho” entre conselhos sem regra
+  explícita versionada. O teste demonstra preservação no parse/validação da
+  RDE, não valida um pipeline de EXTRACTION nem classifica esses textos.
+- Gates: teste focal RDE PASS; Python `143/143`; Apps Script `9/9`; sintaxe
+  de todos os módulos/testes JS e `Code.gs`; runtime regenerado duas vezes
+  byte-identical, SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
+  manifests/guards validados pela suíte Python; `git diff --check` PASS.
+- Revisão independente Luna: primeira rodada `FAIL` (teste inicial não cobria
+  round trip RDE nem toda a proveniência; claim de benefício amplo). Correções
+  aplicadas; re-review dos findings `PASS`, efeitos colaterais zero no escopo.
+  Um ciclo de revisão/correção/re-review; nenhum finding aberto.
+- Release build: não repetido neste lote, pois não houve alteração de fonte
+  compilada da Base nem do runtime; o build real do HEAD funcional anterior
+  `c22d0b7568e371996cb57fb254feb8fbe986fff4` foi validado em worktree limpa
+  (10 documentos e SOURCE_COMMIT exato), conforme registrado acima.
+- Commit e push deste fechamento: pendentes; a revisão Sol 6.1 final da Fase 6
+  permanece `PENDING`.
