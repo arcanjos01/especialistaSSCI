@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.28.0
+# DOCUMENT_VERSION: 4.29.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.26.0
+KNOWLEDGE_BASE_VERSION: 5.27.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.9.0
+00_engine.txt: DOCUMENT_VERSION 4.10.0
 01_entities.txt: DOCUMENT_VERSION 3.8.0
 02_requirements.txt: DOCUMENT_VERSION 3.5.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.14.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.28.0
+06_reports.txt: DOCUMENT_VERSION 3.15.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.29.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.9.0
 
 END DOCUMENT_SET.
@@ -695,6 +695,23 @@ or modify it. The Engine shall never receive indeterminate or partial SMSCI
 scope.
 
 Execute all APPLICABLE_REQUIREMENTS using Process Memory.
+
+An empty entity-reference collection, missing documentary association or
+unresolved lookup in Process Memory is not proof that the corresponding
+document was not submitted. `DOCUMENT_ABSENCE` may be bound only from an
+authenticated, complete inventory for the exact presentation and RDE that
+establishes the relevant document was not submitted. The current RDE and
+Process Memory contracts do not define how the Phase 2 `DOCUMENT_STATE` values
+are represented, how inventory completeness is proved, or how the state is
+authenticated to that presentation and RDE. Until those contracts are
+reconciled, an unbindable documentary evidence input remains `UNKNOWN` for the
+affected Criterion and shall be evaluated only under that Criterion's declared
+logic. The existing pipeline normalization may route an `UNKNOWN` Criterion
+result to `MANUAL_REVIEW`; preserve Criterion-level results, declared
+composition and precedence, including an independently established `FALSE`.
+Do not derive a Requirement-level result. Preserve traceable source context;
+execution shall not synthesize `DOCUMENT_ABSENCE`, `FALSE` or a Nonconformity
+from an empty lookup.
 
 Resolve every VALIDATE declared by each APPLICABLE_REQUIREMENT.
 

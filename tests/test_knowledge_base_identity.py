@@ -25,6 +25,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.pipeline = PIPELINE.read_text(encoding="utf-8")
+        cls.engine = (KB / "00_engine.txt").read_text(encoding="utf-8")
         cls.reports = REPORTS.read_text(encoding="utf-8")
         cls.builder = load_builder()
         cls.manifest = cls.builder.parse_manifest(cls.pipeline)
@@ -35,7 +36,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.26\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.27\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -47,6 +48,38 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             self.assertTrue((KB / filename).is_file())
             self.assertRegex(version, r"^\d+\.\d+\.\d+$")
 
+    def test_document_absence_requires_exact_complete_inventory(self):
+        engine = re.sub(r"\s+", " ", self.engine)
+        pipeline = re.sub(r"\s+", " ", self.pipeline)
+        self.assertIn(
+            "DOCUMENT_ABSENCE IS VALID EVIDENCE ONLY WHEN AN AUTHENTICATED, COMPLETE DOCUMENT INVENTORY IS BOUND TO THE EXACT PRESENTATION AND RDE",
+            engine,
+        )
+        self.assertIn(
+            "AN EMPTY ENTITY COLLECTION, A MISSING DOCUMENTARY ASSOCIATION, OR AN UNRESOLVED LOOKUP DOES NOT ESTABLISH DOCUMENT_ABSENCE",
+            engine,
+        )
+        self.assertIn(
+            "An empty entity-reference collection, missing documentary association or unresolved lookup in Process Memory is not proof",
+            pipeline,
+        )
+        self.assertIn(
+            "execution shall not synthesize `DOCUMENT_ABSENCE`, `FALSE` or a Nonconformity from an empty lookup",
+            pipeline,
+        )
+        self.assertIn(
+            "the affected Criterion and shall be evaluated only under that Criterion's declared logic",
+            pipeline,
+        )
+        self.assertIn(
+            "including an independently established `FALSE`. Do not derive a Requirement-level result",
+            pipeline,
+        )
+        self.assertIn(
+            "Process Memory contracts do not define how the Phase 2 `DOCUMENT_STATE` values are represented",
+            pipeline,
+        )
+
     def test_existing_document_version_must_match_manifest(self):
         with self.assertRaises(ValueError):
             self.builder.inject_document_version(
@@ -55,7 +88,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.26.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.27.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",

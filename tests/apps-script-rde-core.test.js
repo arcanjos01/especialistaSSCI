@@ -873,6 +873,11 @@ for (const [index, [entityId, registration, issuance, payment]] of statusLiteral
   const validatedStatusRde = core.parseAndValidateOperationalRdeJson_(
     JSON.stringify(statusRde), operationalExpected, compiledContract.entityCatalog
   );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(validatedStatusRde)),
+    JSON.parse(JSON.stringify(statusRde)),
+    entityId + ' complete RDE round trip'
+  );
   const roundTrippedStatusRecord = validatedStatusRde.records[0];
   assert.deepEqual(JSON.parse(JSON.stringify([
     roundTrippedStatusRecord.attributes.COUNCIL_REGISTRATION_STATUS,

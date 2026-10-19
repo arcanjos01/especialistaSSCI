@@ -1615,3 +1615,49 @@ normativa.
   pois sua rota negativa depende de inventário autenticado que ainda não existe;
   nenhum Criterion foi contado como ganho. Permanecem 19 Criteria sem suporte
   parcial, e os demais bloqueios da Fase 6 seguem abertos.
+
+### Candidate contratual — prova de ausência documental (2026-10-19)
+
+- O usuário decidiu que coleção ou vínculo ausente não prova ausência de DRT.
+  O `00_engine.txt` também declara `DOCUMENT_ABSENCE` evidência válida, enquanto
+  `08_execution_pipeline.txt` § Phase 2 exige estados `PRESENT`/`ABSENT`/
+  `INCOMPLETE`/`UNVERIFIABLE` sem definir sua representação, teste de
+  completude ou autenticação no Process Memory. O Documento 09-RDE não contém
+  inventário documental completo. A divergência, portanto, permanece aberta
+  quanto à representação e à prova de completude.
+- Candidate local não altera a RDE: `00_engine.txt` 4.10 e
+  `08_execution_pipeline.txt` 4.29 formalizam que `DOCUMENT_ABSENCE` só pode ser
+  consumida quando ligada a inventário autenticado, completo e exato da
+  apresentação/RDE. Até resolver a representação da Phase 2, coleção vazia,
+  vínculo ausente ou lookup inconclusivo encaminha para `MANUAL_REVIEW`, sem
+  `FALSE`/NC. `06_reports.txt` foi atualizado para refletir KB 5.27.0 e versão
+  3.15.0; contrato compilado regenerado.
+- Esse ajuste formaliza o comportamento fail-closed já implementado no commit
+  `fe8b68c`; não cria uma fonte de inventário nem autoriza ausência automática.
+  Ganho integral deste candidate: zero; cobertura continua 2/29, oito parciais,
+  27 pendentes. A capacidade de provar ausência continua bloqueada até
+  reconciliar `DOCUMENT_STATE` com um artefato completo/autenticado.
+- O primeiro review Sol 6.1 encontrou P2: a redação atribuía
+  `MANUAL_REVIEW` ao Requirement e podia obscurecer composição/precedência dos
+  Criteria. A correção limita o estado não resolvido ao input documental e ao
+  Criterion afetado, exige a lógica declarada, preserva composição e `FALSE`
+  independente, mantém a normalização UNKNOWN→MANUAL_REVIEW existente e veda
+  resultado agregado de Requirement. A seção equivalente de `00_engine.txt`
+  recebeu a mesma delimitação.
+- A re-review Luna estritamente dirigida à preservação da RDE encontrou uma
+  lacuna P2 na asserção: status e proveniência eram comparados, mas o envelope
+  inteiro não. O teste agora compara por JSON o envelope RDE completo de
+  entrada e saída do parse/validate para ART, RRT e TRT. Re-review Luna dirigida
+  `PASS`; teste `node tests/apps-script-rde-core.test.js` `PASS`.
+- Re-review Sol 6.1 dirigida somente ao P2 contratual `PASS`; preservação da
+  composição e precedência confirmadas; zero findings residuais nesse escopo.
+  Revisões não executaram testes além do informado em cada re-review.
+- Gates integrais no candidate: Python `144/144 PASS`; Apps Script `9/9 PASS`;
+  `node --check` em todos os módulos/testes JS e `Code.gs` `PASS`; runtime
+  regenerado duas vezes byte-identical, SHA-256
+  `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`;
+  manifests/guards cobertos pela suíte Python; `git diff --check` `PASS`.
+  Release build exato aguarda commit limpo para preencher `SOURCE_COMMIT`.
+- Achados do lote: `0` abertos. Ganho integral deste candidate: zero; cobertura
+  permanece 2/29, oito parciais, 27 pendentes. Segue bloqueada a representação
+  autenticada de inventário completo e a prova operacional de ausência.

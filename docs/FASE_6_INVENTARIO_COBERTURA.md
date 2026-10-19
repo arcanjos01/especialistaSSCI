@@ -242,9 +242,9 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
 define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
-## Matriz por Criterion (estado reconciliado na KB 5.26.0)
+## Matriz por Criterion (estado reconciliado na KB 5.27.0)
 
-As colunas estruturais acompanham a Base vigente KB 5.26.0. Criteria retirados
+As colunas estruturais acompanham a Base vigente KB 5.27.0. Criteria retirados
 permanecem listados somente para rastreabilidade histórica e estão marcados
 `WITHDRAWN`; não integram os 34 ativos nem os 29 produtivos. Campos: Criterion,
 Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT, VALIDATE,
@@ -977,10 +977,10 @@ reconciliação operacional explicitamente identificada abaixo: 34 ativos,
 29 produtivos, 6 cobertos, 4 parciais e 23 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados na
-KB 5.26.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+KB 5.27.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada no checkpoint local RDE 0.7, KB 5.26.0; ela contém 34 Criteria e não contém os dois
+regenerada no checkpoint local RDE 0.7, KB 5.27.0; ela contém 34 Criteria e não contém os dois
 Criteria de regularidade. A applicability atual mantém cinco Criteria não
 selecionáveis, portanto 29 são produtivamente alcançáveis.
 
