@@ -1482,9 +1482,11 @@ normativa.
   `DOCUMENT_ABSENCE` como evidência para resultado.
 - Efeito direto: sem uma fonte autenticada que enumere todos os documentos da
   apresentação e identifique itens não processados/não classificados, o Engine
-  não pode converter ausência de binding RT-002 ou de atividade em
-  `FALSE`/NC_T1_001/NC_T1_008. O estado conservador permanece
-  `MANUAL_REVIEW`; os dois Criteria continuam parciais.
+  não pode converter a ausência de DRT RT-002 em `FALSE`/NC_T1_001. Isso afeta
+  diretamente `T1_DRT_REQUIRED`. Um inventário de arquivos, sozinho, não prova
+  que todas as atividades foram extraídas de cada DRT; `T1_DRT_ACTIVITY_EXECUTION`
+  precisaria de garantia separada de completude por DRT/atributo e continua
+  parcial.
 - Ponto de código verificado: `criterionExecutionBindExists_` em
   `apps-script/CriterionExecutionCore.js` cria atualmente uma referência
   `DOCUMENT_ABSENCE` sempre que `referencesByEntity` retorna coleção vazia, sem
@@ -1497,9 +1499,11 @@ normativa.
   EXECUTION, com não classificados/incompletos encaminhados a revisão, ou
   (B) manter os estados `DOCUMENT_STATE` na Fase 2 e formalizá-los na RDE.
   Nenhum contrato ou código foi alterado enquanto a decisão aguarda resposta.
-- Escopo provável se a alternativa A for autorizada: ganho máximo direto de
-  dois Criteria parciais (`T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`),
-  condicionado a fixtures para arquivo não classificado, falha/parcialidade de
-  leitura, inventário divergente, múltiplas DRTs e ausência comprovada. Não
-  resolve registro ART/RRT/TRT, assinatura, correlação calibrada ou cobertura
-  DRT-produto-SMSCI; não se atribui ganho antecipadamente.
+- Escopo provável se a alternativa A for autorizada: pode desbloquear a rota
+  negativa de um Criterion parcial, `T1_DRT_REQUIRED`, condicionado a
+  classificação documental fechada e inventário divergente/incompleto sempre
+  encaminhado a revisão. Fixtures devem cobrir arquivo não classificado,
+  falha/parcialidade de leitura, multiplicidade e ausência comprovada. Não
+  resolve completude de atividades em DRT, status ART/RRT/TRT, assinatura,
+  correlação calibrada ou cobertura DRT-produto-SMSCI; não se atribui ganho
+  antecipadamente.
