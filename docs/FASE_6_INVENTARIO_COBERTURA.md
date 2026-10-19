@@ -242,9 +242,9 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
 define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
-## Matriz por Criterion (estado reconciliado na KB 5.27.0)
+## Matriz por Criterion (estado reconciliado na KB 5.28.0)
 
-As colunas estruturais acompanham a Base vigente KB 5.27.0. Criteria retirados
+As colunas estruturais acompanham a Base vigente KB 5.28.0. Criteria retirados
 permanecem listados somente para rastreabilidade histórica e estão marcados
 `WITHDRAWN`; não integram os 34 ativos nem os 29 produtivos. Campos: Criterion,
 Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT, VALIDATE,
@@ -282,7 +282,7 @@ fonte canônica.
 | T4_IN19_APPLICABILITY_REVIEW | REQ_IN19_APPLICABILITY_REVIEW | 4 | APPLIES_TO `SMSCI_IN19_APPLICABILITY_REVIEW` | — | `LITERAL MANUAL_REVIEW` | — | — | SMSCI applicability-review | EXECUTABLE_EXISTING / literal MANUAL_REVIEW é executado e coberto | 04_table4.txt:371-385; Documento 10:480-483; apps-script/CriterionExecutionCore.js |
 | T4_IN19_EXECUTION | REQ_IN19_EXECUTION | 4 | APPLIES_TO `SMSCI_IEL` | — | `EXISTS(LOW_VOLTAGE_EXECUTION_DRT)` | — | NC_T4_012 | LOW_VOLTAGE_EXECUTION_DRT | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC; teste positivo/insuficiente e integração com readiness | decisão do usuário 2026-10-19; 04_table4.txt:393-409; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js; tests/apps-script-validated-execution-readiness.test.js |
 | T4_IN19_GROUNDING | REQ_IN19_GROUNDING | 4 | APPLIES_TO `SMSCI_IEL` | — | `EXISTS(GROUNDING_EXECUTION_DRT)` | — | NC_T4_013 | GROUNDING_EXECUTION_DRT | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC; teste positivo/insuficiente e integração com readiness | decisão do usuário 2026-10-19; 04_table4.txt:413-429; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js; tests/apps-script-validated-execution-readiness.test.js |
-| T4_IN19_FINAL_VERIFICATION | REQ_IN19_FINAL_VERIFICATION | 4 | APPLIES_TO `SMSCI_IEL` | — | `EXISTS(LOW_VOLTAGE_FINAL_VERIFICATION_DRT)` | `RESPONSIBILITY_ACTIVITY_COMPATIBLE` | NC_T4_014 | final-verification DRT, RT/activity | SOURCE_DEFINED_NEEDS_FORMALIZATION: entidade tipada como DRT não é uma referência concreta `TYPE DOCUMENT EXTENDS DRT`; RT-007 carece de literal de atividade compatível; binding e semântica de completude ausentes. Coleção vazia não prova ausência da DRT nem autoriza FAIL/NC | 04_table4.txt:433-449; 02_requirements.txt:339-351; 01_entities.txt:1609-1631; 09_Especificacao_da_RDE.txt:156-162,479-484; Anexo A RT-007; apps-script/ResponsibilityEvidenceCore.js:290 |
+| T4_IN19_FINAL_VERIFICATION | REQ_IN19_FINAL_VERIFICATION | 4 | APPLIES_TO `SMSCI_IEL` | — | `EXISTS(LOW_VOLTAGE_FINAL_VERIFICATION_DRT)` | `RESPONSIBILITY_ACTIVITY_COMPATIBLE` | NC_T4_014 | final-verification DRT, RT/activity | COVERED: atividade literal RT-007 ligada à DRT concreta ART/RRT/TRT, apresentação/RDE correntes e provenance; declaração completa produz TRUE, ausência ou insuficiência produz MANUAL_REVIEW sem NC. GPT-6 review/re-review dirigida PASS; revisão final Sol da Fase 6 pendente | 04_table4.txt:433-449; 02_requirements.txt:339-351; 01_entities.txt:1609-1631; 09_Especificacao_da_RDE.txt:156-162,479-484; Anexo A RT-007; apps-script/EngineCore.js; apps-script/CriterionExecutionCore.js; tests/apps-script-responsibility-evidence.test.js |
 | T4_IN19_LEGACY_DOCUMENTATION | REQ_IN19_LEGACY_DOCUMENTATION | 4 | APPLIES_TO `SMSCI_IEL` | — | `OR(EXISTS(LOW_VOLTAGE_EXECUTION_DRT), LITERAL MANUAL_REVIEW)` | — | — | LOW_VOLTAGE_EXECUTION_DRT | EXECUTABLE_EXISTING / executor avalia OR recursivo e MANUAL_REVIEW, unidade coberta no regime legado aplicável | 04_table4.txt:455-475; Documento 10:548-554; apps-script/CriterionExecutionCore.js |
 | T4_IN19_REGIME_REVIEW | REQ_IN19_REGIME_REVIEW | 4 | APPLIES_TO `SMSCI_IEL` | — | `LITERAL MANUAL_REVIEW` | — | — | SMSCI_IEL/regime | LEGACY_REFERENCE_NOT_PRODUCTIVE / UNRESOLVED não é emitido nem selecionado | 04_table4.txt:479-493; 02a_applicability.txt:214-236 |
 | T4_IN34_EXPLOSION_PROTECTION | REQ_IN34_EXPLOSION_PROTECTION | 4 | APPLIES_TO `M5_EXPLOSION_PROTECTION` | — | `HAS_DRT_ACTIVITY(M5_EXPLOSION_PROTECTION, EXECUCAO)` | — | NC_T4_016_01 | M5, DRT, activity | NOT_PRODUCTIVELY_REACHABLE / sem regra de applicability M5 | 04_table4.txt:499-513; 02a_applicability.txt:182-189 |
@@ -974,22 +974,22 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
-EXTRACTION, o quantitativo vigente é: 34 ativos, 29 produtivos, 9 cobertos,
-1 parcial e 20 pendentes de cobertura integral.
+EXTRACTION, o quantitativo vigente é: 34 ativos, 29 produtivos, 10 cobertos,
+1 parcial e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados na
-KB 5.27.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+KB 5.28.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada no checkpoint local RDE 0.7, KB 5.27.0; ela contém 34 Criteria e não contém os dois
+regenerada no checkpoint publicado RDE 0.7, KB 5.28.0; ela contém 34 Criteria e não contém os dois
 Criteria de regularidade. A applicability atual mantém cinco Criteria não
 selecionáveis, portanto 29 são produtivamente alcançáveis.
 
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
-| `EXECUTABLE_EXISTING` | 9 | `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_LEGACY_DOCUMENTATION`, `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`. Para os sete Criteria adicionais reconhecidos sob a decisão C, presença/declaracão documental explícita pode produzir TRUE; ausência ou cobertura de extração sem comprovação permanece MANUAL_REVIEW, sem FALSE/NC. Testes focados verificam resultado, trace e provenance; readiness comprova somente seleção e materialização da unidade. |
+| `EXECUTABLE_EXISTING` | 10 | `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_LEGACY_DOCUMENTATION`, `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_FINAL_VERIFICATION`. Para os Criteria cobertos sob a decisão C, presença/declaracão documental explícita pode produzir TRUE; ausência ou cobertura de extração sem comprovação permanece MANUAL_REVIEW, sem FALSE/NC. Testes focados verificam resultado, trace e provenance; readiness comprova somente seleção e materialização da unidade. |
 | `PARTIAL_EXECUTION_SUPPORT` | 1 | `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 13 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN19_FINAL_VERIFICATION` |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 12 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
 | `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | A decisão sobre o fundamento de independência em `T4_IN10_COMMISSIONING` foi respondida em 2026-10-17 e está registrada em `docs/FASE_6_ONDAS_RESTANTES.md` (“Decisão de fundamento IN10/IRV — resolvida pelo usuário”). A pendência factual e de formalização executável permanece; não há decisão normativa humana aberta para este ponto. |
@@ -997,9 +997,9 @@ selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=9`, `CRITERIA_PARTIAL=1` (`T1_CONFORMITY_REPORT`) e
-`CRITERIA_PENDING=20`, contando o parcial como pendente de cobertura integral.
-Há 19 Criteria sem qualquer suporte integral além do parcial. A contagem de retirados
+ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=1` (`T1_CONFORMITY_REPORT`) e
+`CRITERIA_PENDING=19`, contando o parcial como pendente de cobertura integral.
+Há 18 Criteria sem qualquer suporte integral além do parcial. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
 para 2; a decisão C agora reconhece os sete Criteria cujas rotas completas
