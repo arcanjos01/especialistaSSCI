@@ -1471,3 +1471,28 @@ normativa.
   revisão geral redundante. O próximo trabalho funcional depende de contrato
   de completude factual autorizado ou de outro conjunto de evidências já
   tipado; cobertura permanece `6/29`, `PARTIAL=4`, `PENDING=23`.
+
+### Divergência contratual sobre estado e inventário documental — 2026-10-19
+
+- `08_execution_pipeline.txt` § PHASE 2/DOCUMENT STATE manda atribuir
+  `PRESENT`/`ABSENT`/`INCOMPLETE`/`UNVERIFIABLE` a cada documento exigido pela
+  Base, enquanto § DOCUMENTARY EXTRACTION proíbe classificar relevância. O
+  Documento 09-RDE 0.7 não define coleção/estado de inventário por arquivo; suas
+  coleções factuais vazias não declaram completude, e `00_engine.txt` admite
+  `DOCUMENT_ABSENCE` como evidência para resultado.
+- Efeito direto: sem uma fonte autenticada que enumere todos os documentos da
+  apresentação e identifique itens não processados/não classificados, o Engine
+  não pode converter ausência de binding RT-002 ou de atividade em
+  `FALSE`/NC_T1_001/NC_T1_008. O estado conservador permanece
+  `MANUAL_REVIEW`; os dois Criteria continuam parciais.
+- `ARCHITECTURAL_CONFLICT=OPEN`: foi solicitada decisão ao usuário entre
+  (A) inventário FACT-ONLY completo na EXTRACTION e avaliação de ausência em
+  EXECUTION, com não classificados/incompletos encaminhados a revisão, ou
+  (B) manter os estados `DOCUMENT_STATE` na Fase 2 e formalizá-los na RDE.
+  Nenhum contrato ou código foi alterado enquanto a decisão aguarda resposta.
+- Escopo provável se a alternativa A for autorizada: ganho máximo direto de
+  dois Criteria parciais (`T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`),
+  condicionado a fixtures para arquivo não classificado, falha/parcialidade de
+  leitura, inventário divergente, múltiplas DRTs e ausência comprovada. Não
+  resolve registro ART/RRT/TRT, assinatura, correlação calibrada ou cobertura
+  DRT-produto-SMSCI; não se atribui ganho antecipadamente.
