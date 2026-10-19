@@ -1787,8 +1787,10 @@ normativa.
   Gates consolidados: Python `144/144`; Apps Script `9/9`; sintaxe de todos os
   módulos/testes JS e `Code.gs` PASS; runtime regenerado duas vezes byte-idêntico
   com SHA-256 `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`;
-  `git diff --check` PASS. Manifest, phase guards e release serão validados no
-  checkpoint publicado após commit.
+  `git diff --check` PASS. Release build limpo do commit
+  `01faeaf9091d0e2e32fb56a1dfd4a7c820d362b4` PASS: 10 documentos, manifest
+  `10/10`, KB `5.27.0`, `SOURCE_COMMIT` exato. Phase guards foram exercitados
+  pela suíte Python. O teste não altera código/runtime.
 - Ganho de Criteria integrais: `2/29 → 2/29`; parciais: `8 → 8`; pendentes
   integrais: `19 → 19`. Blockers encerrados: `0`; novos: `0`. Benefício
   verificável: cobre a execução positiva e a insuficiência para os três tipos
