@@ -1545,3 +1545,23 @@ normativa.
 - Não há ganho de cobertura nesta retomada. O teste focal RDE passou; as gates
   completas e o release build continuam válidos para o checkpoint publicado
   `fcf39dc`.
+
+### Revalidação dos gates no HEAD `23807d5` (2026-10-19)
+
+- Estado reconciliado: HEAD local/remoto
+  `23807d5b83a7cc8003381e177e38099733df0fec`; worktree rastreada limpa;
+  `.codex-local-evidence/` preservado. Nenhuma alteração de código ou Base
+  desde os checkpoints anteriores.
+- Python `143/143 PASS`; suítes Apps Script `9/9 PASS`; `node --check` em todos
+  os módulos/testes JavaScript e em `Code.gs` — PASS.
+- Runtime regenerado duas vezes byte-identical; SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`.
+- Release build PASS em worktree destacada e limpa, com os dez documentos do
+  manifest, `KNOWLEDGE_BASE_VERSION=5.26.0` e
+  `SOURCE_COMMIT=23807d5b83a7cc8003381e177e38099733df0fec` exato. Guards de
+  manifest/fase cobertos pela suíte Python; `git diff --check` PASS.
+- A validação apenas confirma o checkpoint publicado: cobertura continua
+  `6/29` integral, `4` parcial e `23` pendentes; não houve revisão de candidato
+  nem aprovação Sol nova. `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+  `VALIDATED_TO_ANALYZED=PENDING` permanecem.
