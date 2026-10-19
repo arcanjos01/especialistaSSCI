@@ -1799,3 +1799,43 @@ normativa.
   omitida não prova que a DRT não a declare. Esforço automatizado foi inferior
   a um minuto de execução; uma revisão e uma re-review dirigidas, sem revisão
   geral.
+
+### Diagnóstico do intake para prova de inventário completo (2026-10-19)
+
+- No HEAD `846a531564e30d0600b01c257b71e5d920eaabc8`, `scanInputFolder()` em
+  `apps-script/Code.gs:288-377` enumera arquivos da pasta `00_ENTRADA`, cria
+  `PROCESS_ID` a partir do `fileId` e registra cada arquivo como uma linha e um
+  processo individual. O registro contém um único `SOURCE_FILE_ID`; não agrupa
+  anexos por protocolo nem emite declaração de fechamento do conjunto ou de
+  cobertura completa da extração. A indexação subsequente move esse arquivo
+  para a pasta associada ao seu próprio processo.
+- Portanto, a enumeração atual da pasta, a ausência de binding na RDE e a linha
+  individual do registro não provam que todos os documentos daquele processo
+  institucional foram recebidos ou extraídos. Não usar esse snapshot como
+  `DOCUMENT_ABSENCE` nem implementar consequência negativa com base nele.
+- A decisão/fonte ainda pendente é qual artefato confiável poderá atestar a
+  completude do conjunto e da extração: manifesto autenticado de intake; estado
+  explícito emitido pelo sistema institucional; ou nenhuma fonte disponível,
+  mantendo ausência em revisão humana. Não houve resposta à consulta; nenhum
+  desses cenários foi assumido e nenhum processo institucional real foi
+  acessado.
+- Sem mudança de código ou de cobertura. O registro estreita o blocker
+  compartilhado para os Criteria cuja rota negativa exige ausência comprovada;
+  o restante da Fase 6 segue em trabalho independente onde houver contrato e
+  fato suficientes.
+
+### Triagem independente Luna — menor Criterion integral disponível (2026-10-19)
+
+- Luna (`luna_economy`) examinou somente a matriz produtiva e os contratos
+  apontados no HEAD `846a531`; conclusão: nenhum Criterion restante pode ser
+  integralmente concluído sem novo fato documental, semântica/decisão humana,
+  calibração ou integração externa. Isso confirma os blockers da matriz, mas não
+  é revisão de código nem aprovação Sol.
+- O candidato superficial `T4_IN09_CHECKLIST` também exige
+  `TECHNICAL_PRODUCT_ATTRIBUTE(..., SIGNED)`; `SIGNATURE_MECHANISM` textual não
+  autentica assinatura, então o Engine encaminha para `MANUAL_REVIEW`. Registro
+  e `DRT_COVERS` têm igualmente dependências factuais/semânticas versionadas.
+- Resultado: nenhuma implementação autorizada que aumente Criteria integrais
+  foi identificada nessa matriz; não se introduziu camada preparatória. A
+  análise foi read-only. A Onda D continua aberta à resposta do usuário sobre a
+  fonte de inventário e às dependências específicas já enumeradas.
