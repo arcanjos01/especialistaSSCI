@@ -1390,5 +1390,6 @@ normativa.
   compilada da Base nem do runtime; o build real do HEAD funcional anterior
   `c22d0b7568e371996cb57fb254feb8fbe986fff4` foi validado em worktree limpa
   (10 documentos e SOURCE_COMMIT exato), conforme registrado acima.
-- Commit e push deste fechamento: pendentes; a revisão Sol 6.1 final da Fase 6
-  permanece `PENDING`.
+- Commit `c45e756d0a875340f0785b474739d7347613f465` enviado por fast-forward
+  para `origin/feature/apps-script-engine-core`; contagem ahead/behind `0/0`.
+  Revisão Sol 6.1 final da Fase 6 permanece `PENDING`.
