@@ -1657,7 +1657,9 @@ normativa.
   regenerado duas vezes byte-identical, SHA-256
   `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`;
   manifests/guards cobertos pela suíte Python; `git diff --check` `PASS`.
-  Release build exato aguarda commit limpo para preencher `SOURCE_COMMIT`.
+  Release build em clone limpo do checkpoint `fc3fb760e5dc58a0fb9b381443d583c0938d2c99`
+  `PASS`: dez documentos; parser canônico confirmou manifest `10/10`;
+  `KNOWLEDGE_BASE_VERSION=5.27.0` e `SOURCE_COMMIT` igual ao SHA do checkpoint.
 - Achados do lote: `0` abertos. Ganho integral deste candidate: zero; cobertura
   permanece 2/29, oito parciais, 27 pendentes. Segue bloqueada a representação
   autenticada de inventário completo e a prova operacional de ausência.
