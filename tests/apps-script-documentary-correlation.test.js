@@ -850,16 +850,28 @@ const missingConformityResult = api.executePlannedCriterion(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT, T1_CONFORMITY_REPORT)', missingConformity.view,
   null, missingConformity.submissionContext
 );
-assert.equal(missingConformityResult.engineResult, 'FALSE');
-assert.equal(missingConformityResult.pipelineResult, 'FAIL');
-assert.equal(missingConformityResult.nonconformityOnFalse, 'NC_T1_003');
+assert.equal(missingConformityResult.engineResult, 'MANUAL_REVIEW');
+assert.equal(missingConformityResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(missingConformityResult.nonconformityOnFalse, undefined);
 const missingConformityTrace = missingConformityResult.trace.find(
   entry => entry.predicateId === 'RESPONSIBILITY_HAS_TECHNICAL_PRODUCT'
 );
 assert.deepEqual(JSON.parse(JSON.stringify(missingConformityTrace.memoryReferences)), [
   { kind: 'DOCUMENT', identifier: 'DRT_1' },
-  { kind: 'DOCUMENT_ABSENCE', identifier: 'CONFORMITY_REPORT' }
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
 ]);
+assert.deepEqual(JSON.parse(JSON.stringify(missingConformityTrace.documentaryEvidence)), {
+  entityId: 'CONFORMITY_REPORT',
+  reason: 'DOCUMENT_INVENTORY_UNAVAILABLE',
+  selectedDocument: {
+    reference: { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' },
+    sourceDocument: { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'CURRENT' }
+  }
+});
+assert.ok(!missingConformityResult.trace.some(entry => entry.memoryReferences.some(
+  reference => reference.kind === 'DOCUMENT_ABSENCE'
+)));
 
 const missingRt = prepare({ drts: [], products: [] });
 const missingRtResult = api.executePlannedCriterion(

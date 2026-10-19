@@ -1565,3 +1565,49 @@ normativa.
   nem aprovação Sol nova. `CALIBRATION_GATE=BLOCKED`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
   `VALIDATED_TO_ANALYZED=PENDING` permanecem.
+
+### Retomada local dirigida — ausência sem inventário (2026-10-19)
+
+- Base de retomada: branch `feature/apps-script-engine-core`, HEAD
+  `1aa958852c730a0cd1d06689c8fde3e6a5218831`, sincronizado com `origin` antes
+  da edição; `.codex-local-evidence/` permaneceu intocado e não rastreado.
+- O P2 do teste de preservação integral da RDE permanece corrigido e aprovado
+  no commit `c45e756`; reexecução `node tests/apps-script-rde-core.test.js` —
+  PASS. Esta retomada não reabriu sua revisão.
+- Correção deste lote: coleção vazia de `EXISTS` e ausência de
+  produto em `RESPONSIBILITY_HAS_TECHNICAL_PRODUCT` agora resulta em
+  `MANUAL_REVIEW` com referência ao documento selecionado e motivo
+  `DOCUMENT_INVENTORY_UNAVAILABLE`; não fabrica `DOCUMENT_ABSENCE` nem emite
+  Nonconformity. Positivos permanecem inalterados.
+- Regressões focadas: `node tests/apps-script-pilot-criterion.test.js` e
+  `node tests/apps-script-documentary-correlation.test.js` — PASS. Os testes
+  mantêm os casos antes negativos e verificam insuficiência, ausência de NC e
+  ausência de referências fabricadas; o caso de composição `ALL` permanece
+  coberto e agora exige revisão quando um membro não tem inventário.
+- Primeira re-review Luna dirigida encontrou um P2: o caminho vazio de
+  `RESPONSIBILITY_HAS_TECHNICAL_PRODUCT` preservava a referência selecionada,
+  mas omitia sua proveniência/sourceDocument. Corrigido no trace de
+  `documentaryEvidence.selectedDocument`; a regressão agora compara reference,
+  sourceDocument e provenance exatos.
+- Re-review Luna dirigida apenas a esse P2: `PASS`; finding encerrado, sem
+  regressão imediata no shape do trace. O revisor não executou testes; os gates
+  abaixo foram executados após a correção.
+- Gates executados no candidate local: `python -m unittest discover -s tests
+  -p 'test*.py'` — `143/143 PASS`; nove suítes Apps Script — PASS; `node
+  --check` para todos `apps-script/*.js` e `tests/*.js`, sintaxe de
+  `apps-script/Code.gs` e `git diff --check` — PASS. Regeneração duas vezes
+  byte-identical; SHA-256 de `CompiledRuntimeContract.js`:
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`.
+- Build de release em clone limpo do HEAD publicado `1aa958852c730a0cd1d06689c8fde3e6a5218831`
+  — PASS, dez documentos e manifest íntegro. O builder recusa o worktree local
+  sujo; portanto este resultado valida o checkpoint publicado, não promove o
+  candidate local.
+- `LUNA_TARGETED_RE_REVIEW=PASS` para o finding de proveniência. Isso encerra a
+  revisão do candidate deste lote; a revisão Sol final da Fase 6 continua
+  pendente e ainda não há promoção final da fase.
+- Reconcilei a cobertura candidate em `docs/FASE_6_INVENTARIO_COBERTURA.md`:
+  `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`, `COVERED=2`, `PARTIAL=8`,
+  `PENDING=27`. Quatro Criteria antes marcados integrais passam a parciais,
+  pois sua rota negativa depende de inventário autenticado que ainda não existe;
+  nenhum Criterion foi contado como ganho. Permanecem 19 Criteria sem suporte
+  parcial, e os demais bloqueios da Fase 6 seguem abertos.

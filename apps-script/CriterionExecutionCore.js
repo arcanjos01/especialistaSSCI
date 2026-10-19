@@ -55,7 +55,7 @@ function criterionExecutionFindCriterion_(contract, criterionId) {
   return matches[0];
 }
 
-function criterionExecutionBindExists_(contract, view, argument) {
+function criterionExecutionBindExists_(contract, plan, view, unit, argument) {
   criterionExecutionRequire_(argument && argument.type === 'SYMBOL' &&
     typeof argument.value === 'string' && argument.value,
   'EXISTS requires one canonical entity symbol');
@@ -78,20 +78,22 @@ function criterionExecutionBindExists_(contract, view, argument) {
       })
     });
   }
-  const absence = new TypedReference('DOCUMENT_ABSENCE', entityId);
+  const selected = criterionExecutionSelectedDocumentContext_(plan, view);
   return Object.freeze({
-    expression: new Exists(absence),
-    binding: Object.freeze({
+    expression: new AssertLiteral(EngineResult.MANUAL_REVIEW, [selected.reference]),
+    binding: immutableCopy({
+      type: 'EXISTS',
       entityId,
       matchedCount: 0,
-      witness: criterionExecutionReferenceSnapshot_(absence),
-      sourceDocument: criterionExecutionReferenceSnapshot_(absence)
+      status: 'UNVERIFIED',
+      reason: 'DOCUMENT_INVENTORY_UNAVAILABLE',
+      selectedDocument: selected.document
     })
   });
 }
 
-function criterionExecutionBindTechnicalProductAttribute_(contract, view, technicalProduct,
-  evidenceAttribute) {
+function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, unit,
+  technicalProduct, evidenceAttribute) {
   criterionExecutionRequire_(typeof technicalProduct === 'string' && technicalProduct,
     'TECHNICAL_PRODUCT_ATTRIBUTE requires one canonical technical product');
   criterionExecutionRequire_(evidenceAttribute === 'SIGNED',
@@ -106,16 +108,28 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, view, techni
     'execution view returned an invalid technical product reference collection');
   criterionExecutionRequire_(references.length <= 1,
     'TECHNICAL_PRODUCT_ATTRIBUTE does not support multiple technical product records');
-  const product = references.length === 1 ? references[0] :
-    new TypedReference('DOCUMENT_ABSENCE', technicalProduct);
-  if (references.length === 1) {
-    criterionExecutionRequire_(product instanceof TypedReference && view.contains(product) &&
-      view.entityId(product) === technicalProduct,
-    'technical product reference does not match its canonical entity');
+  if (references.length === 0) {
+    const selected = criterionExecutionSelectedDocumentContext_(plan, view);
+    return Object.freeze({
+      expression: new AssertLiteral(EngineResult.MANUAL_REVIEW, [selected.reference]),
+      binding: immutableCopy({
+        type: 'TECHNICAL_PRODUCT_ATTRIBUTE',
+        technicalProduct,
+        attribute: evidenceAttribute,
+        matchedCount: 0,
+        status: 'UNVERIFIED',
+        reason: 'DOCUMENT_INVENTORY_UNAVAILABLE',
+        selectedDocument: selected.document
+      })
+    });
   }
-  const sourceDocument = references.length === 1 ? view.sourceDocument(product) : product;
+  const product = references[0];
+  criterionExecutionRequire_(product instanceof TypedReference && view.contains(product) &&
+    view.entityId(product) === technicalProduct,
+  'technical product reference does not match its canonical entity');
+  const sourceDocument = view.sourceDocument(product);
   criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
-    (references.length === 0 || sourceDocument.kind === 'DOCUMENT'),
+    sourceDocument.kind === 'DOCUMENT',
   'technical product has an invalid source document');
   return Object.freeze({
     expression: new PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE', {
@@ -127,8 +141,7 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, view, techni
       attribute: evidenceAttribute,
       matchedCount: references.length,
       sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
-      provenance: references.length === 0 || view.provenance(product) === undefined
-        ? null : view.provenance(product)
+      provenance: view.provenance(product) === undefined ? null : view.provenance(product)
     })
   });
 }
@@ -160,7 +173,7 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
     requirementMetadata.evidenceAttributes.length === 1 &&
     requirementMetadata.evidenceAttributes[0] === 'SIGNED',
   'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE metadata is invalid');
-  return criterionExecutionBindTechnicalProductAttribute_(contract, view,
+  return criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, unit,
     requirementMetadata.technicalProduct, requirementMetadata.evidenceAttributes[0]);
 }
 
@@ -212,17 +225,35 @@ function criterionExecutionDocumentTrace_(view, reference, expectedSourceDocumen
   });
 }
 
-function criterionExecutionLiteralContext_(plan, view, unit) {
+function criterionExecutionSelectedDocumentContext_(plan, view) {
   const selected = plan.selectedComprovante;
   criterionExecutionRequire_(selected && selected.kind === 'DOCUMENT' &&
     typeof selected.identifier === 'string' && selected.identifier,
-  'literal ASSERT requires the authenticated selected comprovante');
+  'documentary review requires the authenticated selected comprovante');
   const selectedReference = new TypedReference(selected.kind, selected.identifier);
   criterionExecutionRequire_(view.contains(selectedReference),
     'selected comprovante does not belong to the execution view');
-  const selectedDocumentTrace = criterionExecutionDocumentTrace_(
-    view, selected, selected
-  );
+  const sourceDocument = view.sourceDocument(selectedReference);
+  criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
+    sourceDocument.kind === 'DOCUMENT' && view.contains(sourceDocument),
+  'selected comprovante has an invalid source document');
+  return Object.freeze({
+    reference: selectedReference,
+    document: immutableCopy({
+      reference: criterionExecutionReferenceSnapshot_(selectedReference),
+      sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
+      provenance: typeof view.provenance !== 'function' ||
+        view.provenance(selectedReference) === undefined
+        ? null : immutableCopy(view.provenance(selectedReference))
+    })
+  });
+}
+
+function criterionExecutionLiteralContext_(plan, view, unit) {
+  const selectedContext = criterionExecutionSelectedDocumentContext_(plan, view);
+  const selected = plan.selectedComprovante;
+  const selectedReference = selectedContext.reference;
+  const selectedDocumentTrace = selectedContext.document;
   const references = [selectedReference];
   const derivations = (plan.derivedDecisions || []).filter(item =>
     item && item.target === unit.appliesTo
@@ -443,7 +474,7 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         'TECHNICAL_PRODUCT_ATTRIBUTE attribute argument');
       criterionExecutionRequire_(product.type === 'SYMBOL' && attribute.type === 'SYMBOL',
         'TECHNICAL_PRODUCT_ATTRIBUTE arguments must be canonical symbols');
-      return criterionExecutionBindTechnicalProductAttribute_(contract, view,
+      return criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, unit,
         product.value, attribute.value);
     }
     if (assertIr.name === 'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE') {
@@ -478,7 +509,7 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
       'EXISTS must declare exactly one argument');
     const argument = assertIr.arguments[0];
     criterionExecutionRequireKeys_(argument, ['type', 'value'], 'EXISTS argument');
-    return criterionExecutionBindExists_(contract, view, argument);
+    return criterionExecutionBindExists_(contract, plan, view, unit, argument);
   }
   if (assertIr.type === 'LITERAL') {
     criterionExecutionRequireKeys_(assertIr, ['type', 'value'], 'LITERAL');

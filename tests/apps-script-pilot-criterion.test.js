@@ -659,14 +659,17 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
 assert.equal(negativeResult.unitKey, PILOT_UNIT);
-assert.equal(negativeResult.engineResult, api.EngineResult.FALSE);
-assert.equal(negativeResult.pipelineResult, 'FAIL');
-assert.equal(negativeResult.nonconformityOnFalse, 'NC_T4_003');
+assert.equal(negativeResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(negativeResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(negativeResult.nonconformityOnFalse, undefined);
 assert.deepEqual(JSON.parse(JSON.stringify(negativeResult.trace[0].memoryReferences)), [
-  { kind: 'DOCUMENT_ABSENCE', identifier: 'GAS_OWNER_MANUAL' }
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
 ]);
-assert.deepEqual(JSON.parse(JSON.stringify(negativeResult.traceability.documentaryBinding.sourceDocument)),
-  { kind: 'DOCUMENT_ABSENCE', identifier: 'GAS_OWNER_MANUAL' });
+assert.deepEqual(JSON.parse(JSON.stringify(
+  negativeResult.traceability.documentaryBinding.selectedDocument.reference
+)), { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' });
+assert.equal(negativeResult.traceability.documentaryBinding.reason,
+  'DOCUMENT_INVENTORY_UNAVAILABLE');
 
 assert.equal(
   contract.entityCatalog.PRESSURIZATION_OPERATION_MANUAL.TYPE,
@@ -725,13 +728,15 @@ const missingPressurizationManualResult = api.executePlannedCriterion(
   contract, missingPressurizationManual.plan, PRESSURIZATION_MANUAL_UNIT,
   missingPressurizationManual.view
 );
-assert.equal(missingPressurizationManualResult.engineResult, api.EngineResult.FALSE);
-assert.equal(missingPressurizationManualResult.pipelineResult, 'FAIL');
-assert.equal(missingPressurizationManualResult.nonconformityOnFalse, 'NC_T4_006');
+assert.equal(missingPressurizationManualResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(missingPressurizationManualResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(missingPressurizationManualResult.nonconformityOnFalse, undefined);
 assert.deepEqual(
   JSON.parse(JSON.stringify(missingPressurizationManualResult.trace[0].memoryReferences)),
-  [{ kind: 'DOCUMENT_ABSENCE', identifier: 'PRESSURIZATION_OPERATION_MANUAL' }]
+  [{ kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }]
 );
+assert.equal(missingPressurizationManualResult.traceability.documentaryBinding.reason,
+  'DOCUMENT_INVENTORY_UNAVAILABLE');
 const wrongManualEntity = prepare({
   includeGas: false,
   includeManual: true,
@@ -742,12 +747,14 @@ const wrongManualEntityResult = api.executePlannedCriterion(
   contract, wrongManualEntity.plan, PRESSURIZATION_MANUAL_UNIT,
   wrongManualEntity.view
 );
-assert.equal(wrongManualEntityResult.engineResult, api.EngineResult.FALSE);
-assert.equal(wrongManualEntityResult.nonconformityOnFalse, 'NC_T4_006');
+assert.equal(wrongManualEntityResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(wrongManualEntityResult.nonconformityOnFalse, undefined);
 assert.deepEqual(
   JSON.parse(JSON.stringify(wrongManualEntityResult.trace[0].memoryReferences)),
-  [{ kind: 'DOCUMENT_ABSENCE', identifier: 'PRESSURIZATION_OPERATION_MANUAL' }]
+  [{ kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }]
 );
+assert.equal(wrongManualEntityResult.traceability.documentaryBinding.reason,
+  'DOCUMENT_INVENTORY_UNAVAILABLE');
 
 const pressurizationNotApplicable = prepare({ includeGas: false });
 assert.equal(
@@ -835,10 +842,13 @@ assert.equal(legacyManualResult.engineResult, api.EngineResult.MANUAL_REVIEW);
 assert.equal(legacyManualResult.pipelineResult, 'MANUAL_REVIEW');
 assert.equal(legacyManualResult.normalization, 'IDENTITY');
 assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace.map(item => item.predicateId))),
-  ['EXISTS', 'ASSERT_LITERAL']);
+  ['ASSERT_LITERAL', 'ASSERT_LITERAL']);
 assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace[0].memoryReferences)), [
-  { kind: 'DOCUMENT_ABSENCE', identifier: 'LOW_VOLTAGE_EXECUTION_DRT' }
+  { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
 ]);
+assert.ok(!legacyManualResult.trace.some(item => item.memoryReferences.some(
+  reference => reference.kind === 'DOCUMENT_ABSENCE'
+)));
 assert.equal(legacyManualResult.trace[1].result, 'MANUAL_REVIEW');
 assert.deepEqual(JSON.parse(JSON.stringify(legacyManualResult.trace[1].memoryReferences)), [
   { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
@@ -1033,10 +1043,13 @@ assert.deepEqual(JSON.parse(JSON.stringify(allPositive)),
   'ALL materialization and evaluation must be deterministic');
 
 const allFalse = runAllFixture(allIr, ['DOC_A']);
-assert.equal(allFalse.engineResult, api.EngineResult.FALSE);
-assert.equal(allFalse.pipelineResult, 'FAIL');
-assert.equal(allFalse.nonconformityOnFalse, 'NC_ALL_TEST');
+assert.equal(allFalse.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(allFalse.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(allFalse.nonconformityOnFalse, undefined);
 assert.equal(allFalse.trace.length, 2, 'ALL trace must retain every child evaluation');
+assert.ok(!allFalse.trace.some(item => item.memoryReferences.some(
+  reference => reference.kind === 'DOCUMENT_ABSENCE'
+)));
 assert.throws(() => runAllFixture({ type: 'ALL', expressions: [] }, []),
   error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
 assert.throws(() => runAllFixture({ ...allIr, residual: true }, ['DOC_A', 'DOC_B']),

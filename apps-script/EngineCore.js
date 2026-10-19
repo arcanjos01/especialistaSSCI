@@ -820,8 +820,21 @@ function responsibilityHasTechnicalProductPredicateContract() {
           return { result: EngineResult.MANUAL_REVIEW, memoryReferences: [drt] };
         }
         if (productReferences.length === 0) {
-          return { result: EngineResult.FALSE,
-            memoryReferences: [drt, new TypedReference('DOCUMENT_ABSENCE', 'CONFORMITY_REPORT')] };
+          return { result: EngineResult.MANUAL_REVIEW,
+            memoryReferences: [drt, sourceAnchor],
+            documentaryEvidence: { entityId: 'CONFORMITY_REPORT',
+              reason: 'DOCUMENT_INVENTORY_UNAVAILABLE',
+              selectedDocument: {
+                reference: { kind: sourceAnchor.kind, identifier: sourceAnchor.identifier },
+                sourceDocument: (() => {
+                  const sourceDocument = memory.sourceDocument(sourceAnchor);
+                  return sourceDocument instanceof TypedReference
+                    ? { kind: sourceDocument.kind, identifier: sourceDocument.identifier }
+                    : null;
+                })(),
+                provenance: memory.provenance(sourceAnchor) === undefined
+                  ? null : memory.provenance(sourceAnchor)
+              } } };
         }
         if (productReferences.length !== 1 ||
             !(productReferences[0] instanceof TypedReference) ||
