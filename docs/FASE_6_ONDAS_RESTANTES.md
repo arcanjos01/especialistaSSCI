@@ -1698,3 +1698,14 @@ normativa.
   parciais e `27` pendentes. Esta dependência afeta especialmente as rotas
   negativas dos oito parciais; não encerra os demais blockers de fatos,
   assinatura, comparandos, produtos ou mapeamentos de status.
+- Busca dirigida de fontes primárias oficiais para o próximo lote de status:
+  a Resolução Confea nº 1.137/2023 trata registro, baixa, cancelamento e
+  anulação da ART; a Resolução CAU/BR nº 91/2014 distingue requerimento de RRT
+  de documento final condicionado a pagamento/deferimento; o manual CFT de
+  geração de TRT (2018) lista estados próprios do sistema TRT, incluindo
+  validação, pagamento, aprovação, validade, bloqueio e baixa. Esses textos
+  não fornecem um mapa literal comum nem, por si, uma versão operacional atual
+  para `REGISTERED`. Não foi criado mapa por analogia. Referências consultadas:
+  [Confea, Resolução nº 1.137/2023](https://normativos.confea.org.br/Ementas/Visualizar?id=76099),
+  [CAU/BR, Resolução nº 91/2014](https://transparencia.caubr.gov.br/resolucao91/),
+  [CFT, Manual de Geração de TRT v1.2](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
