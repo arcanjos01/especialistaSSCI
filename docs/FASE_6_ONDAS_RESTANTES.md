@@ -1663,3 +1663,38 @@ normativa.
 - Achados do lote: `0` abertos. Ganho integral deste candidate: zero; cobertura
   permanece 2/29, oito parciais, 27 pendentes. Segue bloqueada a representação
   autenticada de inventário completo e a prova operacional de ausência.
+
+### Triagem do próximo lote após `fb42061` (2026-10-19)
+
+- Antes de abrir outro lote de implementação, foram reavaliados os próximos
+  candidatos de menor dependência no inventário. `T1_DRT_REGISTERED`/
+  `T4_DRT_REGISTERED`: o vocabulário factual comum para ART, RRT e TRT está
+  formalizado e os literais são preservados; a IRV descreve a condição
+  semântica, mas não fornece mapeamento versionado dos textos de status por
+  conselho/tipo/campo. Não converter status textual nem fixtures em
+  `REGISTERED`; manter revisão humana.
+- `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e
+  `T1_DRT_AREA`: `DRT` contém os comparandos do lado DRT, mas `ENTITY PROCESS`
+  não declara fatos estruturados de RI/RT/endereço/área contra os quais
+  comparar. Os Criteria e Requirements já declaram comparações, mas não há
+  fato processual canônico a consumir. Nenhum comparando foi inventado.
+- A dependência compartilhada de ausência permanece sem fonte de completude:
+  Phase 2 enumera `PRESENT`/`ABSENT`/`INCOMPLETE`/`UNVERIFIABLE`; o envelope RDE
+  0.7 tem `source.file_id` singular e não contém inventário completo nem
+  estado de completude da extração; `CurrentSubmissionContextCore` autentica a
+  identidade exata da apresentação e seleciona um comprovante, mas não atesta
+  o conjunto completo de arquivos submetidos nem a cobertura da extração. Logo
+  coleção vazia, falta de associação e falta de registro continuam
+  insuficientes para concluir `ABSENT`.
+- Próximo desbloqueio compartilhado recomendado: formalizar a origem confiável
+  e a representação do inventário completo da apresentação, com identidade de
+  cada arquivo, digest, declaração de enumeração completa e cobertura de
+  extração, todos ligados à identidade exata da apresentação e ao digest da
+  RDE. Item não implementado nesta triagem: a interface de intake que atestaria
+  completude ainda não está identificada no contrato operacional e não deve
+  ser simulada com fixtures.
+- Resultado da triagem: zero Criteria ganhos; nenhuma alteração de Requirement,
+  Criterion ou Nonconformity. A cobertura permanece `2/29` integral, `8`
+  parciais e `27` pendentes. Esta dependência afeta especialmente as rotas
+  negativas dos oito parciais; não encerra os demais blockers de fatos,
+  assinatura, comparandos, produtos ou mapeamentos de status.
