@@ -1756,6 +1756,8 @@ normativa.
   para cobertura integral é prova autenticada de ausência/inventário completo;
   cobertura continua sem ganho. Atualizados o inventário e a matriz de
   dependências, sem alterar código ou semântica normativa.
-- `.codex-local-evidence/` permanece não rastreado e não será incluído no
-  commit. Próxima etapa: commit/push somente das duas atualizações de
-  documentação e build de release no SHA publicado exato.
+- `.codex-local-evidence/` permaneceu não rastreado e fora do commit. As duas
+  atualizações de documentação foram publicadas em `f2e247c38974b374634845066afa27ef67df5f99`.
+  Release build em worktree limpa desse SHA: `PASS`; dez arquivos e manifest
+  `10/10`, KB `5.27.0`, `SOURCE_COMMIT` exato. A branch local/remota foi
+  conferida sincronizada nesse checkpoint.
