@@ -1299,18 +1299,27 @@ normativa.
   certificação do Conselho. Texto oficial:
   https://documentoscbmsc.cbm.sc.gov.br/uploads/007b6741900db4f57a80d467023bfead.pdf
   (vigência indicada no documento: 24/04/2024).
-- Fontes oficiais de conselho consultadas: Confea informa que ART eletrônica
-  válida para impressão é disponibilizada após o pagamento e que ART só é
-  válida quando quitada
-  (https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art);
-  CAU/BR informa que o formulário definitivo do RRT, numerado e sem marca de
-  rascunho, é liberado após pagamento
-  (https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/).
-  O manual público do CFT localizado lista estados TRT, mas é de 2018
-  (https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf);
-  o material público atual consultado não confirma a semântica atual de todos
-  esses estados. O CFT também publica exceção de taxa para TRT-Solidário
-  (https://www.cft.org.br/conselho-federal-isenta-tecnicos-industriais-em-acoes-solidarias-nos-estados-e-municipios-em-situacao-de-emergencia-ou-calamidade/).
+- Fontes oficiais de conselho consultadas: o Confea informa que a ART é
+  válida somente quando quitada, mas não define nessa página um contrato
+  completo e tipado de registro/emissão/pagamento
+  (https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art).
+  O CAU/BR FAQ descreve formulário RRT final numerado e sem tarja de rascunho
+  após pagamento; a página atual do CAU Digital (publicada em 31/07/2026)
+  também diz que o RRT Simples passa a ter validade após compensação do
+  pagamento, mas não fornece uma tabela completa de literais por campo e
+  modalidade
+  (https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/;
+  https://caubr.gov.br/cau-digital-concentra-emissao-de-rrt-simples-para-arquitetos-e-urbanistas/).
+  Para o CFT, material público de 2025 confirma número único após aprovação
+  do sistema e pagamento de taxas para emissão, mas não define os status
+  atuais, campo a campo, no documento TRT
+  (https://cft.org.br/termo-de-responsabilidade-tecnica-seguranca-e-transparencia-no-exercicio-legal-da-profissao/;
+  https://cft.org.br/pagamento-via-pix-esta-disponivel-em-todo-o-sistema-cft-crts/).
+  O manual público que enumera estados do workflow TRT é de 2018 e descreve
+  estados como “aguardando validação”, “aguardando pagamento”, “aprovado” e
+  “válido”; o CFT também documenta exceção normativa de taxa do TRT-Solidário
+  (https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf;
+  https://www.cft.org.br/conselho-federal-isenta-tecnicos-industriais-em-acoes-solidarias-nos-estados-e-municipios-em-situacao-de-emergencia-ou-calamidade/).
 - Resultado: vocabulário versionado continua preparatório; não foi criada
   tabela operacional de equivalências ART/RRT/TRT. Em particular, não mapear
   status CFT de fonte antiga nem equiparar taxa legalmente isenta a `PAID` sem
@@ -1318,6 +1327,28 @@ normativa.
   ou possível exceção permanecem em revisão humana. Critérios integrais não
   mudam; implementação de parser/mapeador agora não demonstraria cobertura
   integral nem seria segura para todos os três documentos.
+- Pesquisa complementar em fontes oficiais atuais em 2026 confirmou apenas
+  fragmentos de condições substantivas e de emissão para ART/RRT/TRT; não
+  encontrou um contrato público atual, versionado e completo que associe cada
+  literal de cada campo às categorias Engine em todos os três conselhos. As
+  páginas Confea/CAU e materiais CFT citados acima não bastam para classificar
+  status brutos sem aproximação. `STATUS_MAPPING_ART_RRT_TRT=BLOCKED` e
+  `T1_DRT_REGISTERED`/`T4_DRT_REGISTERED` permanecem sem cobertura integral.
+- Revisão independente Luna, dirigida apenas às fontes e afirmações novas:
+  `PASS`, sem findings materiais. A re-review ressalvou que a pesquisa não é
+  prova de inexistência absoluta de outras fontes; o registro mantém a
+  formulação restrita ao material encontrado.
+- Gates no candidato documental: Python `143/143`; Apps Script `9/9`; sintaxe
+  de todos os módulos/testes JS e `Code.gs`; runtime regenerado duas vezes
+  byte-identical, SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
+  phase guards/manifests pela suíte Python; `git diff --check` — PASS. Release
+  build em worktree limpa do commit deste registro ainda pendente.
+- Esforço aproximado: 10 minutos entre pesquisa, registro e revisão dirigida;
+  um ciclo de revisão independente; Criteria integrais `6/29 → 6/29`, parciais
+  `4 → 4`, pendentes `23 → 23`; ganho funcional zero. Blocker factual de status
+  não fechado; nenhum blocker normativo novo. Próximo passo: avançar ao próximo
+  Criterion independente, sem presumir equivalência de status.
 - Feasibility check independente Luna para `T4_IN19_FINAL_VERIFICATION`:
   não integralmente implementável no HEAD sem adicionar representação de
   documento concreto ART/RRT/TRT, binding RT-007, literal autorizado e
