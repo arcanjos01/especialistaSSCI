@@ -1459,3 +1459,15 @@ normativa.
   `CompiledRuntimeContract.js`, SHA-256
   `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
   manifests e phase guards cobertos pela suíte Python; `git diff --check` PASS.
+- Depois do push, o release build foi repetido em worktree limpa no commit
+  `cca3a9f7f62c7794974d0a25f4e9a0ca7d3718ce`: `PASS`, 10 documentos,
+  `SOURCE_COMMIT` exato e Base `5.26.0`.
+- Rechecagem funcional dos Criteria prioritários RT-002: ganhos integrais
+  `0`; `T1_DRT_REQUIRED` continua parcial porque a RDE/view não certifica
+  completude da coleção documental, então binding vazio ou multiplicidade não
+  autorizam ausência/FAIL; `T1_DRT_ACTIVITY_EXECUTION` preserva o positivo
+  factual do literal `EXECUÇÃO`, mas não dispõe de fato de completude que
+  permita concluir o negativo. Não foi introduzida semântica nova nem rodada
+  revisão geral redundante. O próximo trabalho funcional depende de contrato
+  de completude factual autorizado ou de outro conjunto de evidências já
+  tipado; cobertura permanece `6/29`, `PARTIAL=4`, `PENDING=23`.
