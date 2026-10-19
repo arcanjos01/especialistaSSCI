@@ -1440,3 +1440,22 @@ normativa.
   ou Base nem aumentou cobertura: `CRITERIA_COVERED=6/29`, `PARTIAL=4`,
   `PENDING=23`. Falta confirmar identidade do solicitante/RT e o modo mecânico
   por fatos documentais autorizados. `SOL_REVIEW` final permanece `PENDING`.
+
+### Retomada e release da auditoria dos status dos conselhos — 2026-10-19
+
+- O HEAD `c23bbdca41ddd7c62e9ed8dd671dbb9eecc231c6` foi validado em worktree
+  limpa destacada: release build `PASS`, 10 documentos e `SOURCE_COMMIT`
+  exatamente igual ao commit. A auditoria confirmou que as fontes públicas
+  consultadas não estabelecem um vocabulário completo e seguro para classificar
+  todos os estados ART/RRT/TRT; `STATUS_MAPPING_ART_RRT_TRT=BLOCKED` e os
+  Criteria de registro permanecem pendentes. Não houve ganho de cobertura.
+- O estado local e `origin/feature/apps-script-engine-core` estavam alinhados
+  nesse HEAD; `.codex-local-evidence/` permanece preservado e não versionado.
+  Cobertura segue `CRITERIA_COVERED=6/29`, `PARTIAL=4`, `PENDING=23`.
+  `SOL_REVIEW` final da Fase 6 permanece `PENDING`.
+- Na retomada, os gates completos passaram sem alteração do runtime: 143 testes
+  Python; 9/9 suítes Apps Script; `node --check` em módulos e testes JS;
+  sintaxe de `Code.gs`; duas regenerações consecutivas byte-idênticas de
+  `CompiledRuntimeContract.js`, SHA-256
+  `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
+  manifests e phase guards cobertos pela suíte Python; `git diff --check` PASS.
