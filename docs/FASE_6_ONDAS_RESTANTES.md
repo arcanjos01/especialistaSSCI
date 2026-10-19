@@ -1513,3 +1513,35 @@ normativa.
   resolve completude de atividades em DRT, status ART/RRT/TRT, assinatura,
   correlação calibrada ou cobertura DRT-produto-SMSCI; não se atribui ganho
   antecipadamente.
+
+### Retomada dirigida — preservação integral da RDE e regra IN09/RT-005 (2026-10-19)
+
+- Checkpoint preservado: branch `feature/apps-script-engine-core`, HEAD local e
+  remoto `fcf39dc4d8fd7c8fde54cc9989bc9156db99d433`; `.codex-local-evidence/`
+  permanece local e não rastreado.
+- O P2 da preservação dos literais de status e proveniência no parse/validação
+  round trip da RDE já estava corrigido no commit `c45e756` e sua re-review Luna
+  dirigida, gates completos e push estão registrados acima. Reexecução focal
+  nesta retomada: `node tests/apps-script-rde-core.test.js` — PASS. Nenhuma
+  segunda correção ou revisão geral foi aberta.
+- Auditoria da decisão do usuário de não verificar compatibilidade
+  atividade↔SMSCI para RT-005/006/014 encontrou contradição ainda presente na
+  Base: `REQ_IN09_DRT` lista RT-003 e RT-005, com dois
+  `VALIDATE RESPONSIBILITY_ACTIVITY_COMPATIBLE`; o compilador agrega esses
+  campos em uma lista global do Requirement, sem escopo por responsabilidade.
+  `T4_IN09_DRT` também declara
+  `HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,"VISTORIA_ENSAIO")`, vinculando a
+  atividade da RT-005 ao SMSCI.
+- Não foi alterada a Base. Uma tentativa local de formalizar o Criterion como
+  revisão humana para presença documental exigiria retirar seu `FAIL NC_T4_004`;
+  a revisão automática bloqueou precisamente essa remoção por risco de suprimir
+  consequência normativa. A tentativa foi desfeita por completo. Nenhuma
+  mudança do usuário foi descartada.
+- Ponto de decisão ainda necessário: definir a transição para `T4_IN09_DRT`
+  que remova o julgamento atividade↔SMSCI, mas preserve a consequência NC apenas
+  se ausência de DRT puder ser comprovada por fato/binding completo. Até existir
+  esse contrato, manter o Criterion fora de promoção automática; não inferir
+  ausência nem gerar `NC_T4_004` por atividade incompatível.
+- Não há ganho de cobertura nesta retomada. O teste focal RDE passou; as gates
+  completas e o release build continuam válidos para o checkpoint publicado
+  `fcf39dc`.
