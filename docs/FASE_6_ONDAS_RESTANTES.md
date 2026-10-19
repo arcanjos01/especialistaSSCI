@@ -1920,6 +1920,9 @@ normativa.
   foram re-revistos pelo GPT-6: `PASS`, P2 fechado; casos insuficientes resultam
   `MANUAL_REVIEW`/sem NC e o caso completo permanece `TRUE/PASS`. Revisão Sol
   6.1 final da Fase 6 permanece pendente; este parecer não é registrado como Sol.
+  A revisão intermediária Luna (`luna_economy`) do mesmo slice foi `PASS`, sem
+  achados; foi inspeção somente leitura e não executou testes. A suíte completa
+  abaixo foi executada pelo orquestrador após o P2.
   Após a re-review, os gates completos passaram: Python 144/144; Apps Script
   9/9; sintaxe todos JS/testes e `Code.gs`; runtime duplamente regenerado e
   byte-idêntico, SHA-256 `c89480ab54b030996c7678bf72ef94b45ad3ddfd4ac83de10e872cec21952aa0`;
