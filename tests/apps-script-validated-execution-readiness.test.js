@@ -166,6 +166,9 @@ assert.ok(prepared.coverage.plannedUnitKeys.includes(
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)'
 ));
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
+  'UNIT_KEY (REQ_T1_DRT_SMSCI, T1_DRT_SMSCI_COVERAGE)'
+));
 assert.ok(prepared.coverage.plannedUnitKeys.includes(
   'UNIT_KEY (REQ_IN19_APPLICABILITY_REVIEW, T4_IN19_APPLICABILITY_REVIEW)'
 ));
@@ -190,6 +193,54 @@ assert.ok(prepared.coverage.materializableUnitKeys.includes(
 assert.ok(!prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)'
 ));
+const in19Fixture = rdeFixture();
+in19Fixture.records.push({
+  record_id: 'ITEM_IEL',
+  entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+  parent_record_id: 'SECTION_CURRENT',
+  source_document: 'DOC_CURRENT',
+  attributes: {
+    OFFICIAL_ESCI_CODE: 'IEL',
+    PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY low-voltage installation',
+    RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY',
+    SOURCE_LOCATION: 'TEST_ONLY page 2',
+  },
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IEL_ITEM' },
+});
+const in19Prepared = api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(),
+  makeAdapters({ content: JSON.stringify(in19Fixture) }).adapters
+);
+for (const unitKey of [
+  'UNIT_KEY (REQ_IN19_EXECUTION, T4_IN19_EXECUTION)',
+  'UNIT_KEY (REQ_IN19_GROUNDING, T4_IN19_GROUNDING)',
+]) {
+  assert.ok(in19Prepared.coverage.plannedUnitKeys.includes(unitKey), unitKey + ' planned');
+  assert.ok(in19Prepared.coverage.materializableUnitKeys.includes(unitKey), unitKey + ' materializable');
+  assert.ok(!in19Prepared.coverage.unsupportedUnitKeys.includes(unitKey), unitKey + ' supported');
+}
+const pressurizationFixture = rdeFixture();
+pressurizationFixture.records.push({
+  record_id: 'ITEM_PRESSURIZATION',
+  entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+  parent_record_id: 'SECTION_CURRENT',
+  source_document: 'DOC_CURRENT',
+  attributes: {
+    OFFICIAL_ESCI_CODE: 'SPDE',
+    PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY pressurization system',
+    RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY',
+    SOURCE_LOCATION: 'TEST_ONLY page 3',
+  },
+  provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_PRESSURIZATION_ITEM' },
+});
+const pressurizationPrepared = api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(),
+  makeAdapters({ content: JSON.stringify(pressurizationFixture) }).adapters
+);
+const pressurizationManualUnit = 'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
+assert.ok(pressurizationPrepared.coverage.plannedUnitKeys.includes(pressurizationManualUnit));
+assert.ok(pressurizationPrepared.coverage.materializableUnitKeys.includes(pressurizationManualUnit));
+assert.ok(!pressurizationPrepared.coverage.unsupportedUnitKeys.includes(pressurizationManualUnit));
 assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
   'UNIT_KEY (REQ_T1_DRT_REGISTERED, T1_DRT_REGISTERED)'
 ));

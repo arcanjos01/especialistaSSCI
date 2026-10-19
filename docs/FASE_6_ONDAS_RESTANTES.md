@@ -59,7 +59,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; T1_DRT_REQUIRED=PARTIAL; T1_DRT_ACTIVITY_EXECUTION=PARTIAL; T1_CONFORMITY_REPORT=PARTIAL; assinatura reclassificada; 6 cobertos, 3 parciais e 23 pendentes de cobertura integral (incluem os parciais)` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; após decisão C: 9/29 cobertos, 1 parcial (T1_CONFORMITY_REPORT) e 20 pendentes integrais; 19 sem suporte e 1 parcial` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -1844,3 +1844,43 @@ normativa.
   desse SHA `PASS`, dez arquivos, manifest `10/10`, KB `5.27.0` e
   `SOURCE_COMMIT` exato. Branch local/remota sincronizada; evidência local
   continua fora do Git.
+
+### Decisão C e cobertura de ausência não comprovada (2026-10-19)
+
+- Decisão do usuário: não há fonte confiável disponível para atestar inventário
+  documental completo do processo nem cobertura completa da EXTRACTION. Casos
+  sem documento/vínculo/declaração esperada permanecem `MANUAL_REVIEW`; não são
+  convertidos em `DOCUMENT_ABSENCE`, `FALSE`, FAIL ou Nonconformity.
+- Essa decisão elimina o requisito de emitir resultado negativo nos sete
+  Criteria cujo único blocker residual era a prova de ausência: `T1_DRT_REQUIRED`,
+  `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`,
+  `T4_IN09_MANUAL`, `T4_IN19_EXECUTION` e `T4_IN19_GROUNDING`. Evidência positiva
+  explícita continua rastreada e pode produzir TRUE; incerteza permanece revisão
+  humana. `T1_CONFORMITY_REPORT` continua parcial, pois a correlação inferida
+  não pode ser admitida sem calibração empírica válida.
+- Os dois Criteria de DRT da IN19 agora têm fixtures positivas e insuficientes:
+  item IEL + DRT tipada com proveniência preservada dá `TRUE/PASS`; sem DRT,
+  mesmo com IEL em applicability, dá `MANUAL_REVIEW`, traceia documento atual e
+  não emite NC. O teste de readiness comprova planejamento/materialização das
+  unidades; não executa o Engine. Tests separados cobrem resultado, trace e
+  provenance. Outros cinco Criteria liberados já tinham execução/insuficiência
+  testadas; readiness comprova seleção/materialização quando aplicável.
+- Re-review independente inicial: `FAIL`, um P1 de consistência entre a nova
+  matriz e uma frase de snapshot histórico, e dois P2 de prova de provenance e
+  delimitação do readiness. Os P2 foram corrigidos e re-revistos; o P1 foi
+  rotulado inequivocamente como histórico. Re-review final estritamente dirigida
+  ao achado residual: `PASS`, finding encerrado. Revisor independente Socrates,
+  leitura somente; não é registrado como Luna nem Sol. Testes dirigidos: pilot
+  criterion, readiness, responsibility evidence e RDE core — PASS. Nenhuma
+  revisão arquitetural foi reaberta.
+- Cobertura real reconciliada: `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`,
+  `COVERED=9` (antes 2), `PARTIAL=1` (antes 8), `PENDING=20` (antes 27),
+  `WITHDRAWN=2`, não selecionáveis=5.
+  O ganho foi `2/29 → 9/29`, sete Criteria integrais após decisão humana de
+  tratamento da incerteza, sem novas regras normativas nem emissão de
+  Nonconformity por ausência. Gates completos, commit/push e release build deste
+  candidate completos: Python 144/144; Apps Script 9/9; `node --check` em todos
+  JS e sintaxe `Code.gs`; `git diff --check`; regeneração dupla byte-idêntica,
+  SHA-256 `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`.
+  Manifests/phase guards passaram pela suíte Python; release build em worktree
+  limpa, commit/push ainda pendentes.

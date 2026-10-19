@@ -69,6 +69,16 @@ const PRESSURIZATION_CHECKLIST_SIGNED_UNIT =
 const CMAR_DECLARATION_SIGNED_UNIT =
   'UNIT_KEY (REQ_IN18_CMAR, T4_IN18_CMAR)';
 const DRT_REQUIRED_UNIT = 'UNIT_KEY (REQ_T1_DRT_REQUIRED, T1_DRT_REQUIRED)';
+const IN19_DRT_EXISTENCE_CASES = [
+  {
+    requirementId: 'REQ_IN19_EXECUTION', criterionId: 'T4_IN19_EXECUTION',
+    entityId: 'LOW_VOLTAGE_EXECUTION_DRT'
+  },
+  {
+    requirementId: 'REQ_IN19_GROUNDING', criterionId: 'T4_IN19_GROUNDING',
+    entityId: 'GROUNDING_EXECUTION_DRT'
+  }
+];
 
 function currentContext(requestDate = '2026-01-28') {
   return api.createCurrentSubmissionContext({
@@ -82,7 +92,7 @@ function currentContext(requestDate = '2026-01-28') {
 function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includePressurization = false, includePressurizationManual = false,
   includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
-  signedProducts = [],
+  signedProducts = [], in19DrtEntityId = null,
   executionDrts = [],
   requestDate = '2026-01-28' } = {}) {
   const records = [{
@@ -186,6 +196,17 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       record_id: 'DRT_LOW_VOLTAGE', entity_id: 'LOW_VOLTAGE_EXECUTION_DRT',
       parent_record_id: null, source_document: 'DOC_DRT', attributes: {},
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_LOW_VOLTAGE_DRT' }
+    });
+  }
+  if (in19DrtEntityId !== null) {
+    records.push({
+      record_id: 'DOC_IN19_DRT', entity_id: 'PPCI', parent_record_id: null,
+      source_document: 'DOC_IN19_DRT', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IN19_DRT_DOCUMENT' }
+    }, {
+      record_id: 'IN19_DRT', entity_id: in19DrtEntityId,
+      parent_record_id: null, source_document: 'DOC_IN19_DRT', attributes: {},
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IN19_DRT_FACT' }
     });
   }
   conformityReports.forEach((signatureMechanism, index) => {
@@ -737,6 +758,53 @@ assert.deepEqual(
 );
 assert.equal(missingPressurizationManualResult.traceability.documentaryBinding.reason,
   'DOCUMENT_INVENTORY_UNAVAILABLE');
+
+for (const testCase of IN19_DRT_EXISTENCE_CASES) {
+  const unitKey = 'UNIT_KEY (' + testCase.requirementId + ', ' + testCase.criterionId + ')';
+  const positiveIn19 = prepare({
+    includeGas: false,
+    includeIel: true,
+    in19DrtEntityId: testCase.entityId
+  });
+  assert.equal(positiveIn19.plan.PLANNED_EXECUTION_UNITS.some(unit =>
+    unit.unitKey === unitKey), true, testCase.criterionId + ' is planned for IEL');
+  const positiveIn19Result = api.executePlannedCriterion(
+    contract, positiveIn19.plan, unitKey, positiveIn19.view
+  );
+  assert.equal(positiveIn19Result.engineResult, api.EngineResult.TRUE,
+    testCase.criterionId + ' positive explicit DRT');
+  assert.equal(positiveIn19Result.pipelineResult, 'PASS');
+  assert.deepEqual(JSON.parse(JSON.stringify(positiveIn19Result.trace[0].memoryReferences)), [
+    { kind: 'DRT', identifier: 'IN19_DRT' }
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    positiveIn19Result.traceability.documentaryBinding.sourceDocument
+  )), { kind: 'DOCUMENT', identifier: 'DOC_IN19_DRT' });
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    positiveIn19.view.provenance(new api.TypedReference('DRT', 'IN19_DRT'))
+  )), { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IN19_DRT_FACT' });
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    positiveIn19.view.provenance(new api.TypedReference('DOCUMENT', 'DOC_IN19_DRT'))
+  )), { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IN19_DRT_DOCUMENT' });
+
+  const incompleteIn19 = prepare({ includeGas: false, includeIel: true });
+  const incompleteIn19Result = api.executePlannedCriterion(
+    contract, incompleteIn19.plan, unitKey, incompleteIn19.view
+  );
+  assert.equal(incompleteIn19Result.engineResult, api.EngineResult.MANUAL_REVIEW,
+    testCase.criterionId + ' absence without complete inventory');
+  assert.equal(incompleteIn19Result.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(Object.hasOwn(incompleteIn19Result, 'nonconformityOnFalse'), false);
+  assert.equal(incompleteIn19Result.traceability.documentaryBinding.reason,
+    'DOCUMENT_INVENTORY_UNAVAILABLE');
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    incompleteIn19Result.traceability.documentaryBinding.selectedDocument.reference
+  )), { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' });
+  assert.deepEqual(JSON.parse(JSON.stringify(incompleteIn19Result.trace[0].memoryReferences)), [
+    { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' }
+  ]);
+}
+
 const wrongManualEntity = prepare({
   includeGas: false,
   includeManual: true,
