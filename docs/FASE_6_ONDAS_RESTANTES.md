@@ -1980,3 +1980,23 @@ normativa.
   conselhos ou formalização factual autorizada que identifique DRT-RT-005 sem
   avaliar compatibilidade atividade↔SMSCI. Em paralelo, seguem abertos os
   Criteria com evidências verificáveis ainda ausentes na matriz de cobertura.
+
+### Triagem independente de produtividade no HEAD `d664b1d` (2026-10-19)
+
+- Luna (`luna_economy`), inspeção somente leitura e sem execução de testes,
+  confirmou no checkout `d664b1d34654103aa7ac06f788e47ca82f5138b0` que nenhum
+  dos 18 Criteria sem suporte integral pode ser fechado integralmente apenas
+  com os contratos e fatos atuais. A contagem foi conferida: 34 ativos,
+  29 produtivos, 10 integrais, 1 parcial e 19 sem cobertura integral.
+- Blockers compartilhados confirmados: os 12 `SOURCE_DEFINED_NEEDS_FORMALIZATION`
+  dependem de resultados tipados/comparandos/vínculos ainda ausentes; os 6
+  `MISSING_EVIDENCE_CONTRACT` dependem de `DRT_COVERS`, conteúdo estruturado,
+  datas ou independência. A readiness atual rejeita as combinações não
+  suportadas de `DRT_COVERS`, `VALID_WITHIN_YEARS` e `REPORT_CONTAINS`.
+- O menor bloqueio aparente, `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`, ainda
+  exige mapeamento versionado por modalidade/conselho. Nenhum Criterion foi
+  artificialmente promovido. Ganho de cobertura: zero; testes executados pelo
+  revisor: nenhum; mudança de código: nenhuma.
+- Este parecer é somente a triagem intermediária Luna. Não é revisão Sol 6.1,
+  não substitui os gates integrais de um lote funcional e não altera
+  `SOL_REVIEW=PENDING` nem `FASE_6_STATUS=PARTIAL`.
