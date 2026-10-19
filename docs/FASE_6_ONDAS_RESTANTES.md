@@ -1932,3 +1932,51 @@ normativa.
   `5.28.0`, `SOURCE_COMMIT` exato. Não há script de phase guard separado neste
   checkout. A pasta `.codex-local-evidence/` foi preservada e não faz parte das
   alterações rastreadas.
+
+### Retomada após o checkpoint `a34b05c` — integração oficial de conselhos
+
+- Estado local/remoto reconciliado em `a34b05c61a25621467afe120d0c9ca09dbe42ad0`;
+  branch `feature/apps-script-engine-core`; apenas `.codex-local-evidence/`
+  permanece não rastreada e foi preservada.
+- A resposta do usuário `C` foi interpretada como escolha de integração oficial
+  com os conselhos para validação de ART/RRT/TRT. Pesquisa read-only em fontes
+  oficiais localizou: (a) Confea Resolução 1.137/2023 e notícia de atualização
+  aprovada em 2025; (b) Resolução CAU/BR 91/2014, com alterações, distinguindo
+  rascunho de documento final/definitivo e relacionando a efetivação do RRT à
+  validação do pagamento; (c) páginas públicas CAU e CFT de verificação de
+  autenticidade de RRT/TRT. Não foi localizada especificação pública de API
+  autenticada, comum e versionada para consultas operacionais ART/RRT/TRT.
+  Fontes: https://normativos.confea.org.br/Ementas/Visualizar?id=76099 ;
+  https://www.confea.org.br/confea-atualiza-regras-de-art-e-acervo-tecnico-e-moderniza-o-sistema ;
+  https://transparencia.caubr.gov.br/resolucao91/ ;
+  https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/ ;
+  https://cft.org.br/servicos/ .
+- Consequência operacional: a opção C não permite implementar consulta real
+  sem contrato/API oficial e credenciais autorizadas. Os dados status FACT-ONLY
+  existentes não serão convertidos em confirmação autenticada; `T1_DRT_REGISTERED`
+  e `T4_DRT_REGISTERED` continuam `MANUAL_REVIEW` quando insuficientes.
+- Reavaliação de `T4_IN09_DRT`: a IRV 2024, Tabela 4, p. 7, exige DRT de
+  execução e DRT de vistoria/ensaio; a Base atual representa as duas com
+  `HAS_DRT_ACTIVITY` para o SMSCI e `RESPONSIBILITY_ACTIVITY_COMPATIBLE`.
+  A instrução do usuário proíbe essa conferência de correspondência. RT-005 no
+  Anexo A descreve vistoria/inspeção, mas não possui `DRT_RESPONSIBILITY_TYPE`
+  nem `MACHINE_COMPATIBLE_ACTIVITY_LITERALS`; sua separação da RT-006 também
+  não está integralmente individualizada pela norma. Sem relação por nome ou
+  atividade↔SMSCI, não há binding factual para atribuir uma DRT específica a
+  RT-005. `NC_T4_004` permanece na Base; ausência de DRT não demonstrável não
+  pode produzi-la. Criterion permanece pendente, sem ajuste artificial de
+  cobertura.
+- Reconciliado com a matriz mais recente: 34 Criteria ativos, 29 produtivos,
+  10 integralmente cobertos, 1 parcial (`T1_CONFORMITY_REPORT`) e 19 ainda sem
+  cobertura integral; desses, 18 estão sem suporte integral e 1 parcial.
+  Cinco não selecionáveis e dois retirados permanecem fora dos 29 produtivos.
+  Nenhum Criterion adicional foi encontrado integralmente implementável só
+  com os contratos/fatos atuais nesta checagem dirigida. O ganho funcional
+  deste intervalo é zero; não houve alteração de código nem revisão geral.
+- Estado de governança inalterado: `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, revisão final Sol 6.1 da Fase 6 `PENDING`.
+  Próximo avanço funcional requer contrato oficial utilizável de consulta dos
+  conselhos ou formalização factual autorizada que identifique DRT-RT-005 sem
+  avaliar compatibilidade atividade↔SMSCI. Em paralelo, seguem abertos os
+  Criteria com evidências verificáveis ainda ausentes na matriz de cobertura.
