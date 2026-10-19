@@ -2000,3 +2000,30 @@ normativa.
 - Este parecer é somente a triagem intermediária Luna. Não é revisão Sol 6.1,
   não substitui os gates integrais de um lote funcional e não altera
   `SOL_REVIEW=PENDING` nem `FASE_6_STATUS=PARTIAL`.
+
+### Dependência compartilhada confirmada — assinatura documental verificável
+
+- O contrato canônico `knowledge-base/00_engine.txt` define os mecanismos
+  aceitos por `SIGNED` (ICP-Brasil, PAdES, assinatura eletrônica de CREA/CAU/CFT
+  ou outro mecanismo digital explicitamente identificado). Resultado positivo
+  exige assinatura documentalmente verificável; sem essa prova, o resultado é
+  `MANUAL_REVIEW`, e sua ausência isolada não produz `FALSE`.
+- `SIGNATURE_MECHANISM` na RDE e nas entidades é texto FACT-ONLY; não atesta
+  validade criptográfica, autenticidade ou identidade do signatário. O Engine
+  respeita essa fronteira e devolve `MANUAL_REVIEW` mesmo quando o texto nomeia
+  ICP-Brasil/PAdES. Não há hoje evidência tipada de verificação emitida por
+  componente confiável e vinculada ao digest exato do documento.
+- Critérios afetados: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`,
+  `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST` e `T4_IN18_CMAR`.
+  Não foi criado um fato `VERIFIED` que pudesse ser preenchido por EXTRACTION
+  probabilística ou aceito sem validação criptográfica/consulta oficial.
+- Para desbloquear esse grupo é necessário disponibilizar um verificador
+  determinístico confiável de assinatura com integração ao pipeline e prova
+  vinculada ao conteúdo/documento exato, ou uma interface/recibo oficial
+  equivalente de cada emissor. A formalização de interface autenticada deve
+  passar por revisão Sol antes de ser consolidada; validação institucional
+  permanece independente e pendente.
+- Não houve alteração de código, Base ou gates nesta checagem. O bloqueio
+  confirma a dependência externa já observada nas rodadas anteriores; os 18
+  Criteria sem suporte integral não têm incremento funcional seguro sem
+  evidências/fatos novos ou contratos adicionais autorizados.
