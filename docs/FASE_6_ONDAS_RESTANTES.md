@@ -1274,7 +1274,7 @@ normativa.
   vezes byte-identical, SHA-256
   `0551faa198e7d78526b9ed8a185c4f3ff04cefc264ff0e18f39358d5b30b3dc6`;
   manifests e guards exercitados pela suíte Python; `git diff --check` — PASS.
-  Release build real pendente de worktree limpa após consolidação do commit.
+  Release build real PASS após consolidação do commit `158021bb3f74f8c9b54776bafe8eda1a83e1b3da`, em worktree limpa: 10 documentos e `SOURCE_COMMIT` exato.
 - Esforço: uma revisão Sol inicial (FAIL documental) e uma re-review Sol
   focada (PASS); uma rodada consolidada de gates após correções, além dos
   testes direcionados anteriores de RT-002/readiness/status. Benefício
@@ -1284,3 +1284,61 @@ normativa.
 - `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` (correlação IA),
   `VALIDATED_TO_ANALYZED=PENDING` e `CALIBRATION_GATE=BLOCKED` permanecem
   inalterados. Esta formalização não fecha a Fase 6.
+
+### Retomada — auditoria de status e vetor DRT×múltiplos produtos — 2026-10-19
+
+- Estado no início: HEAD local/upstream `158021bb3f74f8c9b54776bafe8eda1a83e1b3da`,
+  branch `feature/apps-script-engine-core`; `.codex-local-evidence/` preservado.
+- Reconciliado o caminho de menor alcance da matriz (`T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED`) com fonte oficial. A IRV Habite-se 2024, Anexo A,
+  Tabela 1, p. 4, determina identificar DRTs registradas e emitidas no conselho
+  “(pagos, não são rascunhos)” e também conferir assinatura digital do RT ou
+  certificação do Conselho. Texto oficial:
+  https://documentoscbmsc.cbm.sc.gov.br/uploads/007b6741900db4f57a80d467023bfead.pdf
+  (vigência indicada no documento: 24/04/2024).
+- Fontes oficiais de conselho consultadas: Confea informa que ART eletrônica
+  válida para impressão é disponibilizada após o pagamento e que ART só é
+  válida quando quitada
+  (https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art);
+  CAU/BR informa que o formulário definitivo do RRT, numerado e sem marca de
+  rascunho, é liberado após pagamento
+  (https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/).
+  O manual público do CFT localizado lista estados TRT, mas é de 2018
+  (https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf);
+  o material público atual consultado não confirma a semântica atual de todos
+  esses estados. O CFT também publica exceção de taxa para TRT-Solidário
+  (https://www.cft.org.br/conselho-federal-isenta-tecnicos-industriais-em-acoes-solidarias-nos-estados-e-municipios-em-situacao-de-emergencia-ou-calamidade/).
+- Resultado: vocabulário versionado continua preparatório; não foi criada
+  tabela operacional de equivalências ART/RRT/TRT. Em particular, não mapear
+  status CFT de fonte antiga nem equiparar taxa legalmente isenta a `PAID` sem
+  fundamento explícito do CBMSC. Literal desconhecido, estado não confirmado
+  ou possível exceção permanecem em revisão humana. Critérios integrais não
+  mudam; implementação de parser/mapeador agora não demonstraria cobertura
+  integral nem seria segura para todos os três documentos.
+- Feasibility check independente Luna para `T4_IN19_FINAL_VERIFICATION`:
+  não integralmente implementável no HEAD sem adicionar representação de
+  documento concreto ART/RRT/TRT, binding RT-007, literal autorizado e
+  completude/ausência. A ausência na coleção RDE continua sem autorizar FAIL ou
+  NC_T4_014. A análise não alterou código nem fontes canônicas.
+- Auditoria Luna da lista de 20 vetores adversariais encontrou uma lacuna
+  explícita: uma DRT associada a dois produtos distintos. O teste foi
+  acrescentado em `tests/apps-script-documentary-correlation.test.js` (uma
+  DRT, duas associações documentais válidas e dois candidatos), esperando
+  `HUMAN_REVIEW_REQUIRED`, `COMPETING_CANDIDATES` e candidato automático nulo;
+  a coleção incompleta espera `INCOMPLETE_CANDIDATE_SET`. Todos os outros 19
+  vetores da lista solicitada foram localizados por nome/evidência na suíte.
+- Revisão independente Luna do teste: `PASS`, nenhuma incerteza material; a
+  revisão confirmou candidatos para os dois pares e compatibilidade com a
+  regra DRT×produtos em `CorrelationCore.js:245-268`. Teste focal
+  `apps-script-documentary-correlation.test.js` e `git diff --check` passaram.
+  Gates completos pós-lote, commit e push ainda pendentes.
+- Ganho: Criteria integrais `6/29 → 6/29`; parciais `4 → 4`; pendentes
+  integrais `23 → 23`. Blockers fechados: 0 Criteria; cobertura adversarial
+  obrigatória `19/20 → 20/20` vetores explicitamente demonstrados. Benefício:
+  impede seleção automática de um entre produtos concorrentes quando uma DRT
+  está explicitamente ligada a ambos. Esforço aproximado: 25 minutos entre
+  pesquisa, triagem, fixture e revisão; uma execução Luna, uma revisão Luna
+  do teste e uma triagem Luna independente.
+- `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+  `VALIDATED_TO_ANALYZED=PENDING` permanecem inalterados. Nenhuma admissão
+  automática real foi validada.

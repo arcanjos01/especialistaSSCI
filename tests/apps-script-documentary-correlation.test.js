@@ -959,6 +959,33 @@ assert.equal(eligibility(competingProducts, [
   candidate(), candidate({ candidateId: 'candidate-2', technicalProductTarget: ref('TEST_REPORT', 'PRODUCT_2'),
     evidenceRefs: [ref('DOCUMENT', 'DRT_1'), ref('TEST_REPORT', 'PRODUCT_2')], score: 0.91 })
 ]).eligibility, 'HUMAN_REVIEW_REQUIRED');
+
+// One DRT may be explicitly documented against two valid products, but it
+// cannot be reused to select one product automatically.
+const oneDrtTwoDocumentedProducts = prepare({
+  products: [
+    { id: 'PRODUCT_1', entity: 'PRESSURIZATION_TEST_REPORT' },
+    { id: 'PRODUCT_2', entity: 'PRESSURIZATION_TEST_REPORT' }
+  ],
+  associations: [
+    { association_id: 'ASSOC_PRODUCT_1', left_record_id: 'DRT_1', right_record_id: 'PRODUCT_1',
+      source_document: 'SOURCE_PRODUCT_1', statement_text: 'DRT_1 associado explicitamente ao PRODUCT_1.',
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ASSOC_PRODUCT_1' } },
+    { association_id: 'ASSOC_PRODUCT_2', left_record_id: 'DRT_1', right_record_id: 'PRODUCT_2',
+      source_document: 'SOURCE_PRODUCT_2', statement_text: 'DRT_1 associado explicitamente ao PRODUCT_2.',
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'ASSOC_PRODUCT_2' } }
+  ]
+});
+const oneDrtTwoDocumentedProductsResult = eligibility(oneDrtTwoDocumentedProducts, [
+  candidate(), candidate({ candidateId: 'candidate-2', technicalProductTarget: ref('TEST_REPORT', 'PRODUCT_2'),
+    evidenceRefs: [ref('DOCUMENT', 'DRT_1'), ref('TEST_REPORT', 'PRODUCT_2')], score: 0.91 })
+]);
+assert.equal(oneDrtTwoDocumentedProductsResult.eligibility, 'HUMAN_REVIEW_REQUIRED');
+assert.deepEqual(JSON.parse(JSON.stringify(oneDrtTwoDocumentedProductsResult.flags)), ['COMPETING_CANDIDATES']);
+assert.equal(oneDrtTwoDocumentedProductsResult.candidate, null);
+const oneDrtTwoDocumentedProductsIncomplete = eligibility(oneDrtTwoDocumentedProducts, [candidate()]);
+assert.equal(oneDrtTwoDocumentedProductsIncomplete.eligibility, 'HUMAN_REVIEW_REQUIRED');
+assert.deepEqual(JSON.parse(JSON.stringify(oneDrtTwoDocumentedProductsIncomplete.flags)), ['INCOMPLETE_CANDIDATE_SET']);
 assert.deepEqual(JSON.parse(JSON.stringify(eligibility(base, []).flags)), ['INCOMPLETE_CANDIDATE_SET']);
 
 assert.throws(() => eligibility(base, [candidate({ technicalProductTarget: ref('TEST_REPORT', 'ORPHAN_PRODUCT') })]), /orphaned/);
