@@ -1765,3 +1765,35 @@ normativa.
   Release build em worktree limpa desse SHA: `PASS`; dez arquivos e manifest
   `10/10`, KB `5.27.0`, `SOURCE_COMMIT` exato. A branch local/remota foi
   conferida sincronizada nesse checkpoint.
+
+### Onda D — fixture mista de atividade RT-002 para ART/RRT/TRT (2026-10-19)
+
+- Base: HEAD `53d2766f84c0c2be342ab7cce96fc950c177d3f7`, branch sincronizada;
+  `.codex-local-evidence/` preservado. Alteração restrita ao teste de
+  `T1_DRT_ACTIVITY_EXECUTION`; nenhum executor, contrato normativo, Requirement,
+  Criterion ou Nonconformity foi alterado.
+- Fixture coerente usa ART, RRT e TRT com `RESPONSIBILITY_TYPE=EXECUCAO` e
+  atividade exata `EXECUÇÃO` em cada documento. Confirma `TRUE/PASS`, os três
+  bindings e referências, tipo de cada DRT, source document, provenance do item
+  e provenance do documento. A regressão insuficiente omite o item de atividade
+  somente do TRT e confirma `MANUAL_REVIEW`, trace dos três documentos e ausência
+  de FAIL/Nonconformity.
+- Resultado independente: Luna, re-review limitada ao teste, `PASS`; recomendou
+  verificar explicitamente `sourceProvenance` e `memoryReferences`. As duas
+  asserções foram incluídas e re-review dirigida confirmou encerramento (`PASS`).
+  Nenhuma revisão arquitetural Sol foi necessária para essa alteração de teste;
+  aprovação final Sol 6.1 da Fase 6 continua pendente.
+- Teste focal `node tests/apps-script-responsibility-evidence.test.js` — PASS.
+  Gates consolidados: Python `144/144`; Apps Script `9/9`; sintaxe de todos os
+  módulos/testes JS e `Code.gs` PASS; runtime regenerado duas vezes byte-idêntico
+  com SHA-256 `10d31381af23800e1156bcaf573813abc82103b2ee781910ed74cdd3c5263cd8`;
+  `git diff --check` PASS. Manifest, phase guards e release serão validados no
+  checkpoint publicado após commit.
+- Ganho de Criteria integrais: `2/29 → 2/29`; parciais: `8 → 8`; pendentes
+  integrais: `19 → 19`. Blockers encerrados: `0`; novos: `0`. Benefício
+  verificável: cobre a execução positiva e a insuficiência para os três tipos
+  de DRT no caminho RT-002, preservando rastreabilidade e incerteza. A cobertura
+  integral continua dependente de completude autenticada da extração; atividade
+  omitida não prova que a DRT não a declare. Esforço automatizado foi inferior
+  a um minuto de execução; uma revisão e uma re-review dirigidas, sem revisão
+  geral.

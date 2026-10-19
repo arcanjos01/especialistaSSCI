@@ -417,6 +417,36 @@ function activityMultipleDrtCase(secondActivityServiceText = 'EXECUÇÃO') {
     'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)', view);
 }
 
+function activityMixedDrtTypeCase(includeTrtActivity = true) {
+  const drtTypes = ['ART', 'RRT', 'TRT'];
+  const raw = buildRde([], drtTypes.map(entityId => ({
+    entityId, attributes: { RESPONSIBILITY_TYPE: 'EXECUCAO' }
+  })));
+  raw.schema_version = '0.6.0';
+  raw.documentary_associations = [];
+  raw.drt_declaration_items = [];
+  raw.documentary_date_items = [];
+  raw.drt_activity_items = drtTypes.slice(0, includeTrtActivity ? 3 : 2).map((_, index) => ({
+    activity_item_id: 'MIXED_ACT_' + index,
+    drt_record_id: 'DRT_' + index,
+    activity_service_text: 'EXECUÇÃO',
+    source_document: 'DRT_' + index,
+    source_text: 'Atividade: EXECUÇÃO',
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'MIXED_ITEM_' + index }
+  }));
+  const rde = api.parseAndValidateOperationalRdeJson_(JSON.stringify(raw), {
+    processId: raw.process_id, sourceFileId: raw.source.file_id
+  }, contract.entityCatalog);
+  const view = api.projectRdeToExecutionView_(rde, contract.entityCatalog);
+  const plan = api.materializeFrozenExecutionPlan(contract,
+    api.resolveCbmscApplicability(view, currentContext(), contract), view);
+  return {
+    view,
+    result: api.executePlannedCriterion(contract, plan,
+      'UNIT_KEY (REQ_T1_DRT_ACTIVITY_EXECUTION, T1_DRT_ACTIVITY_EXECUTION)', view)
+  };
+}
+
 const activityPositive = activityCase('EXECUÇÃO');
 assert.equal(activityPositive.engineResult, 'TRUE');
 assert.equal(activityPositive.pipelineResult, 'PASS');
@@ -640,6 +670,41 @@ const twoDrtMissingTrace = twoDrtMissing.trace[0].documentaryEvidence.map(item =
 assert.deepEqual(JSON.parse(JSON.stringify(twoDrtMissingTrace)), [
   { drt: 'DRT_0', activities: 1 },
   { drt: 'DRT_1', activities: 0 }
+]);
+const activityMixedDrtPositive = activityMixedDrtTypeCase();
+assert.equal(activityMixedDrtPositive.result.engineResult, 'TRUE');
+assert.equal(activityMixedDrtPositive.result.pipelineResult, 'PASS');
+assert.deepEqual(JSON.parse(JSON.stringify(
+  activityMixedDrtPositive.result.trace[0].memoryReferences.map(ref => ref.identifier)
+)), ['DRT_0', 'DRT_1', 'DRT_2']);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  activityMixedDrtPositive.result.trace[0].documentaryEvidence.map(item => ({
+    drt: item.drt.identifier,
+    drtType: activityMixedDrtPositive.view.entityId(item.drt),
+    sourceDocument: item.activityItems[0].sourceDocument.identifier,
+    sourceReference: item.activityItems[0].itemProvenance.sourceReference,
+    sourceProvenance: item.activityItems[0].sourceProvenance
+  }))
+)), [
+  { drt: 'DRT_0', drtType: 'ART', sourceDocument: 'DRT_0', sourceReference: 'MIXED_ITEM_0',
+    sourceProvenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_0' } },
+  { drt: 'DRT_1', drtType: 'RRT', sourceDocument: 'DRT_1', sourceReference: 'MIXED_ITEM_1',
+    sourceProvenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_1' } },
+  { drt: 'DRT_2', drtType: 'TRT', sourceDocument: 'DRT_2', sourceReference: 'MIXED_ITEM_2',
+    sourceProvenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_2' } }
+]);
+const activityMixedDrtMissing = activityMixedDrtTypeCase(false);
+assert.equal(activityMixedDrtMissing.result.engineResult, 'MANUAL_REVIEW');
+assert.equal(activityMixedDrtMissing.result.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(Object.prototype.hasOwnProperty.call(activityMixedDrtMissing.result, 'nonconformityOnFalse'), false);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  activityMixedDrtMissing.result.trace[0].documentaryEvidence.map(item => ({
+    drt: item.drt.identifier, activities: item.activityItems.length
+  }))
+)), [
+  { drt: 'DRT_0', activities: 1 },
+  { drt: 'DRT_1', activities: 1 },
+  { drt: 'DRT_2', activities: 0 }
 ]);
 
 const activityArrayPrototype = vm.runInContext('Array.prototype', context);
