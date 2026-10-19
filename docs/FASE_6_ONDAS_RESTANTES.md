@@ -1839,3 +1839,8 @@ normativa.
   foi identificada nessa matriz; não se introduziu camada preparatória. A
   análise foi read-only. A Onda D continua aberta à resposta do usuário sobre a
   fonte de inventário e às dependências específicas já enumeradas.
+- O registro de intake/Luna foi publicado no commit
+  `3d738dae7f8eba6bf78a6891d9489b5c0328245f`; release build em worktree limpa
+  desse SHA `PASS`, dez arquivos, manifest `10/10`, KB `5.27.0` e
+  `SOURCE_COMMIT` exato. Branch local/remota sincronizada; evidência local
+  continua fora do Git.
