@@ -2833,3 +2833,48 @@ PROMOTION=NOT_AUTHORIZED
   futuros os papéis e identificadores que o formulário oficial efetivamente
   declara, sem atribuir identidade. `.codex-local-evidence/` permanece fora do
   Git; `PROMOTION=NOT_AUTHORIZED`.
+
+### Reauditoria de fontes primárias para status de ART/RRT/TRT — 2026-10-20
+
+- A reconsulta identificou enunciados primários adicionais que confirmam a
+  condição substantiva de registro, sem fornecer por si só um classificador
+  universal dos PDFs atuais:
+  - Confea, FAQ de ART: o Crea registra a ART após preenchimento eletrônico,
+    cadastro no sistema e pagamento do valor correspondente
+    ([fonte](https://www.confea.org.br/transparencia/perguntas-frequentes),
+    linhas da seção ART).
+  - CAU/BR, Resolução 91/2014, com alterações da Resolução 184/2019: distingue
+    rascunho sem número/indicação de taxa paga; documento final com número mas
+    ainda sujeito a comprovante de pagamento; e RRT definitivo numerado com
+    valor pago preenchido pelo SICCAU. A efetivação depende de recolhimento,
+    ressalvadas hipóteses específicas como RRT derivado
+    ([fonte](https://transparencia.caubr.gov.br/resolucao91/), arts. 9 e 12 e
+    § 8º do art. 9; [Portaria 25/2014](https://transparencia.caubr.gov.br/portarianormativa25/),
+    art. 2º).
+  - CFT, Resolução 55/2019, arts. 4 e 23–31: o registro efetiva-se após
+    cadastro no sistema eletrônico do CRT e recolhimento do valor; o TRT
+    derivado é uma modalidade própria com tratamento de taxa distinto
+    ([fonte](https://www.cft.org.br/wp-content/uploads/2021/07/RESOLUCAO-055-2019-Altera-os-artigos-da-Resolucao-n-40.pdf)).
+- Essas fontes autorizam formalizar a condição normativa por modalidade e
+  suas exceções; não substituem prova documental do estado do item exato. O
+  documento final do CAU pode ainda exigir comprovante, e os ramos derivado,
+  extemporâneo, substituto, isenção/deferimento e cancelamento não podem ser
+  reduzidos a um único literal. A página de ART do Confea também não define
+  todos os campos/valores dos diversos CREAs. A Resolução do CFT define o
+  processo, mas não fecha os literais nem a versão atual de cada formulário
+  emitido pelos CRTs.
+- Decisão técnica deste diagnóstico: manter `STATUS_MAPPING_ART_RRT_TRT=BLOCKED`
+  para consumo automático até que um perfil versionado identifique tipo de
+  documento, conselho emissor, versão/formulário, campos de registro/emissão/
+  pagamento, exceções aplicáveis e evidência autenticada do estado. Literal
+  isolado, número presente, QR Code, texto “válido” ou fixture sintética não
+  constituem prova de status nem de autenticidade. Casos reconhecidos não
+  podem ser admitidos pelo Engine enquanto a verificação/autenticação do
+  documento exato exigida pela PHASE 2A não estiver satisfeita.
+- Métrica do lote de pesquisa: Criteria integrais `10/29 → 10/29`; parcial `1`;
+  blockers encerrados `0`; status permanece `10/29`, `1` parcial, `18` sem
+  suporte integral. Código, Base e runtime inalterados; gates de execução não
+  foram repetidos por não haver mudança executável. Benefício: separa a
+  condição normativa confirmada da classificação factual ainda não autorizada
+  e evita novo ciclo de pesquisa tratando esses conceitos como se fossem a
+  mesma lacuna.
