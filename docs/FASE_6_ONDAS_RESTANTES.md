@@ -2537,3 +2537,44 @@ PROMOTION=NOT_AUTHORIZED
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `SOL_REVIEW=PENDING_IDENTITY` e
   `PROMOTION=NOT_AUTHORIZED`.
+
+### POC isolada de inspeção local de assinatura PDF — 2026-10-20
+
+- Criados `tools/verify_pdf_signatures_local.py` e
+  `tests/test_local_pdf_signature_verifier.py` como ferramenta experimental
+  local. Ela não integra o Engine, não emite recibo autenticado, não acessa
+  APIs externas e não altera a RDE ou o PDF de origem.
+- A ferramenta lê um snapshot dos bytes uma vez; Poppler `pdfsig 24.02.0`
+  executa dump e inspeção sobre a mesma cópia temporária. Saída inesperada,
+  divergência entre registros textuais e contagem de assinaturas extraídas,
+  alteração/adulteração e falhas técnicas não são admitidas como prova.
+  A POC separa integridade criptográfica e cobertura de bytes de confiança,
+  cadeia, revogação, PAdES, identidade profissional e validade jurídica, que
+  permanecem `UNKNOWN/NOT_EVALUATED`.
+- A fixture adversarial de metadados PDF com linhas injetadas é rejeitada pelo
+  vínculo de contagem entre `pdfsig -dump` e registros do relatório. A
+  regressão de escape terminal usa ESC ANSI real e verifica que a exceção não
+  ecoa o caractere. A POC anterior também confirma que conteúdo acrescentado
+  em revisão incremental não assinada fica fora da cobertura dos bytes
+  originais; isso não demonstra validade integral do documento atual.
+- Gates no estado local: Python `167` executados, `163 PASS` e `4` skips
+  opt-in; suítes Apps Script `9/9 PASS`; `node --check` em módulos e testes
+  JavaScript e `Code.gs`; testes unitários da ferramenta `17` (4 skips sem
+  opt-in) e integração local opt-in `17/17 PASS`; POC de ByteRange/CMS PASS;
+  regeneração de `CompiledRuntimeContract.js` byte-idêntica, SHA-256
+  `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`;
+  `git diff --check` PASS. Release build limpo do commit deste lote ainda
+  pendente.
+- Revisão read-only independente dirigida por Arendt (execução
+  `01a15b55-84d2-70f3-afd2-b6d76376b809`, role `terra_worker`; modelo/versão
+  efetiva não expostos): sem findings de correção. A re-review dirigida
+  confirmou a regressão ESC real. Isso não é revisão Sol nem aprovação da
+  arquitetura de integração/produto.
+- Nenhum Criterion novo é contado como integralmente coberto: cobertura
+  permanece `10/29`; 6B continua `IN_PROGRESS`. A integração confiável requer
+  validação criptográfica suficiente, contrato de recibo autenticado,
+  identidade/digest e fronteira de autoridade revisados. GAS não foi provado
+  capaz de validar PAdES/CMS/X.509. `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `SOL_REVIEW=PENDING_IDENTITY` e
+  `PROMOTION=NOT_AUTHORIZED` permanecem.
