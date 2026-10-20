@@ -3021,3 +3021,34 @@ comparação isolada poderia conferir a pessoa errada. A confirmação solicitad
 independência já dada. `T4_IN10_COMMISSIONING` continua pendente; nenhum código,
 Criterion, Nonconformity ou cobertura foi alterado. Trabalho independente
 continua autorizado.
+
+### Limite nativo do Google Apps Script para verificação PDF — fonte oficial
+
+A referência oficial do Apps Script confirma que `Blob.getBytes()` devolve os
+bytes do arquivo e `Utilities.computeDigest()` calcula digest sobre um `Byte[]`.
+A documentação oficial do runtime V8 declara `crypto` e `SubtleCrypto`
+ausentes. Portanto o Apps Script consegue ler e hashear os bytes do PDF, mas
+não oferece API criptográfica nativa documentada para validar CMS/PAdES,
+assinatura pública ou cadeia X.509. Isso não prova impossibilidade de uma
+implementação JavaScript própria; apenas impede tratar APIs nativas como
+verificador pronto.
+
+Fontes oficiais consultadas em 2026-10-20:
+[Blob.getBytes](https://developers.google.com/apps-script/reference/base/blob),
+[Utilities.computeDigest](https://developers.google.com/apps-script/reference/utilities/utilities),
+[limitações do runtime V8](https://developers.google.com/apps-script/guides/v8-runtime#available_apis).
+
+A POC `tools/verify_pdf_signatures_local.py` usa localmente Poppler/pdfsig e
+OpenSSL para conferir digest/assinatura CMS e cobertura ByteRange; não é
+portável ao Apps Script e não valida trust, cadeia de confiança, revogação,
+PAdES completo ou identidade profissional. Continuação segura: avaliar uma
+biblioteca criptográfica JavaScript controlada pelo projeto ou um componente
+verificador interno controlado pelo projeto, ambos operando nos bytes exatos e
+emitindo recibo autenticado vinculado à apresentação/RDE/documento. Não integrar
+ao Engine até provas suficientes e revisão arquitetural; a decisão de qual
+fronteira executar permanece aberta. Nenhum dado de processo real foi usado.
+
+Métrica desta avaliação: ganho de Criteria `0`; 6A/6B e indicadores de cobertura
+inalterados; nenhum finding corrigido ou criado; testes não aplicáveis à pesquisa
+documental; `git diff --check` executado. O resultado reduz o espaço de
+implementação: o verificador não pode depender de `crypto.subtle` nativo no GAS.
