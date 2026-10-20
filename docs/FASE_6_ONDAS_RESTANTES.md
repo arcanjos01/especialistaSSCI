@@ -2584,3 +2584,27 @@ PROMOTION=NOT_AUTHORIZED
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `SOL_REVIEW=PENDING_IDENTITY` e
   `PROMOTION=NOT_AUTHORIZED` permanecem.
+
+### Avaliação documental da criptografia nativa Apps Script — 2026-10-20
+
+- O manifesto do projeto confirma `runtimeVersion=V8`. A documentação oficial
+  de limitações V8 enumera `crypto` e `SubtleCrypto` entre APIs indisponíveis;
+  orienta o uso de `Utilities` para operações criptográficas compatíveis.
+  A classe oficial `Utilities` documenta digest, HMAC e geração de assinatura
+  RSA, mas não documenta verificação RSA, decodificação/verificação CMS,
+  validação de cadeia X.509 ou PAdES:
+  [limitações V8](https://developers.google.com/apps-script/guides/v8-runtime),
+  [Utilities](https://developers.google.com/apps-script/reference/utilities/utilities).
+- Conclusão limitada ao que a plataforma documenta: `Utilities.computeDigest`
+  pode calcular digest dos bytes, mas não verifica por si só a assinatura
+  CMS/PAdES desses bytes. A ausência de uma API nativa documentada não prova
+  impossibilidade de implementar um verificador criptográfico próprio em
+  JavaScript; isso exigiria componente controlado pelo projeto, testes
+  criptográficos compatíveis e validação independente. Nenhum verificador
+  desse tipo foi implementado ou considerado confiável neste lote.
+- Não foi feita chamada de API externa, uso de dados reais ou execução GAS.
+  O CLI local Poppler segue apenas ferramenta experimental isolada. Próximo
+  passo útil: provar capacidade e limites de um componente controlado pelo
+  projeto sobre fixtures, incluindo CMS/ByteRange, antes de considerar
+  integração de recibo autenticado; até lá `SIGNED → MANUAL_REVIEW` e nenhum
+  Criterion recebe cobertura adicional.
