@@ -3004,3 +3004,20 @@ PROMOTION=NOT_AUTHORIZED
   operacional/critério. `FASE_6B_STATUS=IN_PROGRESS`,
   `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
+
+### Esclarecimento factual pendente — identificação do RT independente em IN10
+
+A decisão do usuário para `REQ_IN10_COMMISSIONING` está definida: a pessoa RT
+que responde pelo comissionamento deve ser diferente da pessoa solicitante. A
+auditoria confirmou que o RDE já preserva, no formulário de requerimento,
+`REQUESTER_CPF_TEXT` e `TECHNICAL_RESPONSIBLE_CPF_TEXT` como literais
+independentes e não autenticados. O contrato não liga o segundo campo ao
+RT-014, à DRT de comissionamento nem ao autor/responsável do relatório. Logo,
+a existência desses dois campos não basta para provar que o responsável
+conferido é o responsável pelo relatório IN10. Não se deve comparar ou
+normalizar os valores até que a fonte do papel RT-014 seja definida; uma
+comparação isolada poderia conferir a pessoa errada. A confirmação solicitada
+é limitada a essa ligação de papéis e não reabre a decisão normativa de
+independência já dada. `T4_IN10_COMMISSIONING` continua pendente; nenhum código,
+Criterion, Nonconformity ou cobertura foi alterado. Trabalho independente
+continua autorizado.
