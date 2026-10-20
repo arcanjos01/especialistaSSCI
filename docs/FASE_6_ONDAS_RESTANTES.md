@@ -2456,3 +2456,37 @@ revisão incremental não assinada, sem habilitar consumo produtivo pelo Engine.
   VALIDATED_TO_ANALYZED=PENDING, NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING e
   PRODUCTION_RELEASE=NOT_AUTHORIZED. Próximo passo técnico é verificador local
   validado, perfil/recibo autenticados e prova GAS; a POC não os substitui.
+
+### Reavaliação documental oficial dos status ART/RRT/TRT — 2026-10-20
+
+- Consulta dirigida a fontes públicas dos emissores, sem chamadas a API e sem
+  uso de dados de processos. A página do CREA-SC informa que o registro da ART
+  se efetiva após cadastro eletrônico e recolhimento, mas também descreve
+  emissão da ART e do boleto; não publica uma tabela versionada e completa de
+  literais para os campos RDE de registro, emissão e pagamento:
+  <https://portal.crea-sc.org.br/profissional/art/anotacao-de-responsabilidade-tecnica-art/>.
+- A Portaria Normativa CAU/BR 25/2014 distingue rascunho, documento final
+  numerado acompanhado de comprovante de pagamento e registro definitivo com
+  numeração e valor preenchido pelo SICCAU. É fonte oficial útil para essa
+  modalidade documental, mas é ato de 2014 e não constitui mapeamento atual e
+  completo de todos os literais/estados do CAU para os três atributos RDE:
+  <https://transparencia.caubr.gov.br/portarianormativa25/>.
+- O manual de geração de TRT do CFT lista estados distintos — aguardando
+  validação, aguardando pagamento, cancelado, aprovado, válido, bloqueado e
+  baixado — e descreve consulta de autenticidade após geração, validação e
+  impressão. Não define equivalência universal entre esses estados e as três
+  categorias semânticas do Engine; além disso, é um manual de 2018:
+  <https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf>.
+- Conclusão restrita: as fontes reforçam que estados, etapas e nomes variam
+  entre conselho, documento e fluxo. Não autorizam normalização global ou
+  dedução por palavra. Não foi estabelecido um catálogo completo, vigente e
+  versionado por tipo documental/conselho/campo/literal, nem comprovada a
+  proveniência autenticada desses atributos nos PDFs do processo. Portanto,
+  nenhuma implementação de classificador foi feita; `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` seguem pendentes/MANUAL_REVIEW quando insuficientes.
+  Cobertura permanece `10/29`, sem ganho; nenhum Requirement, Criterion ou
+  Nonconformity foi alterado. A evidência não substitui validação normativa
+  institucional nem confirmação oficial do documento individual.
+- Revisões: nenhuma revisão arquitetural solicitada, pois este registro não
+  altera contrato nem comportamento. Testes: nenhum necessário para a nota de
+  pesquisa; `git diff --check` executado no checkpoint documental.
