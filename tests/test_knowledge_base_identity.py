@@ -335,28 +335,74 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             "T4_IN15_COMMISSIONING",
             "T4_IN18_CMAR",
         }
-        self.assertEqual(len(assert_ids) + len(validate_ids), 11)
 
-        table_1_and_4 = self.table_1 + "\n" + self.table_4
-        for criterion_id in assert_ids:
-            match = re.search(
-                rf"(?ms)^CRITERION {re.escape(criterion_id)}\n(.*?)(?=^END\s*$)",
-                table_1_and_4,
-            )
-            self.assertIsNotNone(match, criterion_id)
-            self.assertIn("SIGNED", match.group(1), criterion_id)
+        def discover_signed_product_requirements(requirements):
+            return {
+                match.group(1)
+                for match in re.finditer(
+                    r"(?ms)^REQUIREMENT (\S+)\n(.*?)(?=^END\s*$)", requirements
+                )
+                if "VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE" in match.group(2)
+                and re.search(r"(?m)^EVIDENCE_ATTRIBUTE SIGNED\s*$", match.group(2))
+            }
 
-        signed_product_requirements = set()
-        for match in re.finditer(
-            r"(?ms)^REQUIREMENT (\S+)\n(.*?)(?=^END\s*$)", self.requirements
-        ):
-            body = match.group(2)
-            if "VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE" in body and re.search(
-                r"(?m)^EVIDENCE_ATTRIBUTE SIGNED\s*$", body
+        signed_product_requirements = discover_signed_product_requirements(
+            self.requirements
+        )
+
+        expected_requirement_consumers = {
+            "REQ_T1_CONFORMITY_REPORT_SIGNED": {"T1_CONFORMITY_REPORT_SIGNED"},
+            "REQ_IN07_COMMISSIONING": {"T4_IN07_COMMISSIONING"},
+            "REQ_IN08_ESTANQUEIDADE": {"T4_IN08_ESTANQUEIDADE"},
+            "REQ_IN09_TEST_REPORT": {"T4_IN09_TEST_REPORT"},
+            "REQ_IN09_CHECKLIST": {"T4_IN09_CHECKLIST"},
+            "REQ_IN10_COMMISSIONING": {"T4_IN10_COMMISSIONING"},
+            "REQ_IN12_COMMISSIONING": {"T4_IN12_COMMISSIONING"},
+            "REQ_IN15_COMMISSIONING": {"T4_IN15_COMMISSIONING"},
+            "REQ_IN18_CMAR": {"T4_IN18_CMAR"},
+        }
+
+        def discover_signed_dependencies(table_1, table_4, signed_requirements):
+            discovered_asserts = set()
+            discovered_consumers = {}
+            for match in re.finditer(
+                r"(?ms)^CRITERION (\S+)\n(.*?)(?=^END\s*$)",
+                table_1 + "\n" + table_4,
             ):
-                signed_product_requirements.add(match.group(1))
+                criterion_id, body = match.groups()
+                assert_match = re.search(
+                    r"(?ms)^ASSERT\b(.*?)(?=^(?:FAIL|MANUAL_REVIEW|END)\b|\Z)",
+                    body,
+                )
+                if assert_match and re.search(
+                    r"(?<!\w)SIGNED(?!\w)", assert_match.group(1)
+                ):
+                    discovered_asserts.add(criterion_id)
+                requirement_match = re.search(
+                    r"(?m)^(?:USES|REQUIREMENT) (\S+)$", body
+                )
+                if (
+                    requirement_match
+                    and requirement_match.group(1) in signed_requirements
+                ):
+                    discovered_consumers.setdefault(requirement_match.group(1), set()).add(
+                        criterion_id
+                    )
+            return discovered_asserts, discovered_consumers
 
-        linked_validation_ids = set()
+        discovered_asserts, discovered_consumers = discover_signed_dependencies(
+            self.table_1, self.table_4, signed_product_requirements
+        )
+        self.assertEqual(discovered_asserts, assert_ids)
+        self.assertEqual(
+            set().union(*discovered_consumers.values()),
+            validate_ids | {"T1_CONFORMITY_REPORT_SIGNED"},
+        )
+        self.assertEqual(discovered_consumers, expected_requirement_consumers)
+        self.assertEqual(
+            signed_product_requirements, set(expected_requirement_consumers)
+        )
+
         for criterion_id in validate_ids:
             match = re.search(
                 rf"(?ms)^CRITERION {re.escape(criterion_id)}\n(.*?)(?=^END\s*$)",
@@ -367,7 +413,6 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             self.assertIsNotNone(requirement_match, criterion_id)
             requirement_id = requirement_match.group(1)
             self.assertIn(requirement_id, signed_product_requirements, criterion_id)
-            linked_validation_ids.add(criterion_id)
 
         inventory = re.sub(r"\s+", " ", self.coverage_inventory)
         for criterion_id in assert_ids | validate_ids:
@@ -376,6 +421,45 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertIn("dois ASSERTs de DRT", inventory)
         self.assertIn("um ASSERT de produto", inventory)
         self.assertIn("oito VALIDATEs de produto", inventory)
+
+        signed_assert_block = re.search(
+            r"(?ms)^CRITERION T1_DRT_SIGNED\n.*?(?=^END\s*$)", self.table_1
+        ).group(0).replace("T1_DRT_SIGNED", "SYNTHETIC_SIGNED", 1).replace(
+            "FAIL NC_T1_005\n", ""
+        )
+        mutated_asserts, _ = discover_signed_dependencies(
+            self.table_1 + "\n" + signed_assert_block + "\nEND\n",
+            self.table_4,
+            signed_product_requirements,
+        )
+        self.assertNotEqual(mutated_asserts, assert_ids)
+        signed_requirement_block = re.search(
+            r"(?ms)^REQUIREMENT REQ_T1_CONFORMITY_REPORT_SIGNED\n.*?(?=^END\s*$)",
+            self.requirements,
+        ).group(0).replace(
+            "REQ_T1_CONFORMITY_REPORT_SIGNED", "REQ_SYNTHETIC_SIGNED", 1
+        )
+        mutated_requirements = self.requirements + "\n" + signed_requirement_block + "\nEND\n"
+        mutated_signed_requirements = discover_signed_product_requirements(
+            mutated_requirements
+        )
+        self.assertNotEqual(mutated_signed_requirements, signed_product_requirements)
+        mutated_asserts, mutated_consumers = discover_signed_dependencies(
+            self.table_1, self.table_4, mutated_signed_requirements
+        )
+        self.assertEqual(mutated_asserts, assert_ids)
+        self.assertEqual(mutated_consumers, expected_requirement_consumers)
+
+        validate_block = re.search(
+            r"(?ms)^CRITERION T4_IN07_COMMISSIONING\n.*?(?=^END\s*$)",
+            self.table_4,
+        ).group(0).replace("T4_IN07_COMMISSIONING", "SYNTHETIC_VALIDATE", 1)
+        _, mutated_consumers = discover_signed_dependencies(
+            self.table_1,
+            self.table_4 + "\n" + validate_block + "\nEND\n",
+            signed_product_requirements,
+        )
+        self.assertNotEqual(mutated_consumers, expected_requirement_consumers)
 
     def test_signature_receipt_is_created_after_extraction_and_admitted_only_by_frozen_binding(self):
         phase_2 = self.pipeline.split("# PHASE 2", 1)[1].split(

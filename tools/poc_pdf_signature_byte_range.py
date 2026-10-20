@@ -17,6 +17,51 @@ from pathlib import Path
 PLACEHOLDER_HEX_LENGTH = 16384
 
 
+def parse_byte_range(pdf: bytes) -> tuple[int, int, int, int]:
+    marker = b"/ByteRange ["
+    start = pdf.index(marker) + len(marker)
+    end = pdf.index(b"]", start)
+    values = tuple(int(value) for value in pdf[start:end].split())
+    if len(values) != 4:
+        raise ValueError("PDF ByteRange must contain exactly four offsets")
+    return values  # type: ignore[return-value]
+
+
+def parse_startxref(pdf: bytes) -> int:
+    _, marker, tail = pdf.rpartition(b"startxref\n")
+    if not marker:
+        raise ValueError("PDF startxref is missing")
+    return int(tail.splitlines()[0])
+
+
+def append_unsigned_incremental_revision(pdf: bytes) -> bytes:
+    """Append a visible page update without changing the signed revision bytes."""
+    previous_xref = parse_startxref(pdf)
+    revision = bytearray(b"\n")
+    page_offset = len(pdf) + len(revision)
+    revision.extend(
+        b"3 0 obj\n"
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] "
+        b"/Contents [4 0 R 7 0 R] /Resources << /Font << /F1 << /Type /Font "
+        b"/Subtype /Type1 /BaseFont /Helvetica >> >> >> /Annots [6 0 R] >>\n"
+        b"endobj\n"
+    )
+    revision_content = b"BT /F1 12 Tf 20 60 Td (Unsigned incremental revision) Tj ET\n"
+    content_offset = len(pdf) + len(revision)
+    revision.extend(
+        b"7 0 obj\n<< /Length " + str(len(revision_content)).encode() + b" >>\nstream\n"
+        + revision_content + b"endstream\nendobj\n"
+    )
+    xref_offset = len(pdf) + len(revision)
+    revision.extend(
+        b"xref\n3 1\n" + f"{page_offset:010d} 00000 n \n".encode()
+        + b"7 1\n" + f"{content_offset:010d} 00000 n \n".encode()
+        + f"trailer\n<< /Size 8 /Root 1 0 R /Prev {previous_xref} >>\n".encode()
+        + f"startxref\n{xref_offset}\n%%EOF\n".encode()
+    )
+    return pdf + revision
+
+
 def run(args: list[str], *, capture: bool = False) -> str:
     completed = subprocess.run(
         args,
@@ -28,7 +73,7 @@ def run(args: list[str], *, capture: bool = False) -> str:
     return completed.stdout or ""
 
 
-def build_fixture(directory: Path) -> tuple[Path, Path]:
+def build_fixture(directory: Path) -> tuple[Path, Path, Path]:
     key = directory / "key.pem"
     cert = directory / "cert.pem"
     run(
@@ -100,15 +145,17 @@ def build_fixture(directory: Path) -> tuple[Path, Path]:
     tampered[signed_content] = ord("X")
     tampered_pdf = directory / "tampered.pdf"
     tampered_pdf.write_bytes(tampered)
-    return signed_pdf, tampered_pdf
+    incremental_pdf = directory / "unsigned-incremental-revision.pdf"
+    incremental_pdf.write_bytes(append_unsigned_incremental_revision(bytes(pdf)))
+    return signed_pdf, tampered_pdf, incremental_pdf
 
 
 def main() -> None:
-    missing = [name for name in ("openssl", "pdfsig") if shutil.which(name) is None]
+    missing = [name for name in ("openssl", "pdfsig", "pdftotext") if shutil.which(name) is None]
     if missing:
         raise SystemExit("Missing required local tools: " + ", ".join(missing))
     with tempfile.TemporaryDirectory(prefix="ssci-pdfsig-poc-") as temp:
-        signed_pdf, tampered_pdf = build_fixture(Path(temp))
+        signed_pdf, tampered_pdf, incremental_pdf = build_fixture(Path(temp))
         valid_report = run(["pdfsig", str(signed_pdf)], capture=True)
         if "Signature Validation: Signature is Valid." not in valid_report:
             raise SystemExit("Valid fixture was not cryptographically validated:\n" + valid_report)
@@ -119,9 +166,34 @@ def main() -> None:
         if "Signature Validation: Digest Mismatch." not in tampered_report:
             raise SystemExit("Tampered fixture was not rejected:\n" + tampered_report)
 
+        signed_bytes = signed_pdf.read_bytes()
+        incremental_bytes = incremental_pdf.read_bytes()
+        if not incremental_bytes.startswith(signed_bytes):
+            raise SystemExit("Incremental fixture changed bytes from the signed revision")
+        byte_range = parse_byte_range(signed_bytes)
+        original_coverage_end = byte_range[2] + byte_range[3]
+        if original_coverage_end != len(signed_bytes):
+            raise SystemExit("Original ByteRange does not end at the signed revision boundary")
+        incremental_report = run(["pdfsig", str(incremental_pdf)], capture=True)
+        if "Signature Validation: Signature is Valid." not in incremental_report:
+            raise SystemExit(
+                "Original CMS did not remain valid after the unsigned incremental revision:\n"
+                + incremental_report
+            )
+        incremental_text = run(["pdftotext", str(incremental_pdf), "-"], capture=True)
+        if "Unsigned incremental revision" not in incremental_text:
+            raise SystemExit("Incremental revision content was not visible to Poppler")
+
         print("PASS: PDF ByteRange/CMS signature is valid for the generated fixture.")
         print("PASS: its self-signed certificate is explicitly reported untrusted.")
         print("PASS: changing a signed byte produces Digest Mismatch.")
+        print("PASS: the original CMS remains valid for its original ByteRange after an unsigned incremental revision.")
+        print(
+            "PASS: the unsigned revision starts at byte "
+            f"{len(signed_bytes)}, after original ByteRange coverage ends at byte {original_coverage_end}."
+        )
+        print("PASS: Poppler reads the unsigned incremental revision content.")
+        print("LIMIT: the current document revision is outside the original signature coverage; this is not PASS for full-document validity.")
         print("LIMIT: does not establish PAdES policy, trusted issuer, council identity, revocation, or Apps Script capability.")
 
 
