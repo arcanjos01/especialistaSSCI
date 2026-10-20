@@ -2040,8 +2040,8 @@ híbrida local/humana, sem alterar a RDE.
 
 | Gate | Escopo | Condição de encerramento | Estado neste candidate |
 |---|---|---|---|
-| Fase 6A — núcleo e contratos | Engine determinístico, Criteria já suportados, predicates/resolvers, RDE/ImmutableExecutionView, evidência tipada, interfaces de verificação, integridade, proveniência, insuficiências, testes e trace | Escopo implementado, testado e aprovado independentemente. Os 29 Criteria produtivos não são requisito isolado; capacidade preparatória não conta como cobertura; não promove operação | `PENDING_REVIEW` |
-| Fase 6B — integrações e evidências | Verificação local, confirmação humana auditável, comparandos, vínculos autorizados, fatos de ausência, consumo pelo Engine, Criteria restantes e testes integrados; calibração quando empiricamente válida | Evidências representativas, gates e aprovação final independentes; APIs externas não são pré-requisito | `PENDING` |
+| Fase 6A — núcleo e contratos | Engine determinístico, Criteria já suportados, predicates/resolvers, RDE/ImmutableExecutionView, evidência tipada, interfaces de verificação, integridade, proveniência, insuficiências, testes e trace | Escopo implementado, testado e aprovado independentemente. Os 29 Criteria produtivos não são requisito isolado; capacidade preparatória não conta como cobertura; não promove operação | `PENDING_IDENTITY` |
+| Fase 6B — integrações e evidências | Verificação local, confirmação humana auditável, comparandos, vínculos autorizados, fatos de ausência, consumo pelo Engine, Criteria restantes e testes integrados; calibração quando empiricamente válida | Evidências representativas, gates e aprovação final independentes; APIs externas não são pré-requisito | `IN_PROGRESS` |
 
 Os nomes gerenciais 6A/6B não renumeram fases do pipeline. `PHASE 6A` em
 `08_execution_pipeline.txt` permanece a projeção operacional IRV após
@@ -2490,3 +2490,50 @@ revisão incremental não assinada, sem habilitar consumo produtivo pelo Engine.
 - Revisões: nenhuma revisão arquitetural solicitada, pois este registro não
   altera contrato nem comportamento. Testes: nenhum necessário para a nota de
   pesquisa; `git diff --check` executado no checkpoint documental.
+
+### Avaliação do gate gerencial Fase 6A — 2026-10-20
+
+```text
+FASE_6A_STATUS=PENDING_REVIEW
+FASE_6B_STATUS=IN_PROGRESS
+REVIEWED_CANDIDATE=0264157ebe6a106fdadf61fb3c51382ce95f1d1e
+INDEPENDENT_6A_GATE_REVIEW=PENDING_IDENTITY
+SOL_REVIEW=PENDING_IDENTITY
+PROMOTION=NOT_AUTHORIZED
+```
+
+- Uma resposta de revisão read-only no SHA exato e a re-review dirigida
+  separaram a interface
+  tipada e o fallback determinístico de insuficiência da integração produtiva:
+  contrato/interface autenticada e `SIGNED → MANUAL_REVIEW` pertencem à 6A;
+  verificador local, perfil operacional, recibos efetivos e binding integrado
+  ao Engine pertencem à 6B. Contudo, na verificação de fidelidade, o próprio
+  revisor não confirmou que a identidade/execução registrada corresponda a
+  esse parecer. Por isso, o parecer não é contado como aprovação independente
+  conforme AGENTS.md §25.2; o gate 6A permanece pendente de revisão válida no
+  candidato exato.
+- A arquitetura dos contratos-base foi independentemente aprovada conforme
+  §25.2 no candidato `5534c3f`; a re-review dos testes/POC no candidato
+  `f82edba` fechou OPT-001. Desde esses candidatos, o HEAD atual contém apenas
+  documentação de acompanhamento. A review Luna examinou o candidato atual e
+  registrou que não há alteração de código/Base/testes posterior.
+- Gates reproduzidos no HEAD avaliado: Python `150/150`; Apps Script `9/9`;
+  sintaxe de todos os módulos/testes JS e `Code.gs`; regeneração do runtime
+  byte-idêntica, SHA-256
+  `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`;
+  release build em worktree limpa, 10 documentos, KB `5.30.0`,
+  `SOURCE_COMMIT=0264157ebe6a106fdadf61fb3c51382ce95f1d1e`; e
+  `git diff --check`: PASS. O primeiro build na worktree de desenvolvimento
+  foi corretamente recusado por causa do diretório local não rastreado; a
+  validação foi repetida com sucesso em worktree limpa, preservando
+  `.codex-local-evidence/`.
+- Cobertura não foi ampliada: 34 Criteria ativos, 29 produtivos, 10 integrais,
+  1 parcial, 18 sem suporte integral, 5 não selecionáveis e 2 retirados.
+  Capacidade preparatória não conta como Criterion coberto.
+- Quando a revisão independente válida do gate 6A for registrada, verificação
+  operacional de assinatura, integração de recibos, cobertura restante,
+  correlação calibrada e gates/revisão final da Fase 6 permanecem na 6B.
+  `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `SOL_REVIEW=PENDING_IDENTITY` e
+  `PROMOTION=NOT_AUTHORIZED`.

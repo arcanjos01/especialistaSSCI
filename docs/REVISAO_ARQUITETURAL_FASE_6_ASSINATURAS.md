@@ -155,3 +155,30 @@ implementar e validar verificador/perfis/recibos e sua integração nas fronteir
 já aprovadas, incluindo prova específica no GAS. SIGNED permanece
 MANUAL_REVIEW enquanto faltar comprovação admitida; não há promoção de fase
 ou de operação por este lote de infraestrutura de testes.
+
+## Avaliação do gate gerencial 6A
+
+O candidato `0264157ebe6a106fdadf61fb3c51382ce95f1d1e` passou nos gates
+técnicos reproduzidos: Python `150/150`, Apps Script `9/9`, sintaxe JS/Code.gs,
+runtime byte-idêntico (SHA-256
+`d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`) e
+release build em worktree limpa com 10 documentos, KB `5.30.0` e
+SOURCE_COMMIT exato. `git diff --check` também passou. A arquitetura-base
+permanece coberta pela revisão independente aceita acima e pelo follow-up
+`f82edba`.
+
+A leitura textual da fronteira 6A/6B foi esclarecida em re-review: contrato e
+interface autenticada/tipada, incluindo `SIGNED → MANUAL_REVIEW` quando não
+houver prova suficiente, pertencem à 6A; verificador local, perfil operacional,
+recibos efetivos e binding integrado ao Engine são integrações da 6B segundo o
+Plano de Migração e o pipeline. Porém, o próprio revisor não confirmou que a
+identidade/execução registrada corresponda a esse parecer. Em conformidade
+com AGENTS.md §25.2, ele não é contado como aprovação independente válida.
+
+Estado do checkpoint: `FASE_6A_STATUS=PENDING_REVIEW`,
+`INDEPENDENT_6A_GATE_REVIEW=PENDING_IDENTITY`,
+`FASE_6B_STATUS=IN_PROGRESS`, `SOL_REVIEW=PENDING_IDENTITY`,
+`CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
+`NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+`PROMOTION=NOT_AUTHORIZED`. Não se declara encerramento da Fase 6 nem verificação
+criptográfica produtiva.
