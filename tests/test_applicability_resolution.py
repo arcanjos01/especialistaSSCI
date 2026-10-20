@@ -115,10 +115,41 @@ def productive_resolution(documents, current_identifiers):
         decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "POSITIVE"
     else:
         decisions["SMSCI_IN19_APPLICABILITY_REVIEW"] = "NEGATIVE"
+    smoke_control_items = document.get("smoke_control_modes", ())
+    smoke_control_mode = None
+    if decisions["SMSCI_SMOKE_CONTROL"] == "POSITIVE":
+        cf_item_count = sum(
+            code == "CF" for code in document.get("official_codes", ())
+        )
+        if len(smoke_control_items) != cf_item_count:
+            raise ArchitecturalBlocker("CF mode facts do not cover every CF item")
+        declared_modes = set()
+        for item in smoke_control_items:
+            mode = item.get("mode")
+            if (
+                mode not in {"MECHANICAL", "NON_MECHANICAL"}
+                or not isinstance(item.get("source_text"), str)
+                or not item["source_text"].strip()
+                or not isinstance(item.get("source_location"), str)
+                or not item["source_location"].strip()
+                or not item.get("provenance")
+            ):
+                raise ArchitecturalBlocker("explicit CF mode fact")
+            declared_modes.add(mode)
+        if len(declared_modes) != 1:
+            raise ArchitecturalBlocker("conflicting or unresolved CF mode")
+        smoke_control_mode = next(iter(declared_modes))
+    mechanical = smoke_control_mode == "MECHANICAL"
+    decisions["SMSCI_SMOKE_CONTROL_MECHANICAL"] = (
+        "POSITIVE" if mechanical else "NEGATIVE"
+    )
+    if mechanical:
+        scope.add("SMSCI_SMOKE_CONTROL_MECHANICAL")
     regime = in19_documentation_regime(document, decisions)
     return {
         "process_smsci": frozenset(scope),
         "decisions": decisions,
+        "smoke_control_mode": smoke_control_mode,
         "in19_documentation_regime": regime,
         "trace": trace,
     }
@@ -313,14 +344,22 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
 
     def test_f_all_28_official_codes_are_representable_and_exact(self):
         self.assertEqual(len(OFFICIAL_MAP), 28)
+        cf_mode = {
+            "mode": "MECHANICAL",
+            "source_text": "TEST_ONLY explicit mechanical declaration",
+            "source_location": "section 3, paragraph 2",
+            "provenance": "TEST_ONLY RDE fact reference",
+        }
         resolution = productive_resolution(
-            [self.current_document(tuple(OFFICIAL_MAP))],
+            [self.current_document(
+                tuple(OFFICIAL_MAP), smoke_control_modes=[cf_mode]
+            )],
             self.current_identifiers(),
         )
         for target in OFFICIAL_MAP.values():
             self.assertEqual(resolution["decisions"][target], "POSITIVE")
             self.assertIn(target, resolution["process_smsci"])
-        self.assertEqual(len(resolution["decisions"]), 30)
+        self.assertEqual(len(resolution["decisions"]), 31)
         official = {
             entity: fields for entity, fields in self.entities.items()
             if fields.get("TYPE") == "SMSCI"
@@ -331,6 +370,61 @@ class ApplicabilityResolutionContractTests(unittest.TestCase):
             {fields.get("OFFICIAL_ESCI_CODE") for fields in official.values()},
             set(OFFICIAL_MAP),
         )
+
+    def test_cf_requires_explicit_documented_mode_for_derived_scope(self):
+        with self.assertRaises(ArchitecturalBlocker):
+            productive_resolution(
+                [self.current_document(("CF",))], self.current_identifiers()
+            )
+
+        mode_fact = {
+            "mode": "MECHANICAL",
+            "source_text": "TEST_ONLY explicit mechanical declaration",
+            "source_location": "section 3, paragraph 2",
+            "provenance": "TEST_ONLY RDE fact reference",
+        }
+        mechanical = productive_resolution(
+            [self.current_document(("CF",), smoke_control_modes=[mode_fact])],
+            self.current_identifiers(),
+        )
+        self.assertEqual(
+            mechanical["decisions"]["SMSCI_SMOKE_CONTROL_MECHANICAL"],
+            "POSITIVE",
+        )
+        self.assertIn("SMSCI_SMOKE_CONTROL_MECHANICAL", mechanical["process_smsci"])
+        self.assertEqual(mechanical["smoke_control_mode"], "MECHANICAL")
+
+        non_mechanical_fact = {
+            **mode_fact,
+            "mode": "NON_MECHANICAL",
+            "source_text": "TEST_ONLY explicit non-mechanical declaration",
+        }
+        non_mechanical = productive_resolution(
+            [self.current_document(("CF",), smoke_control_modes=[non_mechanical_fact])],
+            self.current_identifiers(),
+        )
+        self.assertEqual(
+            non_mechanical["decisions"]["SMSCI_SMOKE_CONTROL_MECHANICAL"],
+            "NEGATIVE",
+        )
+        self.assertNotIn("SMSCI_SMOKE_CONTROL_MECHANICAL", non_mechanical["process_smsci"])
+        self.assertIn("SMSCI_SMOKE_CONTROL", non_mechanical["process_smsci"])
+
+        with self.assertRaises(ArchitecturalBlocker):
+            productive_resolution(
+                [self.current_document(("CF", "CF"), smoke_control_modes=[mode_fact])],
+                self.current_identifiers(),
+            )
+
+        conflicting = [
+            mode_fact,
+            {**non_mechanical_fact, "source_location": "section 4, paragraph 1"},
+        ]
+        with self.assertRaises(ArchitecturalBlocker):
+            productive_resolution(
+                [self.current_document(("CF", "CF"), smoke_control_modes=conflicting)],
+                self.current_identifiers(),
+            )
 
     def test_g_existing_mapping_and_official_aliases_are_preserved(self):
         expected = {
