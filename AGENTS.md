@@ -612,7 +612,7 @@ Usar o Git para histórico.
 
 Não renomear ou mover arquivos sem verificar referências e dependências.
 
-Quando autorizado a fazer commits:
+Nos commits autorizados pela política permanente da seção 25.1:
 
 manter commits pequenos e coerentes;
 
@@ -796,6 +796,40 @@ compatibilidade entre documentação, código e testes;
 necessidade real da complexidade introduzida.
 
 Aprovação técnica de Sol não substitui decisão humana quando a questão for normativa.
+
+
+25.1 AUTORIZAÇÃO PERMANENTE DE DESENVOLVIMENTO E CHECKPOINTS
+
+Por decisão expressa do responsável pelo projeto, ficam permanentemente autorizadas, nas fases cujo início tenha sido formalmente autorizado, as seguintes atividades de desenvolvimento, sem nova confirmação a cada operação:
+
+- criar e modificar código, testes, contratos candidatos e documentação;
+- criar branches de desenvolvimento ou revisão, commits e checkpoints técnicos;
+- fazer push não destrutivo para branches de desenvolvimento ou revisão autorizadas;
+- executar testes, builds, compilações e validações em worktrees temporárias;
+- produzir artefatos de validação técnica, preservar SHAs e registrar evidências;
+- corrigir findings e continuar para o próximo lote técnico autorizado.
+
+Essa autorização inclui o trabalho corrente das Fases 6A/6B e se aplica às fases futuras somente depois de autorizado seu início. Não constitui autorização para antecipar fases, alterar decisões normativas ou promover sistemas a uso operacional.
+
+COMMIT E BUILD NÃO SÃO PROMOÇÃO.
+
+Um commit, push ou build de validação, inclusive de mudança arquitetural, não significa que a arquitetura foi consolidada ou aprovada. A revisão independente por Sol permanece obrigatória para consolidar mudanças arquiteturais e para os gates de promoção que a exijam, mas não é pré-requisito para versionar candidatos ou testar builds.
+
+Candidatos sem aprovação Sol podem ser commitados e enviados somente para branches autorizadas de desenvolvimento/revisão, identificados claramente com ARCHITECTURAL_REVIEW=PENDING e PROMOTION=NOT_AUTHORIZED. Branch exclusiva de revisão é opcional; commit na branch de desenvolvimento não representa promoção. O build de validação deve utilizar um SOURCE_COMMIT exato de uma worktree limpa e deve ser identificado como BUILD_VALIDATION, nunca como release operacional autorizado.
+
+Enquanto Sol estiver indisponível, registrar SOL_REVIEW=PENDING_CAPACITY; preservar e enviar checkpoints técnicos permitidos; continuar atividades independentes; não simular PASS, não reatribuir a outro modelo uma revisão Sol e não repetir indefinidamente tentativas de acesso. Preferir uma revisão independente por lote funcional coerente, com re-review dirigida a findings efetivos. Achados que comprometam integridade, autenticidade ou correção normativa continuam bloqueantes para consolidação ou promoção.
+
+Não é autorizado por esta regra:
+
+- fazer merge ou incorporar à main candidatos arquiteturais não aprovados;
+- fazer deploy, publicação ou entrada em produção;
+- utilizar processos reais do CBMSC sem autorização específica;
+- alterar a semântica normativa sem autoridade competente;
+- iniciar fase ainda não autorizada ou declarar fase concluída sem seus gates;
+- fazer force push, sobrescrever alterações concorrentes, descartar dados locais ou versionar credenciais e arquivos privados.
+
+Preservar RDE FACT ONLY, Engine determinístico, proveniência, rastreabilidade e decisão humana final do vistoriador. Aprovação técnica não substitui decisão normativa institucional. As atividades de desenvolvimento acima podem prosseguir mesmo quando a aprovação de promoção estiver pendente.
+
 
 26. REGRA DE MIGRAÇÃO
 
