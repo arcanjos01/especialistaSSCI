@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Experimental, local-only PDF signature inspection via Poppler pdfsig.
 
-This tool reports cryptographic signature coverage/integrity only.  It is not an
-Engine, trust, certificate-chain, revocation, PAdES, or professional-identity
-verifier, and it never modifies the input PDF.
+This tool reports CMS integrity and signed-revision coverage and can optionally
+check a certificate path against an explicitly supplied PEM anchor bundle. The
+path result is diagnostic: it does not establish an approved trust policy,
+revocation, PAdES validity, or professional identity. The tool is not an Engine,
+emits no authenticated receipt, and never modifies the input PDF.
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from typing import Any
 
 
 SUPPORTED_PDF_SIG_VERSION = "24.02.0"
-VERIFIER_VERSION = "local-pdf-signature-verifier/1.1"
+VERIFIER_VERSION = "local-pdf-signature-verifier/1.2"
 _RANGE_RE = re.compile(r"\[(\d+)\s+-\s+(\d+)\]")
 _RANGES_LINE_RE = re.compile(r"\s*\[\d+\s+-\s+\d+\](?:\s*,\s*\[\d+\s+-\s+\d+\])*\s*")
 _VERSION_RE = re.compile(r"pdfsig version (\S+)")
@@ -265,8 +267,53 @@ def _cms_cross_check_in_directory(directory: Path, data: bytes, signatures: list
     return results
 
 
-def inspect_pdf(path: Path) -> dict[str, Any]:
+def _verify_certificate_chain(
+    directory: Path,
+    data: bytes,
+    signature: dict[str, Any],
+    cms_dump: bytes,
+    trust_anchor_bundle: bytes,
+    signature_integrity: dict[str, str],
+) -> dict[str, str]:
+    if signature_integrity.get("result") != "VALID":
+        return {"result": "NOT_EVALUATED_INTEGRITY_NOT_CONFIRMED"}
+    try:
+        cms_length = _der_length(cms_dump)
+        if any(cms_dump[cms_length:]):
+            raise PdfSignatureError("CMS dump has nonzero trailing bytes")
+        cms_path = directory / "chain-check.der"
+        content_path = directory / "chain-check-content.bin"
+        anchors_path = directory / "trust-anchors.pem"
+        cms_path.write_bytes(cms_dump[:cms_length])
+        content_path.write_bytes(b"".join(
+            data[start:end] for start, end in signature["signed_ranges"]
+        ))
+        anchors_path.write_bytes(trust_anchor_bundle)
+        checked = subprocess.run(
+            ["openssl", "cms", "-verify", "-binary", "-verify_retcode",
+             "-inform", "DER", "-in", cms_path.name, "-content",
+             content_path.name, "-CAfile", anchors_path.name, "-out", os.devnull],
+            cwd=directory, text=True, capture_output=True, check=False, timeout=60,
+        )
+    except (OSError, PdfSignatureError, subprocess.TimeoutExpired):
+        return {"result": "INCONCLUSIVE"}
+    if checked.returncode == 0:
+        return {"result": "VALID_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE"}
+    return {"result": "NOT_VALIDATED_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE"}
+
+
+def inspect_pdf(
+    path: Path, *, trust_anchor_bundle: Path | None = None
+) -> dict[str, Any]:
     data = path.read_bytes()
+    trust_anchors = trust_anchor_bundle.read_bytes() if trust_anchor_bundle else None
+    if trust_anchors is not None and not trust_anchors.strip():
+        raise PdfSignatureError("trust-anchor bundle is empty")
+    if trust_anchors is not None and (
+        b"-----BEGIN CERTIFICATE-----" not in trust_anchors
+        or b"PRIVATE KEY-----" in trust_anchors
+    ):
+        raise PdfSignatureError("trust-anchor bundle must contain public certificates only")
     openssl_version = _openssl_version()
     run_result = _run_pdfsig(path, data)
     if len(run_result) == 2:  # compatibility with focused mocks of the legacy helper
@@ -282,6 +329,17 @@ def inspect_pdf(path: Path) -> dict[str, Any]:
         cms_results = _cms_cross_check(data, signatures, dumps)
         for signature, cms_result in zip(signatures, cms_results):
             signature["cms_signature_integrity"] = cms_result
+        if trust_anchors is not None:
+            if len(signatures) == 1 and len(dumps) == 1:
+                with tempfile.TemporaryDirectory(prefix="ssci-chain-") as directory_name:
+                    chain = _verify_certificate_chain(
+                        Path(directory_name), data, signatures[0], dumps[0],
+                        trust_anchors, cms_results[0],
+                    )
+            else:
+                chain = {"result": "INCONCLUSIVE_MULTIPLE_SIGNATURE_ORDER_UNPROVEN"}
+            for signature in signatures:
+                signature["certificate_chain_verification"] = chain
     return {
         "verifier_version": VERIFIER_VERSION,
         "pdfsig_version": pdfsig_version,
@@ -290,7 +348,17 @@ def inspect_pdf(path: Path) -> dict[str, Any]:
         "signature_count": len(signatures),
         "signatures": signatures,
         "trust": "UNKNOWN/NOT_EVALUATED",
-        "certificate_chain": "UNKNOWN/NOT_EVALUATED",
+        "certificate_chain": {
+            "result": (
+                "NOT_EVALUATED" if trust_anchors is None
+                else "NO_SIGNATURES_TO_CHECK" if not signatures
+                else "RESULTS_PER_SIGNATURE"
+            ),
+            "trust_anchor_bundle_sha256": (
+                hashlib.sha256(trust_anchors).hexdigest()
+                if trust_anchors is not None else None
+            ),
+        },
         "revocation": "UNKNOWN/NOT_EVALUATED",
         "pades": "UNKNOWN/NOT_EVALUATED",
         "professional_identity": "UNKNOWN/NOT_EVALUATED",
@@ -300,9 +368,13 @@ def inspect_pdf(path: Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("pdf", type=Path)
+    parser.add_argument(
+        "--trust-anchor-bundle", type=Path,
+        help="optional PEM trust anchors; results are diagnostic and not institutional approval",
+    )
     args = parser.parse_args(argv)
     try:
-        result = inspect_pdf(args.pdf)
+        result = inspect_pdf(args.pdf, trust_anchor_bundle=args.trust_anchor_bundle)
     except (OSError, PdfSignatureError, FileNotFoundError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

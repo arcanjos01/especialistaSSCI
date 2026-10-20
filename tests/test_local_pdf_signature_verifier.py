@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import os
 import shutil
 import subprocess
@@ -229,6 +230,69 @@ Signature #1:
     def test_timeout_is_technical_error(self, run):
         with self.assertRaises(self.tool.PdfSignatureError):
             self.tool.inspect_pdf(Path(__file__))
+
+    def test_empty_trust_anchor_bundle_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pdf = Path(directory) / "unsigned.pdf"
+            pdf.write_bytes(b"%PDF-1.4 fixture")
+            anchors = Path(directory) / "empty.pem"
+            anchors.write_bytes(b"  \n")
+            with self.assertRaises(self.tool.PdfSignatureError):
+                self.tool.inspect_pdf(pdf, trust_anchor_bundle=anchors)
+
+    def test_trust_anchor_bundle_rejects_private_key_material(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pdf = Path(directory) / "unsigned.pdf"
+            pdf.write_bytes(b"%PDF-1.4 fixture")
+            anchors = Path(directory) / "unsafe.pem"
+            anchors.write_bytes(
+                b"-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n"
+                b"-----BEGIN PRIVATE KEY-----\nDO_NOT_USE\n-----END PRIVATE KEY-----\n"
+            )
+            with self.assertRaises(self.tool.PdfSignatureError):
+                self.tool.inspect_pdf(pdf, trust_anchor_bundle=anchors)
+
+    @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
+    def test_optional_chain_check_is_bound_to_supplied_anchor_bundle(self):
+        if shutil.which("pdfsig") is None or shutil.which("openssl") is None:
+            self.skipTest("local pdfsig/openssl unavailable")
+        poc = load(POC, "pdf_signature_poc_chain")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            signed, tampered, _ = poc.build_fixture(root)
+            anchors = root / "cert.pem"
+            result = self.tool.inspect_pdf(signed, trust_anchor_bundle=anchors)
+            signature = result["signatures"][0]
+            self.assertEqual(signature["cms_signature_integrity"]["result"], "VALID")
+            self.assertEqual(
+                signature["certificate_chain_verification"]["result"],
+                "VALID_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE",
+            )
+            self.assertEqual(result["trust"], "UNKNOWN/NOT_EVALUATED")
+            self.assertEqual(
+                result["certificate_chain"]["trust_anchor_bundle_sha256"],
+                hashlib.sha256(anchors.read_bytes()).hexdigest(),
+            )
+
+            tampered_result = self.tool.inspect_pdf(
+                tampered, trust_anchor_bundle=anchors
+            )
+            self.assertFalse(tampered_result["signatures"][0]["integrity"]["valid"])
+            self.assertEqual(
+                tampered_result["signatures"][0]["certificate_chain_verification"]["result"],
+                "NOT_EVALUATED_INTEGRITY_NOT_CONFIRMED",
+            )
+
+            other_root = root / "other"
+            other_root.mkdir()
+            other_signed, _, _ = poc.build_fixture(other_root)
+            untrusted = self.tool.inspect_pdf(
+                other_signed, trust_anchor_bundle=anchors
+            )
+            self.assertEqual(
+                untrusted["signatures"][0]["certificate_chain_verification"]["result"],
+                "NOT_VALIDATED_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE",
+            )
 
     @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
     def test_adversarial_multiline_field_cannot_create_valid_signature_record(self):
