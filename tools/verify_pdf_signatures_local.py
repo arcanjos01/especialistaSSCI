@@ -22,10 +22,11 @@ from typing import Any
 
 
 SUPPORTED_PDF_SIG_VERSION = "24.02.0"
-VERIFIER_VERSION = "local-pdf-signature-verifier/1.0"
+VERIFIER_VERSION = "local-pdf-signature-verifier/1.1"
 _RANGE_RE = re.compile(r"\[(\d+)\s+-\s+(\d+)\]")
 _RANGES_LINE_RE = re.compile(r"\s*\[\d+\s+-\s+\d+\](?:\s*,\s*\[\d+\s+-\s+\d+\])*\s*")
 _VERSION_RE = re.compile(r"pdfsig version (\S+)")
+_DUMP_RE = re.compile(r"input\.pdf\.sig(\d+)")
 _KNOWN_PREFIXES = (
     "Digital Signature Info of:", "Signature #", "  - ",
     "  - Signature Validation:", "  - Total document signed",
@@ -36,7 +37,27 @@ class PdfSignatureError(ValueError):
     pass
 
 
-def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int]:
+def _dump_sort_key(path: Path) -> int:
+    match = _DUMP_RE.fullmatch(path.name)
+    if not match:
+        raise PdfSignatureError("pdfsig dump produced an unexpected entry")
+    return int(match.group(1))
+
+
+def _openssl_version() -> str:
+    try:
+        result = subprocess.run(
+            ["openssl", "version"], text=True, capture_output=True, check=False, timeout=60
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return "UNKNOWN/NOT_EVALUATED"
+    line = (result.stdout or "").strip().splitlines()
+    if result.returncode != 0 or not line or not line[0].startswith("OpenSSL "):
+        return "UNKNOWN/NOT_EVALUATED"
+    return line[0]
+
+
+def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int, list[bytes], str]:
     env = os.environ.copy()
     env["LC_ALL"] = "C"
     try:
@@ -59,13 +80,15 @@ def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int]:
             )
             dump_text = ((dump.stdout or "") + (dump.stderr or "")).strip()
             no_signature = f"File 'input.pdf' does not contain any signatures"
+            dumped: list[Path] = []
             if dump.returncode == 2 and dump_text == no_signature:
                 dump_count = 0
             elif dump.returncode != 0:
                 raise PdfSignatureError("pdfsig dump failed")
             else:
-                dumped = list(Path(directory).glob("input.pdf.sig*"))
-                if any(not item.is_file() for item in dumped):
+                dumped = sorted(Path(directory).glob("input.pdf.sig*"), key=_dump_sort_key)
+                expected = [Path(directory) / f"input.pdf.sig{index}" for index in range(len(dumped))]
+                if dumped != expected or any(not item.is_file() for item in dumped):
                     raise PdfSignatureError("pdfsig dump produced an unexpected entry")
                 dump_count = len(dumped)
             result = subprocess.run(
@@ -74,10 +97,10 @@ def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int]:
             )
             combined = ((result.stdout or "") + (result.stderr or "")).strip()
             if result.returncode == 2 and combined == "File 'input.pdf' does not contain any signatures":
-                return "No signatures.", dump_count
+                return "No signatures.", dump_count, [], match.group(1)
             if result.returncode != 0:
                 raise PdfSignatureError("pdfsig verification failed")
-            return result.stdout, dump_count
+            return result.stdout, dump_count, [item.read_bytes() for item in dumped], match.group(1)
     except subprocess.TimeoutExpired as exc:
         raise PdfSignatureError("pdfsig execution timed out after 60 seconds") from exc
 
@@ -175,15 +198,94 @@ def _finish(item: dict[str, Any], document_size: int) -> dict[str, Any]:
     return item
 
 
+def _der_length(data: bytes) -> int:
+    if len(data) < 2 or data[0] != 0x30:
+        raise PdfSignatureError("CMS dump is not DER")
+    first = data[1]
+    if first < 0x80:
+        length_bytes = 0
+        length = first
+    else:
+        length_bytes = first & 0x7F
+        if length_bytes == 0 or length_bytes > 4 or len(data) < 2 + length_bytes:
+            raise PdfSignatureError("CMS DER length is malformed")
+        if data[2] == 0:
+            raise PdfSignatureError("CMS DER length is noncanonical")
+        length = int.from_bytes(data[2:2 + length_bytes], "big")
+        if length < 0x80:
+            raise PdfSignatureError("CMS DER length is noncanonical")
+    header = 2 + length_bytes
+    total = header + length
+    if total > len(data):
+        raise PdfSignatureError("CMS DER is truncated")
+    return total
+
+
+def _cms_cross_check(data: bytes, signatures: list[dict[str, Any]], dumps: list[bytes]) -> list[dict[str, str]]:
+    if len(dumps) != len(signatures):
+        raise PdfSignatureError("pdfsig dump and parsed records are not a 1:1 ordered match")
+    # The report-to-dump ordering contract is not independently proven for multi-signature PDFs.
+    if len(signatures) > 1:
+        return [{"name": "CMS_SIGNATURE_INTEGRITY", "result": "INCONCLUSIVE"} for _ in signatures]
+    with tempfile.TemporaryDirectory(prefix="ssci-cms-") as directory_name:
+        directory = Path(directory_name)
+        return _cms_cross_check_in_directory(directory, data, signatures, dumps)
+
+
+def _cms_cross_check_in_directory(directory: Path, data: bytes, signatures: list[dict[str, Any]], dumps: list[bytes]) -> list[dict[str, str]]:
+    results: list[dict[str, str]] = []
+    for index, (dump, signature) in enumerate(zip(dumps, signatures)):
+        try:
+            cms = dump
+            cms_length = _der_length(cms)
+            if any(cms[cms_length:]):
+                raise PdfSignatureError("CMS dump has nonzero trailing bytes")
+            cms = cms[:cms_length]
+            content = b"".join(data[start:end] for start, end in signature["signed_ranges"])
+            content_path = directory / f"cms-content-{index}.bin"
+            cms_path = directory / f"cms-{index}.der"
+            content_path.write_bytes(content)
+            cms_path.write_bytes(cms)
+            verified = subprocess.run(
+                ["openssl", "cms", "-verify", "-binary", "-noverify", "-verify_retcode",
+                 "-inform", "DER", "-in", cms_path.name, "-content", content_path.name,
+                 "-out", os.devnull], cwd=directory, text=True, capture_output=True,
+                check=False, timeout=60,
+            )
+            pdfsig_valid = signature["integrity"]["valid"] is True
+            if verified.returncode == 0 and pdfsig_valid:
+                result = "VALID"
+            elif verified.returncode != 0:
+                result = "INCONCLUSIVE"
+            else:
+                result = "INCONCLUSIVE"
+        except (OSError, PdfSignatureError, subprocess.TimeoutExpired):
+            result = "INCONCLUSIVE"
+        results.append({"name": "CMS_SIGNATURE_INTEGRITY", "result": result})
+    return results
+
+
 def inspect_pdf(path: Path) -> dict[str, Any]:
     data = path.read_bytes()
-    report, cryptographic_count = _run_pdfsig(path, data)
+    openssl_version = _openssl_version()
+    run_result = _run_pdfsig(path, data)
+    if len(run_result) == 2:  # compatibility with focused mocks of the legacy helper
+        report, cryptographic_count = run_result
+        dumps: list[bytes] = []
+        pdfsig_version = SUPPORTED_PDF_SIG_VERSION
+    else:
+        report, cryptographic_count, dumps, pdfsig_version = run_result
     signatures = parse_pdfsig_output(report, len(data))
     if len(signatures) != cryptographic_count:
         raise PdfSignatureError("pdfsig record count differs from dumped signature count")
+    if signatures:
+        cms_results = _cms_cross_check(data, signatures, dumps)
+        for signature, cms_result in zip(signatures, cms_results):
+            signature["cms_signature_integrity"] = cms_result
     return {
         "verifier_version": VERIFIER_VERSION,
-        "pdfsig_version": SUPPORTED_PDF_SIG_VERSION,
+        "pdfsig_version": pdfsig_version,
+        "openssl_version": openssl_version,
         "document": {"path": str(path), "size": len(data), "sha256": hashlib.sha256(data).hexdigest()},
         "signature_count": len(signatures),
         "signatures": signatures,

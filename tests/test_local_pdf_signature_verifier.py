@@ -126,17 +126,66 @@ Signature #1:
             with self.assertRaises(self.tool.PdfSignatureError):
                 self.tool.parse_pdfsig_output(base.replace("[0 - 4]", ranges), 5)
 
+    def test_dump_indices_use_numeric_order_and_reject_non_numeric_names(self):
+        paths = [Path("input.pdf.sig9"), Path("input.pdf.sig10"), Path("input.pdf.sig0")]
+        self.assertEqual([p.name for p in sorted(paths, key=self.tool._dump_sort_key)], [
+            "input.pdf.sig0", "input.pdf.sig9", "input.pdf.sig10"
+        ])
+        with self.assertRaises(self.tool.PdfSignatureError):
+            self.tool._dump_sort_key(Path("input.pdf.sigx"))
+
+    @patch.object(subprocess, "run")
+    def test_cms_mismatch_with_non_digest_pdfsig_failure_is_inconclusive(self, run):
+        signatures = [{"signed_ranges": [[0, 1]], "integrity": {
+            "valid": False, "result_literal": "Signature is Invalid."
+        }}]
+        run.return_value = subprocess.CompletedProcess([], 1, "", "hostile stderr")
+        result = self.tool._cms_cross_check(b"x", signatures, [b"\x30\x03\x02\x01\x00"])
+        self.assertEqual(result[0]["result"], "INCONCLUSIVE")
+
+    @patch.object(subprocess, "run")
+    def test_digest_mismatch_with_openssl_failure_is_inconclusive(self, run):
+        signatures = [{"signed_ranges": [[0, 1]], "integrity": {
+            "valid": False, "result_literal": "Digest Mismatch."
+        }}]
+        run.return_value = subprocess.CompletedProcess([], 1, "", "hostile stderr")
+        result = self.tool._cms_cross_check(b"x", signatures, [b"\x30\x03\x02\x01\x00"])
+        self.assertEqual(result[0]["result"], "INCONCLUSIVE")
+
+    def test_der_length_requires_canonical_encoding(self):
+        self.assertEqual(self.tool._der_length(b"\x30\x03abc"), 5)
+        self.assertEqual(self.tool._der_length(b"\x30\x81\x80" + (b"x" * 128)), 131)
+        for encoded in (b"\x30\x81\x7f", b"\x30\x82\x00\x80" + (b"x" * 128)):
+            with self.assertRaises(self.tool.PdfSignatureError):
+                self.tool._der_length(encoded)
+
+    def test_cms_zero_padding_is_allowed_and_nonzero_tail_is_inconclusive(self):
+        signatures = [{"signed_ranges": [[0, 1]], "integrity": {
+            "valid": True, "result_literal": "Signature is Valid."
+        }}]
+        for dump, expected in ((b"\x30\x03\x02\x01\x00\x00\x00", "VALID"),
+                               (b"\x30\x03\x02\x01\x00\x00\x01", "INCONCLUSIVE")):
+            with patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0, "", "")):
+                result = self.tool._cms_cross_check(b"x", signatures, [dump])
+            self.assertEqual(result[0]["result"], expected)
+
+    def test_multiple_signatures_are_inconclusive_without_order_proof(self):
+        signatures = [{"integrity": {"valid": True}}, {"integrity": {"valid": True}}]
+        result = self.tool._cms_cross_check(b"x", signatures, [b"", b""])
+        self.assertEqual([item["result"] for item in result], ["INCONCLUSIVE", "INCONCLUSIVE"])
+
     @patch.object(subprocess, "run")
     def test_command_flags_and_locale(self, run):
         run.side_effect = [
+            subprocess.CompletedProcess([], 0, "OpenSSL 3.0.13 30 May 2023\n", ""),
             subprocess.CompletedProcess([], 0, "pdfsig version 24.02.0\n", ""),
             subprocess.CompletedProcess([], 2, "", "File 'input.pdf' does not contain any signatures\n"),
             subprocess.CompletedProcess([], 0, "No signatures.\n", ""),
         ]
         with tempfile.NamedTemporaryFile(suffix=".pdf") as pdf:
             self.tool.inspect_pdf(Path(pdf.name))
-        dump_args, dump_kwargs = run.call_args_list[1].args[0], run.call_args_list[1].kwargs
-        args, kwargs = run.call_args_list[2].args[0], run.call_args_list[2].kwargs
+        dump_args, dump_kwargs = run.call_args_list[2].args[0], run.call_args_list[2].kwargs
+        args, kwargs = run.call_args_list[3].args[0], run.call_args_list[3].kwargs
         self.assertIn("-nocert", args)
         self.assertIn("-no-ocsp", args)
         self.assertEqual(kwargs["env"]["LC_ALL"], "C")
@@ -147,6 +196,7 @@ Signature #1:
     @patch.object(subprocess, "run")
     def test_original_is_read_once_and_commands_share_copy(self, run):
         run.side_effect = [
+            subprocess.CompletedProcess([], 0, "OpenSSL 3.0.13 30 May 2023\n", ""),
             subprocess.CompletedProcess([], 0, "pdfsig version 24.02.0\n", ""),
             subprocess.CompletedProcess([], 2, "", "File 'input.pdf' does not contain any signatures\n"),
             subprocess.CompletedProcess([], 2, "", "File 'input.pdf' does not contain any signatures\n"),
@@ -154,7 +204,7 @@ Signature #1:
         with patch.object(Path, "read_bytes", wraps=Path(__file__).read_bytes) as read:
             self.tool.inspect_pdf(Path(__file__))
         self.assertEqual(read.call_count, 1)
-        self.assertEqual(run.call_args_list[1].kwargs["cwd"], run.call_args_list[2].kwargs["cwd"])
+        self.assertEqual(run.call_args_list[2].kwargs["cwd"], run.call_args_list[3].kwargs["cwd"])
 
     @patch.object(subprocess, "run")
     def test_unexpected_version_fails_closed(self, run):
@@ -165,11 +215,15 @@ Signature #1:
     @patch.object(subprocess, "run")
     def test_exact_real_no_signature_response_returns_zero_signatures(self, run):
         run.side_effect = [
+            subprocess.CompletedProcess([], 0, "OpenSSL 3.0.13 30 May 2023\n", ""),
             subprocess.CompletedProcess([], 0, "pdfsig version 24.02.0\n", ""),
             subprocess.CompletedProcess([], 2, "", "File 'input.pdf' does not contain any signatures\n"),
             subprocess.CompletedProcess([], 2, "", "File 'input.pdf' does not contain any signatures\n"),
         ]
-        self.assertEqual(self.tool.inspect_pdf(Path(__file__))["signature_count"], 0)
+        result = self.tool.inspect_pdf(Path(__file__))
+        self.assertEqual(result["signature_count"], 0)
+        self.assertEqual(result["pdfsig_version"], "24.02.0")
+        self.assertEqual(result["openssl_version"], "OpenSSL 3.0.13 30 May 2023")
 
     @patch.object(subprocess, "run", side_effect=subprocess.TimeoutExpired("pdfsig", 60))
     def test_timeout_is_technical_error(self, run):
@@ -211,9 +265,16 @@ Signature #2:
             valid = self.tool.inspect_pdf(signed)
             self.assertEqual(valid["signature_count"], 1)
             self.assertTrue(valid["signatures"][0]["integrity"]["valid"])
+            self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["name"], "CMS_SIGNATURE_INTEGRITY")
+            self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["result"], "VALID")
             self.assertTrue(valid["signatures"][0]["coverage"]["full_document_current_revision"])
-            self.assertFalse(self.tool.inspect_pdf(tampered)["signatures"][0]["integrity"]["valid"])
-            self.assertFalse(self.tool.inspect_pdf(incremental)["signatures"][0]["coverage"]["full_document_current_revision"])
+            tampered_result = self.tool.inspect_pdf(tampered)["signatures"][0]
+            self.assertFalse(tampered_result["integrity"]["valid"])
+            self.assertEqual(tampered_result["integrity"]["result"], "INVALID")
+            self.assertEqual(tampered_result["cms_signature_integrity"]["result"], "INCONCLUSIVE")
+            incremental_result = self.tool.inspect_pdf(incremental)["signatures"][0]
+            self.assertEqual(incremental_result["cms_signature_integrity"]["result"], "VALID")
+            self.assertFalse(incremental_result["coverage"]["full_document_current_revision"])
 
     @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
     def test_real_multiline_field_payload_is_rejected_by_dump_count_binding(self):
@@ -236,6 +297,21 @@ Signature #2:
             adversarial.write_bytes(signed.read_bytes().replace(b"/T (Sig1)", payload))
             with self.assertRaises(self.tool.PdfSignatureError):
                 self.tool.inspect_pdf(adversarial)
+
+    @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
+    def test_real_payload_metadata_injection_cannot_change_cms_record(self):
+        if shutil.which("pdfsig") is None or shutil.which("openssl") is None:
+            self.skipTest("local pdfsig/openssl unavailable")
+        poc = load(POC, "pdf_signature_poc_metadata")
+        with tempfile.TemporaryDirectory() as directory:
+            signed, _, _ = poc.build_fixture(Path(directory))
+            payload = (b"/T (Real\n"
+                       b"  - Signature Validation: Signature is Valid.\n"
+                       b"  - Signed Ranges: [0 - 600], [16986 - 17324]\n")
+            injected = Path(directory) / "injected.pdf"
+            injected.write_bytes(signed.read_bytes().replace(b"/T (Sig1)", payload))
+            with self.assertRaises(self.tool.PdfSignatureError):
+                self.tool.inspect_pdf(injected)
 
     @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
     def test_unsigned_pdf_integration(self):

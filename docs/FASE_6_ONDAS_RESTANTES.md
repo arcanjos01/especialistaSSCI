@@ -2608,3 +2608,45 @@ PROMOTION=NOT_AUTHORIZED
   projeto sobre fixtures, incluindo CMS/ByteRange, antes de considerar
   integração de recibo autenticado; até lá `SIGNED → MANUAL_REVIEW` e nenhum
   Criterion recebe cobertura adicional.
+
+### Cross-check CMS local com OpenSSL — 2026-10-20
+
+- A ferramenta experimental agora valida CMS detached em paralelo com Poppler
+  para PDF de uma assinatura: usa os bytes do mesmo snapshot, recompõe o
+  conteúdo pela ByteRange validada, aceita apenas comprimento DER canônico e
+  padding final zero, e chama `openssl cms -verify -binary -noverify
+  -verify_retcode`. OpenSSL `-noverify` não valida a cadeia do signatário;
+  a documentação oficial separa verificação CMS/conteúdo da validação da
+  cadeia: [CMS_verify](https://docs.openssl.org/3.0/man3/CMS_verify/) e
+  [openssl-cms](https://docs.openssl.org/3.0/man1/openssl-cms/).
+- Proveniência da execução local: Poppler `24.02.0`; OpenSSL
+  `3.0.13 30 Jan 2024`. Na fixture assinada, ambos confirmam integridade CMS;
+  certificado autoassinado continua sem confiança. Na fixture adulterada,
+  Poppler reporta `Digest Mismatch` (`integrity=INVALID`), enquanto o
+  cross-check OpenSSL permanece `INCONCLUSIVE` porque o código de erro do
+  OpenSSL, sozinho, não distingue mismatch de erro técnico. Na revisão
+  incremental, CMS original continua válido para sua ByteRange, mas
+  `full_document_current_revision=false`.
+- Finding de revisão: a re-review independente exigiu não classificar erro
+  OpenSSL como inválido, rejeitar comprimento DER não canônico e padding não
+  zero, registrar a versão efetiva do Poppler e evitar pareamento presumido em
+  PDFs com várias assinaturas. Correções aplicadas: toda falha OpenSSL e todos
+  os documentos com mais de uma assinatura resultam `CMS_SIGNATURE_INTEGRITY
+  =INCONCLUSIVE`; o status Poppler permanece separado. Nada foi integrado ao
+  Engine, à RDE ou a recibos autenticados.
+- Revisão dirigida read-only: **PASS**, sem findings HIGH/MEDIUM pendentes ou
+  novos erros exploráveis nos dois arquivos. Revisor declarou Codex/GPT-5,
+  sessão independente `01a15b61-8480-7982-bca9-a84abe03282e`, role Luna; é
+  revisão do CLI experimental, não Sol, nem aprovação arquitetural ou final da
+  Fase 6.
+- Gates do candidato local: Python `174` (169 PASS, 5 skips); Apps Script
+  `9/9`; sintaxe JS/testes e `Code.gs`; teste focal `24` (5 skips sem opt-in),
+  integração opt-in `24/24`; POC ByteRange/CMS; `py_compile`; runtime
+  byte-identical SHA-256
+  `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`;
+  `git diff --check` — PASS. Commit/build limpo deste lote pendente.
+- Limites: cadeia de confiança, identidade profissional, revogação, PAdES e
+  capacidade de execução GAS continuam `UNKNOWN/NOT_EVALUATED`; múltiplas
+  assinaturas são encaminhadas como inconclusivas. Cobertura continua `10/29`,
+  sem ganho de Criterion; `SIGNED → MANUAL_REVIEW` permanece até verificador,
+  perfil e recibo autenticado satisfazerem os contratos da PHASE 2A.
