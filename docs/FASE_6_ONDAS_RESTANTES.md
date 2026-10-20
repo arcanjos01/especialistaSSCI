@@ -2809,10 +2809,24 @@ PROMOTION=NOT_AUTHORIZED
   binding DRT↔relatório nem a assinatura. Não gera resultado do Engine nem
   cobertura de Criterion. F6-MC-007 fica parcialmente reduzido no contrato de
   identidade declarada; IN10 continua descoberto.
-- Testes direcionados após regenerar `CompiledRuntimeContract.js`:
-  `tests.test_knowledge_base_identity` + `tests.test_compiled_runtime_contract`,
-  45/45 PASS. Os gates completos, revisão Luna e build limpo serão executados
-  no checkpoint consolidado deste lote.
+- Revisão independente Luna somente leitura no candidato exato
+  `a5a06f2383df8cfc46677695d9e8e68b44b97bd5`, baseline
+  `5097b86beef90c04c0490cf0fb417d7cb3088d61`: `LUNA_REVIEW=PASS`, sem
+  findings BLOCKER/HIGH/MEDIUM/LOW. Execução `01a15b90-ee9c-7ac0-82fa-
+  4ee15e1e7bb0`, despachada como `luna_economy` (`gpt-5.6-luna` pela
+  configuração do papel; o parecer usou a autodescrição genérica GPT-5). A
+  revisão confirmou diff, fonte, limites, cobertura e execução de 22 testes de
+  identidade, 23 testes de runtime e a suíte RDE. Não é parecer Sol nem prova
+  de EXTRACTION real.
+- Gates do candidato `a5a06f2`: Python `176` (5 skips); nove suítes Apps Script;
+  sintaxe de todos os módulos/testes JS e `Code.gs`; regeneração byte-idêntica
+  do runtime, SHA-256
+  `87f5bd316b34ee56e425cf52e7269741a99dc5b29693066634d8eaa09d956d0c`;
+  `git diff --check` — PASS. Build em worktree limpa: PASS, 10 documentos,
+  KB `5.32.0`, `SOURCE_COMMIT=a5a06f2383df8cfc46677695d9e8e68b44b97bd5`.
+- `INDEPENDENT_ARCH_REVIEW=PASS` limitado ao contrato factual do requerimento;
+  `SOL_REVIEW=PENDING_IDENTITY` para o fechamento global e
+  `PROMOTION=NOT_AUTHORIZED`.
 - Cobertura antes/depois: `10/29 → 10/29`; parcial `1 → 1`; blockers encerrados
   `0`; dependência factual/contratual parcialmente formalizada `F6-MC-007`.
   Benefício: tornar representáveis, rastreáveis e utilizáveis como comparandos
