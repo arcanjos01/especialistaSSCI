@@ -2957,3 +2957,15 @@ PROMOTION=NOT_AUTHORIZED
   existia; seu limite por geração de documento foi melhor especificado); código,
   Base e runtime inalterados. Fontes verificadas em 2026-10-20; build e suíte
   completa não foram repetidos por se tratar de alteração documental.
+- Complemento Confea localizado em 2026-10-20: a Resolução nº 1.160, de
+  11/12/2025, altera a Resolução nº 1.137 e substitui seus modelos anexos. O
+  art. 8º determina vigência 90 dias após publicação; a data de publicação no
+  DOU não foi confirmada neste levantamento, portanto não se fixa aqui o dia
+  exato de vigência. O perfil documental ART deverá distinguir o modelo anterior
+  do substitutivo e guardar a referência normativa/temporal aplicável. Fonte
+  primária: [Resolução Confea nº 1.160/2025](https://normativos.confea.org.br/Ementas/Visualizar?id=83001).
+  A notícia do Confea informa que a revisão atingiu os Modelos A, B e D:
+  [atualização dos modelos ART](https://www.confea.org.br/confea-atualiza-regras-de-art-e-acervo-tecnico-e-moderniza-o-sistema).
+- Esse complemento refina o blocker já existente de versionamento de perfil;
+  não autoriza equivalência de status, não substitui recibo de autenticidade e
+  não altera a cobertura de `T1_DRT_REGISTERED`/`T4_DRT_REGISTERED`.
