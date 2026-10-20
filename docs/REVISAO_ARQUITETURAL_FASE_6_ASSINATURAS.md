@@ -97,3 +97,61 @@ candidato 5534c3f, conforme §25.2. Não encerra toda a Fase 6A/6B nem a revisã
 final da Fase 6, não promove cobertura e não autoriza merge na main, deploy,
 uso real ou promoção operacional. Mudança material posterior terá análise de
 impacto e revisão própria; este PASS não é transferido automaticamente.
+
+
+## Continuidade revisada — OPT-001 e revisão incremental PDF
+
+O estado OPEN de OPT-001 acima descreve o candidato original. No lote seguinte,
+a correção e a prova adversarial foram revisadas separadamente:
+
+```text
+FOLLOWUP_BASELINE=c66ec116528e48b0eb055ceec6f7c01fa2555c56
+FOLLOWUP_CANDIDATE=f82edba9e6f771011b6bde70c86453f91baa60a5
+FOLLOWUP_INDEPENDENT_REVIEW=PASS
+FOLLOWUP_REVIEWER_IDENTITY=Codex/GPT-6 (declarada; Zeno)
+FOLLOWUP_REVIEWER_EXECUTION=01a15af4-0d90-7092-83a5-292e43abf0c3
+OPT-001=CLOSED
+BUILD_VALIDATION=PASS
+SOURCE_COMMIT=f82edba9e6f771011b6bde70c86453f91baa60a5
+SOL_REVIEW=PENDING_IDENTITY
+PRODUCTION_RELEASE=NOT_AUTHORIZED
+```
+
+Implementadores do lote: Luna (`01a15b33-1677-7582-9104-d2035c00446c`), somente
+o teste do inventário; Terra (`01a15af2-7ac7-79c0-83be-b4c9f5feb225`), somente
+POC e seu novo teste. A participação posterior de Terra como implementador
+não é usada para aprovar seu próprio lote; o revisor deste lote é Zeno, que
+não alterou os arquivos. Seu parecer confirma os três blobs do commit exato.
+
+- OPT-001 fechado: descoberta integral de ASSERTs SIGNED e consumidores dos
+  Requirements de assinatura, igualdade exata dos conjuntos e regressões
+  para novo ASSERT sem FAIL, novo consumidor e Requirement sem consumidor.
+  Uma primeira versão deixava escapar ASSERT sem FAIL/MANUAL_REVIEW; o caso
+  foi reproduzido, corrigido com fim de bloco e revalidado pelo revisor.
+- POC ampliada: uma revisão PDF incremental acrescenta conteúdo visível sem
+  alterar os bytes da revisão assinada. O CMS original permanece íntegro,
+  mas a revisão posterior está fora de sua cobertura. A saída explicita que
+  isso não representa validade integral do documento. Nenhuma emissão de
+  recibo produtivo ou integração ao Engine foi adicionada.
+- Zeno executou 45 testes Python dos três módulos afetados, diagnóstico de
+  regressão em memória e POC local: PASS; nenhum achado pendente no lote.
+- Orquestrador executou 150 testes Python, nove suítes JS em Node, POC real,
+  sintaxe JS/Code.gs, manifest e regeneração byte-idêntica: PASS. Os 17 guards
+  fazem parte da suíte Python. Runtime mantém o SHA-256 do candidato original.
+- Build técnico efetivamente executado em worktree temporária limpa do
+  candidato f82edba: PASS, dez documentos, Base 5.30.0 e SOURCE_COMMIT exato.
+  Saída auxiliar local: `/tmp/ssci-phase6-validation-zl1nlmlm-release`.
+  A worktree temporária foi removida após a validação, sem alterar esta branch.
+
+A POC opt-in agora requer OpenSSL e Poppler (`pdfsig` e `pdftotext`). Seus dois
+testes estruturais padrão não executam essas ferramentas. Ela não valida
+PAdES completo, política de alterações permitidas, confiança, revogação,
+identidade profissional ou capacidade GAS, e não é um parser de produção.
+
+Base/runtime e contratos normativos não sofreram alteração neste lote.
+Cobertura permanece 34 ativos / 29 produtivos / 10 integrais / um parcial /
+19 pendentes integrais / cinco não selecionáveis. Próxima dependência técnica:
+implementar e validar verificador/perfis/recibos e sua integração nas fronteiras
+já aprovadas, incluindo prova específica no GAS. SIGNED permanece
+MANUAL_REVIEW enquanto faltar comprovação admitida; não há promoção de fase
+ou de operação por este lote de infraestrutura de testes.

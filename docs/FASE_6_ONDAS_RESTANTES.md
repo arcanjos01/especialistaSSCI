@@ -2422,3 +2422,37 @@ NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING e VALIDATED_TO_ANALYZED=PENDING.
 Nenhum merge na main, deploy, uso real ou promoção operacional autorizado.
 Continuidade: fechar OPT-001 e ampliar evidência local de assinatura para
 revisão incremental não assinada, sem habilitar consumo produtivo pelo Engine.
+
+
+### Continuidade da Fase 6 — inventário e revisão PDF incremental (2026-10-20)
+
+- Governança e aceitação §25.2 versionadas em
+  `c66ec116528e48b0eb055ceec6f7c01fa2555c56`: checkpoint arquitetural do
+  candidato 5534c3f consolidado, sem declarar revisão efetiva Sol.
+- Lote de continuidade: `f82edba9e6f771011b6bde70c86453f91baa60a5`, três
+  arquivos de testes/POC; nenhum diff em knowledge-base ou apps-script.
+- Revisão independente dirigida Zeno/Codex-GPT-6, execução
+  `01a15af4-0d90-7092-83a5-292e43abf0c3`: PASS no SHA exato; 45 testes e POC
+  executados pelo revisor; nenhum achado pendente. OPT-001=CLOSED após
+  corrigir também o caso de ASSERT SIGNED sem FAIL/MANUAL_REVIEW.
+- Prova local ampliada: assinatura CMS da revisão original permanece íntegra
+  após uma revisão incremental não assinada adicionar conteúdo visível. Isso
+  demonstra a necessidade de distinguir cobertura dos bytes da validade do
+  documento atual; não demonstra validação PAdES ou capacidade GAS.
+- Gates do orquestrador: 150 testes Python (incluindo os 17 guards), nove
+  suítes JS, POC real, sintaxe JS/Code.gs, manifest, regeneração runtime
+  byte-idêntica e diff check PASS. SHA-256 runtime preservado:
+  `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`.
+- BUILD_VALIDATION=PASS em worktree temporária limpa do commit f82edba;
+  SOURCE_COMMIT=f82edba9e6f771011b6bde70c86453f91baa60a5; dez documentos,
+  KB 5.30.0. Release técnico em `/tmp/ssci-phase6-validation-zl1nlmlm-release`.
+  Nenhuma promoção operacional, deploy ou merge na main.
+- Detalhes e distinção dos papéis no
+  [registro de revisão](REVISAO_ARQUITETURAL_FASE_6_ASSINATURAS.md).
+  SOL_REVIEW=PENDING_IDENTITY; INDEPENDENT_ARCH_REVIEW=PASS para o checkpoint
+  original, FOLLOWUP_INDEPENDENT_REVIEW=PASS para o lote de testes.
+  Fases 6A/6B continuam IN_PROGRESS, cobertura 34/29/10/1/19/5 inalterada,
+  SIGNED=MANUAL_REVIEW sem comprovação suficiente, CALIBRATION_GATE=BLOCKED,
+  VALIDATED_TO_ANALYZED=PENDING, NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING e
+  PRODUCTION_RELEASE=NOT_AUTHORIZED. Próximo passo técnico é verificador local
+  validado, perfil/recibo autenticados e prova GAS; a POC não os substitui.
