@@ -3093,6 +3093,46 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   testes Python, 9 suítes Apps Script, sintaxe e build limpo. Fase 6B continua
   em andamento; admissão no Engine, recibo e política de âncoras ainda pendentes.
 
+### Recibo humano de assinatura, audit-only — candidato 6B
+
+- Baseline `1c21eba76ef1c9ce39027ab07d98cba77fba710e`. Implementados
+  `apps-script/HumanSignatureReviewCore.js` e teste dedicado. O recibo canônico
+  registra identidade da apresentação, identidade/digest da RDE, identidade/
+  digest do documento, identidade ativa do revisor quando exposta pelo Apps
+  Script, instante UTC, método/detalhes, referências e digests de evidência e
+  uma decisão humana limitada a `CONFIRMED_SIGNATURE_PRESENT`, `NOT_CONFIRMED`
+  ou `INCONCLUSIVE`. O payload recebe HMAC-SHA256 sob chave separada mantida
+  fora do artefato, com key id. Verificação requer o contexto exato; mutação,
+  rotação de chave e substituição de apresentação/documento invalidam o recibo.
+- O artefato não alega validade criptográfica (`NOT_EVALUATED_BY_HUMAN_REVIEW`)
+  nem autoridade (`NOT_ESTABLISHED_AUDIT_ONLY`). Não há consumidor no Engine,
+  persistência em Drive, política de autoridade, papel de revisor permitido ou
+  caller operacional. A chave ainda não está provisionada; ausência de chave ou
+  identidade ativa indisponível bloqueia a emissão. A documentação oficial do
+  Apps Script confirma que `Session.getActiveUser().getEmail()` pode retornar
+  vazio conforme contexto de execução:
+  [Session.getActiveUser](https://developers.google.com/apps-script/reference/base/session).
+  A emissão autentica o registro da declaração humana; não prova que os
+  conteúdos informados foram extraídos/verificados nem substitui a confirmação
+  do vistoriador ou uma política de autoridade aprovada.
+- Contrato Phase 2A em `knowledge-base/08_execution_pipeline.txt` atualizado
+  para declarar o formato e os limites acima. RDE, Base normativa, Criteria,
+  Nonconformities, correlação, Engine e runtime compilado não foram alterados.
+- Gates no worktree candidato: Python `180` executados, `174 PASS`, `6 SKIP`; Apps Script
+  `10/10 PASS`; `node --check` em 23 módulos/testes JS; `Code.gs` sintaxe PASS;
+  manifest JSON PASS; runtime regenerado byte-identical, SHA-256
+  `87f5bd316b34ee56e425cf52e7269741a99dc5b29693066634d8eaa09d956d0c`;
+  `git diff --check PASS`. Release build limpo, revisão independente consolidada
+  e re-review ainda não executados neste checkpoint.
+- Métrica: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`; findings
+  encerrados `0`; novo bloqueio de configuração: provisionamento da chave;
+  dependências ainda abertas: persistência/caller e definição do perfil de
+  autoridade. Revisões independentes `0`. Benefício: uma confirmação explícita humana pode ser
+  registrada em formato tamper-evident com os vínculos exatos, sem alegar
+  verificação criptográfica ou produzir resultado. Lote arquitetural candidato;
+  `ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=PENDING_CAPACITY`,
+  `PROMOTION=NOT_AUTHORIZED`.
+
 ### Revalidação documental do vocabulário de status ART/RRT/TRT — 2026-10-20
 
 - Revisão read-only de fontes oficiais dos conselhos, motivada pelo bloqueio

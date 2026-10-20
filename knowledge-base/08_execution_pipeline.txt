@@ -394,6 +394,20 @@ authority profile has been defined, approved and frozen. This profile is not
 currently defined; therefore human-receipt admission remains preparatory and
 routes to MANUAL_REVIEW.
 
+The audit-only implementation contract `HumanSignatureReviewCore.js` records
+the exact presentation identity, RDE identity/digest, source-document identity/
+digest, authenticated active-user identity when Apps Script exposes it, UTC
+recording time, review method/details, supporting document identities/digests
+and locators, and one of `CONFIRMED_SIGNATURE_PRESENT`, `NOT_CONFIRMED` or
+`INCONCLUSIVE`. Its canonical payload is authenticated with a distinct
+project-held HMAC-SHA256 key and key id; the secret is never part of the
+receipt. Missing key or unavailable active-user identity fails closed. A
+successful receipt is tamper-evident and immutable in memory, but this core does
+not persist it, establish reviewer authority, establish cryptographic
+signature validity, or admit it to the Engine. It always declares
+`NOT_EVALUATED_BY_HUMAN_REVIEW` and
+`NOT_ESTABLISHED_AUDIT_ONLY`. The Engine has no consumer for this artifact.
+
 END PHASE 2A.
 
 ###############################################################################
