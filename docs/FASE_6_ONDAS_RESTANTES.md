@@ -3122,8 +3122,13 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `10/10 PASS`; `node --check` em 23 módulos/testes JS; `Code.gs` sintaxe PASS;
   manifest JSON PASS; runtime regenerado byte-identical, SHA-256
   `87f5bd316b34ee56e425cf52e7269741a99dc5b29693066634d8eaa09d956d0c`;
-  `git diff --check PASS`. Release build limpo, revisão independente consolidada
-  e re-review ainda não executados neste checkpoint.
+  `git diff --check PASS`.
+- Release build limpo: `BUILD_VALIDATION=PASS`, `SOURCE_COMMIT` exato
+  `5331b6130cc9fea8ddf275ac96ba45961f6770ff`, KB `5.32.0`, 10 documentos,
+  artefatos em `/tmp/ssci-phase6-human-receipt-5331b61-release`. Worktree
+  destacada limpa. Revisão Luna/Sol e re-review ainda pendentes; nesta sessão
+  não havia agente de revisão nem navegador/sessão Sol disponível, portanto
+  nenhum parecer independente foi atribuído.
 - Métrica: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`; findings
   encerrados `0`; novo bloqueio de configuração: provisionamento da chave;
   dependências ainda abertas: persistência/caller e definição do perfil de
