@@ -49,6 +49,55 @@ Este plano não substitui AGENTS.md, 00_engine, 08_execution_pipeline, Documento
 - Manter .codex-local-evidence/ fora do versionamento.
 - Não versionar .clasp.json ou .clasprc.json.
 
+Autorização permanente do responsável pelo projeto: em fases de
+desenvolvimento formalmente autorizadas, commits, pushes em branches de
+desenvolvimento/revisão, worktrees, testes e builds/releases de validação não
+exigem aprovação Sol prévia nem nova autorização mecânica. São checkpoints de
+desenvolvimento, não promoção arquitetural. Sol 6.1 continua obrigatória para
+consolidar arquitetura e promover; enquanto pendente registrar
+`ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=PENDING_CAPACITY` quando aplicável,
+`PROMOTION=NOT_AUTHORIZED` e `PRODUCTION_RELEASE=NOT_AUTHORIZED`. Validar build
+em worktree limpa do commit exato e registrar o mesmo SHA em `SOURCE_COMMIT`.
+Não fazer force push, sobrescrever trabalho concorrente, merge arquitetural na
+`main`, deploy ou uso operacional sem as aprovações específicas. Esta
+autorização não inicia fases ainda não autorizadas nem permite resolver lacunas
+normativas por código.
+
+## 2.1 Divisão aprovada da Fase 6
+
+A Fase 6 do projeto passa a ter dois gates gerenciais distintos, sem alterar
+os números das fases internas de `08_execution_pipeline.txt` (onde `PHASE 6A`
+é a projeção operacional IRV):
+
+### Fase 6A — núcleo e contratos
+
+Consolidar e aprovar independentemente o Engine determinístico, Criteria já
+suportados, predicates/resolvers, RDE e ImmutableExecutionView, contratos
+tipados de evidência, interface comum de verificação documental, integridade,
+proveniência, insuficiências, testes e rastreabilidade. O gate é o conjunto
+explicitamente delimitado neste escopo implementado e testado; não exige, por
+si só, cobertura dos 29 Criteria produtivos. Não contar infraestrutura
+preparatória como Criterion coberto. Não implica promoção operacional.
+
+### Fase 6B — integrações e evidências
+
+Concluir verificação local de assinaturas no nível tecnicamente demonstrável,
+confirmação humana auditável, comparandos documentais, vínculos DRT/produto/
+SMSCI autorizados, fatos de ausência, integração dos comprovantes ao Engine,
+Criteria restantes e testes integrados com evidências representativas. A
+calibração da correlação por Base/tipo de vínculo só pode ser habilitada com
+dados empíricos suficientes; até lá `CALIBRATION_GATE=BLOCKED`. APIs de
+conselhos ou de assinatura comercial não são dependência obrigatória.
+
+O artefato de verificação de assinatura é separado da RDE e vinculado à
+apresentação, RDE e documento/digest exatos. Ele distingue integridade
+criptográfica, identidade, cadeia de confiança e revogação; não presume
+revogação desconhecida. Confirmação humana é artefato autenticado separado e
+nunca equivale a validade criptográfica. Seu uso como evidência pelo Engine
+depende de perfil explícito de autoridade aprovado; sem ele, mantém-se
+`MANUAL_REVIEW`. Esta divisão não altera `VALIDATED_TO_ANALYZED=PENDING`,
+`NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, nem a decisão final humana.
+
 ## 3. Estado atual confirmado
 
 Concluído:

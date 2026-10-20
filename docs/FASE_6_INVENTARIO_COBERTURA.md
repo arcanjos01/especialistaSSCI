@@ -1108,3 +1108,38 @@ Apps Script 9/9, sintaxe JS/Code.gs, regeneração runtime byte-idêntica (SHA-2
 `git diff --check`. Release limpo do commit funcional contém 10 documentos,
 manifest 10/10, KB 5.28.0 e `SOURCE_COMMIT` exato. A aprovação Sol final da
 Fase 6 permanece pendente.
+
+## Reconciliação no checkpoint `b999a1c` — 2026-10-19
+
+| Categoria | Quantidade | Definição |
+|---|---:|---|
+| Criteria ativos | 34 | runtime/base compilada |
+| Produtivos | 29 | selecionáveis para execução |
+| Cobertos integralmente | 10 | executor, facts/binding, resultado, trace, readiness e testes completos |
+| Parciais | 1 | `T1_CONFORMITY_REPORT` |
+| Pendentes de cobertura integral | 19 | 18 sem suporte integral + 1 parcial |
+| Não selecionáveis | 5 | quatro M5 e um regime legado UNRESOLVED |
+| Retirados | 2 | regularidade profissional T1/T4 |
+
+Esta alteração não altera a contagem. Para a divisão gerencial aprovada, os
+10 Criteria integralmente cobertos e o parcial permanecem estado de entrada;
+interfaces ou testes preparatórios não mudam `COVERED`. Fase 6A encerra-se
+pelos entregáveis e gates de núcleo/contratos listados no Plano de Migração,
+sem promover cobertura fictícia. Verificação local/humana de assinatura,
+integrações e cobertura restante pertencem ao escopo 6B.
+
+O contrato de assinatura separa RDE FACT ONLY de recibos técnicos posteriores
+vinculados a documento e digest exatos. Até existir verificador local validado
+e recibo autenticado aceito pelo Engine, os onze Criteria dependentes de
+`SIGNED` não ganham cobertura por esta formalização: dois ASSERTs de DRT
+(`T1_DRT_SIGNED`, `T4_DRT_SIGNED`), um ASSERT de produto
+(`T1_CONFORMITY_REPORT_SIGNED`) e oito VALIDATEs de produto
+(`T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`,
+`T4_IN09_CHECKLIST`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`,
+`T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR`). A distinção
+vem das fontes atuais `03_table1.txt`, `04_table4.txt` e `02_requirements.txt`;
+o contrato é testado contra esses identificadores. Confirmação humana não é
+validação criptográfica e não altera a RDE.
+
+Estado do diff arquitetural submetido à revisão Sol 6.1: `PENDING`. O snapshot
+de cobertura acima não é fechamento da Fase 6 nem promoção operacional.

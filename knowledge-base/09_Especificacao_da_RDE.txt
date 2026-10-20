@@ -3,7 +3,7 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 PURPOSE
 
 RDE_SCHEMA_VERSION: 0.7.0
-DOCUMENT_VERSION: 1.9.0
+DOCUMENT_VERSION: 1.10.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -98,6 +98,32 @@ As etapas posteriores não poderão:
 -   criar registros;
 -   remover registros;
 -   reinterpretar documentos.
+
+------------------------------------------------------------------------
+
+INDEPENDENT DOCUMENT-VERIFICATION ARTIFACTS
+
+Um verificador documental pode produzir, depois da consolidação e validação
+da RDE, um artefato técnico separado. Esse artefato não é parte da RDE, não é
+fato extraído por LLM e nunca pode inserir, alterar ou reinterpretar atributos
+da RDE. Ele deve identificar a apresentação exata, o identificador do
+documento-fonte e o digest dos bytes verificados; registrar proveniência,
+versão do verificador e resultados separados para integridade criptográfica,
+identidade do signatário, cadeia de confiança e revogação; e ser autenticado,
+imutável e auditável.
+
+“Criptograficamente íntegra” não significa “integralmente validada”. Estado
+de revogação sem consulta/evidência verificável é UNKNOWN, nunca presumido.
+Imagem, carimbo, QR Code ou texto não constituem prova criptográfica. Uma
+confirmação humana é artefato independente, autenticado e imutável, vinculado
+ao documento/digest exato e registrando responsável, data, método, evidências
+e decisão. Não pode afirmar validação criptográfica. Seu uso pelo Engine exige
+perfil de autoridade explícito e aprovado; sem esse perfil, encaminha-se para
+revisão humana e não se produz PASS por essa confirmação.
+
+Artefato ausente ou inconclusivo mantém a insuficiência para revisão humana.
+Adulteração, incompatibilidade de digest ou falha de integridade bloqueiam
+admissão automática, sem gerar isoladamente PASS, FAIL ou Nonconformity.
 
 ------------------------------------------------------------------------
 

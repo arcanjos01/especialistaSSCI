@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 3.16.0
+DOCUMENT_VERSION: 3.18.0
 
 FINALIDADE
 
@@ -137,7 +137,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.28.0;
+- Base: SSCI-Habite-se 5.30.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões
@@ -162,6 +162,19 @@ autônoma de atendimento normativo.
 Incluir literalmente o aviso:
 
 "Foi utilizada correlação documental automática assistida por inteligência artificial, conforme política e calibração identificadas neste relatório. A validação normativa institucional deste mecanismo permanece pendente. A admissão automática não equivale à confirmação humana da correspondência nem comprova isoladamente o atendimento das exigências normativas."
+
+EVIDÊNCIA DE VERIFICAÇÃO DE ASSINATURA
+
+Quando usada por um resultado consolidado, a projeção de verificação deverá
+identificar o documento exato e seu digest, a origem automática ou a
+confirmação humana, o método, a versão do verificador/política, o resultado de
+integridade criptográfica, a identidade do signatário quando disponível, a
+cadeia de confiança, o estado de revogação (inclusive desconhecido), as
+evidências e proveniência, as ressalvas e o responsável/data da confirmação
+humana, quando aplicável. Deve distinguir expressamente “criptograficamente
+íntegra” de “integralmente validada” e nunca transformar texto, imagem, QR
+Code ou confirmação humana em validação criptográfica. O relatório apenas
+apresenta a projeção congelada; não revalida assinatura nem altera resultados.
 
 POLÍTICA DO CAMPO DESCREVER
 

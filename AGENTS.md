@@ -174,6 +174,13 @@ ausência de conteúdo normativo ou de resultado.
 
 Não duplicar no AGENTS.md a estrutura detalhada da RDE. O Documento 09-RDE é a fonte dessa definição.
 
+Artefatos técnicos posteriores, como recibos independentes de verificação de
+assinatura, não pertencem à RDE e não podem alterá-la. Devem vincular-se ao
+documento exato por identidade e digest, preservar proveniência e ser
+autenticados e imutáveis conforme contrato próprio. Texto, imagem, carimbo ou
+QR Code não provam validade criptográfica. Ausência de verificação suficiente
+preserva a insuficiência; não presumir revogação ou confiança não verificadas.
+
 7. RDE E CONTEXTO DE EXECUÇÃO
 
 A RDE é a representação documental canônica produzida pela EXTRACTION. A
@@ -205,7 +212,7 @@ não alterar fatos;
 
 não reinterpretar fatos;
 
-não retornar ao documento original para obter uma informação que deveria ter sido extraída na fase anterior.
+não retornar ao documento original para obter uma informação que deveria ter sido extraída na fase anterior. Exceção limitada aprovada para Fase 6: o verificador de assinatura da PHASE 2A pode ler os bytes do documento exato somente para verificação criptográfica/técnica, antes do fechamento da ImmutableExecutionView. Ele não extrai fatos, não altera a RDE e não autoriza outra releitura documental posterior.
 
 As fases posteriores devem consumir a RDE validada ou, quando justificadamente existente, representação operacional derivada sem alteração semântica.
 
@@ -797,6 +804,34 @@ necessidade real da complexidade introduzida.
 
 Aprovação técnica de Sol não substitui decisão humana quando a questão for normativa.
 
+### Autorização permanente de versionamento e validação técnica
+
+Por decisão expressa do responsável pelo projeto, para fases de desenvolvimento
+formalmente autorizadas, commits, pushes em branches de desenvolvimento/revisão,
+worktrees temporárias, testes, builds e releases de validação são atividades de
+desenvolvimento autorizadas sem nova aprovação individual. A revisão Sol 6.1 é
+obrigatória para consolidação arquitetural e promoção, mas não é pré-requisito
+para versionar ou publicar um candidato técnico.
+
+Commits, pushes e builds de validação são atividades de desenvolvimento e não
+constituem promoção arquitetural. A revisão independente Sol é obrigatória
+para consolidação da arquitetura e promoção, não para versionamento provisório
+de candidatos.
+
+Enquanto a revisão arquitetural estiver pendente, registrar
+`ARCHITECTURAL_REVIEW=PENDING` e `PROMOTION=NOT_AUTHORIZED`. Se Sol estiver
+indisponível, registrar `SOL_REVIEW=PENDING_CAPACITY`, preservar e publicar o
+checkpoint na branch autorizada e continuar trabalhos independentes, sem
+simular revisão. Um build de validação deve ser executado em worktree limpa do
+commit exato; `SOURCE_COMMIT` deve identificar esse commit. Distinguir
+`BUILD_VALIDATION=PASS` de aprovação arquitetural e manter
+`PRODUCTION_RELEASE=NOT_AUTHORIZED` até autorização própria.
+
+Esta autorização não abrange merge de arquitetura pendente na `main`, deploy,
+uso em processos reais, decisões normativas, alteração não revisada de
+invariantes fundamentais ou início de fase ainda não autorizada. Não fazer
+force push, descartar trabalho ou sobrescrever alterações concorrentes.
+
 26. REGRA DE MIGRAÇÃO
 
 Durante a migração:
@@ -816,5 +851,11 @@ manter a RDE imutável após sua consolidação;
 não misturar regra normativa com orquestração do Apps Script;
 
 não manter duas arquiteturas operacionais permanentes para a mesma responsabilidade.
+
+Na divisão gerencial da Fase 6, 6A significa núcleo e contratos; 6B significa
+integrações e evidências. Esses rótulos não alteram as fases internas do
+08_execution_pipeline (em particular, PHASE 6A continua sendo a projeção
+operacional IRV). Encerrar 6A não declara todos os Criteria cobertos nem
+promove o pipeline operacional.
 
 Quando o novo pipeline atingir equivalência funcional e confiabilidade suficientes para uso operacional, remover dependências do Gem legado em vez de mantê-lo como segundo executor permanente.

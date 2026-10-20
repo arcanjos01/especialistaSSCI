@@ -26,7 +26,12 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.pipeline = PIPELINE.read_text(encoding="utf-8")
         cls.engine = (KB / "00_engine.txt").read_text(encoding="utf-8")
+        cls.requirements = (KB / "02_requirements.txt").read_text(encoding="utf-8")
+        cls.table_1 = (KB / "03_table1.txt").read_text(encoding="utf-8")
+        cls.table_4 = (KB / "04_table4.txt").read_text(encoding="utf-8")
         cls.reports = REPORTS.read_text(encoding="utf-8")
+        cls.migration_plan = (ROOT / "docs" / "PLANO_MIGRACAO_ENGINE_APPS_SCRIPT.md").read_text(encoding="utf-8")
+        cls.coverage_inventory = (ROOT / "docs" / "FASE_6_INVENTARIO_COBERTURA.md").read_text(encoding="utf-8")
         cls.builder = load_builder()
         cls.manifest = cls.builder.parse_manifest(cls.pipeline)
         cls.actual_documents = {path.name for path in KB.glob("*.txt")}
@@ -36,7 +41,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.28\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.30\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -88,7 +93,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.28.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.30.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
@@ -253,16 +258,20 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             "only for a declared DRT-to-product/coverage relation predicate",
             normalized,
         )
-        self.assertIn("never supply an attribute or documentary fact", normalized)
+        self.assertIn("never as an attribute or documentary fact", normalized)
         self.assertIn(
-            "Report generation in Phase 8 may consume authenticated artifact metadata only to disclose",
+            "Phase 8 may consume authenticated frozen metadata from either artifact only for disclosure",
             normalized,
         )
         self.assertIn("shall not recompute correlation", normalized)
         self.assertIn("relation-only input", normalized)
-        self.assertIn("sidecar shall never supply an attribute or documentary fact", normalized)
+        self.assertIn("never as an attribute or documentary fact", normalized)
         self.assertIn(
             "Applicability and all other phases shall consume Process Memory only",
+            normalized,
+        )
+        self.assertIn(
+            "ARCHITECTURAL_CONFLICT=RESOLVED_BY_EXPLICIT_USER_DECISION",
             normalized,
         )
 
@@ -274,7 +283,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertIn("authenticated", normalized)
         self.assertIn("immutable", normalized)
         self.assertIn("read-only", normalized)
-        self.assertIn("frozen correlation disclosure projection", normalized)
+        self.assertIn("frozen DRT-product correlation disclosure projection", normalized)
         self.assertIn("only the immutable consolidated results", normalized)
         self.assertIn("immutable Phase 6A operational projection", normalized)
         self.assertIn("linked to the exact presentation and RDE", normalized)
@@ -290,13 +299,139 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
             "institutional status",
         ):
             self.assertIn(field, normalized)
-        self.assertIn(
-            "it shall only disclose this frozen projection and shall not recompute correlation.",
-            normalized,
-        )
-        self.assertIn("shall never consume the correlation artifact wholesale", normalized)
+        self.assertIn("it shall only disclose these frozen projections", normalized)
+        self.assertIn("shall never consume either artifact wholesale", normalized)
         self.assertIn("receive proposals, extracted facts, or any capability to alter the decision", normalized)
         self.assertIn("shall not recompute correlation", normalized)
+        self.assertIn("frozen signature-verification disclosure projection", normalized)
+        for field in (
+            "exact document reference and digest",
+            "automatic or human origin",
+            "method and verifier/policy versions",
+            "cryptographic-integrity outcome",
+            "signer identity when available",
+            "certificate-chain/trust and revocation status, including UNKNOWN",
+            "human reviewer, date, method, evidence and decision",
+            "cryptographically intact signature",
+            "fully validated signature",
+        ):
+            self.assertIn(field, normalized)
+        self.assertIn("shall not recompute correlation or signature verification", normalized)
+        self.assertIn("never consume either artifact wholesale", normalized)
+
+    def test_all_signed_criterion_dependencies_are_listed_and_classified(self):
+        assert_ids = {
+            "T1_DRT_SIGNED",
+            "T4_DRT_SIGNED",
+            "T1_CONFORMITY_REPORT_SIGNED",
+        }
+        validate_ids = {
+            "T4_IN07_COMMISSIONING",
+            "T4_IN08_ESTANQUEIDADE",
+            "T4_IN09_CHECKLIST",
+            "T4_IN09_TEST_REPORT",
+            "T4_IN10_COMMISSIONING",
+            "T4_IN12_COMMISSIONING",
+            "T4_IN15_COMMISSIONING",
+            "T4_IN18_CMAR",
+        }
+        self.assertEqual(len(assert_ids) + len(validate_ids), 11)
+
+        table_1_and_4 = self.table_1 + "\n" + self.table_4
+        for criterion_id in assert_ids:
+            match = re.search(
+                rf"(?ms)^CRITERION {re.escape(criterion_id)}\n(.*?)(?=^END\s*$)",
+                table_1_and_4,
+            )
+            self.assertIsNotNone(match, criterion_id)
+            self.assertIn("SIGNED", match.group(1), criterion_id)
+
+        signed_product_requirements = set()
+        for match in re.finditer(
+            r"(?ms)^REQUIREMENT (\S+)\n(.*?)(?=^END\s*$)", self.requirements
+        ):
+            body = match.group(2)
+            if "VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE" in body and re.search(
+                r"(?m)^EVIDENCE_ATTRIBUTE SIGNED\s*$", body
+            ):
+                signed_product_requirements.add(match.group(1))
+
+        linked_validation_ids = set()
+        for criterion_id in validate_ids:
+            match = re.search(
+                rf"(?ms)^CRITERION {re.escape(criterion_id)}\n(.*?)(?=^END\s*$)",
+                self.table_4,
+            )
+            self.assertIsNotNone(match, criterion_id)
+            requirement_match = re.search(r"(?m)^(?:USES|REQUIREMENT) (\S+)$", match.group(1))
+            self.assertIsNotNone(requirement_match, criterion_id)
+            requirement_id = requirement_match.group(1)
+            self.assertIn(requirement_id, signed_product_requirements, criterion_id)
+            linked_validation_ids.add(criterion_id)
+
+        inventory = re.sub(r"\s+", " ", self.coverage_inventory)
+        for criterion_id in assert_ids | validate_ids:
+            self.assertIn(criterion_id, inventory)
+        self.assertIn("onze Criteria dependentes de", inventory)
+        self.assertIn("dois ASSERTs de DRT", inventory)
+        self.assertIn("um ASSERT de produto", inventory)
+        self.assertIn("oito VALIDATEs de produto", inventory)
+
+    def test_signature_receipt_is_created_after_extraction_and_admitted_only_by_frozen_binding(self):
+        phase_2 = self.pipeline.split("# PHASE 2", 1)[1].split(
+            "# PHASE 2A", 1
+        )[0]
+        phase_2a = self.pipeline.split("# PHASE 2A", 1)[1].split(
+            "# PHASE 3", 1
+        )[0]
+        phase_5 = self.pipeline.split("# PHASE 5", 1)[1].split(
+            "# PHASE 6", 1
+        )[0]
+        phase_2_normalized = re.sub(r"\s+", " ", phase_2)
+        phase_2a_normalized = re.sub(r"\s+", " ", phase_2a)
+        phase_5_normalized = re.sub(r"\s+", " ", phase_5)
+
+        self.assertIn(
+            "Do not set a verified SIGNED determination or consume a verification receipt in EXTRACTION.",
+            phase_2_normalized,
+        )
+        self.assertNotIn(
+            "Consume a separate authenticated signature-verification artifact",
+            phase_2_normalized,
+        )
+        self.assertIn("receipt is produced only in Phase 2A", phase_2_normalized)
+        self.assertIn("authenticated, immutable artifact", phase_2a_normalized)
+        self.assertIn("RDE identity/digest", phase_2a_normalized)
+        self.assertIn("An unavailable check is UNKNOWN", phase_2a_normalized)
+        self.assertIn("cryptographically intact", phase_2a_normalized)
+        self.assertIn("project-pinned verifier key", phase_2a_normalized)
+        self.assertIn("authority profile has been defined", phase_2a_normalized)
+        self.assertIn("authenticate and bind all three identities/digests", phase_5_normalized)
+        self.assertIn("compiled Knowledge Base, frozen plan", phase_5_normalized)
+        self.assertIn("Human receipts remain audit context", phase_5_normalized)
+        self.assertIn("SIGNED predicate remains MANUAL_REVIEW", phase_5_normalized)
+
+    def test_signature_contract_never_mutates_rde_or_claims_human_crypto_validation(self):
+        pipeline = re.sub(r"\s+", " ", self.pipeline)
+        engine = re.sub(r"\s+", " ", self.engine)
+        rde = re.sub(r"\s+", " ", (KB / "09_Especificacao_da_RDE.txt").read_text(encoding="utf-8"))
+        self.assertIn("does not mutate the receipt", pipeline)
+        self.assertIn("no binding mutates the receipt, RDE, view or plan", pipeline)
+        self.assertIn("A HUMAN RECEIPT ALONE SHALL NOT BE TREATED AS CRYPTOGRAPHIC VERIFICATION", engine)
+        self.assertIn("HUMAN RECEIPT IS AUDIT CONTEXT ONLY", engine)
+        self.assertIn("Esse artefato não é parte da RDE", rde)
+
+    def test_managerial_phase6_split_preserves_internal_pipeline_phase_numbers(self):
+        plan = re.sub(r"\s+", " ", self.migration_plan)
+        inventory = re.sub(r"\s+", " ", self.coverage_inventory)
+        self.assertIn("Fase 6A — núcleo e contratos", plan)
+        self.assertIn("não exige, por si só, cobertura dos 29 Criteria produtivos", plan)
+        self.assertIn("Fase 6B — integrações e evidências", plan)
+        self.assertIn("APIs de conselhos ou de assinatura comercial não são dependência obrigatória", plan)
+        self.assertIn("# PHASE 6A\n# IRV OPERATIONAL PROJECTION", self.pipeline)
+        self.assertIn("Cobertos integralmente | 10", inventory)
+        self.assertIn("Pendentes de cobertura integral | 19", inventory)
+        self.assertIn("não é fechamento da Fase 6 nem promoção operacional", inventory)
 
     def test_source_commit_is_resolved_only_by_clean_release_build(self):
         self.assertIn("SOURCE_COMMIT: RELEASE_BUILD_REQUIRED", self.pipeline)

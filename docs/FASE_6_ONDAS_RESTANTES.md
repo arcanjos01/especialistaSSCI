@@ -2027,3 +2027,325 @@ normativa.
   confirma a dependência externa já observada nas rodadas anteriores; os 18
   Criteria sem suporte integral não têm incremento funcional seguro sem
   evidências/fatos novos ou contratos adicionais autorizados.
+
+## Decisão arquitetural — divisão gerencial da Fase 6 e verificação local de assinaturas (2026-10-19)
+
+Estado inicial reconciliado: branch `feature/apps-script-engine-core`, HEAD e
+upstream `b999a1cc18afcf469db25e9fba8724e2ca490b84`; worktree rastreada limpa.
+`.codex-local-evidence/` permanece não rastreada e preservada. A decisão do
+usuário autoriza APIs externas como não obrigatórias e estabelece verificação
+híbrida local/humana, sem alterar a RDE.
+
+### Gate gerencial aprovado
+
+| Gate | Escopo | Condição de encerramento | Estado neste candidate |
+|---|---|---|---|
+| Fase 6A — núcleo e contratos | Engine determinístico, Criteria já suportados, predicates/resolvers, RDE/ImmutableExecutionView, evidência tipada, interfaces de verificação, integridade, proveniência, insuficiências, testes e trace | Escopo implementado, testado e aprovado independentemente. Os 29 Criteria produtivos não são requisito isolado; capacidade preparatória não conta como cobertura; não promove operação | `PENDING_REVIEW` |
+| Fase 6B — integrações e evidências | Verificação local, confirmação humana auditável, comparandos, vínculos autorizados, fatos de ausência, consumo pelo Engine, Criteria restantes e testes integrados; calibração quando empiricamente válida | Evidências representativas, gates e aprovação final independentes; APIs externas não são pré-requisito | `PENDING` |
+
+Os nomes gerenciais 6A/6B não renumeram fases do pipeline. `PHASE 6A` em
+`08_execution_pipeline.txt` permanece a projeção operacional IRV após
+consolidação de resultados.
+
+### Assinaturas — contrato candidato para revisão Sol 6.1
+
+- Recibo de verificação é artefato separado, autenticado, imutável e ligado à
+  identidade da apresentação, identidade/digest da RDE e documento/digest dos
+  bytes exatos. Não escreve nem altera fatos da RDE.
+- Saídas separadas para integridade do byte range e assinatura, identidade do
+  signatário, cadeia/confiança, revogação e validação global. “Íntegra” não
+  significa “integralmente validada”; revogação sem evidência fica UNKNOWN.
+  Imagem, carimbo, QR Code ou texto não são prova criptográfica.
+- Evidência ausente/inconclusiva encaminha a MANUAL_REVIEW conforme Criterion.
+  Digest incompatível, recibo adulterado ou replay bloqueia admissão automática
+  e gera diagnóstico de integridade, sem PASS/FAIL/Nonconformity automático.
+- Confirmação humana é recibo independente autenticado e imutável com documento
+  e hash, responsável, data, método, evidências e decisão; não atesta validade
+  criptográfica. Engine só o consome sob perfil de autoridade expresso e
+  aprovado; sem perfil, mantém MANUAL_REVIEW.
+- Apps Script nativo oferece digest e funções de geração de assinatura, mas o
+  V8 não fornece `crypto`/`SubtleCrypto` nem verificação nativa CMS/PAdES/X.509.
+  Assim, GAS nativo isolado não fecha a validação completa; um verificador
+  local controlado pelo projeto só poderá admitir o nível validado por provas
+  reproduzíveis. `EXTERNAL_API_DEPENDENCY=NONE_REQUIRED`.
+- A fonte IRV Habite-se 2024, Anexo A, Tabela 1, requer identificar assinatura
+  digital do RT ou certificação digital do conselho emissor. O art. 57 da DTZ
+  26 localizado no PDF do repositório trata do encaminhamento de denúncias à
+  ouvidoria; não o registramos como fundamento textual da verificação de
+  assinatura. A decisão arquitetural do usuário e a IRV sustentam o contrato.
+
+### Reconciliação de cobertura preservada
+
+No último snapshot de cobertura compilado: 34 Criteria ativos, 29 produtivos,
+10 integralmente cobertos, 1 parcial (`T1_CONFORMITY_REPORT`), 18 sem suporte
+integral, 5 não selecionáveis e 2 retirados. Logo, pendentes para cobertura
+integral = 19 (18 sem suporte + 1 parcial). Nenhum indicador é promovido por
+esta alteração contratual. Calibração continua `BLOCKED`;
+`NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+`VALIDATED_TO_ANALYZED=PENDING`.
+
+### Revisão e checkpoints
+
+O diff desta decisão está preparado para revisão arquitetural independente
+Sol 6.1 antes da consolidação. Nenhuma revisão ou aprovação Sol está
+contabilizada ainda. Gates de runtime, suíte completa e release build serão
+executados no candidate consolidado depois da revisão e das correções.
+
+### Ciclo de revisão dirigido — findings e disponibilidade
+
+- Revisão inicial por subagente solicitado como `gpt-6.1-sol` retornou
+  `FAIL`, mas o próprio relatório se identificou como GPT-6; não é contabilizado
+  como Sol. Findings: (1) extração e consumo do recibo misturados; (2) perfil,
+  papel do signatário e binding ao contrato/plano/view insuficientes; (3)
+  rodapé ainda em KB 5.28.0. Os três foram corrigidos neste candidate.
+- O pedido de re-review dirigida a `chatgpt-web/gpt-5.6-sol` falhou antes de
+  iniciar com `Selected model is at capacity`. Resultado: `SOL_REVIEW=PENDING`,
+  sem aprovação e sem consolidação.
+- Regressões direcionadas adicionadas para separar PHASE 2/2A/5, verificar
+  chaves/política/binding e garantir recibos humanos apenas como contexto
+  até existir autoridade aprovada. `python -m unittest
+  tests.test_knowledge_base_identity -v`: 19/19 PASS; suíte Python completa:
+  147/147 PASS. Nove suítes Apps Script PASS; sintaxe de todos os módulos JS
+  e `apps-script/Code.gs` PASS; runtime regenerado duas vezes byte-identical;
+  `git diff --check` PASS.
+- POC local autocontido sem rede: OpenSSL verificou CMS detached contra
+  certificado local explicitamente fornecido e rejeitou conteúdo adulterado.
+  Isso não verifica PDF ByteRange/PAdES, cadeia de confiança real, conselho,
+  revogação nem o runtime Apps Script; não promove Criteria.
+- `CompiledRuntimeContract.js` regenerado das fontes, SHA-256
+  `b4216bc661a79e1e84ca45bd363f0f567303638e5647e240645582e6d7be1a49`;
+  sintaxe Node PASS. Sol Web não iniciou a re-review por limite de capacidade;
+  `SOL_REVIEW=PENDING`. Os três findings foram corrigidos no candidate, mas
+  permanecem abertos para confirmação independente (`FINDINGS_OPEN=3`). Não
+  houve commit, push, consolidação, deploy ou alteração de cobertura. O release
+  build real permanece pendente: o builder exige worktree limpa e a aprovação
+  Sol é requisito prévio à consolidação/commit; não foi criado commit
+  temporário para contornar esse gate.
+
+### Revisão intermediária independente Luna — 2026-10-19
+
+Luna (`luna_economy`) revisou somente leitura o diff completo local e retornou
+`PASS`, sem findings. Confirmou sequência EXTRACTION → recibo PHASE 2A → binding
+após congelar contract/plan/view → consumo restrito ao SIGNED na PHASE 5;
+identidade/digest de apresentação, RDE, documento e contexto de execução;
+perfil autenticado e papel RT/conselho; recibo humano sem PASS; alinhamento de
+versões; cobertura inalterada 10 integral/1 parcial/19 pendentes; e precisão da
+nota DTZ/IRV. Luna não executou testes e este parecer não é revisão Sol. Os
+gates locais já registrados passaram; esforço aproximado desta revisão: 1
+leitura dirigida, 0 testes adicionais. `SOL_REVIEW=PENDING`, findings materiais
+seguem à espera de validação Sol, sem commit/push.
+
+### Triagem funcional independente do checkpoint — RT-002/IN 09
+
+A matriz atual confirma `T1_DRT_ACTIVITY_EXECUTION` já integralmente coberto
+entre os dez Criteria; não foi reimplementado nem contado como ganho. A
+releitura de `T4_IN09_DRT` confirma que o Criterion declara duas validações
+`RESPONSIBILITY_ACTIVITY_COMPATIBLE` e requer escopos RT-003 e RT-005. O Anexo A
+descreve vistoria/inspeção e indica que a individualização RT-005/RT-006 é
+interna e não integralmente definida pela fonte. Executar a segunda validação
+ou ligar a atividade ao SMSCI inferiria justamente a compatibilidade que o
+usuário excluiu; executar só a primeira não cobre o Criterion ALL nem autoriza
+o FAIL/NC declarado. Resultado: `COVERAGE_GAIN=0`; `T4_IN09_DRT` segue para
+revisão humana, sem alteração de código, Requirement ou Nonconformity.
+
+### POC local de assinatura PDF — 2026-10-19
+
+- Inventário local: Poppler `pdfsig 24.02.0`, OpenSSL e Python `cryptography`
+  estão disponíveis; `pyHanko`, `pypdf`, `PyPDF2`, `pikepdf`, `fitz` e
+  `asn1crypto` não estão instalados. Os quatro PDFs normativos presentes em
+  `references/` não contêm assinaturas incorporadas.
+- Adicionado `tools/poc_pdf_signature_byte_range.py`, ferramenta opt-in e
+  independente do runtime. Ela cria em diretório temporário uma chave e
+  certificado autossinados, um PDF com assinatura CMS detached sobre os bytes
+  declarados em ByteRange e uma cópia com byte assinado adulterado. Não usa
+  rede, dados de processo nem APIs de terceiros.
+- Execução com Poppler/OpenSSL locais: `PASS` para integridade CMS/ByteRange do
+  fixture; o verificador declara o emissor do certificado como não confiável;
+  a cópia alterada resulta em `Digest Mismatch`. `py_compile` e
+  `git diff --check`: `PASS`.
+- Alcance: prova que um verificador local pode separar integridade da
+  assinatura da confiança do certificado e detectar alteração do conteúdo.
+  Não prova conformidade PAdES, confiança institucional, identidade de
+  conselho/RT, revogação, política de certificado nem capacidade equivalente
+  no Apps Script. Não cria recibo de produção, não altera RDE e não promove
+  SIGNED ou qualquer Criterion.
+- Ganho de cobertura integral: `0`; critérios parcialmente afetados: nenhum;
+  bloqueadores encerrados: nenhum; novos bloqueadores: nenhum. Dependência
+  técnica delimitada: escolher/integrar verificador local controlado pelo
+  projeto e validar níveis de confiança com fixtures adequadas. Nenhuma API
+  externa de conselho é requerida. Esforço desta prova: aproximadamente 20
+  minutos; testes: uma execução funcional com fixture positiva e adulterada,
+  mais compilação sintática e verificação de diff; revisão técnica dirigida
+  deste lote ainda pendente.
+- Governança inalterada: Fase 6A aguarda aprovação independente do pacote de
+  contratos; Fase 6B permanece pendente. A revisão final Sol 6.1 continua
+  `PENDING` (capacidade do modelo indisponível nas tentativas registradas);
+  não há commit, push, promoção operacional ou novo ganho de Criteria.
+
+### Revisão e gates do POC — 2026-10-19
+
+- Luna independente (`luna_economy`) revisou somente leitura o script e este
+  registro: `PASS`, sem achados acionáveis. Registrou que a ausência de rede é
+  comprovada pela inspeção das chamadas locais fixas; o script não cria uma
+  sandbox de rede própria. Não identificou exagero das capacidades. Esforço:
+  uma revisão dirigida, sem alterações posteriores no código revisado.
+- Suíte Python completa: 147/147 `PASS`; guard de execução/pipeline:
+  17/17 `PASS`; suítes Apps Script: 9/9 `PASS`; `node --check` em todos os
+  módulos `apps-script/*.js` e `Code.gs`: `PASS`.
+- Regeneração por `tools/build_knowledge_base_release.py
+  --write-runtime-contract`: byte-identical, SHA-256
+  `b4216bc661a79e1e84ca45bd363f0f567303638e5647e240645582e6d7be1a49`;
+  manifest Apps Script parseável; `git diff --check`: `PASS`.
+- O release build promocional não foi executado porque depende de worktree
+  limpa/consolidação e a revisão Sol 6.1 ainda está pendente. Não se usou
+  commit temporário para contornar a ordem de governança.
+
+### Viabilidade documentada do runtime Apps Script para verificação local
+
+Consulta às referências oficiais do Google em 2026-10-19: o V8 do Apps Script
+não disponibiliza `crypto` nem `SubtleCrypto`, enquanto `Utilities` documenta
+digest, HMAC e geração de assinatura RSA. A documentação do V8 também lista
+WebAssembly como exceção disponível. Portanto, verificação CMS/PAdES puramente
+JavaScript não é fornecida nativamente; um módulo WASM empacotado e controlado
+no projeto é uma possibilidade técnica a prototipar, não capacidade já
+demonstrada no GAS. Ainda precisam ser provados parsing PDF/ByteRange, CMS,
+cadeia de certificados e desempenho dentro do runtime GAS; revogação e raízes
+de confiança continuam dependentes de política e evidência próprias. Não
+requer serviço externo, mas nenhum Criterion passa a coberto por esta
+possibilidade.
+
+Referências técnicas primárias:
+
+- [Apps Script V8 runtime — APIs não disponíveis e exceção WebAssembly](https://developers.google.com/apps-script/guides/v8-runtime#limitations)
+- [Apps Script Utilities — digest, HMAC e geração de assinatura RSA](https://developers.google.com/apps-script/reference/utilities)
+
+Inventário local complementar: disponíveis GCC nativo, Node.js 22 com
+`WebAssembly.instantiate`, OpenSSL e Poppler; indisponíveis `clang`,
+`wasm-ld`, `emcc`, `wasmtime`, `wasmer` e pacotes Python WASM pesquisados.
+Assim, este ambiente não permite construir nem executar agora um módulo WASM
+verificador; o teste de WASM em Node, mesmo se construído, não provaria o
+comportamento em Apps Script. `WASM_VERIFIER_POC=NOT_RUN_TOOLCHAIN_UNAVAILABLE`.
+Nenhuma dependência foi instalada nem baixada.
+
+### Revisão adversarial GPT-6 e correções dirigidas — 2026-10-19
+
+O reviewer solicitado via `gpt-6.1-sol` declarou identidade efetiva
+`Codex/GPT-6`; portanto este resultado é registrado como revisão GPT-6, não
+Sol 6.1. Retornou `FAIL` com três achados concretos:
+
+1. MÉDIO: PHASE 8 enumerava somente campos de correlação embora `06_reports`
+   também exigisse disclosure da verificação de assinatura. Corrigido o
+   contrato para autorizar duas projeções congeladas, separadas e enumerar os
+   campos de assinatura; teste de identidade agora verifica ambas e proíbe
+   consumir artefatos completos ou recalcular.
+2. MÉDIO: inventário dizia cinco Criteria com dependência `SIGNED`. Recontagem
+   direta de `03_table1`, `04_table4` e `02_requirements` encontrou onze:
+   três `ASSERT` (`T1_DRT_SIGNED`, `T4_DRT_SIGNED`,
+   `T1_CONFORMITY_REPORT_SIGNED`) e oito `VALIDATE` de produto
+   (`T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_CHECKLIST`,
+   `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`,
+   `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR`). O
+   inventário foi corrigido e o teste deriva/valida a lista contra as fontes.
+3. BAIXO: o stream PDF sintético declarava `/Length` incompatível e usava
+   `/F1` sem recurso de fonte. A fixture agora calcula o comprimento dos bytes
+   do stream e declara Helvetica em `/Resources`; Poppler valida assinatura e
+   distingue o certificado não confiável, e rejeita conteúdo adulterado.
+
+Nenhum arquivo foi alterado pelo reviewer. Re-review dirigida por Luna retornou
+`PASS` nos três findings, sem achados restantes; executou o teste de identidade
+20/20 e o POC local positivo/negativo. Pós-correções: 148 testes
+Python, 9 suítes Apps Script, sintaxe de todos os módulos JS e `Code.gs`,
+17 phase guards, manifest e `git diff --check` `PASS`; runtime regenerado duas
+vezes byte-identicamente, SHA-256
+`d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`. KB
+`5.30.0`, `06_reports.txt` `3.18.0`, pipeline `4.32.0`. Release build,
+commit e push aguardam re-review/governança Sol. Coverage permanece 10/29,
+um parcial e 19 pendentes integrais; este lote corrige consistência e prova
+preparatória, sem ganho funcional de Criterion.
+
+A revisão final solicitada a `chatgpt-web/gpt-5.6-sol`, depois das correções e
+dos gates, encerrou antes de iniciar com `Selected model is at capacity`.
+`SOL_REVIEW=PENDING`; esta falha não é revisão nem aprovação. Permanecem
+`FINDINGS_OPEN=3` achados arquiteturais anteriores corrigidos no candidate,
+aguardando confirmação Sol 6.1. Release build, commit e push não executados;
+nenhuma promoção ou deploy.
+
+### Checkpoint de revisão sem promoção — 2026-10-20
+
+Registro do estado imediatamente anterior à autorização permanente do
+responsável, recebida em 2026-10-20. As decisões de bloqueio de commit e build
+abaixo são históricas e ficam supersedidas pela autorização registrada ao fim
+desta seção; a revisão Sol continua obrigatória para consolidação e promoção.
+
+- Branch local de revisão: `review/phase6a-signature-pending-sol`, criada
+  sobre o baseline `b999a1cc18afcf469db25e9fba8724e2ca490b84`. A branch conserva
+  o diff na worktree; não foi criado commit nem enviada branch remota.
+- Governança aplicada: `AGENTS.md` §25 veda promover mudança arquitetural a
+  arquitetura consolidada sem revisão Sol. Além disso, este tracker estabelece
+  expressamente que Sol é requisito prévio à consolidação/commit (seção
+  “Ciclo de revisão dirigido — findings e disponibilidade”). Assim, o
+  checkpoint provisório commitado/pushável aguardava a autorização permanente
+  que ainda não havia sido emitida naquele momento.
+- `SOL_REVIEW=PENDING_CAPACITY`; não houve tentativa adicional de acesso a Sol.
+  `PROMOTION=NOT_AUTHORIZED`. A re-review Luna dos três findings corrigidos
+  permanece `PASS`; para a decisão arquitetural geral, `FINDINGS_OPEN=3`
+  aguardam confirmação Sol e não são apresentados como findings reabertos por
+  Luna.
+- Pacote para Sol: diff integral nos onze arquivos versionados do candidate e
+  `tools/poc_pdf_signature_byte_range.py`; decisões de divisão 6A/6B, recibo
+  autenticado separado da RDE e verificação local/humana; os três findings e
+  respectivas correções listados acima; testes e gates registrados acima; e
+  limites técnicos da POC/Apps Script descritos em “Viabilidade documentada do
+  runtime Apps Script”. Cobertura segue 10/29 Criteria produtivos, 1 parcial e
+  19 pendentes integrais.
+- Release builder deliberadamente não executado neste candidate: `build()`
+  recusa qualquer worktree suja (`tools/build_knowledge_base_release.py`,
+  “a release exige um worktree limpo”) e grava `git rev-parse HEAD` como
+  `SOURCE_COMMIT`. Criar o commit exigido pela worktree limpa violaria a
+  condição explícita de revisão Sol prévia; construir apenas o HEAD-base não
+  validaria este candidate. Naquele momento `RELEASE_BUILD` estava bloqueado;
+  a decisão foi supersedida pela autorização registrada abaixo, que permite
+  build técnico antes da revisão Sol.
+- Verificação independente isolada executada localmente:
+  `python tools/poc_pdf_signature_byte_range.py` — PASS para assinatura
+  ByteRange/CMS da fixture; certificado autoassinado explicitamente não
+  confiável; alteração de byte coberto rejeitada como `Digest Mismatch`.
+  Limites: fixture sintética, sem política PAdES, identidade de conselho,
+  cadeia confiável, revogação ou prova de capacidade no Apps Script. É apenas
+  protótipo de verificação, não é integrado ao Engine e não altera Criteria.
+- `.codex-local-evidence/` permanece intocado e fora do Git; credenciais e
+  artefatos privados não foram adicionados ao índice. Sem merge, deploy,
+  promoção ou mudança de cobertura.
+- Rechecagem técnica em 2026-10-20 da documentação oficial: Apps Script V8
+  continua sem `crypto`/`SubtleCrypto`; a exceção documentada é WebAssembly,
+  mas isso não demonstra que um módulo CMS/PAdES possa ser carregado e executado
+  corretamente no GAS. `Utilities` documenta digest, HMAC e assinatura RSA,
+  não uma API de verificação CMS/PAdES. A POC depende de `pdfsig`/Poppler e
+  OpenSSL locais, portanto prova ByteRange/CMS na fixture e serve para testes
+  de contrato, mas não é componente executável no GAS. Próximo trabalho
+  independente seguro: protótipo controlado pelo projeto (por exemplo, parser
+  + verificador WASM) em alvo local com vetores conhecidos, seguido de prova
+  específica no GAS; até ambas as etapas e revisão arquitetural, nenhuma
+  evidência é confiável para consumo pelo Engine.
+  Fontes primárias: [limitações do Apps Script V8](https://developers.google.com/apps-script/guides/v8-runtime#limitations)
+  e [Utilities](https://developers.google.com/apps-script/reference/utilities).
+
+### Autorização permanente do responsável — 2026-10-20
+
+O responsável autorizou commits, pushes em branches de desenvolvimento e
+revisão, worktrees temporárias e builds de validação em todas as fases de
+desenvolvimento já autorizadas, sem aprovação Sol prévia ou confirmação
+mecânica adicional. Esta autorização elimina bloqueio administrativo de
+versionamento; não é revisão Sol e não autoriza consolidação arquitetural,
+promoção, merge em `main`, deploy, uso real, decisão normativa ou início de
+fase não autorizada.
+
+Regra permanente: “Commits, pushes e builds de validação são atividades de
+desenvolvimento e não constituem promoção arquitetural. A revisão independente
+Sol é obrigatória para consolidação da arquitetura e promoção, não para
+versionamento provisório de candidatos.” Commits/pushes candidatos devem
+registrar `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED` e,
+enquanto Sol indisponível, `SOL_REVIEW=PENDING_CAPACITY`. Builds técnicos serão
+executados em worktree limpa do commit candidato exato, com `SOURCE_COMMIT`
+igual ao SHA testado; `BUILD_VALIDATION=PASS` não significa
+`PRODUCTION_RELEASE=AUTHORIZED`.

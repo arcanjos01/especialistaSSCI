@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.30.0
+# DOCUMENT_VERSION: 4.32.0
 ###############################################################################
 
 ###############################################################################
@@ -11,22 +11,22 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.28.0
+KNOWLEDGE_BASE_VERSION: 5.30.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
-00_engine.txt: DOCUMENT_VERSION 4.11.0
+00_engine.txt: DOCUMENT_VERSION 4.12.0
 01_entities.txt: DOCUMENT_VERSION 3.8.0
 02_requirements.txt: DOCUMENT_VERSION 3.5.0
 02a_applicability.txt: DOCUMENT_VERSION 1.3.0
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.3.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.16.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.30.0
-09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.9.0
+06_reports.txt: DOCUMENT_VERSION 3.18.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.32.0
+09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
 
@@ -222,9 +222,11 @@ Identify, when documentally verifiable:
 - DATES
 - IDENTIFIERS
 
-When evaluating SIGNED:
-
-Search only for documentally verifiable digital or electronic signatures.
+When extracting SIGNED-related documentary facts, record only source-declared
+descriptive fields permitted by 01_entities, such as SIGNATURE_MECHANISM. Do
+not set a verified SIGNED determination or consume a verification receipt in
+EXTRACTION. The separate receipt is produced only in Phase 2A and consumed
+only by the declared SIGNED predicate during execution.
 
 Do not infer the existence of a signature from:
 
@@ -232,9 +234,8 @@ Do not infer the existence of a signature from:
 - the document type;
 - another signed document.
 
-When no documentally verifiable digital or electronic signature can be confirmed,
-
-leave the SIGNED attribute empty in the RDE.
+When no documentary attribute can be directly established, leave it absent in
+the RDE. A SIGNED predicate is an execution determination, not an RDE fact.
 
 Do not store SIGNED = FALSE or an execution state such as MANUAL_REVIEW during
 EXTRACTION.
@@ -314,6 +315,74 @@ Document extraction is complete only after every submitted document has been pro
 END PHASE 2.
 
 ###############################################################################
+# PHASE 2A
+# INDEPENDENT DOCUMENT SIGNATURE VERIFICATION
+###############################################################################
+
+This optional technical pass runs only after the exact submitted documents and
+their RDE are complete and the RDE is structurally validated, and before the
+ImmutableExecutionView is closed. It reads the original document bytes solely
+to verify signatures; it does not perform EXTRACTION, add facts to the RDE,
+resolve Applicability or execute Requirements/Criteria.
+
+Each verification receipt shall be a separate authenticated, immutable
+artifact bound to the exact presentation identity, RDE identity/digest,
+source-document identity and byte digest. Preserve verifier identity/version,
+provenance, signature mechanism and distinct technical outcomes for byte-range
+integrity, cryptographic signature integrity, signer identity, certificate
+chain/trust and revocation status. An unavailable check is UNKNOWN, not
+positive or negative evidence. A cryptographically intact signature is not
+necessarily fully validated.
+
+Receipt authenticity shall be checked against a project-pinned verifier key;
+the receipt carries verifier key id, algorithm and signature over its
+canonical payload. The admission profile is separately authenticated by a
+project-controlled profile-authority key and carries its key id, algorithm
+and digest. Pinned key material and its authorization are held outside the
+receipt/profile artifact so that an artifact cannot appoint its own signer or
+trust anchor. Unknown key, invalid authentication, duplicate/replayed receipt
+or altered payload blocks admission.
+
+The verification receipt is not, by itself, admissible Engine input. After the
+compiled contract, execution plan and ImmutableExecutionView are frozen, an
+authenticated read-only execution binding shall join the receipt to their
+identities/digests and to the exact presentation and RDE digest. The binding
+does not mutate the receipt. A frozen admission profile shall identify
+policy id/version/digest, permitted mechanism, trusted issuer/anchor set and
+digest, required cryptographic checks, required signer/issuer role, validation
+level and treatment of unknown results. It must be authenticated and applicable
+to the active contract. Until a verifier and admission profile satisfying this
+contract exist, this interface is preparatory and the Engine returns
+MANUAL_REVIEW.
+
+For a DRT, the role check shall establish the source-defined path of either
+the RT's digital signature or the issuing council's digital certification.
+Recording a signer identity without establishing its role is insufficient.
+Trust anchors or certificate policies not available to the local verifier
+remain unknown; do not infer public-key trust or current revocation.
+
+No external council or commercial signature API is a required dependency.
+Apps Script's native digest functions can establish a digest but do not alone
+verify CMS/PAdES signatures, certificate chains or revocation. A local
+project-controlled verifier may be used only to the level it can reproduce and
+validate against fixtures; unsupported validation levels remain inconclusive.
+An image, stamp, QR Code or text description is not cryptographic proof.
+
+If no sufficient authenticated receipt exists, the relevant Criterion may
+route to MANUAL_REVIEW under its contract. Digest mismatch, altered receipt,
+or presentation/document substitution blocks automatic admission and records
+an integrity diagnostic; it cannot create PASS, FAIL or a Nonconformity by
+itself. Human verification is a separate authenticated, immutable receipt
+binding the exact document/digest and recording reviewer, date, method,
+evidence and decision. It never claims cryptographic validation. Human
+receipts remain audit context until a criterion-specific authenticated
+authority profile has been defined, approved and frozen. This profile is not
+currently defined; therefore human-receipt admission remains preparatory and
+routes to MANUAL_REVIEW.
+
+END PHASE 2A.
+
+###############################################################################
 # PHASE 3
 # ENTITY NORMALIZATION AND IMMUTABLE EXECUTION VIEW (PROCESS MEMORY CONTRACT)
 ###############################################################################
@@ -366,18 +435,29 @@ logical execution view, whether backed by an adapter or an in-memory normalized
 representation; it does not require persistence.
 
 Requirements shall consume documentary facts from Process Memory only. Criteria
-shall consume documentary facts from Process Memory and may consume the
-authenticated Phase 3A sidecar only for a declared DRT-to-product/coverage
-relation predicate, as relation-only input; the sidecar shall never supply an
-attribute or documentary fact. Report generation in Phase 8 may consume
-authenticated artifact metadata only to disclose the correlation and its
-provenance; it shall not recompute correlation, reopen documents or alter
-consolidated results. Applicability and all other phases shall consume Process
-Memory only and shall not consume the sidecar. This reconciles the prior
-conflict as `ARCHITECTURAL_CONFLICT=RESOLVED_BY_EXPLICIT_USER_DECISION`.
+shall consume documentary facts from Process Memory and may consume only the
+following authenticated sidecars for their declared purpose: (1) the Phase 3A
+sidecar only for a declared DRT-to-product/coverage relation predicate, as
+relation-only input, never as an attribute or documentary fact; and (2) the
+Phase 2A signature-verification receipt only for a declared SIGNED predicate,
+as verification evidence bound to the exact document/presentation, never as
+an extracted fact or general attribute. Human-confirmation receipts are audit
+context only until an authority profile for the evidence class and Criterion
+has been approved; none is defined yet, so they cannot establish PASS. Phase 8
+may consume authenticated frozen metadata from either artifact only for
+disclosure defined by 06_reports; it shall not recompute correlation or
+signature validation, reopen documents or alter consolidated results.
+Applicability and all other phases shall consume Process Memory only and shall
+not consume these sidecars. This signature sidecar is a narrow approved
+exception to the existing Phase 3A relation-only sidecar contract.
+ARCHITECTURAL_CONFLICT=RESOLVED_BY_EXPLICIT_USER_DECISION applies to the
+relation sidecar only; the signature exception is independently limited to
+the declared SIGNED predicate and does not authorize general document access.
 
 Do not reopen Source Documents or retry documentary extraction in this or any
-later phase.
+later phase. The single authorized exception is Phase 2A, which reads the
+original bytes for signature verification only, before the execution view is
+closed; it does not extract documentary facts.
 
 END PHASE 3.
 
@@ -696,6 +776,22 @@ scope.
 
 Execute all APPLICABLE_REQUIREMENTS using Process Memory.
 
+For a declared SIGNED predicate only, the Engine may additionally receive an
+authenticated read-only execution binding to a Phase 2A verification receipt.
+That binding shall be created after the compiled Knowledge Base, frozen plan
+and ImmutableExecutionView exist. It shall authenticate and bind all three
+identities/digests plus presentation identity, RDE identity/digest, source
+document identity/digest and the frozen admission-profile identity/digest.
+Reject replay, duplicate receipt ids, unknown key, invalid authenticator or
+any mismatch before predicate evaluation. The raw receipt is never exposed to
+general predicates and no binding mutates the receipt, RDE, view or plan.
+
+Until a local verifier, pinned verifier/profile authority and applicable
+admission profile are implemented and validated, this is a preparatory
+interface only and the SIGNED predicate remains MANUAL_REVIEW. Human receipts
+remain audit context because no criterion-specific human-authority profile is
+currently approved.
+
 An empty entity-reference collection, missing documentary association or
 unresolved lookup in Process Memory is not proof that the corresponding
 document was not submitted. `DOCUMENT_ABSENCE` may be bound only from an
@@ -795,9 +891,9 @@ No other PipelineResult is allowed. The EngineResult remains available in the
 trace even when its PipelineResult is normalized.
 
 Criteria shall consume documentary facts from Process Memory only, except for
-the authenticated Phase 3A sidecar expressly authorized above: a Criterion
-may read it only in a declared DRT-to-product/coverage relation predicate and
-only as relation-only input, never as an attribute or documentary fact.
+the two authenticated sidecars expressly authorized above, each only in its
+declared relation or SIGNED predicate and never as an attribute or extracted
+documentary fact.
 
 Applicability remains resolved before execution. A predicate may return
 NOT_APPLICABLE only when its declared result contract permits it; the Engine
@@ -966,15 +1062,23 @@ END PHASE 6A.
 
 Generate the operational report using only the immutable consolidated results,
 the immutable Phase 6A operational projection, the authenticated, immutable,
-read-only frozen
-correlation disclosure projection linked to the exact presentation and RDE, and
-06_reports. The disclosure projection shall be generated only from the fields
-enumerated by 06_reports: DRT reference, product reference, automatic origin,
-calibrated confidence, policy and calibration versions, evidence/provenance
-references, caveats, and institutional status. The report shall never consume
-the correlation artifact wholesale or receive proposals, extracted facts, or
-any capability to alter the decision; it shall only disclose this frozen
-projection and shall not recompute correlation.
+read-only frozen DRT-product correlation disclosure projection, the separately
+authenticated, immutable, read-only frozen signature-verification disclosure
+projection, each linked to the exact presentation and RDE, and 06_reports.
+The correlation projection shall contain only the fields enumerated by
+06_reports: DRT reference, product reference, automatic origin, calibrated
+confidence, policy and calibration versions, evidence/provenance references,
+caveats, and institutional status. The signature-verification projection
+shall contain only the fields enumerated by 06_reports: exact document
+reference and digest; automatic or human origin; method and verifier/policy
+versions; cryptographic-integrity outcome; signer identity when available;
+certificate-chain/trust and revocation status, including UNKNOWN; evidence and
+provenance; caveats; and human reviewer, date, method, evidence and decision
+when applicable. It shall distinguish a cryptographically intact signature
+from a fully validated signature. The report shall never consume either
+artifact wholesale or receive proposals, extracted facts, or any capability to
+alter the decision; it shall only disclose these frozen projections and shall
+not recompute correlation or signature verification.
 
 Do not expose Requirements, Criteria or internal identifiers in the
 operational report.
