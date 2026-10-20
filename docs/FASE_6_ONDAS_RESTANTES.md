@@ -3092,3 +3092,44 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   escolhido, sem API de conselho. Esforço: uma implementação isolada, 180
   testes Python, 9 suítes Apps Script, sintaxe e build limpo. Fase 6B continua
   em andamento; admissão no Engine, recibo e política de âncoras ainda pendentes.
+
+### Revalidação documental do vocabulário de status ART/RRT/TRT — 2026-10-20
+
+- Revisão read-only de fontes oficiais dos conselhos, motivada pelo bloqueio
+  compartilhado de `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`. Para ART, a
+  Resolução Confea nº 1.137/2023, art. 4º, diz que o registro se efetiva após
+  cadastro no sistema eletrônico e recolhimento; a página de serviço do Confea
+  diz que a ART só é válida quando quitada e admite comprovante de pagamento ou
+  consulta ao Crea. Isso não torna API obrigatória: sem comprovante documental,
+  o resultado pode permanecer para revisão humana. Fontes:
+  [Resolução Confea nº 1.137/2023](https://normativos.confea.org.br/Ementas/Visualizar?id=76099)
+  e [serviço de ART do Confea](https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art).
+- Para RRT, a FAQ oficial do CAU/BR distingue o formulário com marca `rascunho`
+  e sem número do formulário definitivo com número do registro, liberado após
+  pagamento. A regra fornece um sinal documental próprio do RRT; não autoriza
+  inferir pagamento quando extração, identidade do arquivo ou vínculo do
+  comprovante forem insuficientes. Fonte:
+  [FAQ oficial de RRT do CAU/BR](https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/).
+- Para TRT, a Resolução CFT nº 055/2019, art. 4º, também liga a efetivação do
+  registro ao cadastro no sistema eletrônico do CRT e ao recolhimento. A página
+  do CFT de 2025 descreve a geração do TRT virtual com número único após
+  aprovação do sistema, mas não define um conjunto atual e completo de rótulos
+  visíveis para todos os CRTs. O manual de 2018 lista estados do sistema antigo
+  e não é adotado como mapa atual. Fontes:
+  [Resolução CFT nº 055/2019](https://www.cft.org.br/wp-content/uploads/2021/07/RESOLUCAO-055-2019-Altera-os-artigos-da-Resolucao-n-40.pdf)
+  e [orientação do CFT sobre TRT, 2025](https://cft.org.br/termo-de-responsabilidade-tecnica-seguranca-e-transparencia-no-exercicio-legal-da-profissao/).
+- Conclusão técnica: manter `COUNCIL_REGISTRATION_STATUS`,
+  `COUNCIL_ISSUANCE_STATUS` e `COUNCIL_PAYMENT_STATUS` como fatos distintos e
+  literais. O blocker não é a inexistência de vocabulário factual na RDE; é a
+  falta de perfis de extração/versionamento por tipo de documento e fonte
+  emissora, além de prova e binding suficientes para cada campo. Não há base
+  para um dicionário global que trate ART, RRT e TRT como ciclos equivalentes.
+  Nenhum status foi normalizado, nenhum resultado de Criterion alterado e
+  nenhuma API externa tornou-se requisito.
+- Métrica: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`; blockers
+  encerrados `0`; novo blocker `0`; Criteria afetados: `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED`, ainda pendentes. Esforço: pesquisa dirigida de fontes
+  oficiais; revisões independentes: zero (somente registro factual, sem mudança
+  de contrato/código). Benefício: delimita a implementação segura a perfis
+  versionados e preserva MANUAL_REVIEW para documento/status sem prova
+  suficiente. Gates executados neste registro: `git diff --check`.
