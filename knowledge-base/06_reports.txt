@@ -4,7 +4,7 @@ BASE DE CONHECIMENTO
 
 RELATÓRIO OPERACIONAL
 
-DOCUMENT_VERSION: 3.19.0
+DOCUMENT_VERSION: 3.20.0
 
 FINALIDADE
 
@@ -137,7 +137,7 @@ Caso inexistentes: "Nenhuma observação adicional."
 Informar:
 
 - Data da análise;
-- Base: SSCI-Habite-se 5.31.0;
+- Base: SSCI-Habite-se 5.32.0;
 - Procedimento.
 
 Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET, versões

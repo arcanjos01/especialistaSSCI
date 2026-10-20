@@ -30,6 +30,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         cls.applicability = (KB / "02a_applicability.txt").read_text(encoding="utf-8")
         cls.table_1 = (KB / "03_table1.txt").read_text(encoding="utf-8")
         cls.table_4 = (KB / "04_table4.txt").read_text(encoding="utf-8")
+        cls.entities = (KB / "01_entities.txt").read_text(encoding="utf-8")
         cls.reports = REPORTS.read_text(encoding="utf-8")
         cls.migration_plan = (ROOT / "docs" / "PLANO_MIGRACAO_ENGINE_APPS_SCRIPT.md").read_text(encoding="utf-8")
         cls.coverage_inventory = (ROOT / "docs" / "FASE_6_INVENTARIO_COBERTURA.md").read_text(encoding="utf-8")
@@ -42,7 +43,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.31\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.32\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -55,6 +56,31 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertIn("Do not infer `NON_MECHANICAL` from absence", self.applicability)
         self.assertIn("APPLIES_TO SMSCI_SMOKE_CONTROL_MECHANICAL", self.table_4)
         self.assertIn("SMSCI SMSCI_SMOKE_CONTROL_MECHANICAL", self.requirements)
+
+    def test_in10_request_party_identity_is_fact_only_and_report_private(self):
+        entity = re.search(
+            r"ENTITY REQUERIMENTO_ESCI\b(.*?)\nEND\b",
+            self.entities,
+            re.S,
+        )
+        self.assertIsNotNone(entity)
+        for attribute in (
+            "HABITESE_REQUEST_FINALITY_TEXT TEXT",
+            "REQUESTER_NAME_TEXT TEXT",
+            "REQUESTER_CPF_TEXT TEXT",
+            "REQUESTER_EQUALITY_DECLARATION_TEXT TEXT",
+            "TECHNICAL_RESPONSIBLE_NAME_TEXT TEXT",
+            "TECHNICAL_RESPONSIBLE_CPF_TEXT TEXT",
+            "TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT TEXT",
+        ):
+            self.assertIn(attribute, entity.group(1))
+        self.assertIn("preservados\nexatamente como aparecem", entity.group(1))
+        self.assertIn("não devem ser expostos no relatório", entity.group(1))
+        self.assertIn("validate a CPF", self.pipeline)
+        self.assertIn("infer identity/equality", self.pipeline)
+        self.assertIn("This form is distinct from", self.pipeline)
+        self.assertNotIn("REQUESTER_CPF_TEXT", self.reports)
+        self.assertNotIn("TECHNICAL_RESPONSIBLE_CPF_TEXT", self.reports)
 
     def test_every_manifest_entry_has_an_individual_semantic_version(self):
         for filename, version in self.manifest.items():
@@ -101,7 +127,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.31.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.32.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",

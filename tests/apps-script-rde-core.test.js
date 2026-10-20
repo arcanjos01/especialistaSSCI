@@ -305,6 +305,29 @@ function validateRecords(records, catalog = entityCatalog) {
 
 assert.doesNotThrow(() => validateRecords(validRecords()));
 assert.doesNotThrow(() => validateRecords([]));
+const requestEntityCatalog = {
+  ...entityCatalog,
+  REQUERIMENTO_ESCI: compiledContract.entityCatalog.REQUERIMENTO_ESCI
+};
+const requestFormRecord = record(
+  'R_TEST_ONLY_REQUEST_FORM',
+  'REQUERIMENTO_ESCI',
+  null,
+  'R_TEST_ONLY_REQUEST_FORM',
+  {
+    HABITESE_REQUEST_FINALITY_TEXT: 'TEST_ONLY_HABITESE',
+    REQUESTER_NAME_TEXT: 'TEST_ONLY_REQUESTER_NAME',
+    REQUESTER_CPF_TEXT: 'TEST_ONLY_REQUESTER_CPF_EXACT_LITERAL',
+    REQUESTER_EQUALITY_DECLARATION_TEXT: 'TEST_ONLY_EQUALITY_DECLARATION_LITERAL',
+    TECHNICAL_RESPONSIBLE_NAME_TEXT: 'TEST_ONLY_RT_NAME',
+    TECHNICAL_RESPONSIBLE_CPF_TEXT: 'TEST_ONLY_RT_CPF_EXACT_LITERAL',
+    TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT: 'TEST_ONLY_EQUALITY_DECLARATION_LITERAL'
+  },
+  { locations: ['TEST_ONLY_PAGE_47_FIELDS'] }
+);
+const requestFormSnapshot = JSON.stringify(requestFormRecord);
+assert.doesNotThrow(() => validateRecords([requestFormRecord], requestEntityCatalog));
+assert.equal(JSON.stringify(requestFormRecord), requestFormSnapshot);
 const legacyStructuralRde = {
   ...operationalRde,
   schema_version: '0.2.0',

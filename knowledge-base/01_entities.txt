@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.9
+# VERSION 3.10
 ###############################################################################
 
 ###############################################################################
@@ -694,6 +694,50 @@ reapresentações dentro dessa cadeia. RE_IDENTIFIER identifica o endereço ou a
 edificação e serve somente como verificação de consistência. REQUEST_IDENTIFIER
 é legado/opcional, não é produzido por inferência e não participa da seleção
 produtiva da apresentação corrente nem determina applicability.
+
+END
+
+-------------------------------------------------------------------------------
+
+ENTITY REQUERIMENTO_ESCI
+
+TYPE DOCUMENT
+
+ATTRIBUTE HABITESE_REQUEST_FINALITY_TEXT TEXT
+
+ATTRIBUTE REQUESTER_NAME_TEXT TEXT
+
+ATTRIBUTE REQUESTER_CPF_TEXT TEXT
+
+ATTRIBUTE REQUESTER_EQUALITY_DECLARATION_TEXT TEXT
+
+ATTRIBUTE TECHNICAL_RESPONSIBLE_NAME_TEXT TEXT
+
+ATTRIBUTE TECHNICAL_RESPONSIBLE_CPF_TEXT TEXT
+
+ATTRIBUTE TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT TEXT
+
+NAME
+
+REQUERIMENTO DO e-SCI (MODELO DO ANEXO B DA IN 1 - PARTE 1)
+
+DESCRIPTION
+
+Registra somente valores literalmente identificáveis no formulário de
+requerimento apresentado. HABITESE_REQUEST_FINALITY_TEXT preserva o valor
+selecionado no campo Finalidade da aba Habite-se, sem selecionar ou determinar
+applicability. Nome e CPF do solicitante e do responsável técnico são fatos
+textuais independentes, extraídos dos campos correspondentes e preservados
+exatamente como aparecem, inclusive formatação do CPF. Não validar identidade,
+autoria, assinatura, habilitação ou igualdade entre pessoas; não completar um
+campo a partir de outro papel, de declaração contextual ou de outro documento.
+REQUESTER_EQUALITY_DECLARATION_TEXT e
+TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT preservam literalmente as
+opções de igualdade marcadas em cada seção, sem propagar valores entre campos
+nem provar identidade autenticada.
+Os valores identificadores não constituem prova de identidade autenticada e
+não devem ser expostos no relatório. Campos não visíveis, ilegíveis ou não
+declarados permanecem ausentes.
 
 END
 

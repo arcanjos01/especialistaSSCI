@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.33.0
+# DOCUMENT_VERSION: 4.34.0
 ###############################################################################
 
 ###############################################################################
@@ -11,21 +11,21 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.31.0
+KNOWLEDGE_BASE_VERSION: 5.32.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
 DOCUMENT_SET:
 
 00_engine.txt: DOCUMENT_VERSION 4.12.0
-01_entities.txt: DOCUMENT_VERSION 3.9.0
+01_entities.txt: DOCUMENT_VERSION 3.10.0
 02_requirements.txt: DOCUMENT_VERSION 3.6.0
 02a_applicability.txt: DOCUMENT_VERSION 1.4.0
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.4.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.19.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.33.0
+06_reports.txt: DOCUMENT_VERSION 3.20.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.34.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -202,6 +202,20 @@ PRESENTED_SYSTEM_MEASURE_DESCRIPTION, RPCI_ORIENTATIVE_TEXT and SOURCE_LOCATION.
 source_document remains required by Documento 09-RDE. The RPCI orientative-text
 column is extracted as raw documentary text and is excluded from applicability.
 This uses the schema in 01_entities and does not alter Documento 09-RDE.
+
+For a document identified as the official e-SCI request form represented by
+REQUERIMENTO_ESCI, extract only its directly visible
+HABITESE_REQUEST_FINALITY_TEXT, REQUESTER_NAME_TEXT, REQUESTER_CPF_TEXT,
+REQUESTER_EQUALITY_DECLARATION_TEXT, TECHNICAL_RESPONSIBLE_NAME_TEXT,
+TECHNICAL_RESPONSIBLE_CPF_TEXT and
+TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT when present.
+Preserve the exact field values and source locations/provenance. Do not populate
+one party's fields from another party, infer identity/equality, validate a CPF,
+authenticate a person, determine report authorship, or infer a signature or
+applicability. Missing, illegible or ambiguous fields remain unavailable facts;
+they are not negative evidence. This form is distinct from
+COMPROVANTE_DE_SOLICITACAO_DE_HABITESE. It introduces documentary attributes
+only and does not alter Documento 09-RDE.
 
 ###############################################################################
 # ATTRIBUTE EXTRACTION

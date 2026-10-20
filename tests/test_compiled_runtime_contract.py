@@ -52,10 +52,10 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.6")
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.31.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.32.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
-            "3.9.0",
+            "3.10.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["00_engine.txt"],
@@ -71,11 +71,11 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["06_reports.txt"],
-            "3.19.0",
+            "3.20.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["08_execution_pipeline.txt"],
-            "4.33.0",
+            "4.34.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["09_Especificacao_da_RDE.txt"],
@@ -97,6 +97,7 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         self.assertEqual(self.contract["entityCatalog"], source)
         for entity_id in (
             "COMPROVANTE_DE_SOLICITACAO_DE_HABITESE",
+            "REQUERIMENTO_ESCI",
             "SISTEMAS_E_MEDIDAS_DE_SEGURANCA",
             "SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM",
         ):

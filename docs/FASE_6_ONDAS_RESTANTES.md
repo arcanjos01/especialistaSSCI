@@ -2677,42 +2677,29 @@ PROMOTION=NOT_AUTHORIZED
 - Gates consolidados no `fb4734a5eca181bcd09b75e4b264fa0c2fc1e0b1`: Python `175` (`170` pass, `5` skipped); Apps Script `9/9 PASS`; `node --check` em todos `apps-script/*.js` e `tests/apps-script-*.test.js`; sintaxe `Code.gs`; runtime byte-identical SHA-256 `59e7b70c52ffb9118943240af2ca5f603925bff73c382d9a2b3c98ac92afb619`; manifesto e phase guards PASS; `git diff --check` PASS. `BUILD_VALIDATION=PASS` na worktree destacada e limpa, `SOURCE_COMMIT=fb4734a5eca181bcd09b75e4b264fa0c2fc1e0b1`, KB `5.31.0`, 10 documentos. O candidato técnico foi publicado na branch de desenvolvimento.
 - Revisão: `INDEPENDENT_ARCH_REVIEW=PENDING_CAPACITY`, pois não há ferramenta/sessão de revisor independente disponível nesta execução; `SOL_REVIEW=PENDING_IDENTITY`; não houve parecer atribuído a Sol nem aprovação arquitetural. O checkpoint segue `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`. Re-review deverá ser dirigida ao candidato exato antes de consolidar o fix.
 
-### Evidência oficial para identidades do solicitante e RT — 2026-10-20
+### Correção da fonte oficial de identidade do solicitante e RT — 2026-10-20
 
-- Inspecionado o Anexo C da IN 1/2024, formulário oficial de requerimentos a
-  realizar diretamente no e-SCI. Na seção “Identificação Nominal”, pp. 36–37,
-  há campos próprios `Solicitante` e `Responsável Técnico`, ambos com CPF e
-  nome; o Anexo C também permite declarar que as identidades de certos papéis
-  são iguais. Fonte: [IN 1/2024, Anexo C](https://documentoscbmsc.cbm.sc.gov.br/uploads/19311513366edc981d3f94ef2a619536.pdf).
-- Isso confirma que o formulário prevê comparandos nominais explícitos e
-  identificadores individuais para esses papéis. Não prova que a exportação
-  documental atualmente extraída ou o intake e-SCI disponível ao runtime
-  forneçam esses valores autenticados para cada apresentação.
-- Estado do contrato local: `COMPROVANTE_DE_SOLICITACAO_DE_HABITESE` contém
+- A referência anterior ao Anexo C/páginas 36–37 estava incorreta: o URL
+  consultado apontava para uma edição anterior da IN 1, publicada em 2019. A
+  edição oficial vigente consultada é a IN 1 - Parte 1 de 2024, Separata ao
+  BOECBM nº 1 de 25/04/2024. O formulário de requerimentos é o **Anexo B**,
+  páginas impressas 46–47 (PDF pp. 47–48), e não o Anexo C.
+- Na seção “Identificação Nominal”, o Anexo B tem campos `CPF` e `Nome` para
+  `Solicitante` e `Responsável Técnico`, além de opções declaradas de igualdade
+  entre papéis. Fonte oficial: [IN 1 - Parte 1 (2024), Anexo B](https://documentoscbmsc.cbm.sc.gov.br/uploads/ab8c2bdadfee54d4097ac6cf1e1be128.pdf).
+- Isso confirma que o formulário prevê comparandos nominais explícitos, mas
+  não prova que o PDF esteja presente nem que a extração atual ou o intake e-SCI
+  forneçam esses valores autenticados para cada apresentação. O
+  `COMPROVANTE_DE_SOLICITACAO_DE_HABITESE` continua sendo um recibo distinto e
+  não deve receber esses atributos por extensão semântica.
+- Estado antes da correção: `COMPROVANTE_DE_SOLICITACAO_DE_HABITESE` contém
   `REQUEST_DATE`, `REQUEST_IDENTIFIER`, `RE_IDENTIFIER` e
   `PROTOCOL_IDENTIFIER`; `CurrentSubmissionContext` contém protocolo, data,
-  RE opcional e proveniência operacional. Nenhum contém identidade/CPF das
-  partes. A DRT preserva `RT_NAME`, que não é identificador individual e não
-  prova identidade de quem preparou ou assinou o relatório de comissionamento.
-- Próximo contrato necessário para IN10: fatos FACT-ONLY, com papel (solicitante,
-  RT cadastrado, signatário/autor do relatório), valor de identidade exatamente
-  extraído, documento e localização de origem, digest/proveniência e binding à
-  apresentação/RDE. Usar o CPF explícito como comparando quando presente;
-  nomes isolados, relações iguais marcadas no formulário sem identidade
-  verificável, ou dados ausentes não provam que são pessoas distintas. A
-  confirmação de autor/signatário do relatório continua dependente do contrato
-  de assinatura/identidade documental; não se confunde com o RT cadastrado no
-  requerimento. Avaliar minimização e proteção dos dados pessoais no contrato.
-- Esta evidência reduz o bloqueio de “fonte normativa/formulário não conhecido”
-  para “fatos da apresentação e autoria do relatório ainda não materializados e
-  autenticados”. Não adiciona atributos nem muda resultado, seleção ou
-  cobertura nesta anotação. `T4_IN10_COMMISSIONING` permanece descoberto; não
-  houve confirmação de que dado algum esteja presente em um processo real.
-- Métrica do trabalho: integral `10/29 → 10/29`; parcial `1 → 1`; blockers
-  encerrados `0`; um impedimento factual melhor delimitado; nenhum teste de
-  execução necessário para registro documental; revisão independente `0`,
-  pois não houve mudança de comportamento; `git diff --check` verificado antes
-  do checkpoint. `CALIBRATION_GATE=BLOCKED`, `PROMOTION=NOT_AUTHORIZED`.
+  RE opcional e proveniência operacional. Nenhum deles contém identidade/CPF
+  das partes. A DRT preserva `RT_NAME`, que não é identificador individual e
+  não prova identidade de quem preparou ou assinou o relatório.
+- A formalização do contrato resultante, sem afirmar extração real, está
+  registrada no lote de identidade documental abaixo.
 
 ### Finding LOW — fixtures de proveniência do escopo IN10 — 2026-10-20
 
@@ -2800,3 +2787,35 @@ PROMOTION=NOT_AUTHORIZED
   18 Criteria sem suporte integral; nenhum ganho atribuído a revisão ou build.
   `.codex-local-evidence/` permaneceu fora do Git. `SOL_REVIEW=PENDING_IDENTITY`,
   `PROMOTION=NOT_AUTHORIZED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
+
+### Lote 6B — contrato FACT-ONLY de identidades do requerimento e correção de fonte — 2026-10-20
+
+- A conferência da URL previamente registrada mostrou que ela servia uma edição
+  anterior da IN 1 (publicada em 2019), não o formulário 2024. A fonte foi
+  corrigida para a edição oficial IN 1 - Parte 1 (Separata ao BOECBM nº 1,
+  25/04/2024), Anexo B, pp. impressas 46–47 (PDF pp. 47–48). O formulário
+  vigente contém campos de Nome/CPF de Solicitante e Responsável Técnico e
+  opções literais de igualdade entre papéis.
+- A Base 5.32.0 adiciona `REQUERIMENTO_ESCI`, separado do recibo
+  `COMPROVANTE_DE_SOLICITACAO_DE_HABITESE`, com finalidade de Habite-se, nome,
+  CPF literal e declarações literais de igualdade dos dois papéis. A instrução
+  de EXTRACTION exige localização/provenance, preserva exatamente o texto,
+  proíbe completar campos, validar identidade/CPF, inferir igualdade ou
+  autenticar pessoas. Os valores identificadores não são expostos no relatório.
+  Documento 09-RDE não mudou; os fatos são registros documentais FACT-ONLY.
+- Este lote materializa somente um comparando necessário ao IN10. Não prova que
+  o formulário tenha sido fornecido ou extraído em qualquer apresentação, não
+  autentica a pessoa, não identifica o autor do relatório e não satisfaz o
+  binding DRT↔relatório nem a assinatura. Não gera resultado do Engine nem
+  cobertura de Criterion. F6-MC-007 fica parcialmente reduzido no contrato de
+  identidade declarada; IN10 continua descoberto.
+- Testes direcionados após regenerar `CompiledRuntimeContract.js`:
+  `tests.test_knowledge_base_identity` + `tests.test_compiled_runtime_contract`,
+  45/45 PASS. Os gates completos, revisão Luna e build limpo serão executados
+  no checkpoint consolidado deste lote.
+- Cobertura antes/depois: `10/29 → 10/29`; parcial `1 → 1`; blockers encerrados
+  `0`; dependência factual/contratual parcialmente formalizada `F6-MC-007`.
+  Benefício: tornar representáveis, rastreáveis e utilizáveis como comparandos
+  futuros os papéis e identificadores que o formulário oficial efetivamente
+  declara, sem atribuir identidade. `.codex-local-evidence/` permanece fora do
+  Git; `PROMOTION=NOT_AUTHORIZED`.
