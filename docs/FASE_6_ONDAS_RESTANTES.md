@@ -2751,3 +2751,30 @@ PROMOTION=NOT_AUTHORIZED
   fechado tecnicamente; aprovação independente arquitetural continua pendente
   de identidade verificável. `SOL_REVIEW=PENDING_IDENTITY`,
   `PROMOTION=NOT_AUTHORIZED`.
+
+### Revisão independente limitada — lote de escopo IN10 — 2026-10-20
+
+- Candidato examinado: `ca80d4d22ac4992bc55f6fb266b7e6095d127cb3`; baseline
+  funcional: `7c53f81a5c17628eaba88fc56379aa0af04fbdf4`. Parecer independente
+  limitado: `PASS`, sem findings no escopo IN10.
+- Execução filha distinta: `01a15b85-391a-7ba2-a7f5-b731abb2877a`, despachada
+  no papel `terra_worker` (configuração do papel: `gpt-5.6-terra`). O texto do
+  parecer declarou “Codex, GPT-6”; por essa divergência, este registro preserva
+  a identidade efetiva conforme metadados de despacho e a autodeclaração
+  conflitante, sem atribuir a revisão a Sol. O revisor não implementou o lote.
+- O revisor examinou os 14 arquivos alterados e comparou o escopo com as fontes
+  listadas. Verificou modo mecânico explícito, literal de origem, localização e
+  provenance; ausência, conflito e valor inválido bloqueiam antes do Engine.
+  CF negativo somente deriva escopo negativo. Não há inferência pelo texto
+  orientativo RPCI, associação RT por nome, nem resultado normativo novo.
+- Testes executados pelo revisor: `node --check` nos três módulos alterados;
+  `node tests/apps-script-applicability-plan.test.js`; Python focal
+  (`tests.test_compiled_runtime_contract` e `tests.test_knowledge_base_identity`,
+  44 testes); `git diff --check 7c53f81..ca80d4d` — todos PASS.
+- Limite material: o fato `SMOKE_CONTROL_MODE` está formalizado e consumido,
+  mas sua EXTRACTION real ainda não está implementada; sem declaração explícita
+  permanece bloqueio anterior ao Engine. A revisão não abrangeu a POC PDF.
+- A divergência de autodeclaração fica registrada para a governança da revisão.
+  Não atribuir este parecer a Sol; `SOL_REVIEW=PENDING_IDENTITY`,
+  `PROMOTION=NOT_AUTHORIZED`. Criteria integrais `10/29`, parcial `1`, sem
+  alteração de cobertura. A revisão não equivale ao fechamento da Fase 6.
