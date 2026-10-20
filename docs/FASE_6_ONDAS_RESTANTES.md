@@ -2713,3 +2713,41 @@ PROMOTION=NOT_AUTHORIZED
   execução necessário para registro documental; revisão independente `0`,
   pois não houve mudança de comportamento; `git diff --check` verificado antes
   do checkpoint. `CALIBRATION_GATE=BLOCKED`, `PROMOTION=NOT_AUTHORIZED`.
+
+### Finding LOW — fixtures de proveniência do escopo IN10 — 2026-10-20
+
+- Revisão independente read-only do diff funcional `7c53f81..fb4734a`
+  examinou contrato Base/applicability, plano compilado, runtime e testes. O
+  revisor confirmou o tratamento fail-closed do modo CF, o trace, a ausência
+  de resultado normativo por incerteza e a cobertura mantida em `10/29`.
+- Finding LOW: a fixture positiva sempre fornecia `SOURCE_LOCATION` e
+  provenance do item CF, não testando a rejeição de cada campo ausente. A
+  regressão foi acrescentada em `tests/apps-script-applicability-plan.test.js`:
+  dois casos removem isoladamente `SOURCE_LOCATION` e provenance e exigem
+  `ARCHITECTURAL_BLOCKER`. Nenhum código runtime ou Base mudou.
+- Teste focado e re-review técnica dirigida: `node
+  tests/apps-script-applicability-plan.test.js` — PASS; `node --check` do teste
+  e `git diff --check` — PASS. Re-review não encontrou outro caso faltante
+  dentro do finding.
+- Governança da revisão: uma execução despachada como `luna_economy`
+  (`01a15b79-35f2-79c3-be43-4b6cc6779065`) inicialmente declarou `Codex/GPT-6`,
+  depois reconheceu que essa identidade era incorreta e não pôde atestar o
+  modelo efetivo. A revisão seguinte, despachada como `terra_worker`
+  (`01a15b7b-e7e7-72a1-9683-85fb3dd250bf`), também reportou `GPT-6` e depois
+  manteve identidade e execução pendentes. Ambos os pareceres técnicos foram
+  PASS, mas não satisfazem a verificação de identidade da seção AGENTS.md
+  §25.2. Assim `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`, sem atribuir PASS a
+  Sol ou declarar aprovação independente válida.
+- Gates consolidados no commit `1165c17a2bf112dae3cd00c50e4536429fc8e6f0`:
+  Python `175` (`170` pass, `5` skipped); Apps Script `9/9`; `node --check`
+  todos `apps-script/*.js` e `tests/apps-script-*.test.js`; sintaxe `Code.gs`;
+  testes da suíte validam regeneração do runtime byte-identical, SHA-256
+  `59e7b70c52ffb9118943240af2ca5f603925bff73c382d9a2b3c98ac92afb619`;
+  manifest e phase guards PASS; `git diff --check` PASS. Release build em
+  worktree limpa PASS, 10 documentos, manifest `10/10`, `SOURCE_COMMIT` exato.
+- O checkpoint foi enviado por fast-forward à branch de desenvolvimento.
+  Ganho de Criteria integrais `0`; cobertura permanece `10/29`, um parcial
+  (`T1_CONFORMITY_REPORT`) e 18 pendentes sem suporte integral. Finding LOW
+  fechado tecnicamente; aprovação independente arquitetural continua pendente
+  de identidade verificável. `SOL_REVIEW=PENDING_IDENTITY`,
+  `PROMOTION=NOT_AUTHORIZED`.
