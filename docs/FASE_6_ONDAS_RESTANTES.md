@@ -2644,7 +2644,12 @@ PROMOTION=NOT_AUTHORIZED
   integração opt-in `24/24`; POC ByteRange/CMS; `py_compile`; runtime
   byte-identical SHA-256
   `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`;
-  `git diff --check` — PASS. Commit/build limpo deste lote pendente.
+  `git diff --check` — PASS. Commit `584253c088533b18ef3bbf617fdc28f98cd3c2f4`
+  publicado; `BUILD_VALIDATION=PASS` em worktree limpa, com dez documentos,
+  KB `5.30.0` e `SOURCE_COMMIT` exato. Saída em
+  `/tmp/ssci-phase6-signature-584253c-release`. A primeira invocação do
+  builder a partir do checkout principal foi corretamente recusada como
+  worktree suja; a execução dentro da raiz da worktree destacada passou.
 - Limites: cadeia de confiança, identidade profissional, revogação, PAdES e
   capacidade de execução GAS continuam `UNKNOWN/NOT_EVALUATED`; múltiplas
   assinaturas são encaminhadas como inconclusivas. Cobertura continua `10/29`,
