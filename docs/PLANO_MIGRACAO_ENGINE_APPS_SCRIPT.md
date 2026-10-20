@@ -104,11 +104,11 @@ depende de perfil explícito de autoridade aprovado; sem ele, mantém-se
 `MANUAL_REVIEW`. Esta divisão não altera `VALIDATED_TO_ANALYZED=PENDING`,
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, nem a decisão final humana.
 
-Estado gerencial registrado em 2026-10-20: `FASE_6A_STATUS=PENDING_REVIEW` até
-que a revisão independente válida do gate seja registrada para candidato
-exato. Os gates técnicos passaram no candidato
-`0264157ebe6a106fdadf61fb3c51382ce95f1d1e`, mas o parecer que avaliou o gate
-não teve identidade/execução confirmada. `FASE_6B_STATUS=IN_PROGRESS`;
+Estado gerencial registrado em 2026-10-20: `FASE_6A_STATUS=COMPLETE` após
+revisão independente equivalente conforme AGENTS.md §25.2 e gates técnicos no
+candidato `1473edd2fe659b875167871d1df0a2882045d04c`. O reviewer declarou
+Codex/GPT-6; a identidade Sol efetiva não foi confirmada, portanto
+`SOL_REVIEW=NOT_PERFORMED`. `FASE_6B_STATUS=IN_PROGRESS`;
 verificador local validado, recibos/binding produtivos, cobertura restante,
 calibração empírica e revisão final da Fase 6 permanecem pendentes. Este
 checkpoint não declara encerramento da Fase 6 nem autorização de promoção.

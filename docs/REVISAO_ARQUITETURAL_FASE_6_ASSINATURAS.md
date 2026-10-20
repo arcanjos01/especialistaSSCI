@@ -156,29 +156,35 @@ já aprovadas, incluindo prova específica no GAS. SIGNED permanece
 MANUAL_REVIEW enquanto faltar comprovação admitida; não há promoção de fase
 ou de operação por este lote de infraestrutura de testes.
 
-## Avaliação do gate gerencial 6A
+## Encerramento independente do gate gerencial 6A
 
-O candidato `0264157ebe6a106fdadf61fb3c51382ce95f1d1e` passou nos gates
-técnicos reproduzidos: Python `150/150`, Apps Script `9/9`, sintaxe JS/Code.gs,
-runtime byte-idêntico (SHA-256
-`d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`) e
-release build em worktree limpa com 10 documentos, KB `5.30.0` e
-SOURCE_COMMIT exato. `git diff --check` também passou. A arquitetura-base
-permanece coberta pela revisão independente aceita acima e pelo follow-up
-`f82edba`.
+Em 2026-10-20, o candidato exato `1473edd2fe659b875167871d1df0a2882045d04c`
+recebeu `INDEPENDENT_6A_GATE_REVIEW=PASS`. Revisor declarado: Codex/GPT-6;
+sessão `01a15b47-e8c3-7110-9ff6-a8ab80fd8ac8`, independente dos
+implementadores registrados. A rota solicitada foi `gpt-6.1-sol`, mas o
+revisor não confirmou identidade efetiva Sol. Por isso `SOL_REVIEW=NOT_PERFORMED`;
+o parecer equivalente é aceito conforme AGENTS.md §25.2, sem atribuição de
+aprovação a Sol.
 
-A leitura textual da fronteira 6A/6B foi esclarecida em re-review: contrato e
-interface autenticada/tipada, incluindo `SIGNED → MANUAL_REVIEW` quando não
-houver prova suficiente, pertencem à 6A; verificador local, perfil operacional,
-recibos efetivos e binding integrado ao Engine são integrações da 6B segundo o
-Plano de Migração e o pipeline. Porém, o próprio revisor não confirmou que a
-identidade/execução registrada corresponda a esse parecer. Em conformidade
-com AGENTS.md §25.2, ele não é contado como aprovação independente válida.
+A revisão examinou o diff completo desde `0264157` (somente três documentos,
+88 inserções e duas remoções), confirmou o registro corrigido
+`PENDING_IDENTITY` no candidato revisado e classificou o gate 6A como pendente
+no documento, até que esta aprovação fosse registrada. A fronteira confirmada:
+contrato/interface autenticada e tipada, com `SIGNED → MANUAL_REVIEW` quando
+insuficiente, pertencem à 6A; verificador local, perfil operacional, recibos
+efetivos e binding integrado ao Engine pertencem à 6B. Não foram encontrados
+findings bloqueantes dentro do escopo 6A.
 
-Estado do checkpoint: `FASE_6A_STATUS=PENDING_REVIEW`,
-`INDEPENDENT_6A_GATE_REVIEW=PENDING_IDENTITY`,
-`FASE_6B_STATUS=IN_PROGRESS`, `SOL_REVIEW=PENDING_IDENTITY`,
+O reviewer executou: Python `150/150`; todas as nove suítes JS; `node --check`
+em 21 arquivos JS e `Code.gs`; regeneração em memória byte-idêntica (SHA-256
+`d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`);
+`git diff --check`; e build isolado do candidato exato com 10 documentos, KB
+`5.30.0` e SOURCE_COMMIT exato. Não executou Apps Script ao vivo, verificação
+produtiva de assinatura ou avaliação de 6B.
+
+Estado após a aprovação: `FASE_6A_STATUS=COMPLETE`,
+`FASE_6B_STATUS=IN_PROGRESS`, `SOL_REVIEW=NOT_PERFORMED`,
 `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
-`PROMOTION=NOT_AUTHORIZED`. Não se declara encerramento da Fase 6 nem verificação
-criptográfica produtiva.
+`PROMOTION=NOT_AUTHORIZED`. Este PASS não encerra a Fase 6 inteira nem declara
+verificação criptográfica produtiva.
