@@ -58,7 +58,7 @@ const currentContext = (requestDate = '2026-01-28', overrides = {}) =>
   });
 
 function makeRde({ codes = [], smokeControlModes = [], requestDate = '2026-01-28', flags = {},
-  sectionCount = 1, extraDocuments = [] } = {}) {
+  sectionCount = 1, extraDocuments = [], itemOverrides = {} } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
     parent_record_id: null, source_document: 'DOC_CURRENT',
@@ -79,21 +79,27 @@ function makeRde({ codes = [], smokeControlModes = [], requestDate = '2026-01-28
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SECTION_' + index }
     });
   }
-  codes.forEach((code, index) => records.push({
-    record_id: 'ITEM_' + index, entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
-    parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
-    attributes: code === null ? { PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY description' } : {
-      OFFICIAL_ESCI_CODE: code,
-      PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY description',
-      RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY orientative text',
-      SOURCE_LOCATION: 'TEST_ONLY page ' + index,
-      ...(code === 'CF' && smokeControlModes[index] ? {
-        SMOKE_CONTROL_MODE: smokeControlModes[index].mode,
-        SMOKE_CONTROL_MODE_SOURCE_TEXT: smokeControlModes[index].sourceText
-      } : {})
-    },
-    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_ITEM_' + index }
-  }));
+  codes.forEach((code, index) => {
+    const itemRecord = {
+      record_id: 'ITEM_' + index, entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+      parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+      attributes: code === null ? { PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY description' } : {
+        OFFICIAL_ESCI_CODE: code,
+        PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY description',
+        RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY orientative text',
+        SOURCE_LOCATION: 'TEST_ONLY page ' + index,
+        ...(code === 'CF' && smokeControlModes[index] ? {
+          SMOKE_CONTROL_MODE: smokeControlModes[index].mode,
+          SMOKE_CONTROL_MODE_SOURCE_TEXT: smokeControlModes[index].sourceText
+        } : {})
+      },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_ITEM_' + index }
+    };
+    const override = itemOverrides[index] || {};
+    (override.omitAttributes || []).forEach(attribute => delete itemRecord.attributes[attribute]);
+    if (override.omitProvenance) delete itemRecord.provenance;
+    records.push(itemRecord);
+  });
   extraDocuments.forEach((document, index) => records.push({
     record_id: 'DOC_OTHER_' + index,
     entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -203,6 +209,16 @@ assertBlocker(() => resolve({ codes: ['CF'], smokeControlModes: [{
 assertBlocker(() => resolve({ codes: ['CF'], smokeControlModes: [{
   mode: 'UNKNOWN', sourceText: 'TEST_ONLY unclear'
 }] }));
+assertBlocker(() => resolve({
+  codes: ['CF'],
+  smokeControlModes: [{ mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical' }],
+  itemOverrides: { 0: { omitAttributes: ['SOURCE_LOCATION'] } }
+}));
+assertBlocker(() => resolve({
+  codes: ['CF'],
+  smokeControlModes: [{ mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical' }],
+  itemOverrides: { 0: { omitProvenance: true } }
+}));
 assertBlocker(() => resolve({ codes: ['CF', 'CF'], smokeControlModes: [
   { mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical' },
   { mode: 'NON_MECHANICAL', sourceText: 'TEST_ONLY explicit non-mechanical' }
