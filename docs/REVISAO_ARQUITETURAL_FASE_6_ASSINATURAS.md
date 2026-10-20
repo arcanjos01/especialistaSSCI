@@ -188,3 +188,35 @@ Estado após a aprovação: `FASE_6A_STATUS=COMPLETE`,
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
 `PROMOTION=NOT_AUTHORIZED`. Este PASS não encerra a Fase 6 inteira nem declara
 verificação criptográfica produtiva.
+
+
+## Follow-up do finding LOW no modelo de referência Python — 2026-10-20
+
+O parecer dirigido posterior identificou que o modelo de
+`tests/test_applicability_resolution.py` aceitava CF positivo sem o fato
+documental de modo, e contava somente 30 decisões. No candidato
+`3763f5e21506db18df2b430decefe241d9337549`, o teste de referência foi alinhado
+à regra de `02a_applicability.txt`: requer modo explícito tipado, texto,
+localização e proveniência para cada item CF; bloqueia ausência, quantidade
+incompleta ou conflito; deriva o escopo interno apenas para modo mecânico;
+reflete 28 decisões oficiais mais três derivadas.
+
+```text
+FOLLOWUP_BASELINE=acd7aba134df6430a8bddab42dd9587dcaafa473
+FOLLOWUP_CANDIDATE=3763f5e21506db18df2b430decefe241d9337549
+FOLLOWUP_REVIEWER_IDENTITY=Codex (identidade Sol não comprovada)
+FOLLOWUP_REVIEWER_EXECUTION=01a15ba7-b8bb-78e2-9d02-e6e493864e59
+FOLLOWUP_REVIEW=PASS (escopo dirigido ao finding LOW)
+SOL_REVIEW=NOT_PERFORMED
+FINDING_LOW= CLOSED
+CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial)
+PROMOTION=NOT_AUTHORIZED
+```
+
+O revisor executou a suíte dirigida Python (42/42) e `git diff --check`. O
+orquestrador executou a suíte completa Python opt-in (177/177), 9/9 suítes
+Apps Script, sintaxe JS/Code.gs, regeneração byte-idêntica e release build em
+worktree limpa com dez documentos, KB 5.32.0 e `SOURCE_COMMIT` exato. Este
+follow-up fecha somente a divergência de evidência dos testes; não reabre nem
+substitui a revisão arquitetural aceita para 5534c3f e não atribui parecer ao
+Sol 6.1.

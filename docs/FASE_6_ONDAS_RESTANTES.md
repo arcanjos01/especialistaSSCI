@@ -2969,3 +2969,38 @@ PROMOTION=NOT_AUTHORIZED
 - Esse complemento refina o blocker já existente de versionamento de perfil;
   não autoriza equivalência de status, não substitui recibo de autenticidade e
   não altera a cobertura de `T1_DRT_REGISTERED`/`T4_DRT_REGISTERED`.
+
+
+### Follow-up dirigido da revisão independente — modelo Python de aplicabilidade CF
+
+- Baseline `acd7aba134df6430a8bddab42dd9587dcaafa473`; candidato provisório
+  `3763f5e21506db18df2b430decefe241d9337549`. Revisão técnica read-only
+  executada por agente independente Codex, execução
+  `01a15ba7-b8bb-78e2-9d02-e6e493864e59`; a identidade efetiva Sol não foi
+  comprovada (`SOL_REVIEW=NOT_PERFORMED`). O parecer limitou-se ao finding LOW
+  do modelo Python; não é aprovação arquitetural substitutiva nem altera a
+  aceitação independente anterior do checkpoint 5534c3f.
+- Finding LOW fechado: o modelo aceita CF positivo somente com um fato de modo
+  por ocorrência, modo tipado, texto literal, localização e proveniência;
+  ausência, cardinalidade incompleta e conflito bloqueiam. `MECHANICAL` deriva
+  apenas o escopo interno correspondente; `NON_MECHANICAL` não o seleciona.
+  O total esperado agora distingue 28 decisões oficiais e três derivadas.
+  Base, runtime e cobertura de Criteria não mudaram.
+- Re-review dirigida executada pelo revisor:
+  `python3 -m unittest tests.test_applicability_resolution` — 42/42 PASS;
+  `git diff --check` PASS. Orquestrador: suíte Python opt-in completa 177/177
+  PASS; 9/9 suítes Apps Script PASS; sintaxe de todos os módulos/testes JS e
+  `Code.gs` PASS. Guards/manifest exercitados pela suíte Python PASS.
+- Build técnico real na worktree limpa: PASS; 10 documentos, KB `5.32.0`,
+  `SOURCE_COMMIT=3763f5e21506db18df2b430decefe241d9337549`. Regeneração
+  `CompiledRuntimeContract.js` byte-idêntica; SHA-256
+  `87f5bd316b34ee56e425cf52e7269741a99dc5b29693066634d8eaa09d956d0c`.
+  Saída local `/tmp/ssci-phase6-3763f5e-release`.
+- Métrica do lote: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`;
+  findings LOW encerrados `1`; blockers novos `0`; revisões `1` (dirigida);
+  esforço aproximado: uma correção de teste de referência, regressão dirigida,
+  suíte consolidada e build limpo. Benefício: correspondência da evidência
+  Python com a regra documental e core Apps Script, sem alegação de ganho
+  operacional/critério. `FASE_6B_STATUS=IN_PROGRESS`,
+  `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
