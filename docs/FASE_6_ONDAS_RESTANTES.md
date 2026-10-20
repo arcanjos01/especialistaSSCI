@@ -2778,3 +2778,21 @@ PROMOTION=NOT_AUTHORIZED
   Não atribuir este parecer a Sol; `SOL_REVIEW=PENDING_IDENTITY`,
   `PROMOTION=NOT_AUTHORIZED`. Criteria integrais `10/29`, parcial `1`, sem
   alteração de cobertura. A revisão não equivale ao fechamento da Fase 6.
+
+### Gates técnicos do checkpoint `c06628d` — 2026-10-20
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`: 175 testes,
+  OK; 5 skips opt-in.
+- As nove suítes `tests/apps-script-*.test.js`: PASS. `node --check` em todos os
+  `apps-script/*.js` e `tests/apps-script-*.test.js`, além de
+  `node --check < apps-script/Code.gs`: PASS.
+- Guards de identidade da Base, manifests e pipeline executados pela suíte
+  Python: PASS. O runtime gerado pelos testes é byte-idêntico; SHA-256 de
+  `apps-script/CompiledRuntimeContract.js`:
+  `59e7b70c52ffb9118943240af2ca5f603925bff73c382d9a2b3c98ac92afb619`.
+- `git diff --check c06628d^ c06628d`: PASS. Build técnico em worktree limpa:
+  PASS; 10 documentos; KB `5.31.0`; `SOURCE_COMMIT=c06628de608275428b2f4ea27b1baebf669c4a77`.
+- Cobertura permanece `10/29` integrais, `T1_CONFORMITY_REPORT` parcial e
+  18 Criteria sem suporte integral; nenhum ganho atribuído a revisão ou build.
+  `.codex-local-evidence/` permaneceu fora do Git. `SOL_REVIEW=PENDING_IDENTITY`,
+  `PROMOTION=NOT_AUTHORIZED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
