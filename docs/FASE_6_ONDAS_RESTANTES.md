@@ -2758,10 +2758,11 @@ PROMOTION=NOT_AUTHORIZED
   funcional: `7c53f81a5c17628eaba88fc56379aa0af04fbdf4`. Parecer independente
   limitado: `PASS`, sem findings no escopo IN10.
 - Execução filha distinta: `01a15b85-391a-7ba2-a7f5-b731abb2877a`, despachada
-  no papel `terra_worker` (configuração do papel: `gpt-5.6-terra`). O texto do
-  parecer declarou “Codex, GPT-6”; por essa divergência, este registro preserva
-  a identidade efetiva conforme metadados de despacho e a autodeclaração
-  conflitante, sem atribuir a revisão a Sol. O revisor não implementou o lote.
+  no papel `terra_worker`, cujo modelo efetivo é fixado pela ferramenta como
+  `gpt-5.6-terra`. O texto do parecer declarou “Codex, GPT-6”; a identidade
+  efetiva é registrada pelos metadados de despacho, e a autodeclaração
+  conflitante fica visível como erro de identificação. O revisor não
+  implementou o lote. Não atribuir a revisão a Sol.
 - O revisor examinou os 14 arquivos alterados e comparou o escopo com as fontes
   listadas. Verificou modo mecânico explícito, literal de origem, localização e
   provenance; ausência, conflito e valor inválido bloqueiam antes do Engine.
@@ -2774,10 +2775,13 @@ PROMOTION=NOT_AUTHORIZED
 - Limite material: o fato `SMOKE_CONTROL_MODE` está formalizado e consumido,
   mas sua EXTRACTION real ainda não está implementada; sem declaração explícita
   permanece bloqueio anterior ao Engine. A revisão não abrangeu a POC PDF.
-- A divergência de autodeclaração fica registrada para a governança da revisão.
-  Não atribuir este parecer a Sol; `SOL_REVIEW=PENDING_IDENTITY`,
-  `PROMOTION=NOT_AUTHORIZED`. Criteria integrais `10/29`, parcial `1`, sem
-  alteração de cobertura. A revisão não equivale ao fechamento da Fase 6.
+- Os metadados de despacho, execução independente, candidato imutável, escopo,
+  inspeção e testes satisfazem AGENTS.md §25.2. Portanto
+  `INDEPENDENT_ARCH_REVIEW=PASS` somente para este lote/escopo IN10. A
+  autodeclaração conflitante fica registrada; `SOL_REVIEW=NOT_PERFORMED` para
+  este lote. `PROMOTION=NOT_AUTHORIZED`. Criteria integrais `10/29`, parcial
+  `1`, sem alteração de cobertura. A revisão não equivale ao fechamento da
+  Fase 6.
 
 ### Gates técnicos do checkpoint `c06628d` — 2026-10-20
 
