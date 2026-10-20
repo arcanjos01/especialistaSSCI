@@ -340,15 +340,16 @@ deste documento e na seção de revisão contratual agregada.
 **Reconciliação vigente após F6-DEC-001 e RDE 0.7:** MC-001 e MC-004 são
 `SOURCE_DEFINED_NEEDS_FORMALIZATION`; o Anexo A Rev. 2 contém entradas
 concretas RT-002/003/005/006/007/014/015. RDE 0.7 também representa declarações
-conjuntas literais DRT-produto-SMSCI-atividade. O Engine agora consome essa
-declaração de forma parcial para o tuple já declarado por
-`T1_DRT_SMSCI_COVERAGE`: RT-003, cada SMSCI da `WORKLIST` e a atividade literal
-do catálogo; ausência ou conflito permanece `MANUAL_REVIEW`. O consumo não
-classifica texto livre, não altera a RDE e não constitui cobertura integral do
-Criterion. As declarações ainda não são consumidas genericamente para as demais
-verificações de atividade/SMSCI. A matriz vigente acima e a contagem
-reconciliada abaixo registram o estado atual; as fichas MC-001/004 imediatamente
-anteriores preservam somente o snapshot histórico pré-decisão.
+conjuntas literais DRT-produto-SMSCI-atividade. Para
+`T1_DRT_SMSCI_COVERAGE`, o Engine consome integralmente a declaração explícita
+no escopo autorizado: binding RT-003, cada SMSCI oficial da `WORKLIST` e a
+atividade literal do catálogo. Casos positivos produzem TRUE; ausência,
+conflito, proveniência insuficiente ou cobertura de extração não comprovada
+permanece `MANUAL_REVIEW`, sem FAIL/NC. Esse suporte completo é específico ao
+Criterion declarado; não classifica texto livre, não altera a RDE e não é
+generalizado às demais verificações de atividade/SMSCI. A matriz vigente acima
+e a contagem reconciliada abaixo registram o estado atual; as fichas MC-001/004
+imediatamente anteriores preservam somente o snapshot histórico pré-decisão.
 
 ### Modelo contratual submetido a Sol
 
@@ -1002,10 +1003,11 @@ ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=1` (`T1_CONFORMITY_REPORT`) e
 Há 18 Criteria sem qualquer suporte integral além do parcial. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
-para 2; a decisão C agora reconhece os sete Criteria cujas rotas completas
+para 2; a decisão C agora reconhece os Criteria cujas rotas completas
 consistem em TRUE para evidência explícita e MANUAL_REVIEW quando completude não
-pode ser provada. A formalização RDE 0.4.0 não aumentou a cobertura no
-checkpoint em que foi aprovada; o total vigente é 9. Os 13 casos
+pode ser provada. Na matriz vigente, são 10 Criteria integrais e 1 parcial. A
+formalização RDE 0.4.0 não aumentou a cobertura no checkpoint em que foi
+aprovada; esse número é histórico e não representa o total atual. Os 12 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
