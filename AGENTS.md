@@ -777,9 +777,9 @@ alterar autoridade das fontes;
 
 alterar papel operacional de IA, Engine ou runtime.
 
-Mudanças arquiteturais podem ser implementadas por Luna quando explicitamente autorizadas, mas não devem ser promovidas como arquitetura consolidada sem revisão independente por Sol.
+Mudanças arquiteturais podem ser implementadas por Luna quando explicitamente autorizadas, mas não devem ser promovidas como arquitetura consolidada sem revisão arquitetural independente válida, na forma da seção 25.2.
 
-A revisão Sol deve verificar:
+A revisão arquitetural independente deve verificar:
 
 compatibilidade com fontes canônicas;
 
@@ -795,7 +795,7 @@ compatibilidade entre documentação, código e testes;
 
 necessidade real da complexidade introduzida.
 
-Aprovação técnica de Sol não substitui decisão humana quando a questão for normativa.
+Aprovação técnica do revisor independente não substitui decisão humana quando a questão for normativa.
 
 
 25.1 AUTORIZAÇÃO PERMANENTE DE DESENVOLVIMENTO E CHECKPOINTS
@@ -813,11 +813,11 @@ Essa autorização inclui o trabalho corrente das Fases 6A/6B e se aplica às fa
 
 COMMIT E BUILD NÃO SÃO PROMOÇÃO.
 
-Um commit, push ou build de validação, inclusive de mudança arquitetural, não significa que a arquitetura foi consolidada ou aprovada. A revisão independente por Sol permanece obrigatória para consolidar mudanças arquiteturais e para os gates de promoção que a exijam, mas não é pré-requisito para versionar candidatos ou testar builds.
+Um commit, push ou build de validação, inclusive de mudança arquitetural, não significa que a arquitetura foi consolidada ou aprovada. A revisão arquitetural independente válida conforme seção 25.2 permanece obrigatória para consolidar mudanças arquiteturais e satisfazer os gates técnicos de promoção que a exijam, mas não é pré-requisito para versionar candidatos ou testar builds.
 
 Candidatos sem aprovação Sol podem ser commitados e enviados somente para branches autorizadas de desenvolvimento/revisão, identificados claramente com ARCHITECTURAL_REVIEW=PENDING e PROMOTION=NOT_AUTHORIZED. Branch exclusiva de revisão é opcional; commit na branch de desenvolvimento não representa promoção. O build de validação deve utilizar um SOURCE_COMMIT exato de uma worktree limpa e deve ser identificado como BUILD_VALIDATION, nunca como release operacional autorizado.
 
-Enquanto Sol estiver indisponível, registrar SOL_REVIEW=PENDING_CAPACITY; preservar e enviar checkpoints técnicos permitidos; continuar atividades independentes; não simular PASS, não reatribuir a outro modelo uma revisão Sol e não repetir indefinidamente tentativas de acesso. Preferir uma revisão independente por lote funcional coerente, com re-review dirigida a findings efetivos. Achados que comprometam integridade, autenticidade ou correção normativa continuam bloqueantes para consolidação ou promoção.
+Enquanto Sol estiver indisponível, registrar o motivo real da indisponibilidade e preservar checkpoints técnicos. Aplicar a alternativa de revisão independente da seção 25.2 quando seus requisitos forem comprovados; não simular PASS de Sol, nem insistir indefinidamente em tentativas de acesso. Preferir uma revisão por lote funcional coerente, com re-review dirigida a findings efetivos. Achados que comprometam integridade, autenticidade ou correção normativa continuam bloqueantes para consolidação ou promoção.
 
 Não é autorizado por esta regra:
 
@@ -830,6 +830,24 @@ Não é autorizado por esta regra:
 
 Preservar RDE FACT ONLY, Engine determinístico, proveniência, rastreabilidade e decisão humana final do vistoriador. Aprovação técnica não substitui decisão normativa institucional. As atividades de desenvolvimento acima podem prosseguir mesmo quando a aprovação de promoção estiver pendente.
 
+
+25.2 REVISÃO ARQUITETURAL INDEPENDENTE E SUBSTITUIÇÃO DE REVISOR
+
+A aprovação técnica independente é obrigatória para consolidação de mudanças arquiteturais. Sol 6.1 é o revisor preferencial quando efetivamente disponível; a identidade do modelo revisor não é, por si só, condição absoluta de aprovação.
+
+Se Sol 6.1 estiver indisponível por capacidade, acesso ou roteamento que não entregue sua identidade efetiva, poderá ser utilizado revisor independente tecnicamente equivalente, inclusive outro modelo ou especialista humano qualificado, desde que TODOS os requisitos seguintes sejam comprovados e registrados:
+
+- independência demonstrável: revisor distinto do implementador e de sua própria execução; nenhuma autoavaliação, autoaprovação ou simples reprodução do parecer de quem implementou;
+- identificação verdadeira do revisor: modelo/versão ou qualificação do especialista, sessão/execução, data, escopo e motivo da substituição, sem atribuir ao Sol revisão que não realizou;
+- objeto imutável: baseline, SHA exato de cada commit candidato relevante, HEAD examinado e diff integral, incluindo mudanças de contratos, Base, runtime, testes e documentos;
+- exame efetivo, preferencialmente read-only, das fontes canônicas, invariantes, fronteiras do pipeline, regras normativas autorizadas, segurança, rastreabilidade, código e testes impactados; não aceitar PASS autodeclarado pelo implementador como prova suficiente;
+- evidências reprodutíveis: distinguir testes executados pelo revisor de logs consultados; registrar resultados, limitações, achados com localização/severidade, correções e re-review quando necessária;
+- ausência de achados BLOCKER/HIGH ou inconsistências materiais pendentes; achados LOW/INFO não bloqueantes devem permanecer visíveis e rastreados;
+- parecer explícito de aprovação ou reprovação técnica do candidato exato, com limites claros; caso a independência, a identidade, o escopo ou a prova não possam ser verificados, registrar PENDING e não presumir PASS.
+
+Quando houver substituição válida, registrar INDEPENDENT_ARCH_REVIEW=PASS, REVIEWER_IDENTITY=<identidade efetiva>, REVIEWED_CANDIDATE=<SHA> e SOL_REVIEW=NOT_PERFORMED ou PENDING_IDENTITY, conforme o fato observado. Nunca registrar SOL_REVIEW=PASS sem revisão efetivamente feita por Sol. A revisão equivalente aceita satisfaz o gate de revisão arquitetural independente; não equivale à homologação normativa institucional e não autoriza automaticamente merge, deploy, uso real ou promoção operacional, que dependem de seus gates e autorizações próprios.
+
+Parecer técnico anterior de outro revisor poderá ser aceito para o mesmo candidato somente após verificação documentada de todos os requisitos acima; não haverá aprovação retroativa automática baseada apenas na etiqueta TECHNICAL_REVIEW=PASS. Mudança material posterior no candidato exige revisão de seu impacto e, quando pertinente, nova revisão dirigida.
 
 26. REGRA DE MIGRAÇÃO
 
