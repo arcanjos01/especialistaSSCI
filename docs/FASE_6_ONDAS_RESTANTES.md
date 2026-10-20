@@ -3052,3 +3052,43 @@ Métrica desta avaliação: ganho de Criteria `0`; 6A/6B e indicadores de cobert
 inalterados; nenhum finding corrigido ou criado; testes não aplicáveis à pesquisa
 documental; `git diff --check` executado. O resultado reduz o espaço de
 implementação: o verificador não pode depender de `crypto.subtle` nativo no GAS.
+
+### Verificação local opcional da cadeia X.509 em PDF — candidata 6B
+
+- Baseline `51a5f6ae3289b1dc48e7b26299d65cc180c9f95e`; implementação
+  `2700f607bd9007c26bfb8e1eeddde466c552f5c5`. O utilitário local aceita
+  opcionalmente bundle PEM de âncoras públicas, rejeita bundle vazio, ausência
+  de certificado ou marcador de chave privada, preserva SHA-256 do bundle e
+  tenta validar o caminho CMS contra esse bundle com OpenSSL. A checagem só
+  ocorre após integridade CMS confirmada. Bundle alheio resulta
+  `NOT_VALIDATED_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE`; conteúdo adulterado não tem
+  cadeia avaliada; múltiplas assinaturas ficam inconclusivas por ausência de
+  prova de ordenação.
+- O rótulo `VALID_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE` significa somente caminho
+  validado contra os bytes exatos do bundle fornecido. O campo `trust` continua
+  `UNKNOWN/NOT_EVALUATED`; a ferramenta não autentica a política nem a origem
+  dessas âncoras. Revogação, validade PAdES, identidade profissional e recibo
+  autenticado permanecem não avaliados. O código segue isolado, não é usado
+  pelo Engine e não admite `SIGNED`.
+- Revisão read-only dirigida: agente no papel configurado `luna_economy`,
+  execução `01a15bb1-876d-7022-a038-f2a59167583e`; o modelo/versão efetivos não
+  foram expostos. `FOLLOWUP_REVIEW=PASS` para o diff e re-review da docstring;
+  nenhum finding residual no escopo. Por falta de identidade efetiva verificável,
+  registrar `REVIEWER_IDENTITY=PENDING_IDENTITY` e `SOL_REVIEW=NOT_PERFORMED`.
+  Não é aprovação Sol nem substitui o gate arquitetural final.
+- Validação do orquestrador no candidato: Python opt-in `180/180 PASS`, incluindo
+  fixtures CMS/ByteRange, conteúdo incremental, integridade adulterada, âncora
+  local, bundle não correspondente, chave privada no bundle e casos
+  inconclusivos; Apps Script `9/9 PASS`; sintaxe JS/Code.gs e Python `PASS`;
+  manifests/guards pela suíte `PASS`; runtime regenerado byte-idêntico, SHA-256
+  `87f5bd316b34ee56e425cf52e7269741a99dc5b29693066634d8eaa09d956d0c`;
+  `git diff --check PASS`.
+- Build técnico limpo do commit `2700f607bd9007c26bfb8e1eeddde466c552f5c5`:
+  `PASS`, dez documentos, `KNOWLEDGE_BASE_VERSION=5.32.0`, `SOURCE_COMMIT`
+  exato. Artefatos em `/tmp/ssci-phase6-chain-2700f60-release`.
+- Métrica: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`; achados
+  bloqueantes `0`; revisões `1` com re-review dirigida `1`; benefício
+  verificável: diagnosticar localmente caminho da assinatura a um bundle
+  escolhido, sem API de conselho. Esforço: uma implementação isolada, 180
+  testes Python, 9 suítes Apps Script, sintaxe e build limpo. Fase 6B continua
+  em andamento; admissão no Engine, recibo e política de âncoras ainda pendentes.
