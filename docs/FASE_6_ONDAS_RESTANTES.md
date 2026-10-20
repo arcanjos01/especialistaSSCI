@@ -2878,3 +2878,39 @@ PROMOTION=NOT_AUTHORIZED
   condição normativa confirmada da classificação factual ainda não autorizada
   e evita novo ciclo de pesquisa tratando esses conceitos como se fossem a
   mesma lacuna.
+
+### Retomada de produtividade e verificação PDF — 2026-10-20
+
+- Estado confirmado antes do trabalho: branch `feature/apps-script-engine-core`,
+  HEAD local/remoto `1096f620d5e2af36d2b430b63ef53b174027ff9a`; worktree
+  rastreada limpa. `.codex-local-evidence/` foi preservado fora do Git.
+- Reconciliação dos 19 Criteria sem cobertura integral (18 sem suporte integral
+  e `T1_CONFORMITY_REPORT` parcial): nenhum fecha integralmente só com os
+  contratos e fatos atuais. As dependências são: 12 Criteria com formalização
+  de consumo/autenticidade e/ou fato comparável ainda ausente; 6 Criteria de
+  laudos/comissionamentos que exigem fatos de conteúdo e bindings DRT-produto;
+  e 1 Criterion parcial cuja admissão inferida continua dependente de calibração
+  empírica. As assinaturas afetam 11 Criteria. O caminho de menor dependência
+  já encerrado é `T4_IN19_FINAL_VERIFICATION`; não repetir sua implementação.
+- Nenhuma nova decisão normativa humana é necessária para o trabalho técnico
+  autorizado neste snapshot. Em particular, não conferir atividade↔SMSCI para
+  RT-005/006/014 permanece uma fronteira de escopo decidida pelo responsável;
+  `T4_IN09_DRT` fica pendente até que o Criterion e sua consequência sejam
+  reconciliados sem essa conferência e sem inferir ausência de DRT. O contrato
+  de solicitação com Nome/CPF declarado não autentica solicitante, autor ou
+  signatário, portanto não fecha `T4_IN10_COMMISSIONING`.
+- Reexecutada a integração local isolada do verificador experimental PDF:
+  `PDF_SIGNATURE_POC_INTEGRATION=1 PYTHONDONTWRITEBYTECODE=1 python3 -m
+  unittest tests.test_local_pdf_signature_verifier` — 24/24 PASS, incluindo
+  CMS/ByteRange, adulteração assinada e conteúdo incremental acrescentado fora
+  dos bytes assinados. A ferramenta continua fora do Engine e não produz
+  recibo autenticado; confiança, cadeia, revogação, política PAdES e identidade
+  profissional não foram validadas. O resultado é capacidade preparatória,
+  não cobertura de Criterion.
+- Ganho integral: `10/29 → 10/29`; parcial: `1 → 1`; blockers encerrados: `0`;
+  novos blockers: `0`; revisões: `0` (nenhum diff de código/arquitetura nesta
+  retomada); esforço: inspeção direcionada e um teste de integração local. A
+  próxima tarefa funcional depende de recibo criptográfico local validado e
+  autenticado, comparandos documentais formalizados ou fatos estruturados de
+  laudos. `CALIBRATION_GATE=BLOCKED`, `SOL_REVIEW=PENDING_IDENTITY` e
+  `PROMOTION=NOT_AUTHORIZED` permanecem.
