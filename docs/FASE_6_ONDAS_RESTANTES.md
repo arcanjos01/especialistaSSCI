@@ -2557,14 +2557,20 @@ PROMOTION=NOT_AUTHORIZED
   ecoa o caractere. A POC anterior também confirma que conteúdo acrescentado
   em revisão incremental não assinada fica fora da cobertura dos bytes
   originais; isso não demonstra validade integral do documento atual.
-- Gates no estado local: Python `167` executados, `163 PASS` e `4` skips
+- Gates no candidato `e41c5b5c0bc318157d98265ce77d296f1b398a5a`: Python `167`
+  executados, `163 PASS` e `4` skips
   opt-in; suítes Apps Script `9/9 PASS`; `node --check` em módulos e testes
   JavaScript e `Code.gs`; testes unitários da ferramenta `17` (4 skips sem
   opt-in) e integração local opt-in `17/17 PASS`; POC de ByteRange/CMS PASS;
   regeneração de `CompiledRuntimeContract.js` byte-idêntica, SHA-256
   `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`;
-  `git diff --check` PASS. Release build limpo do commit deste lote ainda
-  pendente.
+  `git diff --check` PASS. `BUILD_VALIDATION=PASS` em worktree limpa no
+  `SOURCE_COMMIT=e41c5b5c0bc318157d98265ce77d296f1b398a5a`: dez documentos,
+  Knowledge Base `5.30.0`; saída em
+  `/tmp/ssci-phase6-signature-e41c5b5-release`. A primeira tentativa chamou
+  o script a partir do checkout principal, cujo diretório local causou a
+  recusa de worktree suja; a validação foi corretamente repetida executando
+  o builder a partir da raiz limpa do worktree, sem limpar qualquer arquivo.
 - Revisão read-only independente dirigida por Arendt (execução
   `01a15b55-84d2-70f3-afd2-b6d76376b809`, role `terra_worker`; modelo/versão
   efetiva não expostos): sem findings de correção. A re-review dirigida
