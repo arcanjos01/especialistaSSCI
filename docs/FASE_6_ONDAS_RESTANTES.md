@@ -2376,3 +2376,49 @@ enquanto Sol indisponível, `SOL_REVIEW=PENDING_CAPACITY`. Builds técnicos ser�
 executados em worktree limpa do commit candidato exato, com `SOURCE_COMMIT`
 igual ao SHA testado; `BUILD_VALIDATION=PASS` não significa
 `PRODUCTION_RELEASE=AUTHORIZED`.
+
+
+### Aceitação da revisão independente conforme §25.2 — 2026-10-20
+
+Governança incorporada de `d815ca5b3a7b5268b489ae9461ca1b2633e75a54`:
+seções 25, 25.1 e 25.2 do AGENTS, preservadas as demais seções e os contratos
+do candidato. Esta decisão supersede a exigência histórica de identidade Sol
+como bloqueio absoluto para este checkpoint.
+
+A aceitação não se baseia só na etiqueta TECHNICAL_REVIEW=PASS. Foram
+verificados metadados, execuções independentes read-only, escopos
+complementares, testes efetivamente executados e achados do candidato exato.
+O [registro completo](REVISAO_ARQUITETURAL_FASE_6_ASSINATURAS.md) contém matriz
+dos sete requisitos, identidades, IDs e limites de cada parecer. A síntese do
+orquestrador não substitui a prova de independência dos revisores.
+
+```text
+REVIEWED_BASELINE=b999a1cc18afcf469db25e9fba8724e2ca490b84
+REVIEWED_CANDIDATE=5534c3f43fbaf10c75d64d3ab91c12e457073426
+REVIEWED_HEAD=d4339f10a7acd3b6b0829313aadacc58acc2756b
+REVIEWER_IDENTITY=Codex/GPT-6 (declarada; execução Zeno)
+REVIEWER_EXECUTION=01a15af4-0d90-7092-83a5-292e43abf0c3
+COMPLEMENTARY_REVIEWER_EXECUTION=01a15af2-7ac7-79c0-83be-b4c9f5feb225
+INDEPENDENT_ARCH_REVIEW=PASS
+ARCHITECTURAL_REVIEW=PASS
+ARCHITECTURAL_CHECKPOINT=CONSOLIDATED
+SOL_REVIEW=PENDING_IDENTITY
+PROMOTION=NOT_AUTHORIZED
+PRODUCTION_RELEASE=NOT_AUTHORIZED
+```
+
+Zeno confirmou contratos/docs, os metadados runtime sem alteração de regras e
+o acréscimo exclusivamente documental no HEAD. Terra confirmou POC, testes
+alterados (43 OK) e inventário de onze dependências. Três findings anteriores
+encerrados; nenhum BLOCKER/HIGH ou conflito material aberto; OPT-001 LOW do
+teste de exaustividade fica rastreado para correção dirigida.
+
+Gates técnicos do candidato continuam válidos conforme evidências segregadas
+no registro; não foram declarados como todos executados pelos subrevisores.
+O checkpoint de contratos está consolidado na branch de desenvolvimento.
+Fase 6 permanece IN_PROGRESS; 6A/6B não são declaradas encerradas. Cobertura
+34/29/10/1/19/5 inalterada; CALIBRATION_GATE=BLOCKED,
+NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING e VALIDATED_TO_ANALYZED=PENDING.
+Nenhum merge na main, deploy, uso real ou promoção operacional autorizado.
+Continuidade: fechar OPT-001 e ampliar evidência local de assinatura para
+revisão incremental não assinada, sem habilitar consumo produtivo pelo Engine.

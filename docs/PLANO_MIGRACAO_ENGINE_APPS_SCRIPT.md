@@ -49,19 +49,25 @@ Este plano não substitui AGENTS.md, 00_engine, 08_execution_pipeline, Documento
 - Manter .codex-local-evidence/ fora do versionamento.
 - Não versionar .clasp.json ou .clasprc.json.
 
-Autorização permanente do responsável pelo projeto: em fases de
-desenvolvimento formalmente autorizadas, commits, pushes em branches de
-desenvolvimento/revisão, worktrees, testes e builds/releases de validação não
-exigem aprovação Sol prévia nem nova autorização mecânica. São checkpoints de
-desenvolvimento, não promoção arquitetural. Sol 6.1 continua obrigatória para
-consolidar arquitetura e promover; enquanto pendente registrar
-`ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=PENDING_CAPACITY` quando aplicável,
-`PROMOTION=NOT_AUTHORIZED` e `PRODUCTION_RELEASE=NOT_AUTHORIZED`. Validar build
-em worktree limpa do commit exato e registrar o mesmo SHA em `SOURCE_COMMIT`.
-Não fazer force push, sobrescrever trabalho concorrente, merge arquitetural na
-`main`, deploy ou uso operacional sem as aprovações específicas. Esta
-autorização não inicia fases ainda não autorizadas nem permite resolver lacunas
-normativas por código.
+Governança vigente: AGENTS.md §§25.1–25.2, conforme decisão permanente
+publicada na main em `d815ca5b3a7b5268b489ae9461ca1b2633e75a54`.
+Nas fases já autorizadas, commits, pushes não destrutivos em branches de
+desenvolvimento/revisão, worktrees e builds técnicos são autorizados sem nova
+confirmação mecânica. Consolidação arquitetural exige revisão independente
+válida conforme §25.2; Sol é preferencial, com substituição documentada quando
+sua identidade efetiva não estiver disponível. Nunca atribuir PASS de Sol a
+outro revisor. Builds continuam vinculados a worktree limpa e SOURCE_COMMIT
+exato; não constituem promoção operacional.
+
+O candidato `5534c3f43fbaf10c75d64d3ab91c12e457073426`, examinado no HEAD
+`d4339f10a7acd3b6b0829313aadacc58acc2756b`, teve o gate de revisão independente
+aceito após verificação dos requisitos, conforme
+[registro de aceitação](REVISAO_ARQUITETURAL_FASE_6_ASSINATURAS.md):
+`INDEPENDENT_ARCH_REVIEW=PASS`, `SOL_REVIEW=PENDING_IDENTITY`.
+A consolidação desse checkpoint preparatório não encerra as Fases 6A/6B,
+não promove cobertura nem libera VALIDATED → ANALYZED. Permanecem
+`PROMOTION=NOT_AUTHORIZED`, `PRODUCTION_RELEASE=NOT_AUTHORIZED`, calibração
+bloqueada e homologação normativa institucional pendente.
 
 ## 2.1 Divisão aprovada da Fase 6
 
