@@ -2330,6 +2330,33 @@ desta seção; a revisão Sol continua obrigatória para consolidação e promo�
   Fontes primárias: [limitações do Apps Script V8](https://developers.google.com/apps-script/guides/v8-runtime#limitations)
   e [Utilities](https://developers.google.com/apps-script/reference/utilities).
 
+### Checkpoint técnico publicado — 2026-10-20
+
+- `BASELINE=b999a1cc18afcf469db25e9fba8724e2ca490b84`;
+  `CANDIDATE=5534c3f43fbaf10c75d64d3ab91c12e457073426`.
+- Commit `5534c3f` contém 12 arquivos pertinentes e foi enviado por
+  fast-forward para `origin/feature/apps-script-engine-core`. `.codex-local-evidence/`
+  permaneceu local, não rastreado e fora do commit; nenhum arquivo de credencial
+  foi incluído.
+- Regressão dirigida após incorporar a autorização: testes Python de identidade
+  da Base e contrato runtime `43/43 PASS`; `git diff --check` PASS. Gates
+  completos do candidate funcional antes da atualização apenas documental de
+  governança: Python `148/148`, Apps Script `9/9`, sintaxe JS/Code.gs, guards
+  `17/17`, regeneração byte-identical e manifest — PASS; SHA-256 runtime
+  `d296f3dedda77689685e495fdd3cc1273818b475afcd96b7423a5e13e9353417`.
+- Release build técnico em worktree detached limpa do SHA exato: `PASS`, 10/10
+  documentos, Base `5.30.0`, `SOURCE_COMMIT=5534c3f43fbaf10c75d64d3ab91c12e457073426`.
+  Saída local em `/tmp/phase6a-signature-release-5534c3f`; validação não
+  promocional.
+- Estado: `SOL_REVIEW=PENDING_CAPACITY`,
+  `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`,
+  `PRODUCTION_RELEASE=NOT_AUTHORIZED`. Os três achados corrigidos aguardam
+  confirmação Sol; a revisão Luna dirigida já havia retornado PASS.
+- Cobertura inalterada: 34 Criteria ativos; 29 produtivos; 10 cobertos
+  integralmente; 1 parcial; 19 pendentes integrais; 5 não selecionáveis; 2
+  retirados. Fase 6A e 6B permanecem pendentes de seus respectivos gates; este
+  checkpoint não declara encerramento nem ganho de cobertura.
+
 ### Autorização permanente do responsável — 2026-10-20
 
 O responsável autorizou commits, pushes em branches de desenvolvimento e
