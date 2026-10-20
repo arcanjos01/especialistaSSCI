@@ -17,10 +17,11 @@ Applicability Resolution consumes only complete, immutable Process Memory,
 the canonical entities of 01_entities and the declared rules below. After the
 completeness guard succeeds, it releases PROCESS.SMSCI,
 APPLICABLE_REQUIREMENTS and SELECTED_CRITERIA, plus
-IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. PROCESS.SMSCI shall
-never be emitted partially. IN19_DOCUMENTATION_REGIME is an internal
-applicability-selection value, never an SMSCI, documentary fact, Requirement,
-Criterion or result.
+IN19_DOCUMENTATION_REGIME only when SMSCI_IEL is positive. The internal
+SMSCI_SMOKE_CONTROL_MECHANICAL scope is derived only under its rule below.
+PROCESS.SMSCI shall never be emitted partially. IN19_DOCUMENTATION_REGIME and
+SMSCI_SMOKE_CONTROL_MECHANICAL are internal applicability-selection values,
+never an independently extracted SMSCI, Requirement, Criterion or result.
 
 ARCHITECTURAL_BLOCKER is a stop condition before the Engine, not an output
 state or Criterion result. It does not authorize NOT_APPLICABLE,
@@ -179,10 +180,33 @@ is dispensed, and does not create a Requirement, Criterion or Nonconformity.
 No occupation, area, height, population, risk, construction date, transitional
 rule or other external applicability rule is authorized by this derivation.
 
+DERIVED RULE: SMSCI_SMOKE_CONTROL_MECHANICAL
+
+After the exact OFFICIAL_ESCI_CODE decision for CF is complete:
+
+- If CF is negative in the complete, legible and verifiable authorized
+  section, record a negative decision for SMSCI_SMOKE_CONTROL_MECHANICAL.
+- If CF is positive, every CF item shall carry the typed documentary fact
+  SMOKE_CONTROL_MODE (`MECHANICAL` or `NON_MECHANICAL`), its non-empty literal
+  SMOKE_CONTROL_MODE_SOURCE_TEXT, SOURCE_LOCATION and record provenance.
+  Every CF item must declare the same mode. `MECHANICAL` yields a positive
+  derived decision; `NON_MECHANICAL` yields a negative derived decision.
+- Missing, unknown, ambiguous or conflicting mode facts block Applicability
+  before the Engine. Do not infer `NON_MECHANICAL` from absence of a positive
+  declaration, from OFFICIAL_ESCI_CODE alone, or from RPCI orientative text.
+
+Preserve the official `SMSCI_SMOKE_CONTROL` decision separately. The derived
+scope is internal and selects only requirements explicitly declared for
+`SMSCI_SMOKE_CONTROL_MECHANICAL`; it does not create an official SMSCI, a
+Requirement, Criterion, Nonconformity or result. Trace the selected document,
+section, each CF item, literal source text, location and provenance. This rule
+is grounded in IN 10/2024 art. 41 as amended by BOECBM 01/2024 FI 17 art. 67,
+and IRV Habite-se 2024, Anexo A, Tabela 4, p. 9.
+
 DERIVED-INTERNAL DEBT
 
-SMSCI_M5, SMSCI_SMOKE_CONTROL_MECHANICAL, M5_EXPLOSION_PROTECTION,
-M5_DUST_CONTROL, M5_HEAT_SENSORS and M5_LIGHTNING_PROTECTION are
+SMSCI_M5, M5_EXPLOSION_PROTECTION, M5_DUST_CONTROL, M5_HEAT_SENSORS and
+M5_LIGHTNING_PROTECTION are
 DERIVED_INTERNAL_REQUIREMENT_SCOPE. They have no OFFICIAL_ESCI_CODE and are not
 directly resolved by this productive catalog. M5 remains an explicit knowledge
 debt: absence of a declared derived rule does not produce a negative decision,

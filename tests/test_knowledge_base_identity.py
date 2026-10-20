@@ -27,6 +27,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         cls.pipeline = PIPELINE.read_text(encoding="utf-8")
         cls.engine = (KB / "00_engine.txt").read_text(encoding="utf-8")
         cls.requirements = (KB / "02_requirements.txt").read_text(encoding="utf-8")
+        cls.applicability = (KB / "02a_applicability.txt").read_text(encoding="utf-8")
         cls.table_1 = (KB / "03_table1.txt").read_text(encoding="utf-8")
         cls.table_4 = (KB / "04_table4.txt").read_text(encoding="utf-8")
         cls.reports = REPORTS.read_text(encoding="utf-8")
@@ -41,12 +42,19 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.30\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.31\.0")
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
         self.assertEqual(set(self.manifest), self.actual_documents)
         self.assertEqual(len(self.manifest), 10)
+
+    def test_in10_mechanical_scope_requires_explicit_traced_cf_mode(self):
+        self.assertIn("DERIVED RULE: SMSCI_SMOKE_CONTROL_MECHANICAL", self.applicability)
+        self.assertIn("SMOKE_CONTROL_MODE_SOURCE_TEXT", self.applicability)
+        self.assertIn("Do not infer `NON_MECHANICAL` from absence", self.applicability)
+        self.assertIn("APPLIES_TO SMSCI_SMOKE_CONTROL_MECHANICAL", self.table_4)
+        self.assertIn("SMSCI SMSCI_SMOKE_CONTROL_MECHANICAL", self.requirements)
 
     def test_every_manifest_entry_has_an_individual_semantic_version(self):
         for filename, version in self.manifest.items():
@@ -93,7 +101,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.30.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.31.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",

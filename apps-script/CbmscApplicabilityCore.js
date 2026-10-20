@@ -109,6 +109,7 @@ const CBMSC_SECTION_ENTITY = 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA';
 const CBMSC_ITEM_ENTITY = 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM';
 const CBMSC_SDAI_DERIVED = 'SMSCI_SDAI';
 const CBMSC_IN19_REVIEW_DERIVED = 'SMSCI_IN19_APPLICABILITY_REVIEW';
+const CBMSC_SMOKE_CONTROL_MECHANICAL_DERIVED = 'SMSCI_SMOKE_CONTROL_MECHANICAL';
 const CBMSC_IN19_TRANSITION_DATE = '2024-04-24';
 
 function cbmscDeepFreeze_(value, seen) {
@@ -168,6 +169,15 @@ function validateCbmscRuntimeContract_(contract) {
   });
   if (canonicalTargets.length !== 28) {
     throw new ApplicabilityBlocker('canonical entity catalog does not declare exactly 28 official targets');
+  }
+  const itemDefinition = contract.entityCatalog[CBMSC_ITEM_ENTITY];
+  if (!itemDefinition || !Array.isArray(itemDefinition.ATTRIBUTES) ||
+      cbmscIndexOf_(itemDefinition.ATTRIBUTES, 'SMOKE_CONTROL_MODE') < 0 ||
+      cbmscIndexOf_(itemDefinition.ATTRIBUTES, 'SMOKE_CONTROL_MODE_SOURCE_TEXT') < 0 ||
+      !itemDefinition.ATTRIBUTE_TYPES ||
+      itemDefinition.ATTRIBUTE_TYPES.SMOKE_CONTROL_MODE !== 'ENUM' ||
+      itemDefinition.ATTRIBUTE_TYPES.SMOKE_CONTROL_MODE_SOURCE_TEXT !== 'TEXT') {
+    throw new ApplicabilityBlocker('compiled contract omits typed smoke-control mode evidence');
   }
   cbmscForEach_(contract.officialEsciTargets, entry => {
     if (!entry || typeof entry.code !== 'string' || typeof entry.entityId !== 'string' ||
@@ -293,6 +303,55 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     section: sectionTrace,
   });
 
+  const smokeControlItems = cbmscMapGet_(itemTracesByCode, 'CF') || [];
+  let smokeControlMode;
+  if (byTarget.SMSCI_SMOKE_CONTROL.decision === 'POSITIVE') {
+    let declaredMode;
+    cbmscForEach_(smokeControlItems, item => {
+      const mode = item.attributes.SMOKE_CONTROL_MODE;
+      const sourceText = item.attributes.SMOKE_CONTROL_MODE_SOURCE_TEXT;
+      const sourceLocation = item.attributes.SOURCE_LOCATION;
+      if ((mode !== 'MECHANICAL' && mode !== 'NON_MECHANICAL') ||
+          typeof sourceText !== 'string' ||
+          CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_STRING_TRIM_, sourceText, []) === '' ||
+          typeof sourceLocation !== 'string' ||
+          CBMSC_INTRINSIC_APPLY_(CBMSC_INTRINSIC_STRING_TRIM_, sourceLocation, []) === '' ||
+          !item.provenance) {
+        throw new ApplicabilityBlocker(
+          'CF applicability requires an explicit, sourced smoke-control mode fact'
+        );
+      }
+      if (declaredMode !== undefined && declaredMode !== mode) {
+        throw new ApplicabilityBlocker('CF smoke-control mode is conflicting or unresolved');
+      }
+      declaredMode = mode;
+    });
+    if (declaredMode === undefined) {
+      throw new ApplicabilityBlocker('CF smoke-control mode is conflicting or unresolved');
+    }
+    smokeControlMode = declaredMode;
+  }
+  cbmscPush_(derivedDecisions, {
+    target: CBMSC_SMOKE_CONTROL_MECHANICAL_DERIVED,
+    decision: smokeControlMode === 'MECHANICAL' ? 'POSITIVE' : 'NEGATIVE',
+    rule: smokeControlMode === undefined
+      ? '02a_applicability: complete negative OFFICIAL_ESCI_CODE decision for CF'
+      : '02a_applicability: explicit SMOKE_CONTROL_MODE fact for official CF item',
+    source: smokeControlMode === undefined ? 'OFFICIAL_ESCI_CODE' : 'SMOKE_CONTROL_MODE',
+    mode: smokeControlMode === undefined ? null : smokeControlMode,
+    sourceDecisions: ['SMSCI_SMOKE_CONTROL'],
+    selectedDocument: documentTrace,
+    section: sectionTrace,
+    itemReferences: cbmscMap_(smokeControlItems, item => item.reference),
+    itemTraces: cbmscMap_(smokeControlItems, item => ({
+      reference: item.reference,
+      sourceDocument: item.sourceDocument,
+      provenance: item.provenance,
+      sourceText: item.attributes.SMOKE_CONTROL_MODE_SOURCE_TEXT,
+      sourceLocation: item.attributes.SOURCE_LOCATION,
+    })),
+  });
+
   const positiveOfficialTargets = cbmscMap_(
     cbmscFilter_(officialDecisions, decision => decision.decision === 'POSITIVE'),
     decision => decision.target
@@ -378,6 +437,12 @@ function resolveCbmscApplicabilityInternal_(view, currentSubmissionContext, comp
     for (const decision of resolution.derivedDecisions || []) {
       if (!traceBelongsToView_(view, decision.selectedDocument) ||
           !traceBelongsToView_(view, decision.section)) return false;
+      for (const reference of decision.itemReferences || []) {
+        if (!referenceBelongsToView_(view, reference)) return false;
+      }
+      for (const trace of decision.itemTraces || []) {
+        if (!traceBelongsToView_(view, trace)) return false;
+      }
     }
     const regimeTrace = resolution.IN19_DOCUMENTATION_REGIME_TRACE;
     if (regimeTrace && !traceBelongsToView_(view, regimeTrace.selectedDocument)) return false;

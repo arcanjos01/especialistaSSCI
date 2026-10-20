@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.8
+# VERSION 3.9
 ###############################################################################
 
 ###############################################################################
@@ -732,6 +732,10 @@ ATTRIBUTE OFFICIAL_ESCI_CODE TEXT
 
 ATTRIBUTE PRESENTED_SYSTEM_MEASURE_DESCRIPTION TEXT
 
+ATTRIBUTE SMOKE_CONTROL_MODE ENUM
+
+ATTRIBUTE SMOKE_CONTROL_MODE_SOURCE_TEXT TEXT
+
 ATTRIBUTE RPCI_ORIENTATIVE_TEXT TEXT
 
 ATTRIBUTE SOURCE_LOCATION TEXT
@@ -741,7 +745,12 @@ DESCRIPTION
 Item documental da seção "Sistemas e Medidas de Segurança". OFFICIAL_ESCI_CODE,
 PRESENTED_SYSTEM_MEASURE_DESCRIPTION, RPCI_ORIENTATIVE_TEXT e SOURCE_LOCATION
 são fatos brutos extraídos. O texto orientativo RPCI permanece separado e não é
-regra de aplicabilidade. source_document continua obrigatório pela RDE.
+regra de aplicabilidade. Para OFFICIAL_ESCI_CODE `CF`, SMOKE_CONTROL_MODE e
+SMOKE_CONTROL_MODE_SOURCE_TEXT são preenchidos somente quando a própria fonte
+declara explicitamente o modo: `MECHANICAL` ou `NON_MECHANICAL` é a classificação
+factual controlada, e SOURCE_TEXT preserva o trecho literal que a sustenta.
+Ausência ou ambiguidade não autoriza classificar o modo. source_document
+continua obrigatório pela RDE.
 
 END
 
@@ -1612,14 +1621,14 @@ TYPE COMMISSIONING_REPORT
 
 ATTRIBUTE SIGNATURE_MECHANISM TEXT
 
-SMSCI SMSCI_SMOKE_CONTROL
+SMSCI SMSCI_SMOKE_CONTROL_MECHANICAL
 
 DESCRIPTION
 
-Entidade de produto para relatório de comissionamento de controle de fumaça.
-A IN 10, art. 41 e Anexo B, exige esse relatório para sistema mecânico; a
-presença desta entidade não afirma que o sistema seja mecânico nem que exista
-independência entre participantes. SIGNATURE_MECHANISM registra somente a
+Entidade de produto para relatório de comissionamento de controle de fumaça
+mecânico. A aplicabilidade decorre do fato explícito e rastreável do item CF;
+a presença desta entidade não afirma que exista independência entre
+participantes. SIGNATURE_MECHANISM registra somente a
 denominação do mecanismo digital ou eletrônico explicitamente identificada
 no próprio relatório; não registra validade criptográfica, autenticidade,
 identidade do signatário ou autenticação do processo. Se nenhum mecanismo for
@@ -1708,6 +1717,12 @@ ENTITY SMSCI_SMOKE_CONTROL_MECHANICAL
 TYPE SMSCI
 
 APPLICABILITY_TARGET_CLASS DERIVED_INTERNAL_REQUIREMENT_SCOPE
+
+NAME
+
+Escopo interno de controle de fumaça mecânico, derivado exclusivamente do fato
+tipado e rastreável no item CF da seção completa e autorizada do comprovante.
+Não é código e-SCI nem SMSCI documental independente.
 
 END
 

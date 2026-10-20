@@ -57,7 +57,7 @@ const currentContext = (requestDate = '2026-01-28', overrides = {}) =>
     ...overrides
   });
 
-function makeRde({ codes = [], requestDate = '2026-01-28', flags = {},
+function makeRde({ codes = [], smokeControlModes = [], requestDate = '2026-01-28', flags = {},
   sectionCount = 1, extraDocuments = [] } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -86,7 +86,11 @@ function makeRde({ codes = [], requestDate = '2026-01-28', flags = {},
       OFFICIAL_ESCI_CODE: code,
       PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY description',
       RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY orientative text',
-      SOURCE_LOCATION: 'TEST_ONLY page ' + index
+      SOURCE_LOCATION: 'TEST_ONLY page ' + index,
+      ...(code === 'CF' && smokeControlModes[index] ? {
+        SMOKE_CONTROL_MODE: smokeControlModes[index].mode,
+        SMOKE_CONTROL_MODE_SOURCE_TEXT: smokeControlModes[index].sourceText
+      } : {})
     },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_ITEM_' + index }
   }));
@@ -146,13 +150,63 @@ assert.equal(Object.isFrozen(contract.officialEsciTargets), true);
 
 // Every one of the 28 canonical codes activates exactly its own official target.
 for (const official of contract.officialEsciTargets) {
-  const { resolution } = resolve({ codes: [official.code] });
+  const { resolution } = resolve({ codes: [official.code],
+    smokeControlModes: official.code === 'CF'
+      ? [{ mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical statement' }] : [] });
   const decision = resolution.officialDecisions.find(item => item.target === official.entityId);
   assert.equal(decision.decision, 'POSITIVE', official.code);
   assert.equal(decision.itemReferences.length, 1, official.code);
   assert.equal(resolution.officialDecisions.filter(item => item.decision === 'POSITIVE').length, 1);
   assert.equal(resolution.PROCESS_SMSCI.includes(official.entityId), true);
 }
+
+const mechanicalSmokeControl = resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical statement'
+}] }).resolution;
+const mechanicalDecision = mechanicalSmokeControl.derivedDecisions.find(item =>
+  item.target === 'SMSCI_SMOKE_CONTROL_MECHANICAL');
+assert.equal(mechanicalDecision.decision, 'POSITIVE');
+assert.equal(mechanicalSmokeControl.PROCESS_SMSCI.includes('SMSCI_SMOKE_CONTROL'), true);
+assert.equal(mechanicalSmokeControl.PROCESS_SMSCI.includes('SMSCI_SMOKE_CONTROL_MECHANICAL'), true);
+assert.equal(mechanicalDecision.itemReferences[0].identifier, 'ITEM_0');
+assert.equal(mechanicalDecision.itemTraces[0].sourceText,
+  'TEST_ONLY explicit mechanical statement');
+const mechanicalCase = resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical statement'
+}] });
+const mechanicalPlan = api.materializeFrozenExecutionPlan(
+  contract, mechanicalCase.resolution, mechanicalCase.view
+);
+assert.equal(mechanicalPlan.APPLICABLE_REQUIREMENTS.some(item =>
+  item.requirementId === 'REQ_IN10_COMMISSIONING'), true);
+
+const nonMechanicalSmokeControl = resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'NON_MECHANICAL', sourceText: 'TEST_ONLY explicit non-mechanical statement'
+}] }).resolution;
+assert.equal(nonMechanicalSmokeControl.derivedDecisions.find(item =>
+  item.target === 'SMSCI_SMOKE_CONTROL_MECHANICAL').decision, 'NEGATIVE');
+assert.equal(nonMechanicalSmokeControl.PROCESS_SMSCI.includes('SMSCI_SMOKE_CONTROL'), true);
+assert.equal(nonMechanicalSmokeControl.PROCESS_SMSCI.includes('SMSCI_SMOKE_CONTROL_MECHANICAL'), false);
+const nonMechanicalCase = resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'NON_MECHANICAL', sourceText: 'TEST_ONLY explicit non-mechanical statement'
+}] });
+const nonMechanicalPlan = api.materializeFrozenExecutionPlan(
+  contract, nonMechanicalCase.resolution, nonMechanicalCase.view
+);
+assert.equal(nonMechanicalPlan.APPLICABLE_REQUIREMENTS.some(item =>
+  item.requirementId === 'REQ_IN10_COMMISSIONING'), false);
+
+assertBlocker(() => resolve({ codes: ['CF'] }));
+assertBlocker(() => resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'MECHANICAL', sourceText: '  '
+}] }));
+assertBlocker(() => resolve({ codes: ['CF'], smokeControlModes: [{
+  mode: 'UNKNOWN', sourceText: 'TEST_ONLY unclear'
+}] }));
+assertBlocker(() => resolve({ codes: ['CF', 'CF'], smokeControlModes: [
+  { mode: 'MECHANICAL', sourceText: 'TEST_ONLY explicit mechanical' },
+  { mode: 'NON_MECHANICAL', sourceText: 'TEST_ONLY explicit non-mechanical' }
+] }));
 
 // Complete empty section explicitly supports 28 negative decisions; it does not imply other rules.
 const emptyCase = resolve();
@@ -162,6 +216,8 @@ assert.equal(empty.officialDecisions.every(item => item.decision === 'NEGATIVE')
 assert.equal(empty.PROCESS_SMSCI.includes('SMSCI_SDAI'), false);
 assert.equal(empty.derivedDecisions.find(item => item.target === 'SMSCI_SDAI').decision, 'NEGATIVE');
 assert.equal(empty.derivedDecisions.find(item => item.target === 'SMSCI_IN19_APPLICABILITY_REVIEW').decision, 'POSITIVE');
+assert.equal(empty.derivedDecisions.find(item =>
+  item.target === 'SMSCI_SMOKE_CONTROL_MECHANICAL').mode, null);
 assert.equal(empty.IN19_DOCUMENTATION_REGIME, undefined);
 
 // AI/DAI remain independent official facts; either positive derives SDAI.

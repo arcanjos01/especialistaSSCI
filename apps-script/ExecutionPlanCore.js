@@ -37,6 +37,7 @@ const PLAN_INTRINSIC_ARRAY_INCLUDES_ = Array.prototype.includes;
 const PLAN_INTRINSIC_ARRAY_SORT_ = Array.prototype.sort;
 const PLAN_INTRINSIC_ARRAY_INDEX_OF_ = Array.prototype.indexOf;
 const PLAN_INTRINSIC_ARRAY_JOIN_ = Array.prototype.join;
+const PLAN_INTRINSIC_STRING_TRIM_ = String.prototype.trim;
 const PLAN_IS_CANONICAL_CONTRACT_ = isCanonicalCompiledRuntimeContract;
 const PLAN_IS_CANONICAL_RESOLUTION_ = isCanonicalCbmscApplicabilityResolution;
 const PLAN_TYPED_REFERENCE_ = TypedReference;
@@ -46,6 +47,9 @@ function planApply_(intrinsic, receiver, args) {
 }
 function planForEach_(array, callback) {
   return planApply_(PLAN_INTRINSIC_ARRAY_FOR_EACH_, array, [callback]);
+}
+function planStringTrim_(value) {
+  return planApply_(PLAN_INTRINSIC_STRING_TRIM_, value, []);
 }
 function planSetIndex_(array, index, value) {
   PLAN_INTRINSIC_DEFINE_(array, index, {
@@ -301,7 +305,8 @@ function applicableRequirements_(contract, resolution, indexes) {
     if (decision.decision === 'POSITIVE') planPush_(positiveOfficial, target.entityId);
   });
   const derived = resolution.derivedDecisions || [];
-  const expectedDerivedTargets = ['SMSCI_SDAI', 'SMSCI_IN19_APPLICABILITY_REVIEW'];
+  const expectedDerivedTargets = ['SMSCI_SDAI', 'SMSCI_IN19_APPLICABILITY_REVIEW',
+    'SMSCI_SMOKE_CONTROL_MECHANICAL'];
   planRequire_(canonicalPlanJson_(planMap_(derived, item => item.target)) ===
     canonicalPlanJson_(expectedDerivedTargets), 'derived applicability decisions are incomplete');
   planForEach_(derived, item => planRequire_(
@@ -338,6 +343,36 @@ function applicableRequirements_(contract, resolution, indexes) {
     canonicalPlanJson_(planMapGet_(derivedByTarget, 'SMSCI_IN19_APPLICABILITY_REVIEW').sourceDecisions) ===
       canonicalPlanJson_(['SMSCI_IEL']),
   'IN19 applicability-review derivation is inconsistent with IEL decision');
+  const smokeOfficialDecision = planMapGet_(decisionByTarget, 'SMSCI_SMOKE_CONTROL');
+  const smokeModeDecision = planMapGet_(derivedByTarget, 'SMSCI_SMOKE_CONTROL_MECHANICAL');
+  planRequire_(canonicalPlanJson_(smokeModeDecision.sourceDecisions) ===
+    canonicalPlanJson_(['SMSCI_SMOKE_CONTROL']) &&
+    (smokeOfficialDecision.decision === 'NEGATIVE'
+      ? smokeModeDecision.source === 'OFFICIAL_ESCI_CODE' && smokeModeDecision.mode === null &&
+        smokeModeDecision.decision === 'NEGATIVE'
+      : smokeModeDecision.source === 'SMOKE_CONTROL_MODE' &&
+        planIncludes_(['MECHANICAL', 'NON_MECHANICAL'], smokeModeDecision.mode) &&
+        smokeModeDecision.decision === (smokeModeDecision.mode === 'MECHANICAL' ? 'POSITIVE' : 'NEGATIVE')),
+  'smoke-control mode derivation is invalid');
+  planRequire_(smokeOfficialDecision.decision !== 'NEGATIVE' ||
+    (smokeModeDecision.itemReferences.length === 0 && smokeModeDecision.itemTraces.length === 0),
+  'negative CF applicability must derive a negative mechanical scope without item facts');
+  if (smokeOfficialDecision.decision === 'POSITIVE') {
+    planRequire_(smokeModeDecision.itemReferences.length > 0 &&
+      smokeModeDecision.itemReferences.length === smokeModeDecision.itemTraces.length,
+    'positive CF applicability requires a complete mode evidence trace');
+    planForEach_(smokeModeDecision.itemTraces, (trace, index) => {
+      const reference = smokeModeDecision.itemReferences[index];
+      planRequire_(trace && trace.reference && reference && reference.kind === 'DOCUMENTARY_EVIDENCE' &&
+        trace.reference.kind === reference.kind && trace.reference.identifier === reference.identifier &&
+        trace.sourceDocument && trace.sourceDocument.kind === 'DOCUMENT' &&
+        trace.sourceDocument.identifier === resolution.selectedComprovante.identifier &&
+        typeof trace.sourceText === 'string' && planStringTrim_(trace.sourceText).length > 0 &&
+        typeof trace.sourceLocation === 'string' && planStringTrim_(trace.sourceLocation).length > 0 &&
+        trace.provenance,
+      'positive CF applicability mode trace is incomplete');
+    });
+  }
   const processTargets = resolution.PROCESS_SMSCI;
   const processSet = planSetFromArray_(processTargets);
   planRequire_(planSetSize_(processSet) === processTargets.length, 'PROCESS.SMSCI contains duplicate targets');
