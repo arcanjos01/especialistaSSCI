@@ -2676,3 +2676,40 @@ PROMOTION=NOT_AUTHORIZED
 - Ganho de Criteria integrais: `10/29 → 10/29`; parcial `1 → 1`. F6-MC-007 foi parcialmente encerrado no subproblema de escopo (aguardando revisão); blockers de autoria/solicitante, DRT e assinatura continuam. Benefício operacional: evitar selecionar a exigência de comissionamento mecânico para CF explicitamente declarado não mecânico; quando o modo não é conhecido, a execução para sem criar resultado normativo.
 - Gates consolidados no `fb4734a5eca181bcd09b75e4b264fa0c2fc1e0b1`: Python `175` (`170` pass, `5` skipped); Apps Script `9/9 PASS`; `node --check` em todos `apps-script/*.js` e `tests/apps-script-*.test.js`; sintaxe `Code.gs`; runtime byte-identical SHA-256 `59e7b70c52ffb9118943240af2ca5f603925bff73c382d9a2b3c98ac92afb619`; manifesto e phase guards PASS; `git diff --check` PASS. `BUILD_VALIDATION=PASS` na worktree destacada e limpa, `SOURCE_COMMIT=fb4734a5eca181bcd09b75e4b264fa0c2fc1e0b1`, KB `5.31.0`, 10 documentos. O candidato técnico foi publicado na branch de desenvolvimento.
 - Revisão: `INDEPENDENT_ARCH_REVIEW=PENDING_CAPACITY`, pois não há ferramenta/sessão de revisor independente disponível nesta execução; `SOL_REVIEW=PENDING_IDENTITY`; não houve parecer atribuído a Sol nem aprovação arquitetural. O checkpoint segue `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`. Re-review deverá ser dirigida ao candidato exato antes de consolidar o fix.
+
+### Evidência oficial para identidades do solicitante e RT — 2026-10-20
+
+- Inspecionado o Anexo C da IN 1/2024, formulário oficial de requerimentos a
+  realizar diretamente no e-SCI. Na seção “Identificação Nominal”, pp. 36–37,
+  há campos próprios `Solicitante` e `Responsável Técnico`, ambos com CPF e
+  nome; o Anexo C também permite declarar que as identidades de certos papéis
+  são iguais. Fonte: [IN 1/2024, Anexo C](https://documentoscbmsc.cbm.sc.gov.br/uploads/19311513366edc981d3f94ef2a619536.pdf).
+- Isso confirma que o formulário prevê comparandos nominais explícitos e
+  identificadores individuais para esses papéis. Não prova que a exportação
+  documental atualmente extraída ou o intake e-SCI disponível ao runtime
+  forneçam esses valores autenticados para cada apresentação.
+- Estado do contrato local: `COMPROVANTE_DE_SOLICITACAO_DE_HABITESE` contém
+  `REQUEST_DATE`, `REQUEST_IDENTIFIER`, `RE_IDENTIFIER` e
+  `PROTOCOL_IDENTIFIER`; `CurrentSubmissionContext` contém protocolo, data,
+  RE opcional e proveniência operacional. Nenhum contém identidade/CPF das
+  partes. A DRT preserva `RT_NAME`, que não é identificador individual e não
+  prova identidade de quem preparou ou assinou o relatório de comissionamento.
+- Próximo contrato necessário para IN10: fatos FACT-ONLY, com papel (solicitante,
+  RT cadastrado, signatário/autor do relatório), valor de identidade exatamente
+  extraído, documento e localização de origem, digest/proveniência e binding à
+  apresentação/RDE. Usar o CPF explícito como comparando quando presente;
+  nomes isolados, relações iguais marcadas no formulário sem identidade
+  verificável, ou dados ausentes não provam que são pessoas distintas. A
+  confirmação de autor/signatário do relatório continua dependente do contrato
+  de assinatura/identidade documental; não se confunde com o RT cadastrado no
+  requerimento. Avaliar minimização e proteção dos dados pessoais no contrato.
+- Esta evidência reduz o bloqueio de “fonte normativa/formulário não conhecido”
+  para “fatos da apresentação e autoria do relatório ainda não materializados e
+  autenticados”. Não adiciona atributos nem muda resultado, seleção ou
+  cobertura nesta anotação. `T4_IN10_COMMISSIONING` permanece descoberto; não
+  houve confirmação de que dado algum esteja presente em um processo real.
+- Métrica do trabalho: integral `10/29 → 10/29`; parcial `1 → 1`; blockers
+  encerrados `0`; um impedimento factual melhor delimitado; nenhum teste de
+  execução necessário para registro documental; revisão independente `0`,
+  pois não houve mudança de comportamento; `git diff --check` verificado antes
+  do checkpoint. `CALIBRATION_GATE=BLOCKED`, `PROMOTION=NOT_AUTHORIZED`.
