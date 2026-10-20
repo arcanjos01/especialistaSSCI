@@ -2914,3 +2914,46 @@ PROMOTION=NOT_AUTHORIZED
   autenticado, comparandos documentais formalizados ou fatos estruturados de
   laudos. `CALIBRATION_GATE=BLOCKED`, `SOL_REVIEW=PENDING_IDENTITY` e
   `PROMOTION=NOT_AUTHORIZED` permanecem.
+
+### Perfis documentais para status de ART/RRT/TRT — auditoria oficial atualizada
+
+- Confea, Resolução nº 1.137/2023, arts. 4–6: o registro ART efetiva-se após
+  cadastro no sistema eletrônico do Crea e recolhimento; o formulário é
+  assinado eletronicamente pelo profissional. A mesma resolução contempla
+  formas e modalidades distintas e prevê baixa, cancelamento e anulação, logo
+  número impresso isolado não demonstra estado atual. Fonte primária:
+  [Resolução Confea nº 1.137/2023](https://normativos.confea.org.br/Ementas/Visualizar?id=76099).
+- CAU/BR, Resolução nº 91/2014, alterada pela nº 184/2019, art. 9º, §§ 8º–9º:
+  diferencia RRT rascunho (sem número no cabeçalho, sem indicação de taxas
+  pagas e com marca d'água) do documento final, emitido após pagamento validado
+  ou deferimento aplicável, com número e valores pagos. O não pagamento pode
+  impedir a efetivação. Fonte primária:
+  [Resolução CAU/BR nº 91/2014 consolidada](https://transparencia.caubr.gov.br/resolucao91/).
+- A geração de RRT migra para o CAU Digital em 2026: a página de serviço
+  descreve a emissão de RRT Simples e sua efetivação após compensação do
+  pagamento; notícia do CAU/BR de 11/09/2026 registra migração gradual e
+  ampliação planejada das modalidades. As fontes consultadas não expõem um
+  esquema documental completo e estável para todas as modalidades/plataformas.
+  Fontes oficiais: [serviço RRT Simples](https://transparencia.caubr.gov.br/cartadeservicos6-1/),
+  [transição do CAU Digital](https://caubr.gov.br/cau-digital-amplia-emissao-de-rrt-e-preve-entrega-de-carteira-fisica-em-outubro/).
+- CFT, Resolução nº 55/2019, art. 4º: registro TRT efetiva-se após cadastro no
+  sistema eletrônico do CRT e recolhimento. O Manual de Geração de TRT de
+  2018 enumera estados como aguardando validação/pagamento, aprovado, válido,
+  bloqueado, baixado e cancelado, mas sua idade e escopo não demonstram que
+  esses literais sejam o esquema atual de todos os CRTs. Fonte normativa:
+  [Resolução CFT nº 55/2019](https://www.cft.org.br/wp-content/uploads/2021/07/RESOLUCAO-055-2019-Altera-os-artigos-da-Resolucao-n-40.pdf);
+  [manual histórico](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
+- Resultado da auditoria: o fundamento da condição de registro está confirmado
+  para as três modalidades; não foi legitimado um mapa automático universal de
+  status. Um perfil futuro precisa identificar conselho emissor, tipo/modalidade,
+  geração/versão do documento, campos de estado e exceções aplicáveis, além de
+  evidência autenticada do documento exato. Perfil não substitui assinatura
+  verificável, cadeia de confiança ou verificação de situação atual; nenhum
+  status é admitido pelo Engine nesta etapa. `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` continuam pendentes, sem API de conselho obrigatória e
+  sem inferir status de QR Code ou texto isolado.
+- Métrica da auditoria: cobertura integral `10/29 → 10/29`; parcial `1 → 1`;
+  blockers encerrados `0`; novo blocker operacional `0` (a dependência já
+  existia; seu limite por geração de documento foi melhor especificado); código,
+  Base e runtime inalterados. Fontes verificadas em 2026-10-20; build e suíte
+  completa não foram repetidos por se tratar de alteração documental.
