@@ -3366,3 +3366,37 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   e definir o perfil de trust/tempo que o verificador pode receber sem buscar
   validação externa. Até a aprovação desse perfil e do contrato de recibo,
   `SIGNED` permanece sem admissão automática no Engine.
+
+### Ferramenta POC local pyHanko e regressões opcionais — 2026-10-20
+
+- Implementada em `tools/poc_pyhanko_signature_validation.py` uma interface
+  POC que recebe bytes do PDF, identificador/versão de perfil, raízes X.509 e
+  CRLs DER explicitamente fornecidas. Congela a versão pyHanko `0.38.0`, aplica
+  `CRL_REQUIRED`, desabilita fetching, registra hashes do PDF/raízes/CRLs e
+  separa integridade, confiança, revogação e cobertura do arquivo. A saída
+  declara sempre `admission=NOT_DECIDED`; não cria recibo autenticado e não é
+  consumida pelo Engine.
+- Adicionada suíte opcional `tests/test_pyhanko_signature_validation_poc.py`
+  com cinco casos: âncora+CRL válida, CRL ausente, signatário revogado,
+  conteúdo adulterado/âncora errada e parâmetros de perfil inválidos. O
+  interpretador normal sem pyHanko executa a suíte como 5 skips explícitos;
+  no ambiente isolado `/tmp/ssci-pyhanko-eval`, pyHanko `0.38.0`, os cinco
+  testes passam. Nenhuma dependência foi adicionada ao runtime ou à instalação
+  padrão do projeto.
+- Gates após o código: Python `186` (`181` passaram, `5` skips opcionais);
+  Apps Script `10/10`; sintaxe JS/testes e `Code.gs`; 62 testes de contratos,
+  identidade e guards; runtime byte-idêntico com SHA-256
+  `3353f7123003b62b8f1ba38189d56ab0eb06a25c0c8b429212e3bb8f48c582ae`;
+  `git diff --check` PASS. Build limpo e revisão independente deste candidato
+  ainda pendentes neste registro.
+- Limites deliberados da POC: limites experimentais de entrada de 50 MiB e 20
+  assinaturas não são política operacional aprovada; parser PDF ainda exige
+  isolamento de processo/recursos. Perfil CBMSC, identidade profissional,
+  temporalidade/frescor de CRL, cadeia institucional e recibo permanecem
+  indefinidos. Nenhuma assinatura foi testada além das fixtures sintéticas.
+- Métrica: Criteria integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
+  `19 → 19`; blockers funcionais encerrados `0`; novos findings independentes
+  aguardam revisão Luna. Benefício operacional ainda preparatório: a matriz de
+  integridade, confiança, revogação e cobertura fica reproduzível com material
+  local, sem endpoints de conselhos ou validação. Revisões independentes desta
+  implementação `0` até o ciclo registrado no próximo checkpoint.
