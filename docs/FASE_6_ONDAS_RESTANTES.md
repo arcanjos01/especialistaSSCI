@@ -4100,7 +4100,7 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   e consumidores, inclusive substituição do conteúdo sob o mesmo ID.
 - Gates dirigidos nesta correção: readiness e gravação do snapshot `PASS`;
   testes Python de identidade/manifesto/runtime `46/46 PASS`. Gates completos,
-  release limpo e re-review do candidato corrigido ainda pendentes. Nenhuma
+  release limpo e revisão do candidato corrigido ainda pendentes. Nenhuma
   cobertura normativa ou admissão `SIGNED` foi habilitada. `10/29` Criteria
   integrais, sem ganho neste lote.
 - Limite de migração: registry existente sem as novas colunas não é migrada nem
@@ -4134,13 +4134,25 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `git diff --check PASS`.
 - Build técnico em worktree limpa: `PASS`, dez documentos, KB `5.37.0`, pipeline
   `4.38.0`, `SOURCE_COMMIT` exato `2c617cead8fa2325bd31f752508022148775510a`.
-- Findings HIGH do snapshot e ramo de erro foram corrigidos; ambos aguardam
-  re-review dirigida. O parecer que apontou o segundo finding se identificou
-  como Codex GPT-6, mas o papel/modelo apresentado pelo mecanismo de agentes é
-  Terra worker; identidade efetiva fica `PENDING_IDENTITY` e seu FAIL não é
-  tratado como gate final válido. A solicitação de re-review por Luna retornou
-  `agent thread limit reached`; `LUNA_REREVIEW=PENDING_CAPACITY`. Sol 6.1 não
-  revisou este checkpoint. Nenhuma aprovação independente ou Sol é presumida.
+- Re-review dirigida dos dois findings: `PASS`. Revisora independente efetiva:
+  agente Luna, identidade fornecida pelo mecanismo `gpt-5.6-luna` (a resposta
+  da revisora identificou-se como GPT-5); sessão `01a1603f-03f0-76d0-9ef0-4a3307251aef`.
+  Confirmou produtor e consumidor do snapshot, os dois caminhos da EXTRACTION,
+  testes de ausência/troca de ID/digest e regressão no erro, executando ambos
+  os testes focais. Escopo foi re-review dos findings, não revisão integral do
+  candidato; `LUNA_FULL_REVIEW=PENDING`, `SOL_REVIEW=NOT_PERFORMED`.
+- O primeiro parecer técnico identificou modelo não verificável e o segundo
+  declarou GPT-6 embora o papel configurado fosse Terra worker; esses pareceres
+  são evidência dos achados, mas não são contados como aprovação independente
+  nos termos da seção 25.2. Nenhum finding conhecido está aberto para os dois
+  pontos corrigidos; a aprovação arquitetural do lote continua pendente da
+  revisão integral. `PROMOTION=NOT_AUTHORIZED`.
+- Foi solicitado à mesma revisora Luna o exame integral do candidato
+  arquitetural `f4dffeb3bbdb3718b11b57f5e672fe1f996ba385` →
+  `2c617cead8fa2325bd31f752508022148775510a`, estendendo o escopo da re-review
+  focal sem repetir seus testes já executados. Até o momento deste registro, a
+  revisão integral não retornou; logo `LUNA_FULL_REVIEW=PENDING_RESPONSE` e não
+  há aprovação de lote para consolidação.
 - Criteria integrais `10/29 → 10/29`; nenhum resultado ou `SIGNED` foi
   habilitado. A compatibilidade de registry legado exige migração planejada
   antes de implantação; nenhum processo real foi usado ou alterado.
