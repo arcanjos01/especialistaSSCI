@@ -3539,9 +3539,11 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   mesmo envelope no runtime, usando key/key ID fixados em Script Properties e
   canonicalização interoperável. Fixture HMAC foi emitida pelo Python e
   validada pelo teste Node, cobrindo binding de apresentação/RDE/documento,
-  adulteração de resultado, key ID desconhecido e prototype pollution. A
-  emissão Python rejeita inteiros fora do intervalo seguro JavaScript e chaves
-  JSON não ASCII para evitar divergência de canonicalização entre runtimes.
+  adulteração de resultado, key ID desconhecido, prototype pollution, arrays
+  com protótipo adulterado e propriedades não enumeráveis. A emissão Python
+  rejeita inteiros fora do intervalo seguro JavaScript e chaves JSON não ASCII;
+  limites textuais usam unidades UTF-16 e timestamps UTC têm forma estrita
+  compartilhada entre runtimes.
 - Limite explícito: este lote não verifica PDF nem cadeia de certificados; não
   define âncoras, revogação ou perfil institucional; não fornece ao Engine um
   binding autenticado ao plano/view, nem registro anti-replay persistente, nem
@@ -3555,10 +3557,24 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SIGNED` nem cobertura nova; o Engine e Criteria permanecem `MANUAL_REVIEW`
   quando a comprovação não é suficiente. `CRITERIA_COVERED=10/29`, parcial 1,
   pendentes integrais 19; ganho de Criterion `0`.
-- Testes direcionados do lote: codec Python `8/8 PASS`; suíte do verificador
+- Testes direcionados do lote após findings: codec Python `9/9 PASS`; suíte do verificador
   local `29` casos (22 PASS, 7 SKIP no modo padrão); integração opcional com PDF
   sintético assinado, executada separadamente com
-  `PDF_SIGNATURE_POC_INTEGRATION=1`: PASS; interoperabilidade HMAC Apps Script:
-  PASS; sintaxe dos módulos novos: PASS.
-  Gates integrais e revisão independente deste lote ainda pendentes; este
-  candidato é preparatório e não autoriza promoção.
+  `PDF_SIGNATURE_POC_INTEGRATION=1`: PASS; teste adversarial de interoperabilidade
+  HMAC Apps Script e sintaxe dos módulos novos: PASS.
+- Candidato publicado: `6059b2b` adicionou o codec e os testes. A revisão
+- A revisão independente do GPT-6 (Pauli) em `46e4cff9eda1804fc26a18a4a0a357b41b758dc0`
+  retornou `FAIL` limitado ao lote com dois achados médios: canonicalização JS
+  controlável por `Array.prototype.map` em array com protótipo próprio, e
+  limites de texto/timestamp divergentes entre Python e JS. Correções locais:
+  canonicalização por índices e propriedades próprias (sem métodos herdáveis),
+  rejeição de propriedades não enumeráveis, limite UTF-16 comum e timestamp UTC
+  estrito. Regressões Python/JS focais passam; re-review dirigida pendente.
+- Os gates completos anteriores a esses fixes passaram em `46e4cff`, mas não
+  valem como gates do candidato corrigido; executar novamente após consolidar.
+- Critérios antes/depois: integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
+  `19 → 19`; blockers de assinatura encerrados `0`; novo blocker técnico
+  esclarecido: interoperabilidade exige envelope ainda sem canal/custódia de
+  chave nem contexto autenticado. Benefício operacional demonstrado apenas na
+  interoperabilidade de teste entre Python/Apps Script; sem admissão `SIGNED`.
+  `SOL_REVIEW=PENDING_IDENTITY`; `PROMOTION=NOT_AUTHORIZED`.

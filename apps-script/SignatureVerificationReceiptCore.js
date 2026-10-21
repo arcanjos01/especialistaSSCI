@@ -40,7 +40,8 @@
   function safeJsonValue_(value, depth = 0, state = { nodes: 0 }) {
     state.nodes += 1;
     if (depth > 32 || state.nodes > 50000) return false;
-    if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
+    if (value === null || typeof value === 'boolean' ||
+        (typeof value === 'string' && value.length <= 1000000) ||
         (typeof value === 'number' && Number.isSafeInteger(value))) return true;
     if (Array.isArray(value)) {
       if (Object.getOwnPropertySymbols(value).length !== 0 || value.length > 10000 ||
@@ -59,8 +60,8 @@
     for (let index = 0; index < names.length; index += 1) {
       const key = names[index];
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (['__proto__', 'prototype', 'constructor'].includes(key) || !descriptor ||
-          !Object.prototype.hasOwnProperty.call(descriptor, 'value') ||
+      if (['__proto__', 'prototype', 'constructor'].includes(key) || !/^[\x00-\x7f]*$/.test(key) || !descriptor ||
+          !Object.prototype.hasOwnProperty.call(descriptor, 'value') || !descriptor.enumerable ||
           !safeJsonValue_(descriptor.value, depth + 1, state)) return false;
     }
     return true;
@@ -76,9 +77,31 @@
   function canonicalJsonValue_(value) {
     if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
         typeof value === 'number') return JSON.stringify(value);
-    if (Array.isArray(value)) return '[' + value.map(canonicalJsonValue_).join(',') + ']';
-    const keys = Object.keys(value).sort();
-    return '{' + keys.map(key => JSON.stringify(key) + ':' + canonicalJsonValue_(value[key])).join(',') + '}';
+    if (Array.isArray(value)) {
+      let serialized = '';
+      for (let index = 0; index < value.length; index += 1) {
+        if (index !== 0) serialized += ',';
+        serialized += canonicalJsonValue_(value[index]);
+      }
+      return '[' + serialized + ']';
+    }
+    const keys = Object.getOwnPropertyNames(value);
+    for (let index = 1; index < keys.length; index += 1) {
+      const current = keys[index];
+      let position = index;
+      while (position > 0 && current < keys[position - 1]) {
+        keys[position] = keys[position - 1];
+        position -= 1;
+      }
+      keys[position] = current;
+    }
+    let serialized = '';
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (index !== 0) serialized += ',';
+      serialized += JSON.stringify(key) + ':' + canonicalJsonValue_(value[key]);
+    }
+    return '{' + serialized + '}';
   }
 
   function hasText_(value, limit) {
@@ -158,7 +181,7 @@
           payload.schemaVersion !== '1.0.0' || !hasText_(payload.receiptId, 128) ||
           !hasText_(payload.verifierId, 128) || !hasText_(payload.verifierVersion, 128) ||
           !digest_(payload.verifierExecutableSha256) || !hasText_(payload.createdAt, 64) ||
-          !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[^\s]+Z$/.test(payload.createdAt) ||
+          !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$/.test(payload.createdAt) ||
           payload.verificationResult.verifier_version !== payload.verifierVersion ||
           !validInspection_(payload.verificationResult, payload.sourceDocumentDigest)) return false;
       for (let index = 0; index < contextKeys_.length; index += 1) {

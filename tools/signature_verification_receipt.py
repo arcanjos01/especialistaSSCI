@@ -26,6 +26,9 @@ AUTHENTICATION_ALGORITHM = "HMAC_SHA256"
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 _KEY_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
 _KEY_LAST_CHARS = "AEIMQUYcgkosw048"
+_TIMESTAMP_RE = re.compile(
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$"
+)
 _FORBIDDEN_KEYS = {"__proto__", "prototype", "constructor"}
 _CONTEXT_KEYS = {
     "presentationIdentity", "rdeIdentity", "rdeDigest", "sourceDocumentIdentity"
@@ -51,6 +54,13 @@ def _is_plain_dict(value: Any) -> bool:
     return type(value) is dict and not (_FORBIDDEN_KEYS & value.keys())
 
 
+def _utf16_length(value: str) -> int:
+    try:
+        return len(value.encode("utf-16-le")) // 2
+    except UnicodeEncodeError as exc:
+        raise SignatureReceiptError("receipt text contains invalid Unicode") from exc
+
+
 def _require_exact_keys(value: Any, expected: set[str], label: str) -> dict[str, Any]:
     if not _is_plain_dict(value) or value.keys() != expected:
         raise SignatureReceiptError(f"{label} has an invalid shape")
@@ -58,7 +68,8 @@ def _require_exact_keys(value: Any, expected: set[str], label: str) -> dict[str,
 
 
 def _require_text(value: Any, label: str, limit: int = 512) -> str:
-    if (not isinstance(value, str) or not value or len(value) > limit or
+    utf16_length = _utf16_length(value) if isinstance(value, str) else 0
+    if (not isinstance(value, str) or not value or utf16_length > limit or
             value.strip() != value or any(ord(char) < 0x20 for char in value)):
         raise SignatureReceiptError(f"{label} must be bounded non-empty text")
     return value
@@ -66,6 +77,8 @@ def _require_text(value: Any, label: str, limit: int = 512) -> str:
 
 def _validate_timestamp(value: Any) -> str:
     timestamp = _require_text(value, "verification timestamp", 64)
+    if not _TIMESTAMP_RE.fullmatch(timestamp):
+        raise SignatureReceiptError("verification timestamp must be ISO-8601 UTC")
     try:
         parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
     except ValueError as exc:
@@ -113,8 +126,12 @@ def _validate_json_value(value: Any, depth: int = 0, nodes: list[int] | None = N
     if depth > 32 or nodes[0] > 50_000:
         raise SignatureReceiptError("receipt payload exceeds structural limits")
     if value is None or type(value) in (str, bool):
-        if isinstance(value, str) and len(value.encode("utf-8")) > 1_000_000:
-            raise SignatureReceiptError("receipt contains oversized text")
+        if isinstance(value, str):
+            try:
+                if len(value.encode("utf-8")) > 1_000_000:
+                    raise SignatureReceiptError("receipt contains oversized text")
+            except UnicodeEncodeError as exc:
+                raise SignatureReceiptError("receipt text contains invalid Unicode") from exc
         return
     if type(value) is int:
         if abs(value) > 9_007_199_254_740_991:

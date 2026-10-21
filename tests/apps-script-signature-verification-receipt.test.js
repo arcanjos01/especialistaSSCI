@@ -50,6 +50,15 @@ function verify(receiptJson = serializedReceipt, binding = expected) {
   );
 }
 
+function verifyObject(receipt, binding = expected) {
+  context.directReceipt = receipt;
+  context.expectedBindingJson = JSON.stringify(binding);
+  return vm.runInContext(
+    'verifySignatureVerificationReceipt_(directReceipt, JSON.parse(expectedBindingJson))',
+    context
+  );
+}
+
 assert.equal(verify(), true, 'Python-authenticated fixture must verify in Apps Script');
 assert.equal(vm.runInContext(
   "Object.getOwnPropertyDescriptor(globalThis, 'verifySignatureVerificationReceipt_').writable",
@@ -84,6 +93,33 @@ Object.defineProperty(unsafe.payload.verificationResult.signatures[0], '__proto_
   value: { forged: true }, enumerable: true, configurable: true
 });
 assert.equal(verify(JSON.stringify(unsafe)), false, 'unsafe nested property must fail');
+
+const inheritedMap = JSON.parse(serializedReceipt);
+inheritedMap.payload.verificationResult.signatures[0].integrity.result = 'FORGED';
+const forgedArrayPrototype = Object.create(Array.prototype);
+forgedArrayPrototype.map = () => [
+  '{"coverage":{"full_document_current_revision":true},"field":"Sig1","integrity":{"result":"VALID"}}'
+];
+Object.setPrototypeOf(inheritedMap.payload.verificationResult.signatures, forgedArrayPrototype);
+assert.equal(verifyObject(inheritedMap), false,
+  'custom array prototype must not control authenticated canonicalization');
+
+const nonEnumerable = JSON.parse(serializedReceipt);
+Object.defineProperty(nonEnumerable.payload.verificationResult.signatures[0], 'forged', {
+  value: true, enumerable: false
+});
+assert.equal(verifyObject(nonEnumerable), false,
+  'non-enumerable data must not be omitted from authenticated canonicalization');
+
+const invalidTimestamp = JSON.parse(serializedReceipt);
+invalidTimestamp.payload.createdAt = '2026-10-20 12:00:00Z';
+assert.equal(verify(JSON.stringify(invalidTimestamp)), false,
+  'non-canonical timestamp form must fail');
+
+const oversizedUtf16 = JSON.parse(serializedReceipt);
+oversizedUtf16.payload.receiptId = '😀'.repeat(80);
+assert.equal(verify(JSON.stringify(oversizedUtf16)), false,
+  'text limits must count JavaScript UTF-16 code units');
 
 assert.equal(
   JSON.parse(serializedReceipt).payload.verificationResult.revocation,
