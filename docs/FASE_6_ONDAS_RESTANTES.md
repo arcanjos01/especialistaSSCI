@@ -4359,3 +4359,25 @@ Também permanece sem resposta a decisão sobre a rota de
 `documentary_associations` explícitas em `T1_CONFORMITY_REPORT`; nenhum código
 ou contrato dessa rota foi alterado. `SOL_REVIEW` para arquitetura/fase continua
 pendente, e a pendência não autoriza promoção.
+
+### Rechecagem de fonte primária para status de ART/RRT/TRT — 2026-10-21
+
+Foi feita consulta dirigida a fontes oficiais dos conselhos para verificar se
+os estados documentais podem ser normalizados para `REGISTERED` sem mapa
+autorizado. A página de serviços do Confea distingue registro da ART e validade
+condicionada à quitação; a FAQ oficial do CAU distingue RRT em rascunho,
+emissão após pagamento, baixa, cancelamento e nulidade; o manual do CFT lista
+estados próprios de TRT, incluindo aguardando validação, aguardando pagamento,
+aprovado, válido, bloqueado, cancelado e baixado. O manual CFT localizado é
+versão 1.2, de 2018, e não foi tratado como catálogo atual completo.
+
+Essas fontes mostram que os vocabulários e os efeitos não são intercambiáveis.
+Não foi criado mapeamento automático nem equivalência entre registro, emissão,
+pagamento, validade, baixa ou situação profissional. Para
+`T1_DRT_REGISTERED`/`T4_DRT_REGISTERED`, manter texto original e
+`MANUAL_REVIEW` até existir mapa por conselho/tipo de documento com fundamento
+e versão identificados. Nenhum Criterion foi promovido por essa pesquisa.
+
+Fontes consultadas: [Confea — Anotação de Responsabilidade Técnica (ART)](https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art),
+[CAU/BR — Perguntas frequentes sobre RRT](https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/),
+[CFT — Manual de geração de TRT, versão 1.2 (2018)](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
