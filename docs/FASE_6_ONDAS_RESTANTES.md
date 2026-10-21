@@ -3509,7 +3509,7 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   de RT-003/RT-005 e NC, ausência de binding inferido, resultado manual e
   contagem sem inflação. Finding LOW único: contagem das suítes Apps Script
   registrada como 9 em vez de 10; corrigido neste documento. Re-review dirigida
-  desse registro ainda pendente.
+  subsequente confirmou o finding fechado.
 - `SOL_REVIEW=PENDING_IDENTITY` permanece para a aprovação arquitetural global;
   este parecer GPT-6 não é atribuído a Sol e não autoriza promoção.
 - Re-review dirigida do finding LOW no commit
@@ -3518,3 +3518,45 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   repetida.
 - Build limpo repetido no HEAD `cfea6f8ddf47816292aa71cd4349efd79899d17f`:
   `BUILD_VALIDATION=PASS`, `SOURCE_COMMIT` exato, manifest de dez documentos.
+
+## Lote técnico preparatório — recibo autenticado de assinatura local
+
+- Triagem read-only independente no HEAD `6964cf69fab6905f72b90f7aa83b8a4639079b09`
+  não encontrou outro Criterion pendente integralmente fechável com os fatos e
+  contratos atuais. Identificou recibo técnico de assinatura como blocker
+  compartilhado dos 11 consumidores de `SIGNED`; verificação e binding exatos
+  estão exigidos no `08_execution_pipeline.txt` (PHASE 2A/PHASE 5).
+- Criado codec Python `tools/signature_verification_receipt.py` para autenticar
+  um envelope HMAC-SHA256 sobre saída fornecida pelo chamador, removendo o caminho local do PDF
+  e vinculando presentation identity, RDE identity/digest, source-document
+  identity/digest, identificador/versão e digest declarado do executável, além
+  da data. A emissão
+  confere tamanho e SHA-256 da saída com os bytes recebidos. IDs, digest,
+  estrutura, key ID e conteúdo JSON são validados; JSON duplicado, propriedades
+  inseguras, adulteração, chave desconhecida e replay em outra identidade são
+  rejeitados nos testes.
+- Criado `apps-script/SignatureVerificationReceiptCore.js` para validar o
+  mesmo envelope no runtime, usando key/key ID fixados em Script Properties e
+  canonicalização interoperável. Fixture HMAC foi emitida pelo Python e
+  validada pelo teste Node, cobrindo binding de apresentação/RDE/documento,
+  adulteração de resultado, key ID desconhecido e prototype pollution.
+- Limite explícito: este lote não verifica PDF nem cadeia de certificados; não
+  define âncoras, revogação ou perfil institucional; não fornece ao Engine um
+  binding autenticado ao plano/view, nem registro anti-replay persistente, nem
+  caller operacional. O contexto esperado ainda é fornecido pelo chamador, sem
+  derivação autenticada de `ExecutionPlan`/view. A função Python recebe o
+  resultado, o digest alegado do executável e a chave como argumentos e,
+  portanto, não prova que o binário local efetivamente gerou o resultado nem
+  que só esse binário detém a chave; custódia/rotação de chave e canal autenticado
+  verifier→pipeline não foram implementados. Estados desconhecidos permanecem
+  UNKNOWN. Não há admissão
+  `SIGNED` nem cobertura nova; o Engine e Criteria permanecem `MANUAL_REVIEW`
+  quando a comprovação não é suficiente. `CRITERIA_COVERED=10/29`, parcial 1,
+  pendentes integrais 19; ganho de Criterion `0`.
+- Testes direcionados do lote: codec Python `7/7 PASS`; suíte do verificador
+  local `29` casos (22 PASS, 7 SKIP no modo padrão); integração opcional com PDF
+  sintético assinado, executada separadamente com
+  `PDF_SIGNATURE_POC_INTEGRATION=1`: PASS; interoperabilidade HMAC Apps Script:
+  PASS; sintaxe dos módulos novos: PASS.
+  Gates integrais e revisão independente deste lote ainda pendentes; este
+  candidato é preparatório e não autoriza promoção.

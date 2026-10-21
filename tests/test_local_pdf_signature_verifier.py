@@ -11,6 +11,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "verify_pdf_signatures_local.py"
 POC = ROOT / "tools" / "poc_pdf_signature_byte_range.py"
+RECEIPT = ROOT / "tools" / "signature_verification_receipt.py"
 
 
 def load(path, name):
@@ -25,6 +26,7 @@ class LocalPdfSignatureVerifierTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tool = load(TOOL, "local_pdf_signature_verifier")
+        cls.receipt = load(RECEIPT, "signature_verification_receipt")
 
     def test_valid_report(self):
         output = """Digital Signature Info of: fixture.pdf
@@ -226,6 +228,57 @@ Signature #1:
         self.assertEqual(result["pdfsig_version"], "24.02.0")
         self.assertEqual(result["openssl_version"], "OpenSSL 3.0.13 30 May 2023")
 
+    def test_local_verifier_output_can_be_sealed_without_claiming_trust_or_admission(self):
+        pdf_bytes = b"%PDF-1.7\nTEST_ONLY_SIGNED_BYTES"
+        report = f"""Digital Signature Info of: input.pdf
+Signature #1:
+  - Signature Field Name: Sig1
+  - Signer Certificate Common Name: Test Signer
+  - Signing Time: Oct 20 2026 12:00:00
+  - Signing Hash Algorithm: SHA-256
+  - Signature Type: adbe.pkcs7.detached
+  - Signed Ranges: [0 - {len(pdf_bytes)}]
+  - Total document signed
+  - Signature Validation: Signature is Valid.
+"""
+        context = {
+            "presentationIdentity": "protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20",
+            "rdeIdentity": "rde:TEST_RDE",
+            "rdeDigest": "a" * 64,
+            "sourceDocumentIdentity": "drive-file:TEST_PDF",
+        }
+        key = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+        with tempfile.TemporaryDirectory() as directory:
+            pdf = Path(directory) / "input.pdf"
+            pdf.write_bytes(pdf_bytes)
+            with patch.object(self.tool, "_openssl_version", return_value="OpenSSL TEST"), \
+                 patch.object(self.tool, "_run_pdfsig", return_value=(
+                     report, 1, [b"\x30\x03\x02\x01\x00"], "24.02.0"
+                 )), \
+                 patch.object(self.tool, "_cms_cross_check", return_value=[{
+                     "name": "CMS_SIGNATURE_INTEGRITY", "result": "VALID"
+                 }]):
+                inspection = self.tool.inspect_pdf(pdf)
+        receipt = self.receipt.issue_signature_verification_receipt(
+            context=context,
+            inspection=inspection,
+            pdf_bytes=pdf_bytes,
+            verifier_id="local-pdfsig-openssl",
+            verifier_executable_sha256="b" * 64,
+            key_id="LOCAL_VERIFIER_KEY_V1",
+            hmac_key=key,
+            created_at="2026-10-20T12:00:00Z",
+            receipt_id="RECEIPT_INTEGRATION_TEST",
+        )
+        self.assertEqual(receipt["payload"]["verificationResult"]["trust"], "UNKNOWN/NOT_EVALUATED")
+        self.assertEqual(receipt["payload"]["verificationResult"]["revocation"], "UNKNOWN/NOT_EVALUATED")
+        self.assertTrue(self.receipt.verify_signature_verification_receipt(
+            receipt,
+            expected_context=context,
+            expected_document_digest=inspection["document"]["sha256"],
+            trusted_keys={"LOCAL_VERIFIER_KEY_V1": key},
+        ))
+
     @patch.object(subprocess, "run", side_effect=subprocess.TimeoutExpired("pdfsig", 60))
     def test_timeout_is_technical_error(self, run):
         with self.assertRaises(self.tool.PdfSignatureError):
@@ -402,6 +455,33 @@ Signature #2:
             self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["name"], "CMS_SIGNATURE_INTEGRITY")
             self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["result"], "VALID")
             self.assertTrue(valid["signatures"][0]["coverage"]["full_document_current_revision"])
+            context = {
+                "presentationIdentity": "protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20",
+                "rdeIdentity": "rde:TEST_RDE",
+                "rdeDigest": "a" * 64,
+                "sourceDocumentIdentity": "drive-file:TEST_SIGNED_PDF",
+            }
+            key = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+            receipt = self.receipt.issue_signature_verification_receipt(
+                context=context,
+                inspection=valid,
+                pdf_bytes=signed.read_bytes(),
+                verifier_id="local-pdfsig-openssl",
+                verifier_executable_sha256="b" * 64,
+                key_id="LOCAL_VERIFIER_KEY_V1",
+                hmac_key=key,
+                created_at="2026-10-20T12:00:00Z",
+                receipt_id="RECEIPT_SYNTHETIC_PDF_TEST",
+            )
+            self.assertTrue(self.receipt.verify_signature_verification_receipt(
+                receipt,
+                expected_context=context,
+                expected_document_digest=hashlib.sha256(signed.read_bytes()).hexdigest(),
+                trusted_keys={"LOCAL_VERIFIER_KEY_V1": key},
+            ))
+            self.assertEqual(
+                receipt["payload"]["verificationResult"]["trust"], "UNKNOWN/NOT_EVALUATED"
+            )
             tampered_result = self.tool.inspect_pdf(tampered)["signatures"][0]
             self.assertFalse(tampered_result["integrity"]["valid"])
             self.assertEqual(tampered_result["integrity"]["result"], "INVALID")
