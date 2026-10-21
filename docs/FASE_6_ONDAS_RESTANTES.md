@@ -3901,3 +3901,24 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `2/2 PASS`, gates completos `199 + 11`, revisão independente `PENDING` nesta
   etapa e Sol 6.1 `PENDING_IDENTITY`. O commit, quando criado, permanece
   `ARCHITECTURAL_REVIEW=PENDING` e `PROMOTION=NOT_AUTHORIZED`.
+
+### Checkpoint provisório e build limpo — 2026-10-21
+
+- Commit provisório do lote: `6720290821472fec203c3773da35842dcc4251e5`
+  (`feat: route DRT product criteria to human review`). `BUILD_VALIDATION=PASS`
+  em worktree limpa, `SOURCE_COMMIT` exatamente igual ao candidato, 10
+  documentos, `KNOWLEDGE_BASE_VERSION=5.35.0`. SHA-256 do runtime:
+  `8f0fe81f733013991cf40aa47a97441a0d5081461b04a2f41cf4f24078f0d0d3`.
+- Gates: Python `199/199 PASS` (PyHanko e integrações locais ativos); Apps
+  Script `11/11 PASS`; sintaxe `25` arquivos JS e `apps-script/Code.gs` PASS;
+  manifest/build/phase guards cobertos pela suíte Python; regeneração byte-
+  idêntica; `git diff --check` PASS.
+- Revisão independente solicitada para o SHA exato, mas o agente não pôde ser
+  criado por `agent thread limit reached`; revisão Luna `PENDING_CAPACITY`, sem
+  parecer ou findings atribuídos. Sol 6.1 não executado:
+  `SOL_REVIEW=PENDING_IDENTITY`. Portanto
+  `INDEPENDENT_ARCH_REVIEW=PENDING`, `ARCHITECTURAL_REVIEW=PENDING` e
+  `PROMOTION=NOT_AUTHORIZED`. O checkpoint técnico é provisório, não promoção.
+- O push autorizado deste checkpoint e a retomada da revisão independente
+  permanecem como próximas ações. Cobertura integral permanece `10/29`; os seis
+  Criteria são preparatórios e continuam pendentes de cobertura integral.
