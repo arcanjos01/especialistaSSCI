@@ -703,7 +703,11 @@ validação institucional da correlação permanece separadamente `PENDING`.
   `SOL_REVIEW=PENDING`; correlação operacional continua `CALIBRATION_GATE=BLOCKED`;
   validação institucional permanece `PENDING`.
 
-### Análise de produtividade e trust boundary — antes da próxima onda
+### Snapshot histórico de produtividade e trust boundary — KB 5.23.0
+
+Este diagnóstico preserva o estado daquela retomada e não é a matriz vigente.
+Foi supersedido pela reconciliação abaixo e pela matriz canônica em
+`docs/FASE_6_INVENTARIO_COBERTURA.md`, KB `5.34.0`.
 
 - Reconciliação da fonte operacional KB `5.23.0`: 34 Criteria ativos, 29
   produtivos, 6 cobertos integralmente, 3 parciais e 23 pendentes de cobertura
@@ -788,26 +792,25 @@ validação institucional da correlação permanece separadamente `PENDING`.
 
 Fonte reconciliada em 2026-10-16: HEAD remoto `1b1503266abca949a25d37231fcddc3b8198208b`
 mais o lote local não commitado de autenticação do `evaluateCriterion`.
-Knowledge Base `5.25.0`: 34 Criteria ativos, 29 produtivos, 6 integralmente
-cobertos, 4 parciais e 23 pendentes integrais; 5 não selecionáveis e 2
-retirados ficam fora da matriz. Os quatro parciais são `T1_DRT_REQUIRED`,
-`T1_DRT_ACTIVITY_EXECUTION`, `T1_CONFORMITY_REPORT` e
-`T1_DRT_SMSCI_COVERAGE`. Nenhum dos 23 pode ser declarado integralmente coberto
-apenas com o estado atual; cobertura parcial ou caminho positivo não equivale
-a suporte completo.
+O parágrafo de contagem acima era um snapshot histórico da KB `5.25.0`.
+Reconciliação vigente pela KB `5.34.0` e por
+`docs/FASE_6_INVENTARIO_COBERTURA.md`: 34 Criteria ativos, 29 produtivos,
+10 integrais, 1 parcial (`T1_CONFORMITY_REPORT`), 1 preparatório
+(`T4_IN09_DRT`) e 19 ainda sem cobertura integral (inclui parcial e
+preparatório); 5 não selecionáveis e 2 retirados. A lista abaixo contém
+somente os 19 que ainda não estão integralmente cobertos. Caminho positivo ou
+preservação de insuficiência, isoladamente, não equivale a cobertura integral:
+cada Criterion deve cumprir seu contrato de resultado, trace/readiness e
+consequência autorizada.
 
-Nenhum dos 23 está integralmente implementável somente com o estado atual:
-alguns já têm caminho positivo ou contratos declarativos, mas não completam os
-casos positivo, negativo/insuficiente e readiness com rastreabilidade. As
-classes abaixo não são exclusivas: `T` = formalização/consumo técnico de
+Classes abaixo não são exclusivas: `T` = formalização/consumo técnico de
 contrato existente; `F` = fato documental tipado ou comparando ainda ausente;
 `H` = decisão humana sobre autoridade normativa; `C` = calibração ou integração
-externa. `T/F/H/C` indica todas as dependências encontradas para completar o
-Criterion, não uma autorização para inferir fatos ou resultados.
+externa. `T/F/H/C` indica dependências para cobertura integral, não autorização
+para inferir fatos ou resultados.
 
 | Criterion | Classe | Dependência concreta que falta para cobertura integral |
 |---|---|---|
-| `T1_DRT_REQUIRED` | `T` | O caminho existencial enumera todas as DRTs explicitamente tipadas RT-002 e mantém todas no trace; nenhuma cardinalidade/seleção é exigida pela Base. Falta apenas a prova autenticada de ausência para produzir a consequência `NC_T1_001`; binding vazio continua `MANUAL_REVIEW`. |
 | `T1_DRT_REGISTERED` | `T+F` | Consumir o status de registro da DRT exata para cada RT requerida; faltam vocabulário factual verificável e binding sem confundir registro, emissão e pagamento. |
 | `T1_DRT_SIGNED` | `T+F` | Binding DRT/RT e fato que demonstre assinatura verificável; `SIGNATURE_MECHANISM` textual, isoladamente, não autentica assinatura. |
 | `T1_CONFORMITY_REPORT` | `T+C` | O ramo de associação explícita exata existe no candidato; admissão de vínculo inferido ainda depende de calibração empírica válida e caller de produção. Sem esses gates, manter inferências em revisão humana. |
@@ -816,8 +819,6 @@ Criterion, não uma autorização para inferir fatos ou resultados.
 | `T1_DRT_ADDRESS` | `F+T` | Endereço factual comparável do processo/imóvel, ligado à DRT; contrato para diferença verificável e insuficiência sem normalização conjectural. |
 | `T1_DRT_AREA` | `F+T` | Área factual comparável do processo/imóvel, unidade e qualificadores preservados, ligada à DRT; sem comparação textual inventada. |
 | `T1_CONFORMITY_REPORT_SIGNED` | `F+T` | Evidência de assinatura verificável vinculada ao relatório exato; o campo textual atual só registra o mecanismo declarado. |
-| `T1_DRT_ACTIVITY_EXECUTION` | `T` | O literal individual `EXECUÇÃO` já pode sustentar o positivo; fechar binding por RT e estados de ausência, multiplicidade e conflito permitidos pelo contrato, sem mapear atividade por nome parecido. |
-| `T1_DRT_SMSCI_COVERAGE` | `T+F` | Consumir a declaração conjunta literal e vinculá-la ao `WORKLIST.SMSCI` canônico e à RT requerida; não converter texto livre em cobertura. |
 | `T4_DRT_REGISTERED` | `T+F` | Mesma dependência de status factual/binding de `T1_DRT_REGISTERED`, para a unidade produtiva da Tabela 4. |
 | `T4_DRT_SIGNED` | `T+F` | Mesma dependência de assinatura verificável/binding de `T1_DRT_SIGNED`, para a unidade produtiva da Tabela 4. |
 | `T4_IN07_COMMISSIONING` | `T+F` | Consumir DRT-produto-SMSCI-atividade explícitos para o relatório SHP e fato verificável de assinatura; sem cobertura inferida. |
@@ -825,11 +826,10 @@ Criterion, não uma autorização para inferir fatos ou resultados.
 | `T4_IN09_DRT` | `T+F` | A decisão do usuário proíbe ao sistema conferir compatibilidade atividade↔SMSCI para RT-005/006/014. `REQ_IN09_DRT` ainda declara validações sem escopo por RT e `T4_IN09_DRT` usa o token RT-005 `VISTORIA_ENSAIO`; manter esse caminho em revisão humana até reconciliar a execução e a consequência NC, sem mapear token ou avaliar compatibilidade. |
 | `T4_IN09_TEST_REPORT` | `T+F` | Fatos individualizados sobre os componentes requeridos pelo art. 122, vínculo explícito DRT-produto-SMSCI-atividade e assinatura verificável; não completar itens de normas NBR por inferência. |
 | `T4_IN09_CHECKLIST` | `F+T` | Evidência verificável de assinatura na checklist exata e consumo pelo predicado de produto já declarado. |
-| `T4_IN10_COMMISSIONING` | `F+T` | Decisão operacional do usuário: basta a equipe/profissional RT do comissionamento ser distinta da pessoa solicitante; faltam fatos estruturados e autenticados para identificar esses papéis, distinguir controle de fumaça mecânico e vincular DRT/assinatura ao relatório. |
+| `T4_IN10_COMMISSIONING` | `F+T` | Decisão operacional do usuário: basta a equipe/profissional RT que preparou o comissionamento ser distinta da pessoa solicitante. O escopo mecânico já está formalizado; faltam fato autenticado da identidade do autor do relatório, sua assinatura verificável ligada ao relatório exato e comparação com o solicitante. CPF/nome do responsável técnico no requerimento, sem vínculo factual com a autoria do relatório, não basta. |
 | `T4_IN12_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório SDAI e evidência verificável de assinatura. |
 | `T4_IN15_COMMISSIONING` | `T+F` | Consumir cobertura explícita DRT-produto-SMSCI-atividade do relatório sprinkler e evidência verificável de assinatura. |
 | `T4_IN18_CMAR` | `F+T` | Evidência verificável de assinatura na declaração CMAR e consumo pelo predicado já declarado; não criar RT-007 autônoma. |
-| `T4_IN19_FINAL_VERIFICATION` | `T+F` | Binding da DRT de verificação final ao serviço/atividade autorizados para RT-007; manter separado de checklist IN09 e sem criar associação por nome. |
 
 ### Decisão de fundamento IN10/IRV — resolvida pelo usuário
 
@@ -845,12 +845,12 @@ equipe/profissional RT que preparou o comissionamento ser distinta da pessoa
 solicitante. Esta é a decisão operacional do usuário para o sistema; não é
 redação literal da IRV. A decisão sobre a suficiência desse critério está
 encerrada. Permanecem ausentes fatos documentais estruturados e autenticados
-que identifiquem solicitante e RT autor do relatório, além de um fato que
-distinga controle de fumaça mecânico de outros casos de `SMSCI_SMOKE_CONTROL`.
-Até esses fatos existirem, não produzir resultado conclusivo, `FAIL` ou NC por
-inferência; manter revisão humana. Não generalizar esta regra para outros
-SMSCI. `NORMATIVE_INSTITUTIONAL_VALIDATION` da correlação continua
-separadamente `PENDING`.
+que identifiquem o solicitante e a pessoa autora do relatório, com assinatura
+verificável vinculada ao relatório exato. A applicability do controle de fumaça
+mecânico já está formalizada na Base e testada; não é mais blocker deste
+Criterion. Até existir evidência de autoria/assinatura e comparação, não
+produzir resultado conclusivo, `FAIL` ou NC por inferência; manter revisão
+humana. Não generalizar esta regra para outros SMSCI.
 
 ### Dependências compartilhadas e lotes prioritários
 
@@ -858,11 +858,11 @@ separadamente `PENDING`.
 |---|---|---|---|
 | 0 | Associação documental explícita exata DRT↔produto, com binding à apresentação/RDE | `T1_CONFORMITY_REPORT` | Concluído e publicado em `fc3fb760e5dc58a0fb9b381443d583c0938d2c99`; o ramo explícito pode produzir positivo com evidência única e rastreável. O Criterion continua parcial; associação inferida não é admitida sem calibração empírica válida. |
 | 1 | Mapeamento versionado dos status `REGISTERED` por conselho, tipo ART/RRT/TRT e campo | 2: `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED` | O vocabulário comum e a preservação literal estão formalizados; a regra-fonte da IRV descreve a condição, mas não define os mapas literais de cada conselho. Fontes oficiais consultadas mostram ciclos/status próprios. Não codificar equivalências sem mapa versionado autorizado; manter revisão humana. |
-| 2 | Consumidor de declarações RDE 0.7 para relações DRT-produto e cobertura explicitamente declarada, com endpoints exatos, multiplicidade e insuficiência | Potencial teórico até 7: `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` | `DRT_COVERS` consta como operador conceitual, mas não há executor/binding genérico. A RDE preserva declarações sem derivar cobertura. Não conferir compatibilidade atividade↔SMSCI para RT-005/006/014; o operador `DRT_COVERS` não pode ser aplicado a elas. Também faltam fatos de assinatura, datas ou conteúdo para vários produtos. A contagem de 7 é apenas alcance teórico, não ganho nem compromisso de implementação; um consumidor isolado não fecha esses Criteria. |
+| 2 | Consumidor de declarações RDE 0.7 para relações DRT-produto e cobertura explicitamente declarada, com endpoints exatos, multiplicidade e insuficiência | Potencial teórico até 5: `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` | `DRT_COVERS` consta como operador conceitual, mas não há executor/binding genérico para esses produtos. A RDE preserva declarações sem derivar cobertura. Não conferir compatibilidade atividade↔SMSCI para RT-005/006/014; o operador não pode ser aplicado a essas responsabilidades. Também faltam fatos de assinatura, datas ou conteúdo para vários produtos. O alcance é apenas potencial; um consumidor isolado não fecha esses Criteria. `T1_DRT_ACTIVITY_EXECUTION` e `T1_DRT_SMSCI_COVERAGE` já estão integralmente cobertos pela matriz vigente e foram excluídos desta pendência. |
 | 3 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 11: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR` | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
 | 4 | Comparandos tipados de pessoa jurídica, RT, endereço e área vinculados a processo/DRT/produto | 4: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA` | Fonte define comparações conservadoras; fatos do processo e relações exatas precisam existir. Bloquear resultado conclusivo se faltarem. |
 | 5 | Datas e itens de relatório estruturados com origem, associação ao produto e escopo de exaustividade | 2 principais: `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`; também requisitos de laudos/comissionamentos relacionados | Não inventar datas, conteúdo NBR ou presença de itens não extraídos. |
-| 6 | Fatos RDE autenticados de solicitante e RT autor do relatório, mais aplicabilidade mecânica | 1: `T4_IN10_COMMISSIONING` | A decisão operacional do usuário está registrada; não há atributos estruturados para provar os papéis/identidades nem distinguir controle mecânico. Manter revisão humana até formalizar e extrair esses fatos. |
+| 6 | Fatos RDE autenticados do solicitante e da identidade do autor do relatório, comparados com assinatura ligada ao relatório exato | 1: `T4_IN10_COMMISSIONING` | A decisão operacional do usuário está registrada e a applicability do modo mecânico já foi formalizada. Não há fato autenticado da autoria do relatório; o campo de RT no requerimento, isoladamente, não comprova quem preparou ou assinou o laudo. Manter revisão humana até existir essa evidência. |
 | 7 | Dataset rotulado, calibração por Base/tipo de vínculo e caller de produção autenticado | 1: associação inferida em `T1_CONFORMITY_REPORT` | `CALIBRATION_GATE=BLOCKED`; política 0,80 não autoriza admissão operacional sem calibração empírica. |
 
 ### Modelo de ameaça por fronteira efetiva
@@ -3713,6 +3713,29 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   preparatórios; não é aprovação de integração confiável ou promoção.
   `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`, cobertura
   `10/29`, parcial `1`, `CALIBRATION_GATE=BLOCKED`.
+
+### Reconciliação documental da matriz pendente — KB 5.34.0
+
+- A matriz resumida nesta seção misturava um snapshot antigo de 23 pendentes com
+  quatro Criteria que o inventário vigente já classifica como integrais:
+  `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`,
+  `T1_DRT_SMSCI_COVERAGE` e `T4_IN19_FINAL_VERIFICATION`. Removidos da lista
+  pendente; a matriz agora contém 19 IDs, conferidos contra o inventário por
+  Criterion.
+- Cobertura reconciliada: `34` ativos, `29` produtivos, `10` integrais,
+  `T1_CONFORMITY_REPORT` parcial, `T4_IN09_DRT` preparatório e `19` pendentes
+  de cobertura integral (incluindo o parcial e o preparatório); 5 não
+  selecionáveis e 2 retirados. Não houve mudança de código, Base, runtime ou
+  cobertura.
+- A applicability de controle de fumaça mecânico para IN10 já está formalizada
+  e testada. A pendência atual de `T4_IN10_COMMISSIONING` é a identidade
+  documental/autenticada de quem preparou o relatório e sua comparação com o
+  solicitante, com assinatura vinculada ao relatório exato. Os campos de RT no
+  formulário não provam, sozinhos, autoria do relatório.
+- Ganho funcional: `0` Criteria; blockers encerrados: `0`; novo blocker: `0`.
+  Benefício: planejamento e relatório de cobertura deixam de tratar Criteria
+  já cobertos como pendentes e refletem o blocker factual real de IN10.
+  `git diff --check` é o gate desta alteração documental.
 - Checkpoint documental `34f35d7c243282e29ef6d36e357099069607b8b1` e snapshot
   atual `447d47a072bb8ff7c25d5a64c9873a7da5e16636`: builds limpos de validação
   técnica `PASS`, 10 documentos, Base `5.34.0`, `SOURCE_COMMIT` exato em cada SHA.
