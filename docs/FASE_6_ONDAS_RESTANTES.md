@@ -3946,3 +3946,28 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   não se atribui parecer ao Sol 6.1. `PROMOTION=NOT_AUTHORIZED` permanece.
   O candidato funcional não mudou após a revisão; os commits seguintes são
   somente documentação.
+
+### Decisão sobre consumo de declaração de escopo em DRT_COVERS — 2026-10-21
+
+- Decisão expressa do responsável: **não consumir** `drt_scope_declaration_items`
+  como evidência suficiente para executar `DRT_COVERS`; manter revisão humana
+  até que exista contrato institucional aplicável.
+- A decisão impede admitir automaticamente a relação apenas porque a RDE
+  preserva uma declaração documental explícita DRT→produto. A coleção continua
+  FACT-ONLY e não se converte em cobertura, compatibilidade ou resultado
+  normativo. Nenhuma relação por semelhança pode ser criada.
+- `T4_IN09_DRT` e `T4_IN09_TEST_REPORT` permanecem sem cobertura integral;
+  a decisão não altera o caminho distinto já formalizado para
+  `T1_CONFORMITY_REPORT` nem revoga outros bindings expressamente autorizados.
+- Impacto mensurável: zero Criteria integrais adicionados; zero Criteria
+  retirados. O bloqueio institucional de admissão de `DRT_COVERS` fica
+  explicitamente resolvido como revisão humana obrigatória até contrato
+  institucional. O executor pode prosseguir em Criteria independentes.
+- Evidência de triagem econômica: inspeção independente identificou
+  `T4_IN09_CHECKLIST` como próximo candidato materializável em readiness, mas
+  sua assinatura é obrigatória e o contrato do Engine/08_execution_pipeline
+  exige perfil de admissão autenticado e binding ainda não integrados. Portanto
+  não foi promovido a cobertura; permanece `MANUAL_REVIEW` até a integração
+  completa de assinatura prevista na 6B.
+- Gates de documentação: `git diff --check` deve passar antes do checkpoint;
+  sem alteração de KB compilada, runtime ou cobertura.
