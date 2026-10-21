@@ -4208,6 +4208,26 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SOL_REVIEW=NOT_PERFORMED` para a aprovação final da Fase 6;
   `PROMOTION=NOT_AUTHORIZED`; nenhum processo real foi usado ou alterado.
 
+### Decisão do responsável — declarações de escopo DRT→produto (2026-10-21)
+
+- Decisão expressa: não consumir declaração explícita de escopo DRT→produto
+  como evidência para `DRT_COVERS`; manter a correspondência em revisão humana
+  até existir contrato institucional aplicável. Isso inclui não transformar
+  referências exatas a ART/RRT/TRT e produto, texto declaratório ou provenance
+  de `drt_scope_declaration_items` em resultado de cobertura por código.
+- Sem relação admitida pelo contrato vigente, preservar `MANUAL_REVIEW`; a
+  ausência de relação não prova ausência de DRT e não autoriza `FAIL` ou
+  Nonconformity. A regra também não autoriza comparar compatibilidade entre
+  atividade/serviço declarado e SMSCI para RT-005/006/014.
+- Escopo: bloqueia o ganho funcional dos Criteria que dependeriam desse
+  binding, incluindo os casos produtivos IN07, IN08, IN09, IN12 e IN15 que o
+  tracker classifica como dependentes de relação DRT-produto. Não altera
+  Requirement, Criterion, RDE FACT ONLY ou as associações factuais já
+  representadas sob seus contratos próprios. Cobertura integral permanece
+  `10/29`, um parcial, 19 pendentes; nenhum código foi alterado por esta
+  decisão. `HUMAN_DECISION_REQUIRED=0` para este ponto; permanecem as demais
+  dependências normativas/factuais já identificadas no inventário.
+
 ### Fase 6B — binding de recibos à identidade canônica — checkpoint técnico
 
 - Dependência compartilhada priorizada porque assinatura da DRT, assinatura de
