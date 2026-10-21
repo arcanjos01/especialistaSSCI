@@ -7,7 +7,7 @@
   const modulusProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_MODULUS_HEX';
   const exponentProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_EXPONENT_HEX';
   const contextKeys_ = [
-    'presentationIdentity', 'rdeIdentity', 'rdeDigest',
+    'currentSubmissionContext', 'rdeIdentity', 'rdeDigest',
     'sourceDocumentIdentity', 'sourceDocumentDigest'
   ];
   const payloadKeys_ = [
@@ -227,8 +227,14 @@
           !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$/.test(payload.createdAt) ||
           payload.verificationResult.verifier_version !== payload.verifierVersion ||
           !validInspection_(payload.verificationResult, payload.sourceDocumentDigest)) return false;
+      const presentationIdentity = global.getCanonicalPresentationIdentity(
+        expectedContext.currentSubmissionContext
+      );
+      if (!hasText_(presentationIdentity, 512) ||
+          payload.presentationIdentity !== presentationIdentity) return false;
       for (let index = 0; index < contextKeys_.length; index += 1) {
         const name = contextKeys_[index];
+        if (name === 'currentSubmissionContext') continue;
         const value = expectedContext[name];
         if (payload[name] !== value) return false;
         if (name === 'rdeDigest' || name === 'sourceDocumentDigest') {

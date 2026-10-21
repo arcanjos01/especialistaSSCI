@@ -7,13 +7,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const key = Buffer.alloc(32, 7).toString('base64url');
-const expectedContext = Object.freeze({
-  presentationIdentity: 'presentation-001',
+const expectedContext = {
   rdeIdentity: 'rde-001',
   rdeDigest: '1'.repeat(64),
   sourceDocumentIdentity: 'file-001',
   sourceDocumentDigest: '2'.repeat(64)
-});
+};
 const evidenceReferences = Object.freeze([Object.freeze({
   documentIdentity: 'file-001', documentDigest: '2'.repeat(64),
   locator: 'PDF page 1, signature field', description: 'Visible signature assessed by reviewer'
@@ -32,10 +31,37 @@ const context = {
   }
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(path.join(__dirname,
-  '../apps-script/HumanSignatureReviewCore.js'), 'utf8'), context);
+for (const relativePath of [
+  '../apps-script/CompiledRuntimeContract.js',
+  '../apps-script/EngineCore.js',
+  '../apps-script/RdeCore.js',
+  '../apps-script/ExecutionViewCore.js',
+  '../apps-script/CurrentSubmissionContextCore.js',
+  '../apps-script/HumanSignatureReviewCore.js'
+]) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
+}
 const inContext = value => vm.runInContext('JSON.parse(' + JSON.stringify(JSON.stringify(value)) + ')', context);
-const testContext = inContext(expectedContext);
+function makeReviewContext(submissionOverrides = {}) {
+  context.reviewBindingJson = JSON.stringify(expectedContext);
+  context.reviewSubmissionJson = JSON.stringify({
+    processId: 'TEST_PROCESS',
+    protocolIdentifier: 'TEST_PROTOCOL',
+    requestDate: '2026-10-20',
+    reIdentifier: 'TEST_RE',
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_INTAKE' },
+    ...submissionOverrides
+  });
+  return vm.runInContext(`(() => {
+    const binding = JSON.parse(reviewBindingJson);
+    const submission = JSON.parse(reviewSubmissionJson);
+    return Object.freeze({
+      ...binding,
+      currentSubmissionContext: createCurrentSubmissionContext(submission)
+    });
+  })()`, context);
+}
+const testContext = makeReviewContext();
 const testEvidence = inContext(evidenceReferences);
 
 const receipt = context.createHumanSignatureReviewReceipt_(testContext, inContext({
@@ -55,9 +81,20 @@ assert.throws(() => { receipt.payload.decision = 'NOT_CONFIRMED'; }, /read only|
 const changedPayload = JSON.parse(JSON.stringify(receipt));
 changedPayload.payload.decision = 'NOT_CONFIRMED';
 assert.equal(context.verifyHumanSignatureReviewReceipt_(inContext(changedPayload), testContext), false);
-assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, inContext({
-  ...expectedContext, presentationIdentity: 'presentation-002'
-})), false);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt,
+  makeReviewContext({ requestDate: '2026-10-21' })), false);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt,
+  makeReviewContext({ reIdentifier: 'OTHER_RE', processId: 'OTHER_PROCESS' })), true);
+context.reviewBindingJson = JSON.stringify({
+  ...expectedContext,
+  presentationIdentity: 'caller-supplied'
+});
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, vm.runInContext(`(() => {
+  const binding = JSON.parse(reviewBindingJson);
+  return Object.freeze({ ...binding,
+    currentSubmissionContext: createCurrentSubmissionContext(JSON.parse(reviewSubmissionJson)) });
+})()`, context)), false);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, makeReviewContext()), true);
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, inContext({
   ...expectedContext, sourceDocumentDigest: '3'.repeat(64)
 })), false);

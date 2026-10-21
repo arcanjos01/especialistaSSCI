@@ -47,8 +47,25 @@ const context = {
   }
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(path.join(__dirname,
-  '../apps-script/SignatureVerificationReceiptCore.js'), 'utf8'), context);
+for (const relativePath of [
+  '../apps-script/CompiledRuntimeContract.js',
+  '../apps-script/EngineCore.js',
+  '../apps-script/RdeCore.js',
+  '../apps-script/ExecutionViewCore.js',
+  '../apps-script/CurrentSubmissionContextCore.js',
+  '../apps-script/SignatureVerificationReceiptCore.js'
+]) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
+}
+context.currentSubmissionContextForVerification = vm.runInContext(
+  "createCurrentSubmissionContext({processId:'TEST_PROCESS',protocolIdentifier:'TEST_PROTOCOL'," +
+  "requestDate:'2026-10-20',reIdentifier:'TEST_RE'," +
+  "provenance:{sourceKind:'TEST_ONLY',sourceReference:'TEST_INTAKE'}})", context
+);
+const authenticatedPresentationContext = context.currentSubmissionContextForVerification;
+const canonicalPresentationIdentity = vm.runInContext(
+  'getCanonicalPresentationIdentity(currentSubmissionContextForVerification)', context
+);
 
 function canonicalJson(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -57,12 +74,16 @@ function canonicalJson(value) {
     JSON.stringify(key) + ':' + canonicalJson(value[key])).join(',') + '}';
 }
 
+const canonicalPayload = {
+  ...sourceFixture.payload,
+  presentationIdentity: canonicalPresentationIdentity
+};
 const rsaReceipt = {
-  payload: sourceFixture.payload,
+  payload: canonicalPayload,
   authentication: {
     keyId,
     algorithm: 'RSA_SHA256_PKCS1_V1_5',
-    signature: crypto.sign('RSA-SHA256', Buffer.from(canonicalJson(sourceFixture.payload), 'utf8'),
+    signature: crypto.sign('RSA-SHA256', Buffer.from(canonicalJson(canonicalPayload), 'utf8'),
       keyPair.privateKey).toString('base64')
   }
 };
@@ -82,20 +103,26 @@ function authenticatedReceipt(payload) {
 }
 const serializedReceipt = JSON.stringify(rsaReceipt);
 const expected = {
-  presentationIdentity: 'protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20',
   rdeIdentity: 'rde:TEST_RDE',
   rdeDigest: 'a'.repeat(64),
   sourceDocumentIdentity: 'drive-file:TEST_PDF',
   sourceDocumentDigest: '666040a51133be38e11fe560dc3a2f06a537cbf0eb0116870f2f1d16ee84f225'
 };
 
-function verify(receiptJson = serializedReceipt, binding = expected) {
+function verify(receiptJson = serializedReceipt, binding = expected,
+  currentContext = authenticatedPresentationContext) {
   context.receiptJson = receiptJson;
   context.expectedBindingJson = JSON.stringify(binding);
-  return vm.runInContext(
-    'verifySignatureVerificationReceipt_(JSON.parse(receiptJson), JSON.parse(expectedBindingJson))',
-    context
-  );
+  context.currentSubmissionContextForVerification = currentContext;
+  try {
+    return vm.runInContext(
+      'verifySignatureVerificationReceipt_(JSON.parse(receiptJson), Object.assign(' +
+        'JSON.parse(expectedBindingJson), { currentSubmissionContext: currentSubmissionContextForVerification }))',
+      context
+    );
+  } finally {
+    context.currentSubmissionContextForVerification = authenticatedPresentationContext;
+  }
 }
 
 function verifyMutated(mutationSource, binding = expected) {
@@ -105,7 +132,8 @@ function verifyMutated(mutationSource, binding = expected) {
   return vm.runInContext(
     '(function () { const receipt = JSON.parse(receiptJson); ' +
       '(' + context.mutationSource + ')(receipt); ' +
-      'return verifySignatureVerificationReceipt_(receipt, JSON.parse(expectedBindingJson)); })()',
+      'return verifySignatureVerificationReceipt_(receipt, Object.assign(' +
+      'JSON.parse(expectedBindingJson), { currentSubmissionContext: currentSubmissionContextForVerification })); })()',
     context
   );
 }
@@ -136,7 +164,6 @@ assert.equal(vm.runInContext(
 ), false);
 
 for (const [field, value] of [
-  ['presentationIdentity', 'other presentation'],
   ['rdeIdentity', 'other RDE'],
   ['rdeDigest', 'c'.repeat(64)],
   ['sourceDocumentIdentity', 'other document'],
@@ -145,6 +172,27 @@ for (const [field, value] of [
   const changed = { ...expected, [field]: value };
   assert.equal(verify(serializedReceipt, changed), false, field + ' replay must fail');
 }
+const differentPresentationContext = vm.runInContext(
+  "createCurrentSubmissionContext({processId:'TEST_PROCESS',protocolIdentifier:'TEST_PROTOCOL'," +
+  "requestDate:'2026-10-21',reIdentifier:'TEST_RE'," +
+  "provenance:{sourceKind:'TEST_ONLY',sourceReference:'TEST_INTAKE'}})", context
+);
+assert.equal(verify(serializedReceipt, expected, differentPresentationContext), false,
+  'receipt replay under another authenticated request date must fail');
+const samePresentationDifferentMetadataContext = vm.runInContext(
+  "createCurrentSubmissionContext({processId:'OTHER_PROCESS',protocolIdentifier:'TEST_PROTOCOL'," +
+  "requestDate:'2026-10-20',reIdentifier:'OTHER_RE'," +
+  "provenance:{sourceKind:'OTHER_TEST',sourceReference:'OTHER_INTAKE'}})", context
+);
+assert.equal(verify(serializedReceipt, expected, samePresentationDifferentMetadataContext), true,
+  'RE, process and intake metadata are not presentation identity components');
+const clonedPresentationContext = vm.runInContext(
+  'Object.freeze({ ...currentSubmissionContextForVerification })', context
+);
+assert.equal(verify(serializedReceipt, expected, clonedPresentationContext), false,
+  'an unbranded context clone must not establish presentation binding');
+assert.equal(verify(serializedReceipt, { ...expected, presentationIdentity: canonicalPresentationIdentity }), false,
+  'caller-supplied presentation identity must not be accepted as a binding field');
 
 const tampered = JSON.parse(serializedReceipt);
 tampered.payload.verificationResult.professional_identity = 'VERIFIED';

@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.39.0
+# DOCUMENT_VERSION: 4.40.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.38.0
+KNOWLEDGE_BASE_VERSION: 5.39.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -25,7 +25,7 @@ DOCUMENT_SET:
 04_table4.txt: DOCUMENT_VERSION 3.6.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
 06_reports.txt: DOCUMENT_VERSION 3.22.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.39.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.40.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -379,6 +379,15 @@ identity; `processId` and intake provenance are not identity components. Receipt
 and execution-binding consumers shall use this single canonical string. The
 RDE identity/digest and source-document identity/digest remain separate binding
 fields.
+
+Receipt verification APIs shall receive the exact authenticated
+`CurrentSubmissionContext` object alongside the other independent binding
+fields, and derive presentation identity internally with the canonical helper.
+They shall reject a caller-supplied `presentationIdentity` field; a free-form
+string is not an authenticated binding. Human signature review receipt creation
+and verification follow the same derivation. Such a receipt remains audit
+context only and does not establish cryptographic validity or authority to
+change an Engine result.
 
 Receipt authenticity shall be checked against a project-pinned verifier key;
 the receipt carries verifier key id, algorithm and signature over its

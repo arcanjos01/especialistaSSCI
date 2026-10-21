@@ -242,7 +242,7 @@ Signature #1:
   - Signature Validation: Signature is Valid.
 """
         context = {
-            "presentationIdentity": "protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20",
+            "presentationIdentity": "CBMSC_HABITESE_PRESENTATION_V1:[\"TEST_PROTOCOL\",\"2026-10-20\"]",
             "rdeIdentity": "rde:TEST_RDE",
             "rdeDigest": "a" * 64,
             "sourceDocumentIdentity": "drive-file:TEST_PDF",
@@ -456,7 +456,7 @@ Signature #2:
             self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["result"], "VALID")
             self.assertTrue(valid["signatures"][0]["coverage"]["full_document_current_revision"])
             context = {
-                "presentationIdentity": "protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20",
+                "presentationIdentity": "CBMSC_HABITESE_PRESENTATION_V1:[\"TEST_PROTOCOL\",\"2026-10-20\"]",
                 "rdeIdentity": "rde:TEST_RDE",
                 "rdeDigest": "a" * 64,
                 "sourceDocumentIdentity": "drive-file:TEST_SIGNED_PDF",

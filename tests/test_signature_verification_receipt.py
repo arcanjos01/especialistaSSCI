@@ -26,7 +26,7 @@ KEY_ID = "LOCAL_VERIFIER_KEY_V1"
 PDF = b"%PDF-1.7\nTEST_ONLY"
 PDF_DIGEST = hashlib.sha256(PDF).hexdigest()
 CONTEXT = {
-    "presentationIdentity": "protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20",
+    "presentationIdentity": "CBMSC_HABITESE_PRESENTATION_V1:[\"TEST_PROTOCOL\",\"2026-10-20\"]",
     "rdeIdentity": "rde:TEST_RDE",
     "rdeDigest": "a" * 64,
     "sourceDocumentIdentity": "drive-file:TEST_PDF",

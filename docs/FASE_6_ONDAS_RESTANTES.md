@@ -4207,3 +4207,30 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SIGNED` e não aumenta cobertura. Criteria integrais mantêm `10/29`.
   `SOL_REVIEW=NOT_PERFORMED` para a aprovação final da Fase 6;
   `PROMOTION=NOT_AUTHORIZED`; nenhum processo real foi usado ou alterado.
+
+### Fase 6B — binding de recibos à identidade canônica — em curso
+
+- Dependência compartilhada priorizada porque assinatura da DRT, assinatura de
+  relatórios e checklist IN 09 dependem do binding exato entre apresentação,
+  RDE e documento. Antes, os verificadores JavaScript aceitavam uma string
+  `presentationIdentity` do chamador, embora o contrato já exigisse identidade
+  derivada de `CurrentSubmissionContext` autenticado.
+- Alteração local: o verificador RSA de recibo técnico e o produtor/verificador
+  HMAC de revisão humana agora recebem o objeto autenticado e derivam a
+  identidade pelo helper canônico. Campo de identidade fornecido pelo chamador
+  é rejeitado. RDE, digest da RDE, documento, digest e autenticação permanecem
+  bindings independentes. Recibo humano continua audit-only, sem autoridade para
+  mudar resultado do Engine.
+- Testes focais atuais: PASS. Cobrem replay para outra data, rejeição de clone
+  não autenticado, recusa da string livre, aceitação do mesmo protocolo/data
+  apesar de mudanças em RE/processId/provenance e preservação das demais
+  verificações criptográficas/HMAC. Fixtures Python de emissão local usam a
+  forma canônica. A integração ainda não habilita `SIGNED`, não existe caller de
+  produção e não conclui binding de execução nem cobertura de Criterion.
+- Versionamento documental candidato: KB `5.39.0`, pipeline `4.40.0`; runtime
+regenerado. Testes Python direcionados de recibos, verificador, runtime e
+identidade: `86` executados, `79 PASS`, `7 SKIP` por dependências opcionais
+(as suítes de runtime/identidade isoladas passaram `46/46`).
+  Gates completos, build limpo, revisão independente e checkpoint ainda
+  pendentes. Criteria integrais permanecem `10/29`; benefício é remover a
+  identidade livre como dependência de futuros bindings de assinatura.

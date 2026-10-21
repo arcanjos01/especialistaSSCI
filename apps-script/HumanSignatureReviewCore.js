@@ -112,15 +112,22 @@
   }
 
   function createHumanSignatureReviewReceipt_(context, review) {
-    const contextKeys = ['presentationIdentity', 'rdeIdentity', 'rdeDigest',
+    const contextKeys = ['currentSubmissionContext', 'rdeIdentity', 'rdeDigest',
       'sourceDocumentIdentity', 'sourceDocumentDigest'];
     const reviewKeys = ['reviewMethod', 'methodDetails', 'evidenceReferences', 'decision'];
     if (!exactDataObject_(context, contextKeys) || !exactDataObject_(review, reviewKeys) ||
-        !contextKeys.every(key => hasText_(context[key], 512)) ||
+        !contextKeys.filter(key => key !== 'currentSubmissionContext')
+          .every(key => hasText_(context[key], 512)) ||
         !digest_(context.rdeDigest) || !digest_(context.sourceDocumentDigest) ||
         !['IN_DOCUMENT_VISUAL', 'DOCUMENT_METADATA', 'OTHER'].includes(review.reviewMethod) ||
         !hasText_(review.methodDetails, 2048) || !validateEvidenceReferences_(review.evidenceReferences) ||
         !['CONFIRMED_SIGNATURE_PRESENT', 'NOT_CONFIRMED', 'INCONCLUSIVE'].includes(review.decision)) {
+      throw new Error('invalid human signature review input');
+    }
+    const presentationIdentity = global.getCanonicalPresentationIdentity(
+      context.currentSubmissionContext
+    );
+    if (!hasText_(presentationIdentity, 512)) {
       throw new Error('invalid human signature review input');
     }
     const reviewer = authenticatedReviewer_();
@@ -132,7 +139,7 @@
     const payload = {
       schemaVersion: '1.0.0',
       receiptId: utilities.getUuid(),
-      presentationIdentity: context.presentationIdentity,
+      presentationIdentity,
       rdeIdentity: context.rdeIdentity,
       rdeDigest: context.rdeDigest,
       sourceDocumentIdentity: context.sourceDocumentIdentity,
@@ -160,13 +167,16 @@
       if (!exactDataObject_(receipt, expectedEnvelopeKeys_) ||
           !exactDataObject_(receipt.payload, expectedPayloadKeys_) ||
           !exactDataObject_(receipt.authentication, ['keyId', 'algorithm', 'signature']) ||
-          !exactDataObject_(expectedContext, ['presentationIdentity', 'rdeIdentity', 'rdeDigest',
+          !exactDataObject_(expectedContext, ['currentSubmissionContext', 'rdeIdentity', 'rdeDigest',
             'sourceDocumentIdentity', 'sourceDocumentDigest'])) return false;
       const payload = receipt.payload;
       const authentication = receipt.authentication;
       const key = receiptKey_();
+      const presentationIdentity = global.getCanonicalPresentationIdentity(
+        expectedContext.currentSubmissionContext
+      );
       if (!key || authentication.keyId !== key.keyId || authentication.algorithm !== 'HMAC_SHA256' ||
-          expectedContext.presentationIdentity !== payload.presentationIdentity ||
+          presentationIdentity !== payload.presentationIdentity ||
           expectedContext.rdeIdentity !== payload.rdeIdentity || expectedContext.rdeDigest !== payload.rdeDigest ||
           expectedContext.sourceDocumentIdentity !== payload.sourceDocumentIdentity ||
           expectedContext.sourceDocumentDigest !== payload.sourceDocumentDigest ||
