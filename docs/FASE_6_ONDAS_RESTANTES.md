@@ -4081,3 +4081,30 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   identidade autenticada da RDE preparatória para binding de recibos. Esforço
   aproximado total `35` minutos. A decisão do responsável segue sendo revisão
   humana para `DRT_COVERS` até contrato institucional.
+
+### Correção do finding HIGH — snapshot da RDE no status VALIDATED
+
+- Revisor independente examinou `b2bbccaf0c420f888f630921834232a9d15cd718`
+  contra `f4dffeb3bbdb3718b11b57f5e672fe1f996ba385` e encontrou que o ID era
+  lido novamente durante readiness, mas o processo não guardava o ID/digest
+  que haviam sido validados. Uma alteração do conteúdo no mesmo arquivo Drive
+  podia, portanto, ser aceita como novo par ID+digest. O finding foi classificado
+  HIGH e reproduzível. O revisor executou as duas suítes focais, 46 testes
+  Python de Base/runtime e verificações sintáticas; identidade de modelo/versão
+  não ficou verificável sob a seção 25.2, logo nenhum PASS independente é
+  atribuído.
+- Correção em curso: acrescentar `VALIDATED_RDE_FILE_ID` e
+  `VALIDATED_RDE_DIGEST` à registry; persistir ambos atomicamente com status
+  `VALIDATED`; carregar o snapshot no readiness; recusar ausência, outro ID ou
+  outro digest canônico antes de projetar a RDE. Acrescentar testes produtores
+  e consumidores, inclusive substituição do conteúdo sob o mesmo ID.
+- Gates dirigidos nesta correção: readiness e gravação do snapshot `PASS`;
+  testes Python de identidade/manifesto/runtime `46/46 PASS`. Gates completos,
+  release limpo e re-review do candidato corrigido ainda pendentes. Nenhuma
+  cobertura normativa ou admissão `SIGNED` foi habilitada. `10/29` Criteria
+  integrais, sem ganho neste lote.
+- Limite de migração: registry existente sem as novas colunas não é migrada nem
+  retroativamente considerada validada; o esquema estrito falha fechado e o
+  readiness rejeita qualquer linha sem snapshot. Nenhum dado de processo real
+  foi lido ou alterado. Um eventual upgrade de registry deverá ser planejado e
+  testado antes de qualquer implantação operacional.

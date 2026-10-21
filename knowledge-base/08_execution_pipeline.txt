@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.37.0
+# DOCUMENT_VERSION: 4.38.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.36.0
+KNOWLEDGE_BASE_VERSION: 5.37.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -25,7 +25,7 @@ DOCUMENT_SET:
 04_table4.txt: DOCUMENT_VERSION 3.6.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
 06_reports.txt: DOCUMENT_VERSION 3.22.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.37.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.38.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -343,13 +343,20 @@ resolve Applicability or execute Requirements/Criteria.
 content digest. In the current Google Drive pipeline it is the stable Drive
 file ID returned by the unique lookup of the versioned RDE file in the exact
 process/RDE folder. Do not derive it from `processId`, filename, content, or
-digest. The operational parser receives this identity from the trusted file
-lookup, validates it alongside the RDE bytes, and retains it only as private
-parser-authenticated metadata bound to that parsed RDE and digest; it is not an
-RDE field or documentary fact. Missing identity, a duplicate lookup, or a
-mismatch blocks signature-receipt binding. Future storage backends must supply
-their own exact stable artifact identity through the same authenticated
-boundary.
+digest. On successful RDE validation, the same registry update that records
+status `VALIDATED` shall persist `VALIDATED_RDE_FILE_ID` and
+`VALIDATED_RDE_DIGEST`, where the latter is the canonical digest produced by
+the operational parser for that validated RDE. Readiness shall compare the
+new unique Drive lookup's file ID to the stored ID, parse and validate the
+current bytes, and compare the parser-authenticated canonical digest to the
+stored validation digest before preparing execution. Missing validation
+snapshot, duplicate lookup, changed artifact identity or changed canonical
+content blocks signature-receipt binding. The parser retains the exact file
+identity and digest only as private metadata bound to that parsed RDE; neither
+is an RDE field or documentary fact. A prior registry row without this
+snapshot cannot be retroactively treated as validated for receipt binding.
+Future storage backends must persist and re-check an equivalent stable
+artifact identity and validation digest through the same boundary.
 
 Each verification receipt shall be a separate authenticated, immutable
 artifact bound to the exact presentation identity, RDE identity/digest,

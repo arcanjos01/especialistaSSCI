@@ -116,10 +116,20 @@ function currentSubmissionContext(requestDate = '2026-01-28') {
   };
 }
 
+function digestRdeFixture(content, rdeIdentity) {
+  const parsed = context.parseAndValidateOperationalRdeJson_(content, {
+    processId: processRecord.processId,
+    sourceFileId: processRecord.sourceFileId,
+    rdeIdentity,
+  }, context.COMPILED_RUNTIME_CONTRACT.entityCatalog);
+  return context.getValidatedRdeDigest_(parsed);
+}
+
 function makeAdapters({
   status = 'VALIDATED', content = JSON.stringify(rdeFixture()),
   rdeVersion = processRecord.rdeVersion,
-  rdeIdentity = processRecord.sourceFileId,
+  rdeIdentity = processRecord.validatedRdeFileId,
+  validatedRdeDigest = processRecord.validatedRdeDigest,
   envelope = true,
 } = {}) {
   const counts = {
@@ -140,7 +150,7 @@ function makeAdapters({
       readProcess(processId) {
         counts.processReads += 1;
         return processId === processRecord.processId
-          ? { ...processRecord, status, rdeVersion }
+          ? { ...processRecord, status, rdeVersion, validatedRdeDigest }
           : null;
       },
       readValidatedRde() {
@@ -156,6 +166,13 @@ function makeAdapters({
 }
 
 const fixtureContent = JSON.stringify(rdeFixture());
+const validatedFixtureRde = context.parseAndValidateOperationalRdeJson_(fixtureContent, {
+  processId: processRecord.processId,
+  sourceFileId: processRecord.sourceFileId,
+  rdeIdentity: 'TEST_ONLY_RDE_FILE',
+}, context.COMPILED_RUNTIME_CONTRACT.entityCatalog);
+processRecord.validatedRdeFileId = 'TEST_ONLY_RDE_FILE';
+processRecord.validatedRdeDigest = context.getValidatedRdeDigest_(validatedFixtureRde);
 const happyAdapters = makeAdapters({ content: fixtureContent });
 const prepared = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(), happyAdapters.adapters
@@ -215,7 +232,8 @@ in19Fixture.records.push({
 });
 const in19Prepared = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(),
-  makeAdapters({ content: JSON.stringify(in19Fixture) }).adapters
+  makeAdapters({ content: JSON.stringify(in19Fixture),
+    validatedRdeDigest: digestRdeFixture(JSON.stringify(in19Fixture), processRecord.validatedRdeFileId) }).adapters
 );
 for (const unitKey of [
   'UNIT_KEY (REQ_IN19_EXECUTION, T4_IN19_EXECUTION)',
@@ -242,7 +260,8 @@ pressurizationFixture.records.push({
 });
 const pressurizationPrepared = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(),
-  makeAdapters({ content: JSON.stringify(pressurizationFixture) }).adapters
+  makeAdapters({ content: JSON.stringify(pressurizationFixture),
+    validatedRdeDigest: digestRdeFixture(JSON.stringify(pressurizationFixture), processRecord.validatedRdeFileId) }).adapters
 );
 const pressurizationManualUnit = 'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
 assert.ok(pressurizationPrepared.coverage.plannedUnitKeys.includes(pressurizationManualUnit));
@@ -329,7 +348,9 @@ function readinessForSignedSystemProduct(officialEsciCode, productEntityId,
       }
     );
   }
-  const adapters = makeAdapters({ content: JSON.stringify(rde), rdeVersion: rde.schema_version });
+  const content = JSON.stringify(rde);
+  const adapters = makeAdapters({ content, rdeVersion: rde.schema_version,
+    validatedRdeDigest: digestRdeFixture(content, processRecord.validatedRdeFileId) });
   const result = api.prepareValidatedExecutionReadiness(
     processRecord.processId, currentSubmissionContext(), adapters.adapters
   );
@@ -402,7 +423,9 @@ legacyReadinessRde.records.push({
   },
   provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_IEL_ITEM' },
 });
-const legacyReadinessAdapters = makeAdapters({ content: JSON.stringify(legacyReadinessRde) });
+const legacyReadinessContent = JSON.stringify(legacyReadinessRde);
+const legacyReadinessAdapters = makeAdapters({ content: legacyReadinessContent,
+  validatedRdeDigest: digestRdeFixture(legacyReadinessContent, processRecord.validatedRdeFileId) });
 const legacyReadiness = api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext('2024-04-24'),
   legacyReadinessAdapters.adapters
@@ -471,6 +494,33 @@ const missingIdentityAdapters = makeAdapters({ envelope: false });
 assert.throws(() => api.prepareValidatedExecutionReadiness(
   processRecord.processId, currentSubmissionContext(), missingIdentityAdapters.adapters
 ), error => error && error.code === 'RDE_IDENTITY_MISSING');
+
+const missingSnapshotAdapters = makeAdapters();
+missingSnapshotAdapters.adapters.readProcess = () => ({
+  ...processRecord, validatedRdeDigest: ''
+});
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), missingSnapshotAdapters.adapters
+), error => error && error.code === 'RDE_VALIDATION_SNAPSHOT_MISSING');
+assert.equal(missingSnapshotAdapters.counts.rdeReads, 0);
+
+const substitutedRde = rdeFixture();
+substitutedRde.records[0].attributes.RE_IDENTIFIER = 'SUBSTITUTED_AFTER_VALIDATION';
+const substitutedContentAdapters = makeAdapters({
+  content: JSON.stringify(substitutedRde),
+  rdeIdentity: processRecord.validatedRdeFileId,
+  validatedRdeDigest: processRecord.validatedRdeDigest,
+});
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), substitutedContentAdapters.adapters
+), error => error && error.code === 'RDE_VALIDATED_DIGEST_MISMATCH');
+
+const substitutedFileAdapters = makeAdapters({
+  content: fixtureContent, rdeIdentity: 'REPLACEMENT_RDE_FILE'
+});
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), substitutedFileAdapters.adapters
+), error => error && error.code === 'RDE_IDENTITY_MISMATCH');
 
 const forgedEnvelopeAdapters = makeAdapters({
   envelope: true,
@@ -543,7 +593,8 @@ const appScriptCounters = { lock: 0, release: 0, writes: 0, sourceReads: 0, rdeI
 const appScriptRegistryRow = [
   processRecord.processId, processRecord.sourceFileId, 'TEST_ONLY.pdf',
   'application/pdf', 10, 'TEST_ONLY_SOURCE_URL', 'VALIDATED', new Date(0),
-  new Date(0), new Date(0), new Date(0), '0.5.0', '0.2.0', '',
+  new Date(0), new Date(0), new Date(0), '0.5.0', '0.2.0',
+  processRecord.validatedRdeFileId, processRecord.validatedRdeDigest, '',
 ];
 const appScriptSheet = {
   getLastRow() { return 2; },
@@ -554,12 +605,12 @@ const appScriptSheet = {
           'PROCESS_ID', 'SOURCE_FILE_ID', 'SOURCE_FILE_NAME', 'MIME_TYPE',
           'SIZE_BYTES', 'SOURCE_URL', 'STATUS', 'CREATED_AT', 'UPDATED_AT',
           'SOURCE_CREATED_AT', 'SOURCE_UPDATED_AT', 'ENGINE_VERSION',
-          'RDE_VERSION', 'ERROR',
+          'RDE_VERSION', 'VALIDATED_RDE_FILE_ID', 'VALIDATED_RDE_DIGEST', 'ERROR',
         ]];
         assert.equal(row, 2);
         assert.equal(column, 1);
         assert.equal(numRows, 1);
-        assert.equal(numColumns, 14);
+        assert.equal(numColumns, 16);
         return [appScriptRegistryRow];
       },
       setValue() { appScriptCounters.writes += 1; throw new Error('write forbidden'); },

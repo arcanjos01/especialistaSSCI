@@ -94,6 +94,8 @@ const REGISTRY_HEADERS = [
   'SOURCE_UPDATED_AT',
   'ENGINE_VERSION',
   'RDE_VERSION',
+  'VALIDATED_RDE_FILE_ID',
+  'VALIDATED_RDE_DIGEST',
   'ERROR'
 ];
 
@@ -1051,14 +1053,27 @@ function validateExtractedProcesses() {
 
         validateSourceHash_(rde.source.sha256, actualSourceHash);
 
-        // A validação terminou; atualiza status, data e limpa ERROR juntos.
-        const registryFields = row.slice(6, 14);
+        const validatedRdeFileId = rdeFile.getId();
+        const validatedRdeDigest = getValidatedRdeDigest_(rde);
+        if (typeof validatedRdeFileId !== 'string' || !validatedRdeFileId.trim() ||
+            typeof validatedRdeDigest !== 'string' ||
+            !/^[0-9a-f]{64}$/.test(validatedRdeDigest)) {
+          throw makeRdeValidationError_(
+            'RDE_VALIDATION_SNAPSHOT_INVALID',
+            'Identidade ou digest validado da RDE não pôde ser fixado.'
+          );
+        }
+
+        // Congela status, identidade e digest da RDE no mesmo registro.
+        const registryFields = row.slice(6, 16);
         registryFields[0] = PROCESS_STATUS.VALIDATED;
         registryFields[2] = new Date();
-        registryFields[7] = '';
+        registryFields[7] = validatedRdeFileId;
+        registryFields[8] = validatedRdeDigest;
+        registryFields[9] = '';
 
         sheet
-          .getRange(sheetRow, 7, 1, 8)
+          .getRange(sheetRow, 7, 1, 10)
           .setValues([registryFields]);
 
         processes.push({
@@ -1087,12 +1102,12 @@ function validateExtractedProcesses() {
 
         try {
           // Mantém EXTRACTED e as demais colunas; só registra erro e data.
-          const registryFields = row.slice(6, 14);
+          const registryFields = row.slice(6, 16);
           registryFields[2] = new Date();
-          registryFields[7] = code + ': ' + message;
+          registryFields[9] = code + ': ' + message;
 
           sheet
-            .getRange(sheetRow, 7, 1, 8)
+            .getRange(sheetRow, 7, 1, 10)
             .setValues([registryFields]);
         } catch (registryError) {
           errorRecord.message +=
@@ -1281,6 +1296,8 @@ function prepareValidatedProcessExecutionReadiness(
             sourceFileId: String(matches[0][1] || '').trim(),
             status: String(matches[0][6] || '').trim(),
             rdeVersion: String(matches[0][12] || '').trim(),
+            validatedRdeFileId: String(matches[0][13] || '').trim(),
+            validatedRdeDigest: String(matches[0][14] || '').trim(),
           };
         },
         readValidatedRde: function (processRecord) {

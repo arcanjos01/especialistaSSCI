@@ -339,6 +339,12 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
     readinessRequire_(typeof global.isSupportedRdeSchemaVersion_ === 'function' &&
       global.isSupportedRdeSchemaVersion_(processRecord.rdeVersion),
     'RDE_VERSION_MISMATCH', 'validated registry record has no supported RDE_VERSION');
+    readinessRequire_(typeof processRecord.validatedRdeFileId === 'string' &&
+      processRecord.validatedRdeFileId.trim() &&
+      typeof processRecord.validatedRdeDigest === 'string' &&
+      /^[0-9a-f]{64}$/.test(processRecord.validatedRdeDigest),
+    'RDE_VALIDATION_SNAPSHOT_MISSING',
+    'validated registry record has no exact RDE identity/digest snapshot');
 
     const rdeEnvelope = adapters.readValidatedRde(processRecord);
     if (typeof rdeEnvelope !== 'string') {
@@ -358,6 +364,8 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
       'RDE_MISSING', 'validated RDE content is missing');
     readinessRequire_(typeof rdeIdentity === 'string' && rdeIdentity.trim(),
       'RDE_IDENTITY_MISSING', 'validated RDE external identity is missing');
+    readinessRequire_(rdeIdentity === processRecord.validatedRdeFileId,
+      'RDE_IDENTITY_MISMATCH', 'stored RDE artifact identity differs from validation snapshot');
     let rde;
     try {
       rde = global.parseAndValidateOperationalRdeJson_(rdeContent, {
@@ -372,6 +380,9 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
     }
     readinessRequire_(global.getValidatedRdeIdentity_(rde) === rdeIdentity,
       'RDE_IDENTITY_MISMATCH', 'validated RDE external identity is not authenticated');
+    readinessRequire_(global.getValidatedRdeDigest_(rde) === processRecord.validatedRdeDigest,
+      'RDE_VALIDATED_DIGEST_MISMATCH',
+      'current RDE content differs from the digest fixed at validation');
 
     const contract = global.COMPILED_RUNTIME_CONTRACT;
     readinessRequire_(typeof global.isCanonicalCompiledRuntimeContract === 'function' &&
