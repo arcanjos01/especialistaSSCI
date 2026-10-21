@@ -844,15 +844,17 @@ function extractPendingProcessesFake() {
           sourceSha256: sourceSha256
         });
 
-        // Atualiza STATUS, UPDATED_AT e RDE_VERSION juntos, preservando
-        // as demais colunas do intervalo G:M e deixando ERROR intacto.
-        const registryFields = row.slice(6, 13);
+        // Atualiza STATUS, UPDATED_AT e RDE_VERSION juntos; limpa qualquer
+        // snapshot anterior porque uma nova EXTRACTION ainda não foi validada.
+        const registryFields = row.slice(6, 16);
         registryFields[0] = PROCESS_STATUS.EXTRACTED;
         registryFields[2] = new Date();
         registryFields[6] = RDE_SCHEMA_VERSION;
+        registryFields[7] = '';
+        registryFields[8] = '';
 
         sheet
-          .getRange(sheetRow, 7, 1, 7)
+          .getRange(sheetRow, 7, 1, 10)
           .setValues([registryFields]);
 
         processes.push({
@@ -877,12 +879,12 @@ function extractPendingProcessesFake() {
 
         try {
           // Mantém o status e todas as outras colunas como estavam.
-          const registryFields = row.slice(6, 14);
+          const registryFields = row.slice(6, 16);
           registryFields[2] = new Date();
-          registryFields[7] = message;
+          registryFields[9] = message;
 
           sheet
-            .getRange(sheetRow, 7, 1, 8)
+            .getRange(sheetRow, 7, 1, 10)
             .setValues([registryFields]);
         } catch (registryError) {
           errorRecord.message +=

@@ -4108,3 +4108,12 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   readiness rejeita qualquer linha sem snapshot. Nenhum dado de processo real
   foi lido ou alterado. Um eventual upgrade de registry deverá ser planejado e
   testado antes de qualquer implantação operacional.
+- A re-review de `ee9c71525445161b8bd3368d8f362569a549c3dd` encontrou outro
+  HIGH no ramo de erro de `extractPendingProcessesFake()`: o intervalo antigo
+  G:N direcionava a mensagem de erro à coluna de snapshot, não a `ERROR`. A
+  correção agora escreve o intervalo completo G:P, preserva snapshot/status no
+  erro e limpa campos antigos de identidade/digest quando EXTRACTION obtém
+  sucesso, antes de nova validação. A regressão força falha na leitura-fonte e
+  confirma que as colunas snapshot permanecem intactas e `ERROR` recebe a
+  mensagem. Testes focais de readiness e snapshot PASS; gates completos e
+  re-review dirigida deste segundo finding ainda pendentes.

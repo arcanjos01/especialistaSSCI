@@ -65,6 +65,7 @@ const registryRow = [
   new Date(0), 'TEST_ONLY_ENGINE', rdeVersion, '', '', '',
 ];
 let updateCount = 0;
+let failSourceRead = false;
 const sheet = {
   getName() { return 'PROCESSOS'; },
   getLastRow() { return 2; },
@@ -128,6 +129,7 @@ context.DriveApp = {
   getFolderById() { return processingRoot; },
   getFileById(id) {
     assert.equal(id, sourceFileId);
+    if (failSourceRead) throw new Error('TEST_ONLY_SOURCE_READ_FAILURE');
     return sourceFile;
   },
 };
@@ -145,5 +147,19 @@ const parsed = context.parseAndValidateOperationalRdeJson_(rdeContent, {
   sourceFileId,
 }, context.COMPILED_RUNTIME_CONTRACT.entityCatalog);
 assert.equal(registryRow[14], context.getValidatedRdeDigest_(parsed));
+
+registryRow[6] = 'EXTRACTION_PENDING';
+registryRow[13] = 'PRESERVE_SNAPSHOT_ID';
+registryRow[14] = 'b'.repeat(64);
+registryRow[15] = '';
+failSourceRead = true;
+const extractionFailure = context.extractPendingProcessesFake();
+assert.equal(extractionFailure.extracted, 0);
+assert.equal(extractionFailure.errors.length, 1);
+assert.equal(updateCount, 2);
+assert.equal(registryRow[6], 'EXTRACTION_PENDING');
+assert.equal(registryRow[13], 'PRESERVE_SNAPSHOT_ID');
+assert.equal(registryRow[14], 'b'.repeat(64));
+assert.match(registryRow[15], /TEST_ONLY_SOURCE_READ_FAILURE/);
 
 console.log('apps-script-rde-validation-snapshot: PASS');
