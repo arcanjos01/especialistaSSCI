@@ -3215,3 +3215,59 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   Cobertura permanece `10/29`, `1` parcial. Nenhuma amostra de processo real foi
   utilizada. Pesquisa read-only; revisões independentes `0`; `git diff --check`
   executado.
+
+### Fechamento dos findings de cadeia X.509 local — 2026-10-20
+
+- A revisão arquitetural independente completa do candidato
+  `1eff165d036ded8b75089daccf3a4a75f07b605c` identificou um finding HIGH:
+  `openssl cms -verify -CAfile` ainda podia completar a cadeia por
+  `SSL_CERT_DIR`/CApath ou CAstore do ambiente e rotular incorretamente o
+  resultado como validação contra o bundle fornecido. Finding LOW: o contrato
+  de recibo humano foi introduzido sem atualizar a versão da pipeline/Base.
+- Correção publicada no commit `7835fbaf3040ac862d9042b63854bdb9f6b982a6`:
+  o verificador elimina `SSL_CERT_FILE`/`SSL_CERT_DIR` do ambiente filho e
+  usa `-no-CApath` e `-no-CAstore` para desabilitar as outras fontes de
+  confiança; a versão do verificador passa a 1.3. Uma
+  fixture cria certificados de nomes distintos, reproduz o falso sucesso do
+  comando antigo com uma âncora ambiente e verifica que o comando isolado
+  retorna `NOT_VALIDATED_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE`. A confiança global
+  continua `UNKNOWN/NOT_EVALUATED`; não há consumidor do verificador no Engine.
+- Metadados sincronizados: Knowledge Base `5.33.0`, Pipeline `4.35.0`, Reports
+  `3.21.0`, runtime compilado regenerado. Nenhum Requirement, Criterion,
+  Nonconformity ou semântica normativa foi alterado.
+- Revisão inicial: `Codex/GPT-6`, sessão
+  `01a15bc5-1138-7472-bfdb-a71824150339`, examinou o candidato `1eff165` e
+  declarou FAIL com 1 HIGH e 1 LOW. Re-review dirigida: subagente executado
+  pela configuração `luna_economy` (modelo configurado `gpt-5.6-luna`), sessão
+  `01a15bcf-4cb0-74e3-a394-d8d93829d933`, examinou exatamente `7835fba`, rodou
+  a regressão adversarial (1/1 PASS), confirmou a resolução dos dois findings
+  e não reportou novo achado material. A resposta textual do subagente se
+  identificou como Codex/GPT-6, em conflito com a identidade/modelo da
+  configuração de execução; a identidade registrada aqui vem da configuração
+  de agente do orquestrador. A cadeia de revisão incluiu a revisão arquitetural
+  ampla do predecessor e re-review independente somente do delta material,
+  conforme AGENTS §25.2.
+- Sol Web não realizou a revisão final: a chamada do modelo
+  `chatgpt-web/gpt-5.6-sol` retornou `Selected model is at capacity`. Registrar
+  `SOL_REVIEW=PENDING_CAPACITY`; nenhuma aprovação Sol 6.1 foi declarada.
+- Gates do candidato `7835fba`: 181 testes Python PASS (integrações PDF
+  habilitadas); 10/10 suítes Apps Script PASS; `node --check` em módulos/testes
+  JavaScript e sintaxe `Code.gs` PASS; runtime byte-idêntico, SHA-256
+  `3353f7123003b62b8f1ba38189d56ab0eb06a25c0c8b429212e3bb8f48c582ae`;
+  teste de manifests/guards incluso na suíte Python PASS; `git diff --check`
+  PASS. Release build em worktree destacada limpa: 10 documentos,
+  `SOURCE_COMMIT=7835fba`, KB `5.33.0`, Pipeline `4.35.0`.
+- Métrica funcional: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`;
+  pendentes integrais `19 → 19`; blockers do verificador fechados `2` (HIGH e
+  LOW); novos findings materiais `0`. Esforço desta correção: uma regressão
+  adversarial de integração, gates completos e uma re-review dirigida. Benefício
+  verificável: um bundle PEM declarado deixa de receber crédito por uma CA
+  disponível apenas no ambiente da máquina. A POC continua preparatória e não
+  valida política PAdES, revogação, identidade profissional ou admissão no
+  Engine.
+- Estado: `INDEPENDENT_ARCH_REVIEW=PASS` limitado ao candidato e aos findings
+  corrigidos pela cadeia GPT-6 + re-review Luna descrita acima;
+  `ARCHITECTURAL_REVIEW=PENDING` para consolidação global da arquitetura,
+  `SOL_REVIEW=PENDING_CAPACITY`, `PROMOTION=NOT_AUTHORIZED`.
+  `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`. Cobertura permanece `10/29`.
