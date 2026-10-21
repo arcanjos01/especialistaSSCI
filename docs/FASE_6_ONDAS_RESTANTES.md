@@ -3806,3 +3806,16 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   incremental, sem antecipar integração operacional.
 - Permanecem `SOL_REVIEW=PENDING_IDENTITY`,
   `PROMOTION=NOT_AUTHORIZED`, `CALIBRATION_GATE=BLOCKED` e cobertura sem mudança.
+
+### Decisão do usuário sobre declaração de escopo DRT→produto — 2026-10-21
+
+- O usuário decidiu não consumir `drt_scope_declaration_items` como evidência
+  para `DRT_COVERS`. A revisão humana permanece obrigatória até que exista
+  contrato institucional explícito que autorize esse uso.
+- O contrato RDE permanece FACT-ONLY: a declaração continua registrando o que
+  consta no documento, sem ser convertida em `documentary_association`, vínculo
+  DRT-produto ou conclusão normativa. Não se infere incompatibilidade nem se
+  produz `FAIL`/Nonconformity pela ausência desse vínculo.
+- Nenhum código, Base ou runtime foi alterado; nenhum Criterion ganhou
+  cobertura. A decisão fecha a questão de escopo deste caminho sem alterar as
+  demais pendências de evidência ou a autoridade final do vistoriador.
