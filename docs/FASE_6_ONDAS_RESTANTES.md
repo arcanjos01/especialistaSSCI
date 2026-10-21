@@ -4115,5 +4115,32 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   erro e limpa campos antigos de identidade/digest quando EXTRACTION obtém
   sucesso, antes de nova validação. A regressão força falha na leitura-fonte e
   confirma que as colunas snapshot permanecem intactas e `ERROR` recebe a
-  mensagem. Testes focais de readiness e snapshot PASS; gates completos e
-  re-review dirigida deste segundo finding ainda pendentes.
+  mensagem. Testes focais de readiness e snapshot PASS.
+
+### Checkpoint corrigido do snapshot RDE — `2c617cead8fa2325bd31f752508022148775510a`
+
+- Push não-forçado concluído; HEAD local/remoto `2c617cead8fa2325bd31f752508022148775510a`.
+  `ARCHITECTURAL_REVIEW=PENDING`; promoção não autorizada.
+- Regressão dirigida cobre a gravação atômica do digest/ID no estado VALIDATED,
+  ausência de snapshot, troca de ID, alteração dos fatos no mesmo arquivo e
+  gravação do campo ERROR em falha de EXTRACTION sem corromper snapshots. Os
+  testes readiness e snapshot passaram.
+- Gates no commit: Python `199` executados, `194 PASS`, `5 SKIP` porque as
+  dependências opcionais pyHanko 0.38.0/cryptography não estão instaladas;
+  Apps Script `12/12 PASS`; sintaxe dos módulos/testes JavaScript e Code.gs
+  `PASS`; manifesto/guards `PASS`; regeneração byte-idêntica do runtime
+  `PASS`, SHA-256
+  `2304600f3c782f5b62b9d99bc539ea8207b984c7708697bda8d46887321cf44e`;
+  `git diff --check PASS`.
+- Build técnico em worktree limpa: `PASS`, dez documentos, KB `5.37.0`, pipeline
+  `4.38.0`, `SOURCE_COMMIT` exato `2c617cead8fa2325bd31f752508022148775510a`.
+- Findings HIGH do snapshot e ramo de erro foram corrigidos; ambos aguardam
+  re-review dirigida. O parecer que apontou o segundo finding se identificou
+  como Codex GPT-6, mas o papel/modelo apresentado pelo mecanismo de agentes é
+  Terra worker; identidade efetiva fica `PENDING_IDENTITY` e seu FAIL não é
+  tratado como gate final válido. A solicitação de re-review por Luna retornou
+  `agent thread limit reached`; `LUNA_REREVIEW=PENDING_CAPACITY`. Sol 6.1 não
+  revisou este checkpoint. Nenhuma aprovação independente ou Sol é presumida.
+- Criteria integrais `10/29 → 10/29`; nenhum resultado ou `SIGNED` foi
+  habilitado. A compatibilidade de registry legado exige migração planejada
+  antes de implantação; nenhum processo real foi usado ou alterado.
