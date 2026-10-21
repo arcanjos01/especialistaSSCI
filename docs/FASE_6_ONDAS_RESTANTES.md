@@ -4250,8 +4250,8 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   manifest/guards cobertos pela suíte Python; `git diff --check PASS`. Build
   limpo PASS, 10 documentos, KB `5.39.0`, pipeline `4.40.0`,
   `SOURCE_COMMIT=12db1d35ebe79aff4d0bcc35a55ffdb72bbdd0b5`.
-  Commits `ff262a2` e `12db1d3` publicados; documentação deste resultado será
-  registrada em commit próprio. Criteria integrais permanecem `10/29`, sem
+  Commits `ff262a2` e `12db1d3` publicados; resultado registrado neste tracker
+  no commit `930ac62`. Criteria integrais permanecem `10/29`, sem
   aumento. `FINDINGS_OPEN=0` neste lote; benefício verificável é que os dois
   validadores de recibo não aceitam mais identidade de apresentação fornecida
   livremente pelo chamador. `PROMOTION=NOT_AUTHORIZED`; `SIGNED` permanece
