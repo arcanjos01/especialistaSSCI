@@ -4000,3 +4000,20 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `PASS`. Nenhum gate amplo ou release foi repetido, pois não houve mudança de
   código/runtime. Benefício: evita ampliar a admissão de correspondência DRT→
   produto nem criar extração de relatório sem fonte factual tipada.
+
+### Gates completos em worktree limpa — `0846ec40168702b793dce3e816bc89193300f79c`
+
+- `BUILD_VALIDATION=PASS`; `SOURCE_COMMIT` confere exatamente com o HEAD
+  verificado. O release contém os dez documentos canônicos e
+  `KNOWLEDGE_BASE_VERSION=5.35.0`.
+- Python: `199` testes executados, `187 PASS` e `12 SKIP`; o processo terminou
+  `OK`. A suíte valida identidade do manifest 10/10 e inclui teste de
+  reconciliação dos guards da Phase 3A.
+- Apps Script: `11/11` suítes PASS. Sintaxe: todos os módulos JS e testes JS,
+  mais `apps-script/Code.gs`, PASS.
+- Runtime regenerado byte-idêntico; SHA-256:
+  `8f0fe81f733013991cf40aa47a97441a0d5081461b04a2f41cf4f24078f0d0d3`.
+  Worktree limpa após build/regeneração e `git diff --check` PASS.
+- Este gate confirma integridade técnica do HEAD documental atual; não altera
+  o candidato funcional `6720290`, a aprovação arquitetural, o estado Sol ou a
+  cobertura: integral `10/29`, parcial `1`, pendentes `19`.
