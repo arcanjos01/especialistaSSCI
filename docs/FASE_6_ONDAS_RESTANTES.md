@@ -3613,3 +3613,36 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   interoperabilidade de teste entre Python/Apps Script; sem admissão `SIGNED`.
   O revisor independente do lote declarou Codex/GPT-6 (Pauli), nunca Sol.
   `SOL_REVIEW=PENDING_IDENTITY`; re-review dirigida `PASS`; `PROMOTION=NOT_AUTHORIZED`.
+
+### Avaliação da fronteira criptográfica Apps Script e inventário documental — 2026-10-21
+
+- Consulta à documentação oficial Google: o Apps Script V8 não oferece os
+  WebCrypto `crypto`/`SubtleCrypto`; `Utilities` documenta digest, HMAC e
+  geração de assinatura RSA por chave privada (`computeRsaSha256Signature`),
+  mas não documenta uma operação de verificação RSA com chave pública. Isso
+  não permite validar nativamente uma assinatura assimétrica de recibo emitido
+  por um verificador local separado. Fontes: documentação do [runtime V8]
+  (https://developers.google.com/apps-script/guides/v8-runtime) e do
+  [serviço Utilities](https://developers.google.com/apps-script/reference/utilities/utilities).
+- Limite de execução observado: `tools/verify_pdf_signatures_local.py` invoca
+  `pdfsig`/OpenSSL por subprocesso, enquanto Apps Script não é runtime Node.js
+  nem expõe execução de processo local. Inferência técnica: esse POC não pode
+  ser chamado diretamente no GAS. Uma futura integração exige verificador
+  controlado pelo projeto com validação criptográfica independente reproduzível
+  no destino (p. ex., implementação JS compatível e revisada ou componente
+  próprio conectado por interface autenticada); não requer APIs de conselhos.
+  Nenhuma alternativa foi ligada ao Engine.
+- Reauditoria do inventário: `scanInputFolder()` em `apps-script/Code.gs`
+  percorre arquivos do diretório de entrada, mas cria um `PROCESS_ID` por
+  arquivo (`makeProcessId_(fileId)`). Isso não prova agrupamento exaustivo de
+  todos os documentos da mesma apresentação nem completude de EXTRACTION. O
+  código legado não serve como autoridade para `DOCUMENT_ABSENCE` ligado a
+  uma apresentação/RDE exatas. Portanto `T1_DRT_REQUIRED` mantém o positivo
+  quando a DRT RT-002 explícita existe e `MANUAL_REVIEW` quando a coleção está
+  vazia; não gerar `FALSE`/`NC_T1_001` até haver inventário autenticado e
+  completo da apresentação com estados de processamento/classificação.
+- Ganho neste diagnóstico: critérios integrais `10/29 → 10/29`; parcial `1 → 1`;
+  nenhum blocker funcional encerrado. O próximo lote de inventário só deve ser
+  codificado quando puder obter uma fonte de enumeração completa por
+  apresentação e vínculo autenticado ao RDE; um codec isolado não demonstraria
+  completude nem aumentaria cobertura.
