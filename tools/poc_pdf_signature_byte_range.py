@@ -73,14 +73,16 @@ def run(args: list[str], *, capture: bool = False) -> str:
     return completed.stdout or ""
 
 
-def build_fixture(directory: Path) -> tuple[Path, Path, Path]:
+def build_fixture(
+    directory: Path, *, common_name: str = "SSCI Local PDF Signature POC"
+) -> tuple[Path, Path, Path]:
     key = directory / "key.pem"
     cert = directory / "cert.pem"
     run(
         [
             "openssl", "req", "-x509", "-newkey", "rsa:2048", "-keyout", str(key),
             "-out", str(cert), "-days", "1", "-nodes", "-subj",
-            "/CN=SSCI Local PDF Signature POC",
+            "/CN=" + common_name,
         ]
     )
 

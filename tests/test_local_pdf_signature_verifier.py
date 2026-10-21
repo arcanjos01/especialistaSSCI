@@ -295,6 +295,76 @@ Signature #1:
             )
 
     @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
+    def test_chain_check_ignores_ambient_ca_directory_and_file(self):
+        if shutil.which("pdfsig") is None or shutil.which("openssl") is None:
+            self.skipTest("local pdfsig/openssl unavailable")
+        poc = load(POC, "pdf_signature_poc_ambient_trust")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            signer_dir = root / "ambient-signer"
+            bundle_dir = root / "supplied-bundle"
+            signer_dir.mkdir()
+            bundle_dir.mkdir()
+            signed, _, _ = poc.build_fixture(
+                signer_dir, common_name="Ambient Trust Regression Signer"
+            )
+            unrelated_signed, _, _ = poc.build_fixture(
+                bundle_dir, common_name="Unrelated Supplied Anchor"
+            )
+            signer_cert = signer_dir / "cert.pem"
+            supplied_bundle = bundle_dir / "cert.pem"
+            unrelated_signed.unlink()
+
+            ambient_ca_dir = root / "ambient-ca-directory"
+            ambient_ca_dir.mkdir()
+            ambient_cert = ambient_ca_dir / "ambient.pem"
+            ambient_cert.write_bytes(signer_cert.read_bytes())
+            rehash = subprocess.run(
+                ["openssl", "rehash", str(ambient_ca_dir)],
+                text=True, capture_output=True, check=False, timeout=30,
+            )
+            self.assertEqual(rehash.returncode, 0, rehash.stderr)
+
+            with patch.dict(os.environ, {
+                "SSL_CERT_DIR": str(ambient_ca_dir),
+                "SSL_CERT_FILE": str(supplied_bundle),
+            }, clear=False):
+                signed_bytes = signed.read_bytes()
+                report, _, dumps, _ = self.tool._run_pdfsig(signed, signed_bytes)
+                signature = self.tool.parse_pdfsig_output(report, len(signed_bytes))[0]
+                integrity = self.tool._cms_cross_check(
+                    signed_bytes, [signature], dumps
+                )[0]
+                self.assertEqual(integrity["result"], "VALID")
+
+                # Prove the fixture reproduces the former bug: the same CMS
+                # operation can chain through SSL_CERT_DIR when the isolation
+                # flags and cleaned environment are removed.
+                actual_run = subprocess.run
+
+                def run_with_ambient_trust(args, **kwargs):
+                    if args[:3] == ["openssl", "cms", "-verify"]:
+                        args = [arg for arg in args if arg not in ("-no-CApath", "-no-CAstore")]
+                        kwargs.pop("env", None)
+                    return actual_run(args, **kwargs)
+
+                with patch.object(self.tool.subprocess, "run", side_effect=run_with_ambient_trust):
+                    vulnerable = self.tool._verify_certificate_chain(
+                        root, signed_bytes, signature, dumps[0],
+                        supplied_bundle.read_bytes(), integrity,
+                    )
+                self.assertEqual(
+                    vulnerable["result"], "VALID_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE"
+                )
+
+                result = self.tool.inspect_pdf(signed, trust_anchor_bundle=supplied_bundle)
+
+            self.assertEqual(
+                result["signatures"][0]["certificate_chain_verification"]["result"],
+                "NOT_VALIDATED_TO_SUPPLIED_TRUST_ANCHOR_BUNDLE",
+            )
+
+    @unittest.skipUnless(os.environ.get("PDF_SIGNATURE_POC_INTEGRATION") == "1", "set PDF_SIGNATURE_POC_INTEGRATION=1")
     def test_adversarial_multiline_field_cannot_create_valid_signature_record(self):
         report = """Digital Signature Info of: x
 Signature #1:

@@ -24,7 +24,7 @@ from typing import Any
 
 
 SUPPORTED_PDF_SIG_VERSION = "24.02.0"
-VERIFIER_VERSION = "local-pdf-signature-verifier/1.2"
+VERIFIER_VERSION = "local-pdf-signature-verifier/1.3"
 _RANGE_RE = re.compile(r"\[(\d+)\s+-\s+(\d+)\]")
 _RANGES_LINE_RE = re.compile(r"\s*\[\d+\s+-\s+\d+\](?:\s*,\s*\[\d+\s+-\s+\d+\])*\s*")
 _VERSION_RE = re.compile(r"pdfsig version (\S+)")
@@ -289,11 +289,19 @@ def _verify_certificate_chain(
             data[start:end] for start, end in signature["signed_ranges"]
         ))
         anchors_path.write_bytes(trust_anchor_bundle)
+        # OpenSSL otherwise augments -CAfile with ambient default sources such
+        # as SSL_CERT_DIR / the system CA store. This result claims validation
+        # against the supplied bundle only, so those sources must be disabled.
+        openssl_env = os.environ.copy()
+        openssl_env.pop("SSL_CERT_FILE", None)
+        openssl_env.pop("SSL_CERT_DIR", None)
         checked = subprocess.run(
             ["openssl", "cms", "-verify", "-binary", "-verify_retcode",
+             "-no-CApath", "-no-CAstore",
              "-inform", "DER", "-in", cms_path.name, "-content",
              content_path.name, "-CAfile", anchors_path.name, "-out", os.devnull],
-            cwd=directory, text=True, capture_output=True, check=False, timeout=60,
+            cwd=directory, env=openssl_env, text=True, capture_output=True,
+            check=False, timeout=60,
         )
     except (OSError, PdfSignatureError, subprocess.TimeoutExpired):
         return {"result": "INCONCLUSIVE"}
