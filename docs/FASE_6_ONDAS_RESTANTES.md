@@ -4208,7 +4208,7 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SOL_REVIEW=NOT_PERFORMED` para a aprovação final da Fase 6;
   `PROMOTION=NOT_AUTHORIZED`; nenhum processo real foi usado ou alterado.
 
-### Fase 6B — binding de recibos à identidade canônica — em curso
+### Fase 6B — binding de recibos à identidade canônica — checkpoint técnico
 
 - Dependência compartilhada priorizada porque assinatura da DRT, assinatura de
   relatórios e checklist IN 09 dependem do binding exato entre apresentação,
@@ -4227,10 +4227,32 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   verificações criptográficas/HMAC. Fixtures Python de emissão local usam a
   forma canônica. A integração ainda não habilita `SIGNED`, não existe caller de
   produção e não conclui binding de execução nem cobertura de Criterion.
-- Versionamento documental candidato: KB `5.39.0`, pipeline `4.40.0`; runtime
-regenerado. Testes Python direcionados de recibos, verificador, runtime e
-identidade: `86` executados, `79 PASS`, `7 SKIP` por dependências opcionais
-(as suítes de runtime/identidade isoladas passaram `46/46`).
-  Gates completos, build limpo, revisão independente e checkpoint ainda
-  pendentes. Criteria integrais permanecem `10/29`; benefício é remover a
-  identidade livre como dependência de futuros bindings de assinatura.
+- Revisão integral independente do candidato `ff262a264ecf825f9665bab5ed79e6a2dce32d54`:
+  `INDEPENDENT_ARCH_REVIEW=PASS`, sem BLOCKER/HIGH/MEDIUM e com dois findings
+  LOW de teste/fixture. Revisora configurada `gpt-6.1-sol`/OpenAI, data
+  2026-10-21, sessão `01a16051-ad8d-7740-9c75-5cefde5bbde2`; examinou o diff
+  integral de 13 arquivos e contratos Engine, Pipeline, RDE e intake, além de
+  executar testes. Registrou expressamente que esta revisão não aprova a Fase 6
+  final ou promoção.
+- Correção somente nos testes/fixture em `12db1d35ebe79aff4d0bcc35a55ffdb72bbdd0b5`:
+  fixture agora contém identidade canônica e HMAC recalculado; teste deixa de
+  sobrescrever o campo; divergência de digest usa contexto autenticado válido;
+  regressões diretas rejeitam string livre e clone sem marca privada. Re-review
+  dirigida: ambos findings `CLOSED`, testes RSA/HMAC JS PASS e diff check PASS.
+  Modelo efetivo dessa execução não ficou exposto; configuração indicou
+  `gpt-6.1-sol`, sem atestação de roteamento. A revisão Sol final da Fase 6 não
+  foi realizada.
+- Gates completos no commit de correção: Python `199` executados (`187 PASS`,
+  `12 SKIP` por dependências opcionais); Apps Script `12/12 PASS`; sintaxe de
+  todos os módulos/testes JS e `apps-script/Code.gs` PASS; runtime regenerado
+  byte-idêntico, SHA-256
+  `43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`;
+  manifest/guards cobertos pela suíte Python; `git diff --check PASS`. Build
+  limpo PASS, 10 documentos, KB `5.39.0`, pipeline `4.40.0`,
+  `SOURCE_COMMIT=12db1d35ebe79aff4d0bcc35a55ffdb72bbdd0b5`.
+  Commits `ff262a2` e `12db1d3` publicados; documentação deste resultado será
+  registrada em commit próprio. Criteria integrais permanecem `10/29`, sem
+  aumento. `FINDINGS_OPEN=0` neste lote; benefício verificável é que os dois
+  validadores de recibo não aceitam mais identidade de apresentação fornecida
+  livremente pelo chamador. `PROMOTION=NOT_AUTHORIZED`; `SIGNED` permanece
+  `MANUAL_REVIEW`; nenhum processo real foi usado.
