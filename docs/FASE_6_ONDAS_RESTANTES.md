@@ -4381,3 +4381,44 @@ e versão identificados. Nenhum Criterion foi promovido por essa pesquisa.
 Fontes consultadas: [Confea — Anotação de Responsabilidade Técnica (ART)](https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art),
 [CAU/BR — Perguntas frequentes sobre RRT](https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/),
 [CFT — Manual de geração de TRT, versão 1.2 (2018)](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
+
+### Fase 6B — candidato schema 1.1.0 e proveniência dos executáveis — checkpoint `b1b38b6`
+
+```text
+BASELINE=ea14818
+CANDIDATE=b1b38b66b5111648422bdef89694982f068f52d5
+LUNA_REREVIEW=PASS
+REVIEWER_IDENTITY=gpt-5.6-luna (luna_economy; Codex agent runtime)
+REVIEW_EXECUTION=01a1607e-4661-7052-86f3-930df3fc7d31
+SOL_REVIEW=NOT_PERFORMED
+ARCHITECTURAL_REVIEW=PENDING
+PROMOTION=NOT_AUTHORIZED
+CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial; 19 pendentes)
+```
+
+O finding LOW anterior foi fechado: o recibo `1.1.0` separa o digest do módulo
+Python (`verifierSourceSha256`) dos digests SHA-256 dos executáveis `pdfsig` e
+OpenSSL. A POC executa caminhos absolutos resolvidos e interrompe se os bytes
+dos executáveis mudarem entre o início e o fim da inspeção. Python e Apps Script
+exigem os dois digests. Re-review independente Luna somente leitura cobriu o
+diff exato entre `e73282e` e `b1b38b6`, executou as duas suítes Python focais,
+a suíte Apps Script do recibo e `git diff --check`; nenhum finding novo foi
+identificado.
+
+Gates do candidato exato: Python `201` (`189 PASS`, `12 SKIP` opcionais); Apps
+Script `12/12 PASS`; `node --check` em todos módulos/testes JS e `Code.gs` PASS;
+`py_compile` dos módulos/testes alterados PASS; integração opt-in da POC com
+PDFs sintéticos `30/30 PASS`; runtime regenerado byte-identical, SHA-256
+`43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`; release
+build em worktree limpa PASS, 10 documentos, KB `5.39.0`,
+`SOURCE_COMMIT=b1b38b66b5111648422bdef89694982f068f52d5`; manifests/guards
+exercitados pela suíte Python; `git diff --check PASS`.
+
+Limites preservados: os hashes não cobrem bibliotecas dinâmicas, interpretador,
+sistema operacional ou identidade do operador. O recibo continua preparatório,
+sem caller de produção e sem admissão de `SIGNED`; nenhum Criterion ganhou
+cobertura. A revisão arquitetural final permanece pendente, assim como a
+clarificação do responsável sobre associações documentais explícitas em
+`T1_CONFORMITY_REPORT`. `CALIBRATION_GATE=BLOCKED`,
+`VALIDATED_TO_ANALYZED=PENDING` e
+`NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
