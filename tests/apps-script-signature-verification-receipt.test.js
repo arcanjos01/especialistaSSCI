@@ -50,11 +50,14 @@ function verify(receiptJson = serializedReceipt, binding = expected) {
   );
 }
 
-function verifyObject(receipt, binding = expected) {
-  context.directReceipt = receipt;
+function verifyMutated(mutationSource, binding = expected) {
+  context.receiptJson = serializedReceipt;
+  context.mutationSource = mutationSource;
   context.expectedBindingJson = JSON.stringify(binding);
   return vm.runInContext(
-    'verifySignatureVerificationReceipt_(directReceipt, JSON.parse(expectedBindingJson))',
+    '(function () { const receipt = JSON.parse(receiptJson); ' +
+      '(' + context.mutationSource + ')(receipt); ' +
+      'return verifySignatureVerificationReceipt_(receipt, JSON.parse(expectedBindingJson)); })()',
     context
   );
 }
@@ -94,21 +97,23 @@ Object.defineProperty(unsafe.payload.verificationResult.signatures[0], '__proto_
 });
 assert.equal(verify(JSON.stringify(unsafe)), false, 'unsafe nested property must fail');
 
-const inheritedMap = JSON.parse(serializedReceipt);
-inheritedMap.payload.verificationResult.signatures[0].integrity.result = 'FORGED';
-const forgedArrayPrototype = Object.create(Array.prototype);
-forgedArrayPrototype.map = () => [
-  '{"coverage":{"full_document_current_revision":true},"field":"Sig1","integrity":{"result":"VALID"}}'
-];
-Object.setPrototypeOf(inheritedMap.payload.verificationResult.signatures, forgedArrayPrototype);
-assert.equal(verifyObject(inheritedMap), false,
+assert.equal(verifyMutated('function (receipt) {}'), true,
+  'adversarial mutation helper must pass a valid same-realm fixture');
+assert.equal(verifyMutated(`function (receipt) {
+  receipt.payload.verificationResult.signatures[0].integrity.result = 'FORGED';
+  const forgedArrayPrototype = Object.create(Array.prototype);
+  forgedArrayPrototype.map = function () { return [
+    '{"coverage":{"full_document_current_revision":true},"field":"Sig1","integrity":{"result":"VALID"}}'
+  ]; };
+  Object.setPrototypeOf(receipt.payload.verificationResult.signatures, forgedArrayPrototype);
+}`), false,
   'custom array prototype must not control authenticated canonicalization');
 
-const nonEnumerable = JSON.parse(serializedReceipt);
-Object.defineProperty(nonEnumerable.payload.verificationResult.signatures[0], 'forged', {
-  value: true, enumerable: false
-});
-assert.equal(verifyObject(nonEnumerable), false,
+assert.equal(verifyMutated(`function (receipt) {
+  Object.defineProperty(receipt.payload.verificationResult.signatures[0], 'forged', {
+    value: true, enumerable: false
+  });
+}`), false,
   'non-enumerable data must not be omitted from authenticated canonicalization');
 
 const invalidTimestamp = JSON.parse(serializedReceipt);

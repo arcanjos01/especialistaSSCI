@@ -29,6 +29,11 @@ _KEY_LAST_CHARS = "AEIMQUYcgkosw048"
 _TIMESTAMP_RE = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$"
 )
+_JS_TRIM_CHARS = (
+    "\u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680"
+    "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007"
+    "\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
 _FORBIDDEN_KEYS = {"__proto__", "prototype", "constructor"}
 _CONTEXT_KEYS = {
     "presentationIdentity", "rdeIdentity", "rdeDigest", "sourceDocumentIdentity"
@@ -70,7 +75,8 @@ def _require_exact_keys(value: Any, expected: set[str], label: str) -> dict[str,
 def _require_text(value: Any, label: str, limit: int = 512) -> str:
     utf16_length = _utf16_length(value) if isinstance(value, str) else 0
     if (not isinstance(value, str) or not value or utf16_length > limit or
-            value.strip() != value or any(ord(char) < 0x20 for char in value)):
+            value[0] in _JS_TRIM_CHARS or value[-1] in _JS_TRIM_CHARS or
+            any(ord(char) < 0x20 for char in value)):
         raise SignatureReceiptError(f"{label} must be bounded non-empty text")
     return value
 

@@ -3569,12 +3569,28 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   limites de texto/timestamp divergentes entre Python e JS. Correções locais:
   canonicalização por índices e propriedades próprias (sem métodos herdáveis),
   rejeição de propriedades não enumeráveis, limite UTF-16 comum e timestamp UTC
-  estrito. Regressões Python/JS focais passam; re-review dirigida pendente.
-- Os gates completos anteriores a esses fixes passaram em `46e4cff`, mas não
-  valem como gates do candidato corrigido; executar novamente após consolidar.
+  estrito. Regressões Python/JS focais passam. Re-review dirigida do candidato
+  `b3bb8d6c633b4342599b4c2c57bf6c2a84005906` foi solicitada; resultado pendente.
+- A re-review dirigida de `b3bb8d6c633b4342599b4c2c57bf6c2a84005906` confirmou
+  que os exploits e divergências anteriores foram fechados, mas apontou um
+  residual MÉDIO: Python `strip()` e JavaScript `trim()` diferem para U+FEFF.
+  Também encontrou que os testes adversariais construíam objetos fora do realm
+  da VM, permitindo rejeição prematura. A correção alinha explicitamente o
+  conjunto de espaços ECMAScript no Python e recria mutações dentro do mesmo
+  realm; a suíte agora exige que a fixture válida passe pelo helper antes dos
+  ataques. Re-review dirigida final pendente.
+- Gates completos no candidato corrigido `b3bb8d6c633b4342599b4c2c57bf6c2a84005906`:
+  Python `197` (185 PASS, 12 SKIP); Apps Script `11/11 PASS`; `node --check` em
+  todos os módulos/testes JS e sintaxe de `Code.gs` PASS; runtime regenerado
+  byte-identical, SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`;
+  manifest/build PASS, dez documentos da Base `5.34.0`, build limpo com
+  `SOURCE_COMMIT=b3bb8d6c633b4342599b4c2c57bf6c2a84005906`; os testes de guards
+  presentes na suíte completa passaram; `git diff --check` PASS.
 - Critérios antes/depois: integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
   `19 → 19`; blockers de assinatura encerrados `0`; novo blocker técnico
   esclarecido: interoperabilidade exige envelope ainda sem canal/custódia de
   chave nem contexto autenticado. Benefício operacional demonstrado apenas na
   interoperabilidade de teste entre Python/Apps Script; sem admissão `SIGNED`.
-  `SOL_REVIEW=PENDING_IDENTITY`; `PROMOTION=NOT_AUTHORIZED`.
+  O revisor independente do lote declarou Codex/GPT-6 (Pauli), nunca Sol.
+  `SOL_REVIEW=PENDING_IDENTITY`; re-review `PENDING`; `PROMOTION=NOT_AUTHORIZED`.

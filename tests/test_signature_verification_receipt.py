@@ -164,6 +164,13 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
                 verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20 12:00:00Z",
             )
+        with self.assertRaises(SignatureReceiptError):
+            issue_signature_verification_receipt(
+                context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
+                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z",
+                receipt_id="\ufeffRECEIPT_TEST_001",
+            )
 
     def test_strict_json_rejects_duplicates_unsafe_keys_and_non_finite_values(self):
         for serialized in (
