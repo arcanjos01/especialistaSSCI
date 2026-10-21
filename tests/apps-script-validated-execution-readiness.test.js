@@ -254,7 +254,7 @@ assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
 assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)'
 ));
-assert.ok(prepared.coverage.unsupportedUnitKeys.includes(
+assert.ok(prepared.coverage.materializableUnitKeys.includes(
   'UNIT_KEY (REQ_IN08_ESTANQUEIDADE, T4_IN08_ESTANQUEIDADE)'
 ));
 assert.equal(happyAdapters.counts.locks, 1);
@@ -263,7 +263,8 @@ assert.equal(happyAdapters.counts.rdeReads, 1);
 assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.documentSourceReads, 0);
 
-function readinessForSignedSystemProduct(officialEsciCode, productEntityId, includeValidScopeDeclaration = false) {
+function readinessForSignedSystemProduct(officialEsciCode, productEntityId,
+  includeValidScopeDeclaration = false, smokeControlMode = null) {
   const rde = rdeFixture();
   rde.records.push({
     record_id: 'ITEM_SIGNED_SYSTEM',
@@ -273,6 +274,10 @@ function readinessForSignedSystemProduct(officialEsciCode, productEntityId, incl
       OFFICIAL_ESCI_CODE: officialEsciCode,
       PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY signed product system',
       RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page 3',
+      ...(smokeControlMode ? {
+        SMOKE_CONTROL_MODE: smokeControlMode,
+        SMOKE_CONTROL_MODE_SOURCE_TEXT: 'TEST_ONLY explicit smoke-control mode',
+      } : {}),
     },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SIGNED_SYSTEM' },
   });
@@ -335,6 +340,19 @@ for (const signedReadinessCase of [
     includeValidScopeDeclaration: true,
   },
   {
+    officialEsciCode: 'AI', productEntityId: 'SDAI_COMMISSIONING_REPORT',
+    unitKey: 'UNIT_KEY (REQ_IN12_COMMISSIONING, T4_IN12_COMMISSIONING)',
+  },
+  {
+    officialEsciCode: 'CF', productEntityId: 'SMOKE_CONTROL_COMMISSIONING_REPORT',
+    unitKey: 'UNIT_KEY (REQ_IN10_COMMISSIONING, T4_IN10_COMMISSIONING)',
+    smokeControlMode: 'MECHANICAL',
+  },
+  {
+    officialEsciCode: 'SPK', productEntityId: 'SPRINKLER_COMMISSIONING_REPORT',
+    unitKey: 'UNIT_KEY (REQ_IN15_COMMISSIONING, T4_IN15_COMMISSIONING)',
+  },
+  {
     officialEsciCode: 'SPDE', productEntityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
     unitKey: 'UNIT_KEY (REQ_IN09_CHECKLIST, T4_IN09_CHECKLIST)',
   },
@@ -345,24 +363,19 @@ for (const signedReadinessCase of [
 ]) {
   const { result, adapters } = readinessForSignedSystemProduct(
     signedReadinessCase.officialEsciCode, signedReadinessCase.productEntityId,
-    signedReadinessCase.includeValidScopeDeclaration === true
+    signedReadinessCase.includeValidScopeDeclaration === true,
+    signedReadinessCase.smokeControlMode || null
   );
   assert.equal(result.outcome, 'EXECUTION_COVERAGE_INCOMPLETE');
   assert.ok(result.coverage.plannedUnitKeys.includes(signedReadinessCase.unitKey));
   if (signedReadinessCase.officialEsciCode === 'SPDE') {
-    assert.ok(result.coverage.unsupportedUnitKeys.includes(
+    assert.ok(result.coverage.materializableUnitKeys.includes(
       'UNIT_KEY (REQ_IN09_TEST_REPORT, T4_IN09_TEST_REPORT)'
     ));
   }
-  if (signedReadinessCase.officialEsciCode === 'SHP') {
-    assert.ok(result.coverage.unsupportedUnitKeys.includes(signedReadinessCase.unitKey),
-      signedReadinessCase.includeValidScopeDeclaration
-        ? 'a valid scope declaration must not make DRT_COVERS executable'
-        : 'ALL must remain unsupported when a child predicate lacks an executor');
-    assert.ok(!result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
-  } else {
-    assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
-  }
+  assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey),
+    signedReadinessCase.unitKey + ' must be ready for manual review without DRT scope admission');
+  assert.ok(!result.coverage.unsupportedUnitKeys.includes(signedReadinessCase.unitKey));
   assert.equal(result.workflowStatus, 'VALIDATED');
   assert.equal(result.analysisPermitted, false);
   assert.equal(result.resultRecordsCreated, 0);

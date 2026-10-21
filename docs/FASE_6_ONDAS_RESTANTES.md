@@ -3830,11 +3830,12 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `KNOWLEDGE_BASE_VERSION=5.34.0`, `SOURCE_COMMIT` exato acima. A regeneração
   do runtime foi byte-idêntica; SHA-256:
   `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
-- A execução do Criterion T1_DRT_SMSCI_COVERAGE existente usa
-  `drt_scope_declaration_items` e pode retornar TRUE para declaração explícita
-  RT-003/SMSCI. Como a decisão recém-respondida se refere a `DRT_COVERS`, foi
-  solicitada confirmação se ela também retira essa cobertura específica. Até
-  a resposta, não alterar código nem a contagem vigente `10/29`.
+- A resposta do usuário foi à proposta específica de consumir
+  `drt_scope_declaration_items` como evidência do operador `DRT_COVERS`; esse
+  consumo permanece vedado até contrato institucional e encaminhado à revisão
+  humana. `T1_DRT_SMSCI_COVERAGE` é um Criterion/operador distinto coberto pela
+  decisão C anterior do usuário; essa decisão anterior permanece vigente e não
+  foi ampliada por analogia. A contagem `10/29` permanece reconciliada.
 - Ganho funcional: `0` Criteria; cobertura antes/depois `10/29 → 10/29`; blockers
   encerrados `0`; novo blocker técnico `0`; dependência de interpretação humana
   registrada. Esforço: gates completos do checkpoint, aproximadamente um minuto;
@@ -3861,3 +3862,42 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   Revisão independente do lote `PENDING_CAPACITY` (Luna indisponível por limite
   de threads); Sol 6.1 não foi executado. A mudança é teste-only, sem mudança
   arquitetural; permanece pendente de re-review em lote autorizado.
+
+### Gate humano provisório para DRT_COVERS — 2026-10-21
+
+- Decisão explícita do usuário: não consumir a declaração de escopo da RDE como
+  evidência para `DRT_COVERS`; manter conferência humana até contrato
+  institucional. `T1_DRT_SMSCI_COVERAGE` e a decisão C anterior permanecem fora
+  deste escopo específico.
+- Para não deixar os seis Criteria sem materialização da pendência, os Criteria
+  `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`,
+  `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING` e
+  `T4_IN15_COMMISSIONING` agora declaram `ASSERT MANUAL_REVIEW`. Isso encaminha
+  o Criterion inteiro à revisão humana: presença, data/validade, conteúdo,
+  autoria independente, relação DRT/produto/SMSCI e assinatura não recebem
+  conclusão automática neste caminho. As Nonconformities declaradas continuam
+  no contrato, mas `MANUAL_REVIEW` não as aciona. Nenhum fato de escopo da RDE é
+  lido como relação e nenhuma cobertura integral é atribuída.
+- Readiness foi exercitado para os seis caminhos, incluindo SDAI derivado de
+  AI e controle de fumaça mecânico derivado de CF. A declaração ART→relatório
+  SHP continua no fixture e não altera o resultado. Os 6 Criteria passam de
+  `MISSING_EVIDENCE_CONTRACT` sem execução a `PREPARATORY_MANUAL_REVIEW_ONLY`;
+  isso é ganho de encaminhamento operacional, não cobertura normativa integral.
+- Cobertura reconciliada: `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`, integral
+  `10/29 → 10/29`, parcial `1`, preparatório `1 → 7`, pendente integral `19`,
+  não selecionável `5`, retirado `2`. Requisitos de evidência e assinatura
+  continuam pendentes dentro dos seis Criteria preparatórios; não são blockers
+  resolvidos por este gate.
+- Gates locais no candidato ainda não commitado: Python `199/199 PASS` com
+  PyHanko e integrações opcionais habilitados; Apps Script `11/11 PASS`;
+  `node --check` em 25 arquivos JS e `apps-script/Code.gs` PASS; runtime
+  regenerado byte-idêntico, SHA-256
+  `8f0fe81f733013991cf40aa47a97441a0d5081461b04a2f41cf4f24078f0d0d3`.
+  Release build limpo e `git diff --check` ainda serão executados no commit
+  provisório exato.
+- Benefício demonstrado: cada um dos seis caminhos pode ser preparado para
+  encaminhamento ao vistoriador sem admitir automaticamente a relação. Esforço
+  aproximado: 25 minutos de implementação e validação; testes direcionados
+  `2/2 PASS`, gates completos `199 + 11`, revisão independente `PENDING` nesta
+  etapa e Sol 6.1 `PENDING_IDENTITY`. O commit, quando criado, permanece
+  `ARCHITECTURAL_REVIEW=PENDING` e `PROMOTION=NOT_AUTHORIZED`.

@@ -93,6 +93,46 @@ function readinessAssertSupported_(assertIr, contract, validatedProduct) {
   return true;
 }
 
+function readinessManualReviewSmsciGate_(unit, contract) {
+  const criteria = {
+    T4_IN07_COMMISSIONING: {
+      requirementId: 'REQ_IN07_COMMISSIONING',
+      unitKey: 'UNIT_KEY (REQ_IN07_COMMISSIONING, T4_IN07_COMMISSIONING)',
+      product: 'SHP_COMMISSIONING_REPORT', smsci: 'SMSCI_SHP', code: 'SHP'
+    },
+    T4_IN12_COMMISSIONING: {
+      requirementId: 'REQ_IN12_COMMISSIONING',
+      unitKey: 'UNIT_KEY (REQ_IN12_COMMISSIONING, T4_IN12_COMMISSIONING)',
+      product: 'SDAI_COMMISSIONING_REPORT', smsci: 'SMSCI_SDAI',
+      applicabilityTargetClass: 'DERIVED_INTERNAL_REQUIREMENT_SCOPE', code: null
+    },
+    T4_IN15_COMMISSIONING: {
+      requirementId: 'REQ_IN15_COMMISSIONING',
+      unitKey: 'UNIT_KEY (REQ_IN15_COMMISSIONING, T4_IN15_COMMISSIONING)',
+      product: 'SPRINKLER_COMMISSIONING_REPORT', smsci: 'SMSCI_SPRINKLER', code: 'SPK'
+    }
+  };
+  const spec = unit && criteria[unit.criterion && unit.criterion.id];
+  if (!spec || unit.requirement.id !== spec.requirementId || unit.unitKey !== spec.unitKey ||
+      unit.iterationSource !== null || !Array.isArray(unit.plannedBindings) ||
+      unit.plannedBindings.some(binding =>
+        !binding || Object.keys(binding).sort().join(',') !== 'target' ||
+        binding.target !== spec.smsci)) return false;
+  const smsci = contract && contract.entityCatalog && contract.entityCatalog[spec.smsci];
+  const metadata = contract && Array.isArray(contract.criteria)
+    ? contract.criteria.filter(item => item && item.criterionId === unit.criterion.id) : [];
+  if (!smsci || smsci.TYPE !== 'SMSCI' ||
+      smsci.APPLICABILITY_TARGET_CLASS !==
+        (spec.applicabilityTargetClass || 'OFFICIAL_ESCI_SCOPE') ||
+      (spec.code === null ? Object.prototype.hasOwnProperty.call(smsci, 'OFFICIAL_ESCI_CODE') :
+        smsci.OFFICIAL_ESCI_CODE !== spec.code) ||
+      metadata.length !== 1 || metadata[0].appliesTo !== spec.smsci ||
+      !Array.isArray(metadata[0].validate) || metadata[0].validate.length !== 0) return false;
+  const assertIr = metadata[0].assertIr;
+  return assertIr && assertIr.type === 'LITERAL' && assertIr.value === 'MANUAL_REVIEW' &&
+    Object.keys(assertIr).sort().join(',') === 'type,value';
+}
+
 function readinessPilotSupport_(unit, contract) {
   readinessRequire_(unit && typeof unit === 'object' && !Array.isArray(unit),
     'PLAN_INVALID', 'planned execution unit must be an object');
@@ -104,11 +144,13 @@ function readinessPilotSupport_(unit, contract) {
   'planned execution unit collections are invalid');
   const smsciCoverage = unit.criterion && unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE' &&
     unit.requirement && unit.requirement.id === 'REQ_T1_DRT_SMSCI';
+  const manualReviewSmsciGate = readinessManualReviewSmsciGate_(unit, contract);
   if ((!smsciCoverage && unit.iterationSource !== null) || !Array.isArray(unit.plannedBindings) ||
-      unit.plannedBindings.length !== 0 || !Array.isArray(unit.validate) ||
+      (unit.plannedBindings.length !== 0 && !smsciCoverage && !manualReviewSmsciGate) ||
+      !Array.isArray(unit.validate) ||
       !Array.isArray(unit.criterionValidate) ||
       unit.criterionValidate.length !== 0) {
-    if (!smsciCoverage) return false;
+    if (!smsciCoverage && !manualReviewSmsciGate) return false;
   }
   if (smsciCoverage) {
     readinessRequire_(unit.iterationSource === 'WORKLIST.SMSCI' &&

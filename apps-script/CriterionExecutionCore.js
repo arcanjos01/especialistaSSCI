@@ -236,10 +236,53 @@ function criterionExecutionProductReferences_(assertIr) {
   return references;
 }
 
-function criterionExecutionRequireProductValidationAnchor_(assertIr, technicalProduct) {
+function criterionExecutionManualReviewProductGate_(assertIr, technicalProduct,
+  requirementMetadata, metadata) {
+  const allowed = {
+    T4_IN07_COMMISSIONING: {
+      requirementId: 'REQ_IN07_COMMISSIONING',
+      product: 'SHP_COMMISSIONING_REPORT', smsci: 'SMSCI_SHP'
+    },
+    T4_IN08_ESTANQUEIDADE: {
+      requirementId: 'REQ_IN08_ESTANQUEIDADE',
+      product: 'GAS_TIGHTNESS_REPORT', smsci: 'SMSCI_GAS'
+    },
+    T4_IN09_TEST_REPORT: {
+      requirementId: 'REQ_IN09_TEST_REPORT',
+      product: 'PRESSURIZATION_TEST_REPORT', smsci: 'SMSCI_PRESSURIZATION'
+    },
+    T4_IN10_COMMISSIONING: {
+      requirementId: 'REQ_IN10_COMMISSIONING',
+      product: 'SMOKE_CONTROL_COMMISSIONING_REPORT', smsci: 'SMSCI_SMOKE_CONTROL_MECHANICAL'
+    },
+    T4_IN12_COMMISSIONING: {
+      requirementId: 'REQ_IN12_COMMISSIONING',
+      product: 'SDAI_COMMISSIONING_REPORT', smsci: 'SMSCI_SDAI'
+    },
+    T4_IN15_COMMISSIONING: {
+      requirementId: 'REQ_IN15_COMMISSIONING',
+      product: 'SPRINKLER_COMMISSIONING_REPORT', smsci: 'SMSCI_SPRINKLER'
+    }
+  };
+  const spec = metadata && allowed[metadata.criterionId];
+  return !!spec && metadata.requirementId === spec.requirementId &&
+    requirementMetadata.requirementId === spec.requirementId &&
+    metadata.appliesTo === spec.smsci && technicalProduct === spec.product &&
+    requirementMetadata.technicalProduct === spec.product &&
+    Array.isArray(requirementMetadata.evidenceAttributes) &&
+    requirementMetadata.evidenceAttributes.length === 1 &&
+    requirementMetadata.evidenceAttributes[0] === 'SIGNED' &&
+    assertIr && assertIr.type === 'LITERAL' && assertIr.value === 'MANUAL_REVIEW' &&
+    Object.keys(assertIr).sort().join(',') === 'type,value';
+}
+
+function criterionExecutionRequireProductValidationAnchor_(assertIr, technicalProduct,
+  requirementMetadata, metadata) {
   const references = criterionExecutionProductReferences_(assertIr);
-  criterionExecutionRequire_(references.length > 0 &&
-    references.every(reference => reference === technicalProduct),
+  criterionExecutionRequire_((references.length > 0 &&
+    references.every(reference => reference === technicalProduct)) ||
+    (references.length === 0 && criterionExecutionManualReviewProductGate_(assertIr,
+      technicalProduct, requirementMetadata, metadata)),
   'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE does not match ASSERT product references');
 }
 
@@ -632,7 +675,7 @@ function materializePlannedCriterion(contract, plan, unitKey, view) {
   );
   if (validation !== null && validation.binding.type === 'TECHNICAL_PRODUCT_ATTRIBUTE') {
     criterionExecutionRequireProductValidationAnchor_(
-      metadata.assertIr, validation.binding.technicalProduct
+      metadata.assertIr, validation.binding.technicalProduct, requirementMetadata, metadata
     );
   }
   const criterionFail = unit.nonconformityReferences &&
