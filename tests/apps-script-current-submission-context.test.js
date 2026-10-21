@@ -23,6 +23,7 @@ globalThis.api = {
   parseAndValidateOperationalRdeJson_,
   CurrentSubmissionContextContractError,
   createCurrentSubmissionContext,
+  getCanonicalPresentationIdentity,
   selectCurrentComprovante
 };`, context);
 const api = context.api;
@@ -116,6 +117,24 @@ mutableInput.protocolIdentifier = 'TEST_ONLY_MUTATED';
 mutableInput.provenance.sourceReference = 'TEST_ONLY_MUTATED';
 assert.equal(frozenContext.protocolIdentifier, protocol);
 assert.equal(frozenContext.provenance.sourceReference, 'TEST_ONLY_REF');
+const canonicalPresentation = api.getCanonicalPresentationIdentity(frozenContext);
+assert.equal(canonicalPresentation,
+  'CBMSC_HABITESE_PRESENTATION_V1:["TEST_ONLY_PROTOCOL","2026-01-28"]');
+assert.equal(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionContext({
+  ...mutableInput,
+  processId: 'OTHER_TECHNICAL_PROCESS',
+  protocolIdentifier: protocol,
+  reIdentifier: 'OTHER_RE',
+  provenance: { sourceKind: 'OTHER_INTAKE', sourceReference: 'OTHER_SOURCE' },
+})), canonicalPresentation);
+assert.notEqual(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionContext({
+  ...mutableInput,
+  requestDate: '2026-01-29',
+})), canonicalPresentation);
+assert.notEqual(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionContext({
+  ...mutableInput,
+  protocolIdentifier: 'OTHER_PROTOCOL',
+})), canonicalPresentation);
 
 for (const invalid of [
   { protocolIdentifier: undefined },

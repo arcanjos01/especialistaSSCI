@@ -37,6 +37,7 @@ const CURRENT_CONTEXT_ARRAY_INCLUDES_ = Array.prototype.includes;
 const CURRENT_CONTEXT_ARRAY_FOR_EACH_ = Array.prototype.forEach;
 const CURRENT_CONTEXT_ARRAY_PUSH_ = Array.prototype.push;
 const CURRENT_CONTEXT_STRING_TRIM_ = String.prototype.trim;
+const CURRENT_CONTEXT_JSON_STRINGIFY_ = JSON.stringify;
 const CURRENT_CONTEXT_DEFINE_ = Object.defineProperty;
 const CURRENT_CONTEXT_NATIVE_OBJECT_PROTOTYPE_NAMES_ = CURRENT_CONTEXT_FREEZE_(
   CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_ARRAY_SORT_, CURRENT_CONTEXT_GET_NAMES_(CURRENT_CONTEXT_OBJECT_PROTOTYPE_), [])
@@ -179,6 +180,14 @@ function getAuthenticatedPresentationIdentity(context) {
   return CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_WEAKMAP_GET_, CURRENT_SUBMISSION_CONTEXT_AUTH_, [context]);
 }
 
+/** Stable receipt identity for one presentation, independent of transport metadata. */
+function getCanonicalPresentationIdentity(context) {
+  const authenticated = getAuthenticatedPresentationIdentity(context);
+  const tuple = [authenticated.protocolIdentifier, authenticated.requestDate];
+  return 'CBMSC_HABITESE_PRESENTATION_V1:' +
+    CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_JSON_STRINGIFY_, JSON, [tuple]);
+}
+
 function currentSubmissionReferenceKey_(reference) {
   if (!(reference instanceof TypedReference)) return null;
   return JSON.stringify([reference.kind, reference.identifier]);
@@ -253,6 +262,9 @@ CURRENT_CONTEXT_DEFINE_(globalThis, 'authenticateCurrentSubmissionContext', {
 });
 CURRENT_CONTEXT_DEFINE_(globalThis, 'getAuthenticatedPresentationIdentity', {
   value: getAuthenticatedPresentationIdentity, enumerable: false, writable: false, configurable: false
+});
+CURRENT_CONTEXT_DEFINE_(globalThis, 'getCanonicalPresentationIdentity', {
+  value: getCanonicalPresentationIdentity, enumerable: false, writable: false, configurable: false
 });
 CURRENT_CONTEXT_DEFINE_(globalThis, 'selectCurrentComprovante', {
   value: selectCurrentComprovante, enumerable: false, writable: false, configurable: false

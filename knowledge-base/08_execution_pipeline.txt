@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.38.0
+# DOCUMENT_VERSION: 4.39.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.37.0
+KNOWLEDGE_BASE_VERSION: 5.38.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -25,7 +25,7 @@ DOCUMENT_SET:
 04_table4.txt: DOCUMENT_VERSION 3.6.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
 06_reports.txt: DOCUMENT_VERSION 3.22.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.38.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.39.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -366,6 +366,19 @@ integrity, cryptographic signature integrity, signer identity, certificate
 chain/trust and revocation status. An unavailable check is UNKNOWN, not
 positive or negative evidence. A cryptographically intact signature is not
 necessarily fully validated.
+
+The canonical exact presentation identity is derived from the authenticated
+`CurrentSubmissionContext` as the protocol identifier and canonical civil
+request date, in that order:
+`CBMSC_HABITESE_PRESENTATION_V1:` followed by the JSON serialization of the
+two-element array `[protocolIdentifier, requestDate]`. Preserve both values
+exactly as authenticated; do not normalize, case-fold or infer them. A
+different request date under the same protocol is a different presentation.
+`RE_IDENTIFIER` is only the declared consistency check and is not part of this
+identity; `processId` and intake provenance are not identity components. Receipt
+and execution-binding consumers shall use this single canonical string. The
+RDE identity/digest and source-document identity/digest remain separate binding
+fields.
 
 Receipt authenticity shall be checked against a project-pinned verifier key;
 the receipt carries verifier key id, algorithm and signature over its

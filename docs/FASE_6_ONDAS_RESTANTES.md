@@ -4159,6 +4159,27 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   abertos neste lote. `LUNA_FULL_REVIEW=PASS`; `SOL_REVIEW=NOT_PERFORMED`, pois
   a revisão final Sol é requisito da Fase 6 completa, ainda não deste checkpoint.
   `PROMOTION=NOT_AUTHORIZED`; não houve homologação institucional ou uso real.
+
+### Fase 6B — serialização canônica da identidade de apresentação — em curso
+
+- Contrato vigente já define seleção por `PROTOCOL_IDENTIFIER` e data civil da
+  solicitação; outra data sob o mesmo protocolo é outra apresentação. O helper
+  de autenticação devolvia esses campos dentro de um objeto incluindo também
+  metadata de intake, enquanto os contratos de recibo exigem uma string
+  canônica. Nenhuma serialização comum estava implementada.
+- Implementação local em curso deriva, apenas de `CurrentSubmissionContext`
+  autenticado, `CBMSC_HABITESE_PRESENTATION_V1:` + JSON da tupla ordenada
+  `[protocolIdentifier, requestDate]`. `RE_IDENTIFIER` permanece somente
+  consistência; `processId` e provenance são excluídos. O formato é
+  versionado, preserva valores literais e evita colisão por delimitadores.
+- Teste direcionado de `CurrentSubmissionContext`: PASS; prova estabilidade
+  apesar de mudanças de `processId`, `RE_IDENTIFIER` e provenance, e identidade
+  distinta para protocolo/data diferentes. O trabalho é preparatório: ainda não
+  foi conectado ao verificador/receipt binding do Engine, não altera resultado
+  `SIGNED` e não aumenta cobertura. Criteria integrais mantêm `10/29`.
+- O contrato 08, Base/runtime, inventário e tracker devem acompanhar a revisão
+  de versão `5.38.0`/pipeline `4.39.0`. Gates completos, build limpo, revisão
+  independente e publicação deste lote ainda pendentes.
 - Criteria integrais `10/29 → 10/29`; nenhum resultado ou `SIGNED` foi
   habilitado. A compatibilidade de registry legado exige migração planejada
   antes de implantação; nenhum processo real foi usado ou alterado.
