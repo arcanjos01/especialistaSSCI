@@ -4230,6 +4230,26 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   decisão. `HUMAN_DECISION_REQUIRED=0` para este ponto; permanecem as demais
   dependências normativas/factuais já identificadas no inventário.
 
+### Gates do checkpoint documental — `91d4e907` (2026-10-21)
+
+- Reconciliada a categoria preparatória nos resumos: 10 Criteria integrais,
+  1 parcial, 7 preparatórios e 11 sem suporte de execução; os 19 pendentes
+  incluem as três categorias sem cobertura integral. Os sete preparatórios
+  são `T4_IN09_DRT` e os Criteria IN07, IN08, IN09 test report, IN10, IN12 e
+  IN15 encaminhados à revisão humana. A classificação não aumenta cobertura.
+- Worktree limpa e detached no SHA exato `91d4e907259cb66d87b6471640d72194ad86b987`:
+  Python `199` (`187 PASS`, `12 SKIP` por dependências opcionais), Apps Script
+  `12/12 PASS`, sintaxe de todos os módulos/testes JS e `Code.gs` PASS;
+  manifest e guards exercitados pela suíte Python PASS; runtime regenerado
+  byte-idêntico, SHA-256
+  `43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`;
+  release build de validação PASS com 10 documentos, KB `5.39.0` e
+  `SOURCE_COMMIT` exato `91d4e907259cb66d87b6471640d72194ad86b987`;
+  `git diff --check PASS`.
+- Este checkpoint altera somente documentação. Ganho de Criteria integrais:
+  `0`; revisão independente neste lote: `0`; findings novos: `0`. O parecer
+  final da Fase 6 por Sol continua pendente; `PROMOTION=NOT_AUTHORIZED`.
+
 ### Fase 6B — binding de recibos à identidade canônica — checkpoint técnico
 
 - Dependência compartilhada priorizada porque assinatura da DRT, assinatura de
