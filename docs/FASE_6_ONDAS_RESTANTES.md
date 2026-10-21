@@ -4038,10 +4038,10 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Testes direcionados `node tests/apps-script-rde-core.test.js` e
   `node tests/apps-script-validated-execution-readiness.test.js`: `PASS`.
   Correção adicional: validação de identidade reutiliza a primitiva `trim`
-  capturada pelo parser. Gates completos, regeneração compilada, revisão
-  independente e build de worktree limpa ainda pendentes neste checkpoint.
-- Esforço aproximado: 20 minutos de inspeção, ajuste e testes dirigidos; duas
-  suítes focais executadas; revisão independente ainda não solicitada. Benefício
+  capturada pelo parser. Gates completos e build de worktree limpa passaram no
+  commitado checkpoint, conforme registro complementar abaixo.
+- Esforço aproximado: 35 minutos de inspeção, ajuste e validação; duas suítes
+  focais durante o desenvolvimento e os gates consolidados depois. Benefício
   operacional: a futura interface de recibo pode vincular-se ao arquivo RDE
   armazenado exato, sem confundir identidade de arquivo com igualdade de bytes.
   Este benefício é preparatório, sem ganho atual de cobertura.
@@ -4049,6 +4049,35 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   DRT→produto para executar `DRT_COVERS`; manter revisão humana até contrato
   institucional. O lote não altera essa semântica nem o caminho independente
   `DOCUMENTARY_ASSOCIATION` de `T1_CONFORMITY_REPORT`.
-- Candidato provisório: aguardando gates e revisão do lote. Até revisão
-  independente válida: `ARCHITECTURAL_REVIEW=PENDING`,
-  `PROMOTION=NOT_AUTHORIZED`; `SOL_REVIEW` não foi executado nesta etapa.
+- Candidato provisório: `b2bbccaf0c420f888f630921834232a9d15cd718`, publicado
+  na branch de desenvolvimento. Até revisão independente válida:
+  `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`; `SOL_REVIEW` não
+  foi executado nesta etapa.
+
+### Evidência do checkpoint de identidade RDE — `b2bbccaf0c420f888f630921834232a9d15cd718`
+
+- Push não-forçado concluído na `feature/apps-script-engine-core`; branch local
+  e remota apontam para o SHA acima. `.codex-local-evidence/` permanece fora do
+  Git. `git diff --check` PASS; nenhuma mudança versionada pendente.
+- Suíte Python: `199` testes descobertos, `194` passaram e `5` foram
+  corretamente ignorados porque pyHanko 0.38.0/cryptography opcionais não estão
+  instalados neste ambiente. Apps Script: `11/11` suítes PASS. Sintaxe de
+  módulos/testes JS e `Code.gs`: PASS. Manifesto e guards: PASS pela suíte e
+  pelo builder. Runtime regenerado byte-idêntico, SHA-256
+  `83ffa1e3f45b8d6b8f5091c000dd30ed5098cea1a590407f4574548b5bfe65bd`.
+- Build de validação em worktree limpa: `PASS`, exatamente 10 documentos,
+  `KNOWLEDGE_BASE_VERSION=5.36.0`, `08_execution_pipeline=4.37.0` e
+  `SOURCE_COMMIT=b2bbccaf0c420f888f630921834232a9d15cd718`. Esse artefato é
+  evidência técnica, sem promoção ou publicação operacional.
+- A primeira solicitação de revisão independente continha um prefixo SHA
+  digitado incorretamente pelo orquestrador; o revisor não examinou o candidato
+  e reportou o bloqueio de identidade. Foi enviada correção com SHA completo,
+  mas não houve parecer antes do timeout. Não há findings de revisão neste
+  lote, pois o diff não chegou a ser revisado. Estado:
+  `INDEPENDENT_ARCH_REVIEW=PENDING_RESPONSE`,
+  `ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=NOT_PERFORMED`,
+  `PROMOTION=NOT_AUTHORIZED`.
+- Ganho funcional: `0` Criteria (10/29 integrais mantidos); capacidade de
+  identidade autenticada da RDE preparatória para binding de recibos. Esforço
+  aproximado total `35` minutos. A decisão do responsável segue sendo revisão
+  humana para `DRT_COVERS` até contrato institucional.
