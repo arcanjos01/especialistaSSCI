@@ -3492,7 +3492,7 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   comparação atividade↔SMSCI; blocker mantido: binding documental RT-005 e
   cobertura da presença das DRTs. Nenhum novo requisito normativo introduzido.
 - Gates locais deste candidato: Python `187` testes (`175 PASS`, `12 SKIP`);
-  nove suítes Apps Script PASS; `node --check` em módulos e
+  dez suítes Apps Script PASS; `node --check` em módulos e
   testes JavaScript e `Code.gs` PASS; runtime compilado regenerado byte-idêntico
   com SHA-256
   `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`;
@@ -3502,6 +3502,13 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SOURCE_COMMIT=e066187fad57b585fa96e5ed44628b101527376b`; release com os dez
   documentos do manifest e Knowledge Base `5.34.0`. O build é técnico e não
   autoriza promoção.
-- Revisão independente deste lote ainda pendente. `SOL_REVIEW=PENDING_IDENTITY`
-  para a revisão arquitetural global. Este é checkpoint técnico candidato;
-  revisão independente do lote e promoção seguem pendentes.
+- Revisão focal read-only de Codex/GPT-6, execução
+  `01a15b47-e8c3-7110-9ff6-a8ab80fd8ac8`, no SHA exato
+  `e066187fad57b585fa96e5ed44628b101527376b` contra `3257366`: `PASS` técnico
+  limitado ao lote IN09. O revisor confirmou remoção dos validators, preservação
+  de RT-003/RT-005 e NC, ausência de binding inferido, resultado manual e
+  contagem sem inflação. Finding LOW único: contagem das suítes Apps Script
+  registrada como 9 em vez de 10; corrigido neste documento. Re-review dirigida
+  desse registro ainda pendente.
+- `SOL_REVIEW=PENDING_IDENTITY` permanece para a aprovação arquitetural global;
+  este parecer GPT-6 não é atribuído a Sol e não autoriza promoção.
