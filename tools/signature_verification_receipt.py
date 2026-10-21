@@ -112,9 +112,13 @@ def _validate_json_value(value: Any, depth: int = 0, nodes: list[int] | None = N
     nodes[0] += 1
     if depth > 32 or nodes[0] > 50_000:
         raise SignatureReceiptError("receipt payload exceeds structural limits")
-    if value is None or type(value) in (str, bool, int):
+    if value is None or type(value) in (str, bool):
         if isinstance(value, str) and len(value.encode("utf-8")) > 1_000_000:
             raise SignatureReceiptError("receipt contains oversized text")
+        return
+    if type(value) is int:
+        if abs(value) > 9_007_199_254_740_991:
+            raise SignatureReceiptError("receipt integer is not safely interoperable with JavaScript")
         return
     if type(value) is list:
         if len(value) > 10_000:
@@ -123,7 +127,9 @@ def _validate_json_value(value: Any, depth: int = 0, nodes: list[int] | None = N
             _validate_json_value(item, depth + 1, nodes)
         return
     if _is_plain_dict(value):
-        if len(value) > 256 or any(type(key) is not str for key in value):
+        if len(value) > 256 or any(
+            type(key) is not str or not key.isascii() for key in value
+        ):
             raise SignatureReceiptError("receipt contains an invalid object")
         for item in value.values():
             _validate_json_value(item, depth + 1, nodes)

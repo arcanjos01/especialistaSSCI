@@ -139,6 +139,17 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
             )
 
+    def test_issue_rejects_json_values_without_python_javascript_canonical_parity(self):
+        for field, value in (("unsafeInteger", 9_007_199_254_740_992), ("á", "value")):
+            unsafe = inspection()
+            unsafe["signatures"][0][field] = value
+            with self.subTest(field=field), self.assertRaises(SignatureReceiptError):
+                issue_signature_verification_receipt(
+                    context=CONTEXT, inspection=unsafe, pdf_bytes=PDF,
+                    verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                    key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
+                )
+
     def test_strict_json_rejects_duplicates_unsafe_keys_and_non_finite_values(self):
         for serialized in (
             '{"payload":{},"payload":{},"authentication":{}}',

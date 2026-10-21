@@ -3539,7 +3539,9 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   mesmo envelope no runtime, usando key/key ID fixados em Script Properties e
   canonicalização interoperável. Fixture HMAC foi emitida pelo Python e
   validada pelo teste Node, cobrindo binding de apresentação/RDE/documento,
-  adulteração de resultado, key ID desconhecido e prototype pollution.
+  adulteração de resultado, key ID desconhecido e prototype pollution. A
+  emissão Python rejeita inteiros fora do intervalo seguro JavaScript e chaves
+  JSON não ASCII para evitar divergência de canonicalização entre runtimes.
 - Limite explícito: este lote não verifica PDF nem cadeia de certificados; não
   define âncoras, revogação ou perfil institucional; não fornece ao Engine um
   binding autenticado ao plano/view, nem registro anti-replay persistente, nem
@@ -3553,7 +3555,7 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SIGNED` nem cobertura nova; o Engine e Criteria permanecem `MANUAL_REVIEW`
   quando a comprovação não é suficiente. `CRITERIA_COVERED=10/29`, parcial 1,
   pendentes integrais 19; ganho de Criterion `0`.
-- Testes direcionados do lote: codec Python `7/7 PASS`; suíte do verificador
+- Testes direcionados do lote: codec Python `8/8 PASS`; suíte do verificador
   local `29` casos (22 PASS, 7 SKIP no modo padrão); integração opcional com PDF
   sintético assinado, executada separadamente com
   `PDF_SIGNATURE_POC_INTEGRATION=1`: PASS; interoperabilidade HMAC Apps Script:
