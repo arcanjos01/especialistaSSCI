@@ -3362,10 +3362,9 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   assinante; revisões independentes `0`, pois não houve mudança no repositório
   de código/contrato. Benefício: prova que uma política estrita local consegue
   encaminhar falta de CRL e revogação como não confiáveis sem presumir status.
-- Próxima etapa técnica: transformar a matriz em fixture de regressão opcional
-  e definir o perfil de trust/tempo que o verificador pode receber sem buscar
-  validação externa. Até a aprovação desse perfil e do contrato de recibo,
-  `SIGNED` permanece sem admissão automática no Engine.
+- A matriz foi transformada em fixture de regressão opcional no lote abaixo.
+  Definir perfil CBMSC de confiança/tempo e contrato de recibo continua pendente;
+  até isso ocorrer, `SIGNED` permanece sem admissão automática no Engine.
 
 ### Ferramenta POC local pyHanko e regressões opcionais — 2026-10-20
 
@@ -3387,16 +3386,28 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   Apps Script `10/10`; sintaxe JS/testes e `Code.gs`; 62 testes de contratos,
   identidade e guards; runtime byte-idêntico com SHA-256
   `3353f7123003b62b8f1ba38189d56ab0eb06a25c0c8b429212e3bb8f48c582ae`;
-  `git diff --check` PASS. Build limpo e revisão independente deste candidato
-  ainda pendentes neste registro.
+  `git diff --check` PASS. Build de validação em worktree destacada limpa do
+  commit exato `784357e1aed191581b7216666c8bd447efbc6c2b`: 10 documentos,
+  KB `5.33.0`, Pipeline `4.35.0`; `BUILD_VALIDATION=PASS`.
+- Revisão independente read-only do candidato exato `784357e1`, diff
+  `cbbc3037..784357e`, concluída pelo agente `01a15be1-c933-71b0-8073-2440f5e75bf7`,
+  role `luna_economy`, modelo efetivo `gpt-5.6-luna`. A resposta inicial se
+  identificou imprecisamente como GPT-5; o agente esclareceu que a identidade
+  efetiva era `gpt-5.6-luna`. Executou pessoalmente 5/5 testes focados; não
+  encontrou findings BLOCKER/HIGH/MEDIUM. Considerou o PASS limitado ao spike
+  isolado e registrou que não há binding autenticado a apresentação/RDE,
+  verificação institucional de identidade, política de frescor CRL ou
+  autorização operacional. Essa revisão não é Sol nem aprovação da arquitetura
+  global.
 - Limites deliberados da POC: limites experimentais de entrada de 50 MiB e 20
   assinaturas não são política operacional aprovada; parser PDF ainda exige
   isolamento de processo/recursos. Perfil CBMSC, identidade profissional,
   temporalidade/frescor de CRL, cadeia institucional e recibo permanecem
   indefinidos. Nenhuma assinatura foi testada além das fixtures sintéticas.
 - Métrica: Criteria integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
-  `19 → 19`; blockers funcionais encerrados `0`; novos findings independentes
-  aguardam revisão Luna. Benefício operacional ainda preparatório: a matriz de
+  `19 → 19`; blockers funcionais encerrados `0`; findings materiais abertos
+  nesta revisão `0`. Benefício operacional ainda preparatório: a matriz de
   integridade, confiança, revogação e cobertura fica reproduzível com material
   local, sem endpoints de conselhos ou validação. Revisões independentes desta
-  implementação `0` até o ciclo registrado no próximo checkpoint.
+  implementação `1` (Luna), sem re-review necessária; Sol 6.1 da arquitetura
+  global permanece pendente.
