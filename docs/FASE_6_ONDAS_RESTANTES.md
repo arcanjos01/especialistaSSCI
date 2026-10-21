@@ -3971,3 +3971,32 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   completa de assinatura prevista na 6B.
 - Gates de documentação: `git diff --check` deve passar antes do checkpoint;
   sem alteração de KB compilada, runtime ou cobertura.
+
+### Reauditoria de caminho funcional independente — 2026-10-21
+
+- HEAD auditado: `1a369fb06821465fc20a87a0386dcc358c281787`; branch local e
+  remota coincidentes; `.codex-local-evidence/` segue local e fora do Git.
+- A inspeção da matriz dos 19 Criteria pendentes não encontrou outra conclusão
+  integral imediata independente da decisão DRT→produto. Os 11 consumidores de
+  `SIGNED` compartilham a ausência de perfil de admissão autenticado e binding
+  de recibo integrado; os dois Criteria `REGISTERED` dependem de mapeamentos
+  literais ART/RRT/TRT não formalizados; os quatro comparandos de dados básicos
+  não existem tipados na RDE; e os Criteria de comissionamento/laudo continuam
+  dependentes de DRT-produto ou evidências específicas.
+- Para `T4_IN09_TEST_REPORT`, `IN09_ART122_REQUIRED_ITEMS` é apenas uma entidade
+  `SET`, sem fatos itemizados do laudo. A regra está em `MANUAL_REVIEW`; criar
+  executor ou enum sem um contrato de extração factual introduziria
+  classificação normativa não demonstrada. Nenhuma camada foi adicionada.
+- Revalidação do efeito da associação documental: o Engine ainda retorna
+  `TRUE/PASS` para uma associação única, explícita e rastreada entre o DRT e o
+  `CONFORMITY_REPORT` exato. `tests/apps-script-documentary-correlation.test.js`
+  cobre esse comportamento e passou no HEAD atual. A decisão do responsável de
+  manter correspondência DRT→produto em revisão humana aguarda esclarecimento
+  sobre se abrange também esse contrato `DOCUMENTARY_ASSOCIATION`; nenhum código
+  ou indicador de cobertura foi alterado enquanto essa decisão estiver aberta.
+- Resultado desta reauditoria: Criteria integrais `10/29 → 10/29`, parcial `1`,
+  pendentes integrais `19`; novo blocker fechado `0`. Testes direcionados
+  `apps-script-pilot-criterion` e `apps-script-documentary-correlation`:
+  `PASS`. Nenhum gate amplo ou release foi repetido, pois não houve mudança de
+  código/runtime. Benefício: evita ampliar a admissão de correspondência DRT→
+  produto nem criar extração de relatório sem fonte factual tipada.
