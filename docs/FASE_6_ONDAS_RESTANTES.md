@@ -3777,3 +3777,32 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `e0ff314792e0ff4c9d4a547482f43092deb4a455` permanecem aplicáveis: 197 testes
   Python (12 SKIP), 11 suítes Apps Script, sintaxe/runtime/diff PASS. A alteração
   posterior `34f35d7` é documental, sem delta de código/runtime.
+
+### Revalidação integral do POC local de assinatura — 2026-10-21
+
+- Candidato de código: `e9297c299ea53dbb033b75d564a336f9151b8f80`; HEAD
+  documental testado: `297f51b97680125f3a2bd6b2a0ecd27c23b5c829`. Os commits
+  intermediários alteraram somente documentação; o runtime e os testes de código
+  são os mesmos do candidato RSA.
+- Suíte Python completa com `PDF_SIGNATURE_POC_INTEGRATION=1`, interpretador
+  isolado `/tmp/ssci-pyhanko-eval/bin/python` (PyHanko 0.38.0): `199/199 PASS`,
+  sem skips. Executaram-se também os cinco testes opcionais de confiança/CRL/
+  revogação via PyHanko e os testes de integração PDF/OpenSSL/Poppler, todos
+  PASS. Nenhuma dependência foi instalada no repositório.
+- As 11 suítes Apps Script, `node --check` em módulos e testes JavaScript,
+  sintaxe de `Code.gs` e `git diff --check`: PASS. O runtime não foi alterado
+  desde `e9297c2`; sua regeneração byte-identical e SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`
+  constam dos gates daquele candidato.
+- A POC distingue assinatura CMS íntegra de confiança e revogação, exige
+  âncora/CRL locais explícitos, desabilita busca externa e mantém `admission` não
+  decidido. A revisão incremental não assinada permanece fora da cobertura do
+  PDF corrente; nenhum resultado habilita `SIGNED` no Engine.
+- Critérios integrais `10/29 → 10/29`; parcial `1 → 1`; pendentes `19 → 19`;
+  blockers funcionais encerrados `0`; novos blockers `0`. Esforço: uma execução
+  completa com dependências opcionais ativas e uma revisão dirigida dos skips;
+  revisões independentes novas `0`, sem alteração de código/contrato. Benefício:
+  evidência local reprodutível de integridade, confiança, revogação e cobertura
+  incremental, sem antecipar integração operacional.
+- Permanecem `SOL_REVIEW=PENDING_IDENTITY`,
+  `PROMOTION=NOT_AUTHORIZED`, `CALIBRATION_GATE=BLOCKED` e cobertura sem mudança.
