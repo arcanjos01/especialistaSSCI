@@ -976,7 +976,7 @@ Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
 EXTRACTION, o quantitativo vigente é: 34 ativos, 29 produtivos, 10 cobertos,
-1 parcial, 1 preparatório e 19 pendentes de cobertura integral.
+1 parcial, 7 preparatórios e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até
 a KB 5.39.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
@@ -1006,7 +1006,8 @@ parcial e o preparatório como pendentes de cobertura integral. Há 11 Criteria 
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
 para 2; a decisão C agora reconhece os Criteria cujas rotas completas
 consistem em TRUE para evidência explícita e MANUAL_REVIEW quando completude não
-pode ser provada. Na matriz vigente, são 10 Criteria integrais, 1 parcial e 1 preparatório. A
+pode ser provada. Na matriz vigente, são 10 Criteria integrais, 1 parcial e 7
+preparatórios. A
 formalização RDE 0.4.0 não aumentou a cobertura no checkpoint em que foi
 aprovada; esse número é histórico e não representa o total atual. Os 11 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
@@ -1120,8 +1121,8 @@ Fase 6 permanece pendente.
 | Produtivos | 29 | selecionáveis para execução |
 | Cobertos integralmente | 10 | executor, facts/binding, resultado, trace, readiness e testes completos |
 | Parciais | 1 | `T1_CONFORMITY_REPORT` |
-| Preparatórios | 1 | `T4_IN09_DRT`, somente encaminhamento à revisão humana |
-| Pendentes de cobertura integral | 19 | 17 sem suporte de execução + 1 preparatório + 1 parcial |
+| Preparatórios | 7 | `T4_IN09_DRT` e seis Criteria com encaminhamento preparatório à revisão humana |
+| Pendentes de cobertura integral | 19 | 11 sem suporte de execução + 7 preparatórios + 1 parcial |
 | Não selecionáveis | 5 | quatro M5 e um regime legado UNRESOLVED |
 | Retirados | 2 | regularidade profissional T1/T4 |
 

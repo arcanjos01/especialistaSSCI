@@ -14,15 +14,17 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Atualização corrente em 2026-10-21: branch local e remoto sincronizados em
-  `816f2ec29fd4c4f62687dff4bea1153847784176`; worktree rastreada limpa e
-  `.codex-local-evidence/` preservado, local e não rastreado. KB `5.34.0`, RDE
+  `aecd37c1c0191828000c9c3ea0ba47b37737968e`; worktree rastreada limpa e
+  `.codex-local-evidence/` preservado, local e não rastreado. KB `5.39.0`, RDE
   `0.7.0`, runtime SHA-256
-  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
+  `43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`.
   Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 1 parcial,
-  1 preparatório e 19 pendentes de cobertura integral; 5 não selecionáveis e 2
-  retirados. Fase 6A `COMPLETE`; 6B `IN_PROGRESS`. Build técnico limpo do
-  mesmo HEAD: `PASS`, 10 documentos, `SOURCE_COMMIT` exato
-  `26e881c54c3034d7c892c3dc0d1912698d42c8b7`; a saída não é promoção.
+  7 preparatórios e 19 pendentes de cobertura integral (11 sem suporte de
+  execução + 7 preparatórios + 1 parcial); 5 não selecionáveis e 2 retirados.
+  Fase 6A `COMPLETE`; 6B `IN_PROGRESS`. O build técnico limpo anterior foi
+  executado em `12db1d35ebe79aff4d0bcc35a55ffdb72bbdd0b5`; os commits seguintes
+  `2c178e8` e `aecd37c` alteraram somente documentação. Não declarar build do
+  HEAD atual sem reexecutá-lo; build não é promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -69,7 +71,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 1 parcial (T1_CONFORMITY_REPORT), 1 preparatório (T4_IN09_DRT), 19 pendentes de cobertura integral` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 1 parcial (T1_CONFORMITY_REPORT), 7 preparatórios, 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -123,7 +125,7 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 `PROMOTION=NOT_AUTHORIZED`
 `FASE_6A_STATUS=COMPLETE`
 `FASE_6B_STATUS=IN_PROGRESS`
-`CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=1; CRITERIA_PREPARATORY=1; CRITERIA_PENDING=19`
+`CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=1; CRITERIA_PREPARATORY=7; CRITERIA_PENDING=19`
 `FASE_6_STATUS=IN_PROGRESS`
 
 ## Reconciliação e ciclo Onda B atual
@@ -809,11 +811,11 @@ Fonte original desta análise em 2026-10-16: HEAD remoto
 `1b1503266abca949a25d37231fcddc3b8198208b` mais o lote local então não
 commitado de autenticação do `evaluateCriterion`; esses dados são históricos.
 O parágrafo de contagem acima era um snapshot histórico da KB `5.25.0`.
-Reconciliação vigente pela KB `5.34.0` e por
+Reconciliação vigente pela KB `5.39.0` e por
 `docs/FASE_6_INVENTARIO_COBERTURA.md`: 34 Criteria ativos, 29 produtivos,
-10 integrais, 1 parcial (`T1_CONFORMITY_REPORT`), 1 preparatório
-(`T4_IN09_DRT`) e 19 ainda sem cobertura integral (inclui parcial e
-preparatório); 5 não selecionáveis e 2 retirados. A lista abaixo contém
+10 integrais, 1 parcial (`T1_CONFORMITY_REPORT`), 7 preparatórios e 19 ainda
+sem cobertura integral (11 sem suporte, 7 preparatórios e 1 parcial); 5 não
+selecionáveis e 2 retirados. A lista abaixo contém
 somente os 19 que ainda não estão integralmente cobertos. Caminho positivo ou
 preservação de insuficiência, isoladamente, não equivale a cobertura integral:
 cada Criterion deve cumprir seu contrato de resultado, trace/readiness e
