@@ -3686,6 +3686,33 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Revisões independentes deste delta ainda pendentes. Status permanece
   `ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=PENDING_IDENTITY`,
   `PROMOTION=NOT_AUTHORIZED`, `CALIBRATION_GATE=BLOCKED`, cobertura `10/29`.
+
+### Checkpoint e revisão dirigida do lote RSA
+
+- Commit técnico publicado por fast-forward na branch de desenvolvimento:
+  `e9297c299ea53dbb033b75d564a336f9151b8f80`. O commit contém apenas o módulo
+  Apps Script, emissor Python, testes e este acompanhamento; `.codex-local-evidence/`
+  continuou local e não rastreado.
+- Build técnico em worktree detached limpa do SHA exato: `PASS`; 10 documentos,
+  Knowledge Base `5.34.0`, `SOURCE_COMMIT=e9297c299ea53dbb033b75d564a336f9151b8f80`.
+  Não é autorização de produção.
+- Integração sintética adicional: PDF assinado localmente via POC, `pdfsig` e
+  OpenSSL; wrapper emitiu recibo RSA; CMS integrity `VALID`, enquanto trust e
+  revocation permaneceram `UNKNOWN/NOT_EVALUATED`. Chave efêmera de teste; nenhum
+  documento institucional usado. Também passaram duas integrações existentes
+  de fixture sintética (`test_local_fixture_integration` e verificação contra
+  trust anchor fornecido).
+- Revisão independente somente leitura: Luna (`luna_economy`, `gpt-5.6-luna`,
+  execução `01a15be1-c933-71b0-8073-2440f5e75bf7`) examinou o diff exato
+  `dd6dd1a2..e9297c2`; `PASS` no escopo preparatório, nenhum finding HIGH/MEDIUM.
+  A revisão confirmou RSA/padding/identidade no módulo, wrapper e subprocessos;
+  o revisor não executou testes. Permanecem pendentes canal autenticado,
+  custódia de chave, prova do runtime Apps Script real e admissão pelo Engine.
+  A revisão não foi feita por Sol 6.1 e não altera `SOL_REVIEW=PENDING_IDENTITY`.
+- Estado do lote: `INDEPENDENT_ARCH_REVIEW=PASS` restrito ao candidato e escopo
+  preparatórios; não é aprovação de integração confiável ou promoção.
+  `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`, cobertura
+  `10/29`, parcial `1`, `CALIBRATION_GATE=BLOCKED`.
 - Checkpoint documental `34f35d7c243282e29ef6d36e357099069607b8b1` e snapshot
   atual `447d47a072bb8ff7c25d5a64c9873a7da5e16636`: builds limpos de validação
   técnica `PASS`, 10 documentos, Base `5.34.0`, `SOURCE_COMMIT` exato em cada SHA.
