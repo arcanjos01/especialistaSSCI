@@ -3578,8 +3578,13 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   da VM, permitindo rejeição prematura. A correção alinha explicitamente o
   conjunto de espaços ECMAScript no Python e recria mutações dentro do mesmo
   realm; a suíte agora exige que a fixture válida passe pelo helper antes dos
-  ataques. Re-review dirigida final do SHA
-  `f2261400b4d4a9b72b255796f0d335fb64b5a94d` pendente.
+  ataques. A execução GPT-6 que conduziu revisões anteriores terminou com erro
+  de capacidade ao receber a nova re-review; não foi contada como aprovação.
+  Luna independente (`luna_economy`, `gpt-5.6-luna`, execução
+  `01a15be1-c933-71b0-8073-2440f5e75bf7`) revisou exatamente
+  `e0ff314792e0ff4c9d4a547482f43092deb4a455`, executou nove testes Python do
+  codec e a suíte Node; confirmou paridade U+FEFF, helper same-realm e os dois
+  ataques, sem findings no escopo: `DIRECTED_RE_REVIEW=PASS`. Não é revisão Sol.
 - Gates completos no SHA `f2261400b4d4a9b72b255796f0d335fb64b5a94d`:
   Python `197` (185 PASS, 12 SKIP); Apps Script `11/11 PASS`; `node --check` em
   todos os módulos/testes JS e sintaxe de `Code.gs` PASS; runtime regenerado
@@ -3596,10 +3601,15 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   manifest/build PASS, dez documentos da Base `5.34.0`, build limpo com
   `SOURCE_COMMIT=b3bb8d6c633b4342599b4c2c57bf6c2a84005906`; os testes de guards
   presentes na suíte completa passaram; `git diff --check` PASS.
+- Gates repetidos no SHA revisado `e0ff314792e0ff4c9d4a547482f43092deb4a455`:
+  Python `197` (185 PASS, 12 SKIP); Apps Script `11/11 PASS`; sintaxe JS e
+  `Code.gs` PASS; runtime byte-identical com SHA-256 idêntico; manifest/build
+  PASS, 10 documentos, `SOURCE_COMMIT` exato; guards na suíte completa e
+  `git diff --check` PASS.
 - Critérios antes/depois: integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
   `19 → 19`; blockers de assinatura encerrados `0`; novo blocker técnico
   esclarecido: interoperabilidade exige envelope ainda sem canal/custódia de
   chave nem contexto autenticado. Benefício operacional demonstrado apenas na
   interoperabilidade de teste entre Python/Apps Script; sem admissão `SIGNED`.
   O revisor independente do lote declarou Codex/GPT-6 (Pauli), nunca Sol.
-  `SOL_REVIEW=PENDING_IDENTITY`; re-review `PENDING`; `PROMOTION=NOT_AUTHORIZED`.
+  `SOL_REVIEW=PENDING_IDENTITY`; re-review dirigida `PASS`; `PROMOTION=NOT_AUTHORIZED`.
