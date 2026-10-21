@@ -130,11 +130,34 @@ assert.equal(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionCon
 assert.notEqual(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionContext({
   ...mutableInput,
   requestDate: '2026-01-29',
+  protocolIdentifier: protocol,
 })), canonicalPresentation);
 assert.notEqual(api.getCanonicalPresentationIdentity(api.createCurrentSubmissionContext({
   ...mutableInput,
   protocolIdentifier: 'OTHER_PROTOCOL',
 })), canonicalPresentation);
+
+const secondProtocolContext = api.createCurrentSubmissionContext({
+  ...mutableInput,
+  protocolIdentifier: 'SECOND_TEST_PROTOCOL',
+  requestDate: '2026-01-28',
+});
+context.identityProbeContexts = [frozenContext, secondProtocolContext];
+vm.runInContext(`
+Object.defineProperty(Array.prototype, 'toJSON', {
+  value: function() { return ['FORGED_PROTOCOL', '2000-01-01']; },
+  configurable: true
+});
+try {
+  globalThis.identityProbeFirst = api.getCanonicalPresentationIdentity(identityProbeContexts[0]);
+  globalThis.identityProbeSecond = api.getCanonicalPresentationIdentity(identityProbeContexts[1]);
+} finally {
+  delete Array.prototype.toJSON;
+}
+`, context);
+assert.equal(context.identityProbeFirst, canonicalPresentation);
+assert.equal(context.identityProbeSecond,
+  'CBMSC_HABITESE_PRESENTATION_V1:["SECOND_TEST_PROTOCOL","2026-01-28"]');
 
 for (const invalid of [
   { protocolIdentifier: undefined },

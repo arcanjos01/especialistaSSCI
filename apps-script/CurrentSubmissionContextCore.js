@@ -183,9 +183,14 @@ function getAuthenticatedPresentationIdentity(context) {
 /** Stable receipt identity for one presentation, independent of transport metadata. */
 function getCanonicalPresentationIdentity(context) {
   const authenticated = getAuthenticatedPresentationIdentity(context);
-  const tuple = [authenticated.protocolIdentifier, authenticated.requestDate];
+  const serializedProtocol = CURRENT_CONTEXT_APPLY_(
+    CURRENT_CONTEXT_JSON_STRINGIFY_, JSON, [authenticated.protocolIdentifier]
+  );
+  const serializedRequestDate = CURRENT_CONTEXT_APPLY_(
+    CURRENT_CONTEXT_JSON_STRINGIFY_, JSON, [authenticated.requestDate]
+  );
   return 'CBMSC_HABITESE_PRESENTATION_V1:' +
-    CURRENT_CONTEXT_APPLY_(CURRENT_CONTEXT_JSON_STRINGIFY_, JSON, [tuple]);
+    '[' + serializedProtocol + ',' + serializedRequestDate + ']';
 }
 
 function currentSubmissionReferenceKey_(reference) {
