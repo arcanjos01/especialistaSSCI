@@ -116,7 +116,10 @@ function currentSubmissionContext(requestDate = '2026-01-28') {
   };
 }
 
-function makeAdapters({ status = 'VALIDATED', content = JSON.stringify(rdeFixture()) } = {}) {
+function makeAdapters({
+  status = 'VALIDATED', content = JSON.stringify(rdeFixture()),
+  rdeVersion = processRecord.rdeVersion,
+} = {}) {
   const counts = {
     locks: 0,
     processReads: 0,
@@ -135,7 +138,7 @@ function makeAdapters({ status = 'VALIDATED', content = JSON.stringify(rdeFixtur
       readProcess(processId) {
         counts.processReads += 1;
         return processId === processRecord.processId
-          ? { ...processRecord, status }
+          ? { ...processRecord, status, rdeVersion }
           : null;
       },
       readValidatedRde() {
@@ -260,7 +263,7 @@ assert.equal(happyAdapters.counts.rdeReads, 1);
 assert.equal(happyAdapters.counts.writes, 0);
 assert.equal(happyAdapters.counts.documentSourceReads, 0);
 
-function readinessForSignedSystemProduct(officialEsciCode, productEntityId) {
+function readinessForSignedSystemProduct(officialEsciCode, productEntityId, includeValidScopeDeclaration = false) {
   const rde = rdeFixture();
   rde.records.push({
     record_id: 'ITEM_SIGNED_SYSTEM',
@@ -289,7 +292,36 @@ function readinessForSignedSystemProduct(officialEsciCode, productEntityId) {
     attributes: { SIGNATURE_MECHANISM: 'TEST_ONLY explicitly stated mechanism' },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_FACT' },
   });
-  const adapters = makeAdapters({ content: JSON.stringify(rde) });
+  if (includeValidScopeDeclaration) {
+    rde.schema_version = '0.7.0';
+    rde.documentary_associations = [];
+    rde.drt_declaration_items = [];
+    rde.documentary_date_items = [];
+    rde.drt_activity_items = [];
+    rde.drt_scope_declaration_items = [{
+      scope_declaration_item_id: 'TEST_ONLY_SCOPE_001',
+      drt_record_id: 'TEST_ONLY_ART', drt_reference_text: 'ART 12345',
+      product_record_id: productId, product_reference_text: 'SHP COMISSIONAMENTO 001',
+      smsci_text: 'SHP', activity_service_text: 'COMISSIONAMENTO',
+      source_document: 'TEST_ONLY_SCOPE_SOURCE',
+      source_text: 'A ART 12345 declara cobertura do relatório SHP COMISSIONAMENTO 001 para SMSCI SHP e atividade COMISSIONAMENTO.',
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SCOPE_001' },
+    }];
+    rde.records.push(
+      {
+        record_id: 'TEST_ONLY_ART', entity_id: 'ART', parent_record_id: null,
+        source_document: 'TEST_ONLY_ART',
+        attributes: { DRT_IDENTIFIER: 'ART 12345', RESPONSIBILITY_TYPE: 'EXECUCAO' },
+        provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_ART' },
+      },
+      {
+        record_id: 'TEST_ONLY_SCOPE_SOURCE', entity_id: 'PPCI', parent_record_id: null,
+        source_document: 'TEST_ONLY_SCOPE_SOURCE', attributes: {},
+        provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_SCOPE_SOURCE' },
+      }
+    );
+  }
+  const adapters = makeAdapters({ content: JSON.stringify(rde), rdeVersion: rde.schema_version });
   const result = api.prepareValidatedExecutionReadiness(
     processRecord.processId, currentSubmissionContext(), adapters.adapters
   );
@@ -300,6 +332,7 @@ for (const signedReadinessCase of [
   {
     officialEsciCode: 'SHP', productEntityId: 'SHP_COMMISSIONING_REPORT',
     unitKey: 'UNIT_KEY (REQ_IN07_COMMISSIONING, T4_IN07_COMMISSIONING)',
+    includeValidScopeDeclaration: true,
   },
   {
     officialEsciCode: 'SPDE', productEntityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
@@ -311,7 +344,8 @@ for (const signedReadinessCase of [
   },
 ]) {
   const { result, adapters } = readinessForSignedSystemProduct(
-    signedReadinessCase.officialEsciCode, signedReadinessCase.productEntityId
+    signedReadinessCase.officialEsciCode, signedReadinessCase.productEntityId,
+    signedReadinessCase.includeValidScopeDeclaration === true
   );
   assert.equal(result.outcome, 'EXECUTION_COVERAGE_INCOMPLETE');
   assert.ok(result.coverage.plannedUnitKeys.includes(signedReadinessCase.unitKey));
@@ -322,7 +356,9 @@ for (const signedReadinessCase of [
   }
   if (signedReadinessCase.officialEsciCode === 'SHP') {
     assert.ok(result.coverage.unsupportedUnitKeys.includes(signedReadinessCase.unitKey),
-      'ALL must remain unsupported when a child predicate lacks an executor');
+      signedReadinessCase.includeValidScopeDeclaration
+        ? 'a valid scope declaration must not make DRT_COVERS executable'
+        : 'ALL must remain unsupported when a child predicate lacks an executor');
     assert.ok(!result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
   } else {
     assert.ok(result.coverage.materializableUnitKeys.includes(signedReadinessCase.unitKey));
