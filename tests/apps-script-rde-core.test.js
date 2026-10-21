@@ -33,6 +33,7 @@ vm.runInContext(source + `
     parseAndValidateOperationalRdeJson_,
     canonicalRdeJson_,
     getValidatedRdeDigest_,
+    getValidatedRdeIdentity_,
     validateSourceHash_
   };
 `, context);
@@ -84,19 +85,39 @@ const unicodeRdeInput = core.buildFakeRde_({
 });
 const unicodeRde = core.parseAndValidateOperationalRdeJson_(
   JSON.stringify(unicodeRdeInput),
-  { processId: unicodeRdeInput.process_id, sourceFileId: unicodeRdeInput.source.file_id },
+  { processId: unicodeRdeInput.process_id, sourceFileId: unicodeRdeInput.source.file_id,
+    rdeIdentity: 'unicode-file-id' },
   compiledContract.entityCatalog
 );
 assert.equal(
   core.getValidatedRdeDigest_(unicodeRde),
   crypto.createHash('sha256').update(core.canonicalRdeJson_(unicodeRde), 'utf8').digest('hex')
 );
+assert.equal(core.getValidatedRdeIdentity_(unicodeRde), 'unicode-file-id');
+const secondRde = core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(unicodeRdeInput),
+  { processId: unicodeRdeInput.process_id, sourceFileId: unicodeRdeInput.source.file_id,
+    rdeIdentity: 'second-rde-file-id' },
+  compiledContract.entityCatalog
+);
+assert.equal(core.getValidatedRdeIdentity_(secondRde), 'second-rde-file-id');
+assert.notEqual(core.getValidatedRdeIdentity_(unicodeRde), core.getValidatedRdeIdentity_(secondRde));
 
 const rde = core.buildFakeRde_(input);
 assert.equal(rde.schema_version, '0.7.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
+const identitylessRde = core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(rde), { processId: input.processId, sourceFileId: input.sourceFileId },
+  compiledContract.entityCatalog
+);
+assert.throws(() => core.getValidatedRdeIdentity_(identitylessRde),
+  /identity requires parser-authenticated RDE/);
+assert.throws(() => core.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(rde), { processId: input.processId, sourceFileId: input.sourceFileId,
+    rdeIdentity: '' }, compiledContract.entityCatalog
+), error => error.code === 'RDE_IDENTITY_MISMATCH');
 assert.equal(rde.extraction.provider, 'FAKE_DETERMINISTIC');
 assert.deepEqual(JSON.parse(JSON.stringify(rde.records)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_associations)), []);

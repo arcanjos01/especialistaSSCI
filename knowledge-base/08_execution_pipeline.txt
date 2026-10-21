@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.36.0
+# DOCUMENT_VERSION: 4.37.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.35.0
+KNOWLEDGE_BASE_VERSION: 5.36.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -25,7 +25,7 @@ DOCUMENT_SET:
 04_table4.txt: DOCUMENT_VERSION 3.6.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
 06_reports.txt: DOCUMENT_VERSION 3.22.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.36.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.37.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -338,6 +338,18 @@ their RDE are complete and the RDE is structurally validated, and before the
 ImmutableExecutionView is closed. It reads the original document bytes solely
 to verify signatures; it does not perform EXTRACTION, add facts to the RDE,
 resolve Applicability or execute Requirements/Criteria.
+
+`rdeIdentity` identifies the exact stored RDE artifact and is separate from its
+content digest. In the current Google Drive pipeline it is the stable Drive
+file ID returned by the unique lookup of the versioned RDE file in the exact
+process/RDE folder. Do not derive it from `processId`, filename, content, or
+digest. The operational parser receives this identity from the trusted file
+lookup, validates it alongside the RDE bytes, and retains it only as private
+parser-authenticated metadata bound to that parsed RDE and digest; it is not an
+RDE field or documentary fact. Missing identity, a duplicate lookup, or a
+mismatch blocks signature-receipt binding. Future storage backends must supply
+their own exact stable artifact identity through the same authenticated
+boundary.
 
 Each verification receipt shall be a separate authenticated, immutable
 artifact bound to the exact presentation identity, RDE identity/digest,

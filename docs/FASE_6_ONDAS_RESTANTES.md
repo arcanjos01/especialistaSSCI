@@ -4017,3 +4017,38 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Este gate confirma integridade técnica do HEAD documental atual; não altera
   o candidato funcional `6720290`, a aprovação arquitetural, o estado Sol ou a
   cobertura: integral `10/29`, parcial `1`, pendentes `19`.
+
+### Fase 6B — identidade exata do artefato RDE — 2026-10-21
+
+- Objetivo do lote: fornecer ao parser operacional a identidade estável do
+  arquivo RDE exato, como pré-requisito para vincular recibos técnicos futuros
+  à apresentação e à RDE sem introduzir essa identidade como fato na RDE.
+- A leitura Apps Script agora retorna conteúdo e ID real do arquivo encontrado
+  na pasta processual. O readiness exige envelope congelado, chaves/dados
+  próprios exatos e identidade não vazia. O parser valida o conteúdo e mantém
+  identidade e digest em metadados privados associados ao mesmo objeto RDE
+  autenticado; o getter falha para RDEs analisadas sem identidade autenticada.
+  O contrato do `08_execution_pipeline` esclarece que identidade externa e
+  digest são distintos, que lookup duplicado/faltante bloqueia binding e que
+  outro backend precisa fornecer identidade estável pela mesma fronteira.
+- `RDE FACT ONLY` preservada. Nenhuma assinatura, recibo, correlation artifact
+  ou dado novo foi adicionado à RDE. Nenhum Criterion, resultado, Requirement,
+  Nonconformity ou capacidade `SIGNED` foi alterado; Criteria integrais
+  `10/29 → 10/29`, parciais `1`, pendentes integrais `19`.
+- Testes direcionados `node tests/apps-script-rde-core.test.js` e
+  `node tests/apps-script-validated-execution-readiness.test.js`: `PASS`.
+  Correção adicional: validação de identidade reutiliza a primitiva `trim`
+  capturada pelo parser. Gates completos, regeneração compilada, revisão
+  independente e build de worktree limpa ainda pendentes neste checkpoint.
+- Esforço aproximado: 20 minutos de inspeção, ajuste e testes dirigidos; duas
+  suítes focais executadas; revisão independente ainda não solicitada. Benefício
+  operacional: a futura interface de recibo pode vincular-se ao arquivo RDE
+  armazenado exato, sem confundir identidade de arquivo com igualdade de bytes.
+  Este benefício é preparatório, sem ganho atual de cobertura.
+- A decisão do usuário permanece: não consumir a declaração documental
+  DRT→produto para executar `DRT_COVERS`; manter revisão humana até contrato
+  institucional. O lote não altera essa semântica nem o caminho independente
+  `DOCUMENTARY_ASSOCIATION` de `T1_CONFORMITY_REPORT`.
+- Candidato provisório: aguardando gates e revisão do lote. Até revisão
+  independente válida: `ARCHITECTURAL_REVIEW=PENDING`,
+  `PROMOTION=NOT_AUTHORIZED`; `SOL_REVIEW` não foi executado nesta etapa.

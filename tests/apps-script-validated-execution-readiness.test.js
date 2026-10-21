@@ -119,6 +119,8 @@ function currentSubmissionContext(requestDate = '2026-01-28') {
 function makeAdapters({
   status = 'VALIDATED', content = JSON.stringify(rdeFixture()),
   rdeVersion = processRecord.rdeVersion,
+  rdeIdentity = processRecord.sourceFileId,
+  envelope = true,
 } = {}) {
   const counts = {
     locks: 0,
@@ -143,7 +145,8 @@ function makeAdapters({
       },
       readValidatedRde() {
         counts.rdeReads += 1;
-        return content;
+        if (!envelope) return content;
+        return Object.freeze({ content, rdeIdentity });
       },
       write() { counts.writes += 1; throw new Error('readiness must not write'); },
       readSourceDocument() { counts.documentSourceReads += 1; throw new Error('source read forbidden'); },
@@ -464,6 +467,43 @@ assert.throws(() => api.prepareValidatedExecutionReadiness(
 ), error => error && error.code === 'RDE_MISSING');
 assert.equal(missingRdeAdapters.counts.writes, 0);
 
+const missingIdentityAdapters = makeAdapters({ envelope: false });
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), missingIdentityAdapters.adapters
+), error => error && error.code === 'RDE_IDENTITY_MISSING');
+
+const forgedEnvelopeAdapters = makeAdapters({
+  envelope: true,
+  content: fixtureContent,
+});
+const originalEnvelopeReader = forgedEnvelopeAdapters.adapters.readValidatedRde;
+forgedEnvelopeAdapters.adapters.readValidatedRde = process => {
+  const envelopeValue = originalEnvelopeReader(process);
+  return { ...envelopeValue, rdeIdentity: 'FORGED_AFTER_READ' };
+};
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), forgedEnvelopeAdapters.adapters
+), error => error && error.code === 'RDE_ENVELOPE_INVALID');
+
+const accessorEnvelopeAdapters = makeAdapters();
+accessorEnvelopeAdapters.adapters.readValidatedRde = () => {
+  const envelope = {};
+  Object.defineProperty(envelope, 'content', { get() { return fixtureContent; }, enumerable: true });
+  Object.defineProperty(envelope, 'rdeIdentity', { value: 'ACCESSOR_ID', enumerable: true });
+  return Object.freeze(envelope);
+};
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), accessorEnvelopeAdapters.adapters
+), error => error && error.code === 'RDE_ENVELOPE_INVALID');
+
+const mutableEnvelopeAdapters = makeAdapters();
+mutableEnvelopeAdapters.adapters.readValidatedRde = () => ({
+  content: fixtureContent, rdeIdentity: 'MUTABLE_ID'
+});
+assert.throws(() => api.prepareValidatedExecutionReadiness(
+  processRecord.processId, currentSubmissionContext(), mutableEnvelopeAdapters.adapters
+), error => error && error.code === 'RDE_ENVELOPE_INVALID');
+
 const invalidRde = rdeFixture();
 invalidRde.schema_version = '0.1.0';
 const invalidRdeAdapters = makeAdapters({ content: JSON.stringify(invalidRde) });
@@ -499,7 +539,7 @@ assert.throws(() => api.prepareValidatedExecutionReadiness(
 ), error => error && error.code === 'ARCHITECTURAL_BLOCKER');
 assert.equal(duplicateContextAdapters.counts.writes, 0);
 
-const appScriptCounters = { lock: 0, release: 0, writes: 0, sourceReads: 0 };
+const appScriptCounters = { lock: 0, release: 0, writes: 0, sourceReads: 0, rdeIdReads: 0 };
 const appScriptRegistryRow = [
   processRecord.processId, processRecord.sourceFileId, 'TEST_ONLY.pdf',
   'application/pdf', 10, 'TEST_ONLY_SOURCE_URL', 'VALIDATED', new Date(0),
@@ -536,6 +576,7 @@ function iterator(items) {
   };
 }
 const appScriptRdeFile = {
+  getId() { appScriptCounters.rdeIdReads += 1; return 'TEST_ONLY_RDE_FILE'; },
   getBlob() { return { getDataAsString() { return fixtureContent; } }; },
 };
 const appScriptRdeFolder = {
@@ -578,6 +619,7 @@ assert.equal(appsScriptPrepared.outcome, 'EXECUTION_COVERAGE_INCOMPLETE');
 assert.equal(appsScriptPrepared.workflowStatus, 'VALIDATED');
 assert.equal(appScriptCounters.lock, 1);
 assert.equal(appScriptCounters.release, 1);
+assert.equal(appScriptCounters.rdeIdReads, 1);
 assert.equal(appScriptCounters.writes, 0);
 assert.equal(appScriptCounters.sourceReads, 0);
 

@@ -1459,6 +1459,7 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
   'use strict';
   const validatedRdes = new WeakSet();
   const validatedRdeDigests = new WeakMap();
+  const validatedRdeIdentities = new WeakMap();
   const weakSetAdd = RDE_INTRINSIC_WEAKSET_ADD_;
   const weakSetHas = RDE_INTRINSIC_WEAKSET_HAS_;
   const weakMapGet = WeakMap.prototype.get;
@@ -1497,9 +1498,20 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
     // Even if a mutable Array/Object intrinsic is patched, its callbacks cannot
     // rewrite documentary facts between parsing and view projection.
     validateRdeStructure_(rde, expected, entityCatalog);
+    const rdeIdentity = expected && expected.rdeIdentity;
+    if (rdeIdentity !== undefined &&
+        !rdeNonBlankText_(rdeIdentity)) {
+      throw makeRdeValidationError_(
+        'RDE_IDENTITY_MISMATCH',
+        'identidade externa da RDE não corresponde ao arquivo RDE.'
+      );
+    }
     const digest = digestValidatedRde(rde);
     apply(weakSetAdd, validatedRdes, [rde]);
     apply(weakMapSet, validatedRdeDigests, [rde, digest]);
+    if (rdeIdentity !== undefined) {
+      apply(weakMapSet, validatedRdeIdentities, [rde, rdeIdentity]);
+    }
     return rde;
   }
 
@@ -1524,6 +1536,16 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
         throw new Error('validated RDE digest requires parser-authenticated RDE');
       }
       return apply(weakMapGet, validatedRdeDigests, [rde]);
+    },
+    enumerable: false, writable: false, configurable: false
+  });
+  RDE_INTRINSIC_DEFINE_PROPERTY_(global, 'getValidatedRdeIdentity_', {
+    value: function (rde) {
+      if (!apply(weakSetHas, validatedRdes, [rde]) ||
+          !apply(weakMapHas, validatedRdeIdentities, [rde])) {
+        throw new Error('validated RDE identity requires parser-authenticated RDE');
+      }
+      return apply(weakMapGet, validatedRdeIdentities, [rde]);
     },
     enumerable: false, writable: false, configurable: false
   });

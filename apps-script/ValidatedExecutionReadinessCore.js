@@ -340,20 +340,38 @@ function prepareValidatedExecutionReadiness(processId, currentSubmissionContext,
       global.isSupportedRdeSchemaVersion_(processRecord.rdeVersion),
     'RDE_VERSION_MISMATCH', 'validated registry record has no supported RDE_VERSION');
 
-    const rdeContent = adapters.readValidatedRde(processRecord);
+    const rdeEnvelope = adapters.readValidatedRde(processRecord);
+    if (typeof rdeEnvelope !== 'string') {
+      readinessRequire_(rdeEnvelope && Object.isFrozen(rdeEnvelope) &&
+        Object.keys(rdeEnvelope).length === 2 &&
+        Object.prototype.hasOwnProperty.call(rdeEnvelope, 'content') &&
+        Object.prototype.hasOwnProperty.call(rdeEnvelope, 'rdeIdentity') &&
+        Object.prototype.hasOwnProperty.call(Object.getOwnPropertyDescriptor(rdeEnvelope, 'content'), 'value') &&
+        Object.prototype.hasOwnProperty.call(Object.getOwnPropertyDescriptor(rdeEnvelope, 'rdeIdentity'), 'value'),
+      'RDE_ENVELOPE_INVALID', 'validated RDE envelope must be frozen and exact');
+    }
+    const rdeContent = typeof rdeEnvelope === 'string' ? rdeEnvelope :
+      rdeEnvelope && rdeEnvelope.content;
+    const rdeIdentity = typeof rdeEnvelope === 'string' ? undefined :
+      rdeEnvelope && rdeEnvelope.rdeIdentity;
     readinessRequire_(typeof rdeContent === 'string' && rdeContent.length > 0,
       'RDE_MISSING', 'validated RDE content is missing');
+    readinessRequire_(typeof rdeIdentity === 'string' && rdeIdentity.trim(),
+      'RDE_IDENTITY_MISSING', 'validated RDE external identity is missing');
     let rde;
     try {
       rde = global.parseAndValidateOperationalRdeJson_(rdeContent, {
         processId,
         sourceFileId: processRecord.sourceFileId,
+        rdeIdentity,
       }, global.COMPILED_RUNTIME_CONTRACT.entityCatalog);
     } catch (error) {
       throw new ValidatedExecutionReadinessError(
         'RDE_INVALID', error && error.message ? error.message : 'validated RDE is not valid JSON'
       );
     }
+    readinessRequire_(global.getValidatedRdeIdentity_(rde) === rdeIdentity,
+      'RDE_IDENTITY_MISMATCH', 'validated RDE external identity is not authenticated');
 
     const contract = global.COMPILED_RUNTIME_CONTRACT;
     readinessRequire_(typeof global.isCanonicalCompiledRuntimeContract === 'function' &&

@@ -1312,7 +1312,10 @@ function prepareValidatedProcessExecutionReadiness(
               'RDE_DUPLICATE_FILE', 'Mais de um arquivo RDE validado encontrado.'
             );
           }
-          return file.getBlob().getDataAsString('UTF-8');
+          return Object.freeze({
+            content: file.getBlob().getDataAsString('UTF-8'),
+            rdeIdentity: file.getId()
+          });
         },
       }
     );
