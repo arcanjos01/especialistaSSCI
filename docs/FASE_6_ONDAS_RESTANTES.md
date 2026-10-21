@@ -4256,3 +4256,8 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   validadores de recibo não aceitam mais identidade de apresentação fornecida
   livremente pelo chamador. `PROMOTION=NOT_AUTHORIZED`; `SIGNED` permanece
   `MANUAL_REVIEW`; nenhum processo real foi usado.
+- Validação complementar executada após o checkpoint: `PDF_SIGNATURE_POC_INTEGRATION=1
+  python3 -m unittest tests.test_local_pdf_signature_verifier` — `29/29 PASS`
+  com PDFs sintéticos e `pdfsig`/OpenSSL locais. Esta evidência cobre a POC do
+  verificador local, não admissão operacional, confiança institucional,
+  integração ao Engine ou qualquer ganho de Criterion.
