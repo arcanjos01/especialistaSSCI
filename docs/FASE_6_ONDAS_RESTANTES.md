@@ -3178,3 +3178,40 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   de contrato/código). Benefício: delimita a implementação segura a perfis
   versionados e preserva MANUAL_REVIEW para documento/status sem prova
   suficiente. Gates executados neste registro: `git diff --check`.
+
+### Comparandos candidatos para `T1_DRT_ADDRESS` e `T1_DRT_AREA` — 2026-10-20
+
+- Verificados diretamente `references/in01.pdf`, Anexo B, e a linha de
+  fiscalização da IRV Habite-se 2024, Tabela 1. O Anexo B separa no imóvel
+  `Logradouro`, `Nr`, `Complemento`, `Referência`, `Bairro`, `Cidade`, `Estado`
+  e `CEP`; também distingue `Área do terreno`, `Área total construída no
+  terreno`, `Área total do bloco`, `Área do pavimento tipo do bloco`, `Área a
+  ser analisada`, `Área total da solicitação` e
+  `Área da alteração/ampliação/reforma`. A IRV exige conferir endereço e área
+  informados na DRT, mas não
+  identifica qual destes campos é o comparando para o Criterion nem como
+  selecionar bloco/escopo.
+- Estado atual: `ENTITY PROCESS` não declara atributos; `REQUERIMENTO_ESCI`
+  declara finalidade, solicitante e responsável, mas não os fatos do imóvel;
+  `DRT.PROPERTY_ADDRESS_TEXT` e `DRT.PROPERTY_AREA_TEXT` existem, e a área
+  preserva texto/unidade/qualificador sem normalização ou comparação. Logo
+  ainda não há comparando em `ImmutableExecutionView` nem semântica para
+  endereço textual versus componentes ou para as várias áreas do Anexo B.
+- Alternativas para fechar o contrato, sem ampliar Requirement: (A) endereço da
+  DRT contra os componentes de identificação do imóvel; área contra área total
+  construída para DRT que cobre o imóvel inteiro e contra área de bloco somente
+  quando o próprio vínculo documental identificar aquele bloco; ambiguidades
+  permanecem `MANUAL_REVIEW`; (B) usar a área da solicitação/alteração como
+  escopo de Habite-se, o que não é necessariamente a área que a DRT declara;
+  (C) manter ambos em revisão humana até haver vínculo explícito e seleção
+  única. Recomendação técnica: (A), com igualdade literal dos componentes/texto
+  sem normalização conjectural e `MANUAL_REVIEW` em diferença, campo ausente,
+  múltiplos blocos ou área com qualificador divergente. Essa recomendação não
+  cria regra normativa nem autoriza `FAIL` por ausência.
+- Critérios afetados: `T1_DRT_ADDRESS` e `T1_DRT_AREA`. Bloqueio exato para uma
+  implementação integral: definir o comparando/escopo da área e o vínculo do
+  DRT a imóvel/bloco; depois formalizar esses fatos na RDE e no execution view.
+  Nenhum código, Requirement, Criterion, resultado ou cobertura foi alterado.
+  Cobertura permanece `10/29`, `1` parcial. Nenhuma amostra de processo real foi
+  utilizada. Pesquisa read-only; revisões independentes `0`; `git diff --check`
+  executado.
