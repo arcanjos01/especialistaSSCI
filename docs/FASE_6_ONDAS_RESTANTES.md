@@ -3819,3 +3819,25 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Nenhum código, Base ou runtime foi alterado; nenhum Criterion ganhou
   cobertura. A decisão fecha a questão de escopo deste caminho sem alterar as
   demais pendências de evidência ou a autoridade final do vistoriador.
+
+### Gates do checkpoint 45168f0 e alcance pendente da decisão RT-003 — 2026-10-21
+
+- No checkpoint publicado `45168f0aa3e53d5dc6b78072feba7d231c5e5126`, a suíte
+  Python completa passou: `199/199`, sem skips, com integração local PyHanko
+  habilitada. As `11/11` suítes Apps Script, `node --check` em todos os módulos
+  e testes JavaScript, sintaxe de `Code.gs` e `git diff --check` também passaram.
+- Release build técnico em worktree limpa: `PASS`, 10 documentos,
+  `KNOWLEDGE_BASE_VERSION=5.34.0`, `SOURCE_COMMIT` exato acima. A regeneração
+  do runtime foi byte-idêntica; SHA-256:
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
+- A execução do Criterion T1_DRT_SMSCI_COVERAGE existente usa
+  `drt_scope_declaration_items` e pode retornar TRUE para declaração explícita
+  RT-003/SMSCI. Como a decisão recém-respondida se refere a `DRT_COVERS`, foi
+  solicitada confirmação se ela também retira essa cobertura específica. Até
+  a resposta, não alterar código nem a contagem vigente `10/29`.
+- Ganho funcional: `0` Criteria; cobertura antes/depois `10/29 → 10/29`; blockers
+  encerrados `0`; novo blocker técnico `0`; dependência de interpretação humana
+  registrada. Esforço: gates completos do checkpoint, aproximadamente um minuto;
+  revisões independentes novas `0` (nenhum diff funcional/arquitetural). A
+  criação do revisor Luna foi recusada por limite de threads; Sol 6.1 não foi
+  executado. Isso não equivale a aprovação nem reprovação de revisão.
