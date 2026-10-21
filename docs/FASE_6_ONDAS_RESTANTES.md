@@ -3496,8 +3496,12 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   testes JavaScript e `Code.gs` PASS; runtime compilado regenerado byte-idêntico
   com SHA-256
   `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`;
-  `git diff --check=PASS`. Teste integrado IN09
-  confirma resultado/trace `MANUAL_REVIEW`, sem NC.
+  `git diff --check=PASS`. Teste integrado IN09 confirma resultado/trace
+  `MANUAL_REVIEW`, sem NC.
+- `BUILD_VALIDATION=PASS` em worktree limpa para
+  `SOURCE_COMMIT=e066187fad57b585fa96e5ed44628b101527376b`; release com os dez
+  documentos do manifest e Knowledge Base `5.34.0`. O build é técnico e não
+  autoriza promoção.
 - Revisão independente deste lote ainda pendente. `SOL_REVIEW=PENDING_IDENTITY`
   para a revisão arquitetural global. Este é checkpoint técnico candidato;
-  build limpo por SOURCE_COMMIT, revisão e promoção seguem pendentes.
+  revisão independente do lote e promoção seguem pendentes.
