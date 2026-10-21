@@ -4,23 +4,42 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const key = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8';
+const sourceFixture = JSON.parse(fs.readFileSync(path.join(__dirname,
+  'fixtures/signature-verification-receipt-v1.json'), 'utf8'));
 const keyId = 'LOCAL_VERIFIER_KEY_V1';
+const keyPair = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicExponent: 65537
+});
+const publicJwk = keyPair.publicKey.export({ format: 'jwk' });
+const modulusHex = Buffer.from(publicJwk.n, 'base64url').toString('hex');
+const exponentHex = Buffer.from(publicJwk.e, 'base64url').toString('hex');
+let pinnedModulusHex = modulusHex;
+let pinnedExponentHex = exponentHex;
+let pinnedKeyId = keyId;
 const context = {
   PropertiesService: {
     getScriptProperties() {
       return {
         getProperty(name) {
-          if (name === 'SSCI_SIGNATURE_VERIFICATION_HMAC_KEY') return key;
-          if (name === 'SSCI_SIGNATURE_VERIFICATION_HMAC_KEY_ID') return keyId;
+          if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_KEY_ID') return pinnedKeyId;
+          if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_MODULUS_HEX') return pinnedModulusHex;
+          if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_EXPONENT_HEX') return pinnedExponentHex;
           return null;
         }
       };
     }
   },
   Utilities: {
-    computeHmacSha256Signature(payload, secret) {
-      return Array.from(crypto.createHmac('sha256', secret).update(payload, 'utf8').digest());
+    DigestAlgorithm: { SHA_256: 'SHA_256' },
+    Charset: { UTF_8: 'UTF_8' },
+    computeDigest(algorithm, payload, charset) {
+      assert.equal(algorithm, 'SHA_256');
+      assert.equal(charset, 'UTF_8');
+      return Array.from(crypto.createHash('sha256').update(payload, 'utf8').digest());
+    },
+    base64Decode(value) {
+      return Array.from(Buffer.from(value, 'base64'));
     },
     base64Encode(bytes) {
       return Buffer.from(bytes).toString('base64');
@@ -31,8 +50,37 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname,
   '../apps-script/SignatureVerificationReceiptCore.js'), 'utf8'), context);
 
-const serializedReceipt = fs.readFileSync(path.join(__dirname,
-  'fixtures/signature-verification-receipt-v1.json'), 'utf8').trim();
+function canonicalJson(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(canonicalJson).join(',') + ']';
+  return '{' + Object.keys(value).sort().map(key =>
+    JSON.stringify(key) + ':' + canonicalJson(value[key])).join(',') + '}';
+}
+
+const rsaReceipt = {
+  payload: sourceFixture.payload,
+  authentication: {
+    keyId,
+    algorithm: 'RSA_SHA256_PKCS1_V1_5',
+    signature: crypto.sign('RSA-SHA256', Buffer.from(canonicalJson(sourceFixture.payload), 'utf8'),
+      keyPair.privateKey).toString('base64')
+  }
+};
+function signPayload(payload) {
+  return crypto.sign('RSA-SHA256', Buffer.from(canonicalJson(payload), 'utf8'),
+    keyPair.privateKey).toString('base64');
+}
+function authenticatedReceipt(payload) {
+  return {
+    payload,
+    authentication: {
+      keyId,
+      algorithm: 'RSA_SHA256_PKCS1_V1_5',
+      signature: signPayload(payload)
+    }
+  };
+}
+const serializedReceipt = JSON.stringify(rsaReceipt);
 const expected = {
   presentationIdentity: 'protocol:TEST_PROTOCOL|re:TEST_RE|date:2026-10-20',
   rdeIdentity: 'rde:TEST_RDE',
@@ -62,7 +110,26 @@ function verifyMutated(mutationSource, binding = expected) {
   );
 }
 
-assert.equal(verify(), true, 'Python-authenticated fixture must verify in Apps Script');
+assert.equal(verify(), true, 'Python receipt payload signed by RSA test key must verify');
+const unicodePayload = JSON.parse(JSON.stringify(rsaReceipt.payload));
+unicodePayload.receiptId = '😀'.repeat(64);
+unicodePayload.createdAt = '2026-10-20T12:00:00.123456Z';
+assert.equal(verify(JSON.stringify(authenticatedReceipt(unicodePayload))), true,
+  'valid UTF-16 boundary and fractional timestamp must verify cross-runtime');
+assert.equal(verify(JSON.stringify(sourceFixture)), false,
+  'shared-secret HMAC envelope is preparatory and must not be accepted by the runtime verifier');
+const originalModulus = pinnedModulusHex;
+pinnedModulusHex = 'f'.repeat(512);
+assert.equal(verify(), false, 'malformed/unmatched pinned modulus must fail closed');
+pinnedModulusHex = originalModulus;
+const originalExponent = pinnedExponentHex;
+pinnedExponentHex = '03';
+assert.equal(verify(), false, 'unapproved public exponent must fail closed');
+pinnedExponentHex = originalExponent;
+const originalKeyId = pinnedKeyId;
+pinnedKeyId = 'ROTATED_UNPINNED_KEY';
+assert.equal(verify(), false, 'receipt key id must match the independently pinned key id');
+pinnedKeyId = originalKeyId;
 assert.equal(vm.runInContext(
   "Object.getOwnPropertyDescriptor(globalThis, 'verifySignatureVerificationReceipt_').writable",
   context

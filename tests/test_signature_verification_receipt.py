@@ -3,11 +3,19 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
+import json
+import shutil
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from tools.signature_verification_receipt import (
     SignatureReceiptError,
     issue_signature_verification_receipt,
+    issue_signature_verification_receipt_rsa,
+    issue_local_pdf_signature_verification_receipt,
     parse_receipt_json,
     verify_signature_verification_receipt,
 )
@@ -64,6 +72,78 @@ def issue(pdf_bytes: bytes = PDF) -> dict:
 
 
 class SignatureVerificationReceiptTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("openssl"), "OpenSSL CLI unavailable")
+    def test_rsa_issuer_signs_canonical_receipt_for_pinned_public_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            private_key = Path(directory) / "test-only-private.pem"
+            public_key = Path(directory) / "test-only-public.pem"
+            signature_path = Path(directory) / "receipt.sig"
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt",
+                 "rsa_keygen_bits:2048", "-out", str(private_key)],
+                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                ["openssl", "pkey", "-in", str(private_key), "-pubout", "-out", str(public_key)],
+                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            receipt = issue_signature_verification_receipt_rsa(
+                context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
+                verifier_id="project-controlled-local-verifier",
+                verifier_executable_sha256="b" * 64,
+                key_id=KEY_ID, signing_private_key_path=private_key,
+                created_at="2026-10-20T12:00:00.123456Z", receipt_id="😀" * 64,
+            )
+            self.assertEqual(receipt["authentication"]["algorithm"], "RSA_SHA256_PKCS1_V1_5")
+            signature_path.write_bytes(base64.b64decode(receipt["authentication"]["signature"]))
+            canonical = json.dumps(
+                receipt["payload"], ensure_ascii=False, sort_keys=True,
+                separators=(",", ":"), allow_nan=False,
+            ).encode("utf-8")
+            verified = subprocess.run(
+                ["openssl", "dgst", "-sha256", "-verify", str(public_key),
+                 "-signature", str(signature_path)],
+                input=canonical, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                check=False, timeout=15,
+            )
+            self.assertEqual(verified.returncode, 0, verified.stderr.decode("utf-8", "replace"))
+            self.assertIn(b"Verified OK", verified.stdout)
+
+    @unittest.skipUnless(shutil.which("openssl"), "OpenSSL CLI unavailable")
+    def test_local_issuer_calls_verifier_and_binds_pdf_and_verifier_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            private_key = root / "test-only-private.pem"
+            pdf_path = root / "local.pdf"
+            pdf_path.write_bytes(PDF)
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt",
+                 "rsa_keygen_bits:2048", "-out", str(private_key)],
+                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            with patch("tools.verify_pdf_signatures_local.inspect_pdf",
+                       return_value=inspection(PDF)) as inspect:
+                receipt = issue_local_pdf_signature_verification_receipt(
+                    pdf_path=pdf_path, context=CONTEXT, key_id=KEY_ID,
+                    signing_private_key_path=private_key,
+                    created_at="2026-10-20T12:00:00Z",
+                )
+            inspect.assert_called_once()
+            self.assertEqual(receipt["payload"]["sourceDocumentDigest"], PDF_DIGEST)
+            verifier_source = Path("tools/verify_pdf_signatures_local.py").read_bytes()
+            self.assertEqual(
+                receipt["payload"]["verifierExecutableSha256"],
+                hashlib.sha256(verifier_source).hexdigest(),
+            )
+            self.assertEqual(
+                receipt["payload"]["verificationResult"]["trust"],
+                "UNKNOWN/NOT_EVALUATED",
+            )
+            self.assertEqual(
+                receipt["payload"]["verificationResult"]["revocation"],
+                "UNKNOWN/NOT_EVALUATED",
+            )
+
     def test_authenticated_receipt_binds_all_exact_identities_and_preserves_unknowns(self):
         receipt = issue()
         self.assertNotIn("path", receipt["payload"]["verificationResult"]["document"])

@@ -1,11 +1,12 @@
-"""Isolated codec for HMAC envelopes around PDF signature-verifier results.
+"""Preparatory local receipt codecs and issuer for PDF verifier results.
 
 This module does not verify PDF signatures, prove that a verifier executable
-produced a supplied result, select trust anchors, establish professional
-identity, or admit a receipt to the Engine. It authenticates a caller-supplied
-payload and checks identity binding when a trusted caller supplies the frozen
-execution identities. Until key custody and the verifier-to-pipeline channel
-are implemented, the output is a preparatory envelope, not trusted evidence.
+produced a supplied result through its generic issuer, select trust anchors,
+establish professional identity, or admit a receipt to the Engine. The HMAC
+codec and generic RSA issuer can authenticate caller-supplied results. The
+local wrapper invokes the project verifier and binds its source and PDF bytes,
+but key custody and a verifier-to-pipeline channel remain unimplemented.
+Every output is preparatory and is not trusted Engine evidence.
 """
 
 from __future__ import annotations
@@ -14,15 +15,20 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import re
+import shutil
+import subprocess
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Mapping
 
 
 RECEIPT_SCHEMA_VERSION = "1.0.0"
 RECEIPT_TYPE = "LOCAL_PDF_SIGNATURE_VERIFICATION_RECEIPT"
 AUTHENTICATION_ALGORITHM = "HMAC_SHA256"
+RSA_AUTHENTICATION_ALGORITHM = "RSA_SHA256_PKCS1_V1_5"
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 _KEY_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
 _KEY_LAST_CHARS = "AEIMQUYcgkosw048"
@@ -255,16 +261,166 @@ def issue_signature_verification_receipt(
     receipt_id: str | None = None,
 ) -> dict[str, Any]:
     """Create a signed envelope for the supplied result; no trust is asserted."""
+    payload = _prepare_signature_receipt_payload(
+        context=context,
+        inspection=inspection,
+        pdf_bytes=pdf_bytes,
+        verifier_id=verifier_id,
+        verifier_executable_sha256=verifier_executable_sha256,
+        key_id=key_id,
+        created_at=created_at,
+        receipt_id=receipt_id,
+    )
+    key = _require_key(hmac_key)
+    canonical = _canonical_json(payload).encode("utf-8")
+    signature = base64.b64encode(hmac.new(key.encode("ascii"), canonical, hashlib.sha256).digest()).decode("ascii")
+    return {
+        "payload": payload,
+        "authentication": {
+            "keyId": _require_text(key_id, "receipt key id", 128),
+            "algorithm": AUTHENTICATION_ALGORITHM,
+            "signature": signature,
+        },
+    }
+
+
+def issue_signature_verification_receipt_rsa(
+    *,
+    context: Mapping[str, Any],
+    inspection: Mapping[str, Any],
+    pdf_bytes: bytes,
+    verifier_id: str,
+    verifier_executable_sha256: str,
+    key_id: str,
+    signing_private_key_path: str | Path,
+    created_at: str,
+    receipt_id: str | None = None,
+) -> dict[str, Any]:
+    """Sign a prepared receipt with a project-controlled RSA private key via OpenSSL."""
+    payload = _prepare_signature_receipt_payload(
+        context=context,
+        inspection=inspection,
+        pdf_bytes=pdf_bytes,
+        verifier_id=verifier_id,
+        verifier_executable_sha256=verifier_executable_sha256,
+        key_id=key_id,
+        created_at=created_at,
+        receipt_id=receipt_id,
+    )
+    key_path = Path(signing_private_key_path)
+    if not key_path.is_file():
+        raise SignatureReceiptError("receipt signing key file is unavailable")
+    try:
+        environment = {"PATH": os.defpath, "LANG": "C", "LC_ALL": "C"}
+        key_check = subprocess.run(
+            ["openssl", "rsa", "-in", str(key_path), "-noout", "-modulus"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=15,
+            env=environment,
+        )
+        modulus_match = re.fullmatch(rb"Modulus=([0-9A-Fa-f]+)\s*", key_check.stdout)
+        if (key_check.returncode != 0 or not modulus_match or
+                len(modulus_match.group(1)) not in (512, 768, 1024) or
+                modulus_match.group(1)[:1] not in b"89abcdefABCDEF"):
+            raise SignatureReceiptError("receipt signing key must be a 2048/3072/4096-bit RSA key")
+        completed = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-sign", str(key_path)],
+            input=_canonical_json(payload).encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=15,
+            env=environment,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise SignatureReceiptError("local RSA receipt signing failed") from exc
+    if completed.returncode != 0 or not completed.stdout:
+        raise SignatureReceiptError("local RSA receipt signing failed")
+    return {
+        "payload": payload,
+        "authentication": {
+            "keyId": _require_text(key_id, "receipt key id", 128),
+            "algorithm": RSA_AUTHENTICATION_ALGORITHM,
+            "signature": base64.b64encode(completed.stdout).decode("ascii"),
+        },
+    }
+
+
+def issue_local_pdf_signature_verification_receipt(
+    *,
+    pdf_path: str | Path,
+    context: Mapping[str, Any],
+    key_id: str,
+    signing_private_key_path: str | Path,
+    created_at: str,
+    receipt_id: str | None = None,
+    trust_anchor_bundle: str | Path | None = None,
+) -> dict[str, Any]:
+    """Inspect the exact local PDF, then sign that verifier's result with RSA.
+
+    This controlled local interface removes caller-supplied inspection output.
+    It remains preparatory: key custody, pipeline identity binding, and Engine
+    admission are separate contracts.
+    """
+    from tools import verify_pdf_signatures_local
+
+    source_path = Path(pdf_path)
+    verifier_path = Path(verify_pdf_signatures_local.__file__).resolve()
+    try:
+        verifier_source_before = verifier_path.read_bytes()
+        inspection = verify_pdf_signatures_local.inspect_pdf(
+            source_path,
+            trust_anchor_bundle=Path(trust_anchor_bundle) if trust_anchor_bundle else None,
+        )
+        pdf_bytes = source_path.read_bytes()
+        verifier_source_after = verifier_path.read_bytes()
+    except OSError as exc:
+        raise SignatureReceiptError("local PDF or verifier source is unavailable") from exc
+    if verifier_source_before != verifier_source_after:
+        raise SignatureReceiptError("local verifier source changed during inspection")
+    actual_pdf_digest = hashlib.sha256(pdf_bytes).hexdigest()
+    document_record = inspection.get("document") if isinstance(inspection, dict) else None
+    if (not isinstance(document_record, dict) or
+            document_record.get("sha256") != actual_pdf_digest):
+        raise SignatureReceiptError("local PDF changed during signature inspection")
+    verifier_digest = hashlib.sha256(verifier_source_before).hexdigest()
+    if not shutil.which("pdfsig") or not shutil.which("openssl"):
+        raise SignatureReceiptError("local PDF verifier dependencies are unavailable")
+    return issue_signature_verification_receipt_rsa(
+        context=context,
+        inspection=inspection,
+        pdf_bytes=pdf_bytes,
+        verifier_id="PROJECT_LOCAL_PDF_SIGNATURE_VERIFIER",
+        verifier_executable_sha256=verifier_digest,
+        key_id=key_id,
+        signing_private_key_path=signing_private_key_path,
+        created_at=created_at,
+        receipt_id=receipt_id,
+    )
+
+
+def _prepare_signature_receipt_payload(
+    *,
+    context: Mapping[str, Any],
+    inspection: Mapping[str, Any],
+    pdf_bytes: bytes,
+    verifier_id: str,
+    verifier_executable_sha256: str,
+    key_id: str,
+    created_at: str,
+    receipt_id: str | None,
+) -> dict[str, Any]:
     bound = _validate_context(dict(context))
     normalized_result, document_digest = _validate_inspection(inspection, pdf_bytes)
     verifier_name = _require_text(verifier_id, "verifier id", 128)
     executable_digest = _require_digest(verifier_executable_sha256, "verifier executable digest")
     identifier = _require_text(receipt_id or str(uuid.uuid4()), "receipt id", 128)
-    signer_key_id = _require_text(key_id, "verifier key id", 128)
-    key = _require_key(hmac_key)
+    _require_text(key_id, "verifier key id", 128)
     timestamp = _validate_timestamp(created_at)
 
-    payload = {
+    return {
         "receiptType": RECEIPT_TYPE,
         "schemaVersion": RECEIPT_SCHEMA_VERSION,
         "receiptId": identifier,
@@ -275,16 +431,6 @@ def issue_signature_verification_receipt(
         "verifierExecutableSha256": executable_digest,
         "createdAt": timestamp,
         "verificationResult": normalized_result,
-    }
-    canonical = _canonical_json(payload).encode("utf-8")
-    signature = base64.b64encode(hmac.new(key.encode("ascii"), canonical, hashlib.sha256).digest()).decode("ascii")
-    return {
-        "payload": payload,
-        "authentication": {
-            "keyId": signer_key_id,
-            "algorithm": AUTHENTICATION_ALGORITHM,
-            "signature": signature,
-        },
     }
 
 

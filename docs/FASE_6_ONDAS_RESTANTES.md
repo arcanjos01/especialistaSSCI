@@ -3646,6 +3646,46 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   codificado quando puder obter uma fonte de enumeração completa por
   apresentação e vínculo autenticado ao RDE; um codec isolado não demonstraria
   completude nem aumentaria cobertura.
+
+### Continuidade preparatória — assinatura assimétrica de recibo local
+
+- Baseline verificado: branch `feature/apps-script-engine-core`, HEAD
+  `dd6dd1a2f95d3e43b30dbc4a50e0acf14f72ef45`, remoto sincronizado. Worktree
+  continha as quatro alterações locais abaixo e `.codex-local-evidence/`
+  não rastreado; este diretório foi preservado e não incluído.
+- O recibo ganhou um emissor local RSA-SHA256/PKCS#1 v1.5 com OpenSSL e um
+  wrapper que chama `verify_pdf_signatures_local.inspect_pdf` diretamente,
+  vincula digest dos bytes do PDF e digest do código Python do verificador,
+  detecta alteração do arquivo durante a leitura e assina o payload
+  canônico. O emissor genérico ainda aceita resultado fornecido pelo chamador;
+  somente o wrapper restringe esse fluxo. Chave privada, custódia, identidade
+  autenticada do processo, anti-replay e canal para pipeline/Engine continuam
+  ausentes.
+- O módulo Apps Script foi alterado para validar recibos RSA com chave pública
+  pinada em Script Properties, exponent `010001` e tamanhos de chave
+  2048/3072/4096 bits, usando exponenciação modular BigInt e checagem do bloco
+  EMSA-PKCS1-v1_5/SHA-256. HMAC continua apenas no codec de referência e é
+  explicitamente recusado por esse validador. A validação RSA é implementação
+  própria, testada sob Node; não foi executada no runtime Apps Script real nem
+  conectada ao Engine. Portanto é POC preparatória, não verificador confiável
+  para uso operacional.
+- Testes focais: 11 testes Python do recibo e suíte Apps Script do recibo —
+  PASS. Suítes completas no candidato local: 199 testes Python (12 skipped),
+  11/11 suítes Apps Script, `node --check` em módulos/testes e sintaxe de
+  `Code.gs` — PASS. Runtime regenerado byte-identical, SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
+  Manifests/phase guards estão cobertos pela suíte Python; `git diff --check`
+  passou após o registro. Build limpo de release e revisão independente deste
+  lote ainda são gates pendentes.
+- Métrica do lote: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`;
+  pendentes `19 → 19`; blockers funcionais encerrados `0`. Benefício
+  demonstrável limitado a testar a assinatura assimétrica de payloads e a
+  reduzir a possibilidade de o wrapper assinar uma saída arbitrária enviada
+  pelo chamador; não habilita `SIGNED`, não confirma identidade profissional,
+  confiança, revogação ou PAdES, e não altera RDE/Base/runtime compilado.
+- Revisões independentes deste delta ainda pendentes. Status permanece
+  `ARCHITECTURAL_REVIEW=PENDING`, `SOL_REVIEW=PENDING_IDENTITY`,
+  `PROMOTION=NOT_AUTHORIZED`, `CALIBRATION_GATE=BLOCKED`, cobertura `10/29`.
 - Checkpoint documental `34f35d7c243282e29ef6d36e357099069607b8b1` e snapshot
   atual `447d47a072bb8ff7c25d5a64c9873a7da5e16636`: builds limpos de validação
   técnica `PASS`, 10 documentos, Base `5.34.0`, `SOURCE_COMMIT` exato em cada SHA.

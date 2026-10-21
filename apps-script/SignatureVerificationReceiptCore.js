@@ -3,8 +3,9 @@
 
   // This authenticates and binds a technical receipt. It does not establish a
   // trust profile, decide SIGNED, or expose receipt data to the Engine.
-  const keyProperty_ = 'SSCI_SIGNATURE_VERIFICATION_HMAC_KEY';
-  const keyIdProperty_ = 'SSCI_SIGNATURE_VERIFICATION_HMAC_KEY_ID';
+  const keyIdProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_KEY_ID';
+  const modulusProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_MODULUS_HEX';
+  const exponentProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_EXPONENT_HEX';
   const contextKeys_ = [
     'presentationIdentity', 'rdeIdentity', 'rdeDigest',
     'sourceDocumentIdentity', 'sourceDocumentDigest'
@@ -113,39 +114,81 @@
     return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
   }
 
-  function canonicalKey_(value) {
-    return typeof value === 'string' && value.length === 43 &&
-      /^[A-Za-z0-9_-]{43}$/.test(value) && 'AEIMQUYcgkosw048'.includes(value.charAt(42));
-  }
-
-  function receiptKey_() {
+  function receiptPublicKey_() {
     try {
       const properties = global.PropertiesService.getScriptProperties();
-      const key = properties.getProperty(keyProperty_);
       const keyId = properties.getProperty(keyIdProperty_);
-      return canonicalKey_(key) && hasText_(keyId, 128) ? { key, keyId } : null;
+      const modulusHex = properties.getProperty(modulusProperty_);
+      const exponentHex = properties.getProperty(exponentProperty_);
+      if (!hasText_(keyId, 128) || typeof modulusHex !== 'string' ||
+          !/^(?:[89a-f][0-9a-f]{511}|[89a-f][0-9a-f]{767}|[89a-f][0-9a-f]{1023})$/.test(modulusHex) ||
+          exponentHex !== '010001') return null;
+      return { keyId, modulusHex, exponentHex };
     } catch (error) {
       return null;
     }
   }
 
-  function hmac_(payload, key) {
+  function bytesToHex_(bytes) {
+    let result = '';
+    for (let index = 0; index < bytes.length; index += 1) {
+      const octet = bytes[index] & 255;
+      result += (octet < 16 ? '0' : '') + octet.toString(16);
+    }
+    return result;
+  }
+
+  function modularExponentiation_(base, exponent, modulus) {
+    let result = BigInt(1);
+    let factor = base % modulus;
+    let power = exponent;
+    while (power > BigInt(0)) {
+      if (power % BigInt(2) === BigInt(1)) result = (result * factor) % modulus;
+      power = power / BigInt(2);
+      factor = (factor * factor) % modulus;
+    }
+    return result;
+  }
+
+  function verifyRsaSha256_(canonicalPayload, signatureText, key) {
     try {
       const utilities = global.Utilities;
-      return utilities.base64Encode(utilities.computeHmacSha256Signature(payload, key));
-    } catch (error) {
-      return null;
-    }
-  }
+      const signatureBytes = utilities.base64Decode(signatureText);
+      const keyBytes = key.modulusHex.length / 2;
+      if (!Array.isArray(signatureBytes) || signatureBytes.length !== keyBytes ||
+          utilities.base64Encode(signatureBytes) !== signatureText) return false;
 
-  function constantTimeEqual_(left, right) {
-    if (typeof left !== 'string' || typeof right !== 'string') return false;
-    let difference = left.length ^ right.length;
-    const size = Math.max(left.length, right.length);
-    for (let index = 0; index < size; index += 1) {
-      difference |= (left.charCodeAt(index) || 0) ^ (right.charCodeAt(index) || 0);
+      const digestBytes = utilities.computeDigest(
+        utilities.DigestAlgorithm.SHA_256,
+        canonicalPayload,
+        utilities.Charset.UTF_8
+      );
+      if (!Array.isArray(digestBytes) || digestBytes.length !== 32) return false;
+
+      const modulus = BigInt('0x' + key.modulusHex);
+      const exponent = BigInt('0x' + key.exponentHex);
+      const signature = BigInt('0x' + bytesToHex_(signatureBytes));
+      if (signature >= modulus) return false;
+      const recovered = modularExponentiation_(signature, exponent, modulus);
+      let encodedHex = recovered.toString(16);
+      while (encodedHex.length < keyBytes * 2) encodedHex = '0' + encodedHex;
+      if (encodedHex.length !== keyBytes * 2) return false;
+
+      const digestInfoHex = '3031300d060960864801650304020105000420' + bytesToHex_(digestBytes);
+      const paddingLength = keyBytes - (digestInfoHex.length / 2) - 3;
+      if (paddingLength < 8) return false;
+      let expectedHex = '0001';
+      for (let index = 0; index < paddingLength; index += 1) expectedHex += 'ff';
+      expectedHex += '00' + digestInfoHex;
+      if (expectedHex.length !== encodedHex.length) return false;
+      let difference = 0;
+      for (let index = 0; index < expectedHex.length; index += 1) {
+        difference |= expectedHex.charCodeAt(index) ^ encodedHex.charCodeAt(index);
+      }
+      return difference === 0;
+    } catch (error) {
+      return false;
     }
-    return difference === 0;
   }
 
   function validInspection_(result, sourceDigest) {
@@ -174,9 +217,9 @@
           !exactDataObject_(expectedContext, contextKeys_)) return false;
       const payload = receipt.payload;
       const auth = receipt.authentication;
-      const key = receiptKey_();
-      if (!key || auth.keyId !== key.keyId || auth.algorithm !== 'HMAC_SHA256' ||
-          !hasText_(auth.signature, 128) || !/^[A-Za-z0-9+/]{43}=$/.test(auth.signature) ||
+      const key = receiptPublicKey_();
+      if (!key || auth.keyId !== key.keyId ||
+          !hasText_(auth.signature, 2048) || !/^[A-Za-z0-9+/]+={0,2}$/.test(auth.signature) ||
           payload.receiptType !== 'LOCAL_PDF_SIGNATURE_VERIFICATION_RECEIPT' ||
           payload.schemaVersion !== '1.0.0' || !hasText_(payload.receiptId, 128) ||
           !hasText_(payload.verifierId, 128) || !hasText_(payload.verifierVersion, 128) ||
@@ -192,8 +235,8 @@
           if (!digest_(value)) return false;
         } else if (!hasText_(value, 512)) return false;
       }
-      const expected = hmac_(canonicalJson_(payload), key.key);
-      return !!expected && constantTimeEqual_(expected, auth.signature);
+      if (auth.algorithm !== 'RSA_SHA256_PKCS1_V1_5') return false;
+      return verifyRsaSha256_(canonicalJson_(payload), auth.signature, key);
     } catch (error) {
       return false;
     }
