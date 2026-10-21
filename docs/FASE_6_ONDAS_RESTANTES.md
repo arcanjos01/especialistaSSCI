@@ -4160,26 +4160,50 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   a revisão final Sol é requisito da Fase 6 completa, ainda não deste checkpoint.
   `PROMOTION=NOT_AUTHORIZED`; não houve homologação institucional ou uso real.
 
-### Fase 6B — serialização canônica da identidade de apresentação — em curso
+### Fase 6B — serialização canônica da identidade de apresentação — checkpoint técnico
 
 - Contrato vigente já define seleção por `PROTOCOL_IDENTIFIER` e data civil da
   solicitação; outra data sob o mesmo protocolo é outra apresentação. O helper
   de autenticação devolvia esses campos dentro de um objeto incluindo também
   metadata de intake, enquanto os contratos de recibo exigem uma string
   canônica. Nenhuma serialização comum estava implementada.
-- Implementação local em curso deriva, apenas de `CurrentSubmissionContext`
+- Commit `3c9c1c1ce000a37756b383aa6e3c0933c3165af0` implementou a derivação,
+  somente de `CurrentSubmissionContext`
   autenticado, `CBMSC_HABITESE_PRESENTATION_V1:` + JSON da tupla ordenada
   `[protocolIdentifier, requestDate]`. `RE_IDENTIFIER` permanece somente
   consistência; `processId` e provenance são excluídos. O formato é
-  versionado, preserva valores literais e evita colisão por delimitadores.
-- Teste direcionado de `CurrentSubmissionContext`: PASS; prova estabilidade
-  apesar de mudanças de `processId`, `RE_IDENTIFIER` e provenance, e identidade
-  distinta para protocolo/data diferentes. O trabalho é preparatório: ainda não
-  foi conectado ao verificador/receipt binding do Engine, não altera resultado
+  versionado e preserva valores literais.
+- A revisão inicial do candidato `3c9c1c1` encontrou HIGH reproduzível:
+  serializar o array permitia que `Array.prototype.toJSON` substituísse os dois
+  campos e colidisse apresentações distintas. Encontrou também LOW: o teste de
+  data mudava simultaneamente o protocolo. A revisão foi feita por execução
+  independente que se identificou como Codex/GPT-6; modelo/backend exato não
+  estava exposto, portanto não se contabiliza como aprovação independente nos
+  termos de identidade da seção 25.2.
+- Correção em `c9276125e247fee0b062a76f44ed51cec70affe9`: serializa os dois
+  valores primitivos separadamente e monta os delimitadores fixos; o teste do
+  hook confirma preservação de duas identidades e restaura explicitamente o
+  protocolo no caso de data. Commit publicado na branch autorizada.
+- Re-review independente dirigida: `PASS`, findings HIGH e LOW fechados, sem
+  regressões no escopo. Revisora configurada `gpt-6.1-sol`/OpenAI, execução
+  `01a16048-9d95-7003-98a8-10467c4e3f93`; examinou o diff exato de dois arquivos,
+  fonte/contrato e testes, executou quatro suítes focais, probes de prototype,
+  280 casos de escaping/data, rejeição de inputs não autenticados e sensibilidade
+  do teste corrigido. A revisão é dirigida ao candidato `c927612`; não é a
+  revisão final da Fase 6 nem aprovação de promoção.
+- Gates completos no candidato: Python `199` (187 PASS, 12 SKIP por dependências
+  opcionais ausentes); Apps Script `12/12 PASS`; sintaxe de todos os módulos e
+  testes JS e de `apps-script/Code.gs` PASS; runtime regenerado byte-idêntico,
+  SHA-256 `caaf14b2f6b4db85124e2f636aad17f31cfa9aa88d4ecdeeb6902f20292e1327`;
+  manifest/guards cobertos pela suíte Python; `git diff --check PASS`. Build
+  limpo `PASS`, 10 documentos, KB `5.38.0`, pipeline `4.39.0`,
+  `SOURCE_COMMIT=c9276125e247fee0b062a76f44ed51cec70affe9`.
+- A resposta do responsável foi reafirmada: não consumir
+  `drt_scope_declaration_items` para `DRT_COVERS`; manter revisão humana até
+  contrato institucional. Nenhuma alteração de implementação ou cobertura
+  decorre dessa resposta; a decisão já está registrada acima.
+- Limites: o helper ainda não está conectado aos consumidores de recibo ou ao
+  binding de execução; a integração permanece pendente, não altera resultado
   `SIGNED` e não aumenta cobertura. Criteria integrais mantêm `10/29`.
-- O contrato 08, Base/runtime, inventário e tracker devem acompanhar a revisão
-  de versão `5.38.0`/pipeline `4.39.0`. Gates completos, build limpo, revisão
-  independente e publicação deste lote ainda pendentes.
-- Criteria integrais `10/29 → 10/29`; nenhum resultado ou `SIGNED` foi
-  habilitado. A compatibilidade de registry legado exige migração planejada
-  antes de implantação; nenhum processo real foi usado ou alterado.
+  `SOL_REVIEW=NOT_PERFORMED` para a aprovação final da Fase 6;
+  `PROMOTION=NOT_AUTHORIZED`; nenhum processo real foi usado ou alterado.
