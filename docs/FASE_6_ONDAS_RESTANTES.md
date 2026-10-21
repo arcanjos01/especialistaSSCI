@@ -4325,3 +4325,37 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   com PDFs sintéticos e `pdfsig`/OpenSSL locais. Esta evidência cobre a POC do
   verificador local, não admissão operacional, confiança institucional,
   integração ao Engine ou qualquer ganho de Criterion.
+
+### Fase 6B — re-review dirigida do recibo de revisão humana — 2026-10-21
+
+```text
+REVIEW_BASE=2b209c18253196340bd890040ee02f95a45726c5
+REVIEWED_CANDIDATE=6b100d73f8652e76627c52bca0851e45e0fa24a0
+REVIEWER_IDENTITY=Codex / GPT-5 (Luna economy)
+REVIEW_EXECUTION=01a16071-6096-7dc2-8e76-eed39deb7a3b
+DIRECTED_REREVIEW=PASS
+MEDIUM_FINDING=CLOSED
+LOW_EXECUTABLE_DIGEST_FINDING=OPEN_NONBLOCKING
+SOL_REVIEW=NOT_PERFORMED
+CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial)
+PROMOTION=NOT_AUTHORIZED
+```
+
+A re-review examinou somente o achado MEDIUM de despacho para
+`Array.prototype.map` herdado/customizado em
+`HumanSignatureReviewCore.js` e seus efeitos no produtor e verificador. A
+revisora executou `node tests/apps-script-human-signature-review.test.js`
+(PASS), leu o diff exato entre os SHAs acima e não consultou logs. Confirmou
+que a exploração pós-HMAC agora é rejeitada, que a cópia do produtor usa os
+índices próprios da evidência e que arrays esparsos, com accessors, símbolos ou
+propriedades extras são recusados. Nenhum finding novo foi identificado neste
+escopo. A identidade efetiva declarada foi Codex/GPT-5; esta execução não é
+revisão Sol.
+
+O lote não aumenta cobertura: mantém 10 Criteria integrais de 29 produtivos e
+`T1_CONFORMITY_REPORT` parcial. O finding LOW sobre digest de executáveis
+auxiliares permanece aberto e não bloqueante antes da integração operacional.
+Também permanece sem resposta a decisão sobre a rota de
+`documentary_associations` explícitas em `T1_CONFORMITY_REPORT`; nenhum código
+ou contrato dessa rota foi alterado. `SOL_REVIEW` para arquitetura/fase continua
+pendente, e a pendência não autoriza promoção.
