@@ -3841,3 +3841,23 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   revisões independentes novas `0` (nenhum diff funcional/arquitetural). A
   criação do revisor Luna foi recusada por limite de threads; Sol 6.1 não foi
   executado. Isso não equivale a aprovação nem reprovação de revisão.
+
+### Regressão de readiness para declaração explícita e DRT_COVERS — 2026-10-21
+
+- O teste `tests/apps-script-validated-execution-readiness.test.js` agora inclui
+  RDE 0.7 válida com ART, relatório SHP e uma declaração conjunta explícita
+  DRT→produto→SMSCI→atividade. Apesar da declaração, `T4_IN07_COMMISSIONING`
+  continua `unsupported` e não materializável, pois a folha
+  `DRT_COVERS` permanece sem executor e sob revisão humana.
+- Candidato publicado: `259aebace50385450af7e7d1b10f395bd4cd102d`. Gates
+  completos no SHA: `199/199` testes Python sem skips (PyHanko ativo), `11/11`
+  suítes Apps Script, sintaxe JS/Code.gs e `git diff --check` PASS. Release
+  build limpo: `PASS`, 10 documentos, KB `5.34.0`, `SOURCE_COMMIT` exato;
+  regeneração byte-idêntica do runtime, SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
+- Ganho: `0` Criteria; cobertura `10/29 → 10/29`; blockers de cobertura
+  encerrados `0`; novo blocker `0`. Benefício: uma declaração válida não pode
+  habilitar implicitamente um predicado que o Engine ainda não executa.
+  Revisão independente do lote `PENDING_CAPACITY` (Luna indisponível por limite
+  de threads); Sol 6.1 não foi executado. A mudança é teste-only, sem mudança
+  arquitetural; permanece pendente de re-review em lote autorizado.
