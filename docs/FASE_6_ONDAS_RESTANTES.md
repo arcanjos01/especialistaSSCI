@@ -3445,3 +3445,29 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   obsoleta/universal e manutenção de trilha oficial para o próximo perfil
   específico. Revisões independentes `0` (registro documental de fonte); gates
   de código não aplicáveis; `git diff --check=PASS`.
+
+### Limite de binding RT-005 em IN09 — decisão focal solicitada
+
+- A decisão vigente veda avaliar compatibilidade atividade↔SMSCI para
+  RT-005/006/014. O Criterion `T4_IN09_DRT` ainda testa
+  `HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,"VISTORIA_ENSAIO")` e o Requirement
+  declara dois `VALIDATE RESPONSIBILITY_ACTIVITY_COMPATIBLE`; não executar esse
+  caminho como está.
+- O Anexo A interno descreve RT-005 como vistoria/inspeção, aceita DRT de
+  vistoria/ensaio e registra a relação interna RT-005/006 como não integralmente
+  individualizada. A seção 4 do Anexo permite
+  `DRT_RESPONSIBILITY_TYPE` somente quando formalizado explicitamente; a
+  entrada RT-005 não o define hoje. A RDE 0.4 registra fatos literais
+  `drt_declaration_items`, mas exclui expressamente seu uso para selecionar
+  evidência de Responsabilidade Técnica. Logo não há binding canônico atual de
+  `RESPONSIBILITY_TYPE=VISTORIA_ENSAIO` a RT-005, mesmo sem testar SMSCI.
+- Foi solicitada decisão focal ao responsável: (a) autorizar o uso do fato RDE
+  explicitamente declarado `RESPONSIBILITY_TYPE=VISTORIA_ENSAIO` como binding
+  documental ao ID interno RT-005 para este Criterion, sem comparação de
+  atividade↔SMSCI; ou (b) manter esse binding em revisão humana até existir
+  declaração explícita de RT-005 no contrato/fonte. Enquanto não houver
+  resposta, preservar os mapeamentos canônicos e a cobertura atual; não
+  suprimir `NC_T4_004`, inferir inexistência nem criar ligação por similaridade.
+- Estado neste checkpoint: `HUMAN_DECISION_REQUIRED=1` para esse binding;
+  `T4_IN09_DRT` continua pendente. Nenhuma mudança em código, Base, Criterion,
+  Nonconformity, contagem ou testes; `git diff --check=PASS` após o registro.
