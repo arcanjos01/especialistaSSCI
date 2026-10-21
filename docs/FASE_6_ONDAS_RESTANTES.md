@@ -4250,6 +4250,28 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `0`; revisão independente neste lote: `0`; findings novos: `0`. O parecer
   final da Fase 6 por Sol continua pendente; `PROMOTION=NOT_AUTHORIZED`.
 
+### Triagem independente Luna dos Criteria sem formalização — 2026-10-21
+
+- Revisor read-only: `gpt-5.6-luna` (`luna_economy`, nickname Feynman),
+  execução independente no HEAD `515affcfcb3ea8c8d60a88766da34d03be64d9be`.
+  Escopo: as 11 linhas `SOURCE_DEFINED_NEEDS_FORMALIZATION` do inventário,
+  suas fontes, runtime e testes. Não alterou arquivos nem executou testes.
+- Conclusão: nenhum dos 11 Criteria pode ser concluído integralmente com os
+  fatos e contratos atuais sem nova decisão ou evidência. Bloqueios encontrados:
+  mapeamento versionado de status por ART/RRT/TRT; prova verificável de
+  assinatura e binding; identificadores/comparandos ausentes para identidade,
+  endereço e área; associação DRT-produto ainda sujeita à decisão sobre o
+  alcance da revisão humana; e seleção/multiplicidade do relatório.
+- A existência de atributos na entidade compilada e a materialização de
+  unidades por readiness são capacidade estrutural, não execução integral. Em
+  particular, `T1_CONFORMITY_REPORT_SIGNED` ainda depende de assinatura
+  verificável e tratamento integral da multiplicidade. Ganho de cobertura:
+  `0`; nenhuma revisão Sol ou aprovação arquitetural decorre desta triagem.
+- Ponto decisório ainda aguardado do responsável: se a revisão humana DRT→produto
+  também impede que `documentary_associations` explícitas alimentem
+  `T1_CONFORMITY_REPORT`. O comportamento atual não foi alterado enquanto a
+  distinção não estiver definida. Nenhuma resposta foi presumida.
+
 ### Fase 6B — binding de recibos à identidade canônica — checkpoint técnico
 
 - Dependência compartilhada priorizada porque assinatura da DRT, assinatura de
