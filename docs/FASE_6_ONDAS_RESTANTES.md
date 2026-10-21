@@ -3322,3 +3322,47 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Estado: `CALIBRATION_GATE=BLOCKED`, `SOL_REVIEW=PENDING_CAPACITY`,
   `PROMOTION=NOT_AUTHORIZED`, `VALIDATED_TO_ANALYZED=PENDING` e
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
+
+### Prova local de confiança e revogação com política pyHanko explícita — 2026-10-20
+
+- Continuidade isolada sobre o checkpoint `c09494c`: gerados em `/tmp`
+  certificados sintéticos de uma CA local, certificado final com CRL
+  distribution point e CRLs assinadas localmente. PDF e CMS vieram da fixture
+  sintética existente. Cada execução usou `allow_fetching=False`, raízes
+  explícitas e nenhum endpoint externo.
+- Resultados pyHanko `0.38.0`, com `CertRevTrustPolicy` e regra
+  `CRL_REQUIRED` explícita para certificado final e CAs:
+
+  | Cenário | Integridade | Confiança / revogação | Resultado geral |
+  |---|---|---|---|
+  | Âncora local correta + CRL válida sem revogação | `intact=true` | `trusted=true`, `revoked=false` | `bottom_line=true` |
+  | Âncora local correta, sem CRL | `intact=true` | `trusted=false`, `revoked=false` | `bottom_line=false` |
+  | Âncora correta + CRL contendo o serial do signatário | `intact=true` | `trusted=false`, `revoked=true` | `bottom_line=false` |
+
+- Achado técnico importante para qualquer wrapper futuro: o modo legado
+  `revocation_mode='hard-fail'` não exige CRL quando o certificado não declara
+  um ponto de distribuição. Nesse ensaio inicial, uma cadeia confiável sem
+  CRL produziu `bottom_line=true`; a política declarativa `CRL_REQUIRED` e uma
+  extensão de distribuição explícita foram necessárias para tornar ausência
+  de CRL insuficiente e revogação detectável. Nenhum desses resultados define
+  qual autoridade, política de revogação ou perfil de confiança o CBMSC deve
+  adotar. A documentação do validator registra que o modo legado
+  `CHECK_IF_DECLARED` não usa CRL armazenada se o certificado não tiver
+  distribution point:
+  [política oficial de revogação pyhanko-certvalidator](https://docs.pyhanko.eu/en/latest/api-docs/pyhanko_certvalidator.html).
+- O componente permite distinguir integridade CMS de confiança/revogação sem
+  rede quando recebe certificados e política congelados. Permanecem pendentes
+  a política institucional de âncoras, frescor/tempo, tratamento de OCSP/CRL
+  ausentes, limites de recurso e recibo autenticado; não é verificação PAdES
+  estrutural completa. Não há integração Apps Script/Engine nem dependência
+  adicionada ao projeto.
+- Métricas: Criteria integrais `10/29 → 10/29`, parcial `1 → 1`, pendentes
+  `19 → 19`; blockers encerrados `0`, findings novos `0`. Esforço: um ensaio
+  reproduzível em fixtures locais após corrigir a fixture para separar CA e
+  assinante; revisões independentes `0`, pois não houve mudança no repositório
+  de código/contrato. Benefício: prova que uma política estrita local consegue
+  encaminhar falta de CRL e revogação como não confiáveis sem presumir status.
+- Próxima etapa técnica: transformar a matriz em fixture de regressão opcional
+  e definir o perfil de trust/tempo que o verificador pode receber sem buscar
+  validação externa. Até a aprovação desse perfil e do contrato de recibo,
+  `SIGNED` permanece sem admissão automática no Engine.
