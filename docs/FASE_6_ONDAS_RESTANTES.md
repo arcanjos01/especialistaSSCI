@@ -3919,6 +3919,9 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SOL_REVIEW=PENDING_IDENTITY`. Portanto
   `INDEPENDENT_ARCH_REVIEW=PENDING`, `ARCHITECTURAL_REVIEW=PENDING` e
   `PROMOTION=NOT_AUTHORIZED`. O checkpoint técnico é provisório, não promoção.
-- O push autorizado deste checkpoint e a retomada da revisão independente
-  permanecem como próximas ações. Cobertura integral permanece `10/29`; os seis
+- Os commits provisórios `6720290` (funcional) e `40ce0ba` (registro dos gates)
+  foram enviados com push não-forçado para a branch de desenvolvimento. A
+  criação de Luna retornou `agent thread limit reached`; uma sessão
+  independente já existente foi acionada para revisão somente leitura, sem
+  parecer recebido até este registro. Cobertura integral permanece `10/29`; os seis
   Criteria são preparatórios e continuam pendentes de cobertura integral.
