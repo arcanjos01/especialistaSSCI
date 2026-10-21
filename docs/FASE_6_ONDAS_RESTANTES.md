@@ -13,6 +13,14 @@ os contratos canônicos nem o inventário de cobertura.
 
 ## Estado reconciliado
 
+- Atualização corrente em 2026-10-21: branch local e remoto sincronizados em
+  `816f2ec29fd4c4f62687dff4bea1153847784176`; worktree rastreada limpa e
+  `.codex-local-evidence/` preservado, local e não rastreado. KB `5.34.0`, RDE
+  `0.7.0`, runtime SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
+  Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 1 parcial,
+  1 preparatório e 19 pendentes de cobertura integral; 5 não selecionáveis e 2
+  retirados. Fase 6A `COMPLETE`; 6B `IN_PROGRESS`.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -59,7 +67,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; após decisão C: 9/29 cobertos, 1 parcial (T1_CONFORMITY_REPORT) e 20 pendentes integrais; 19 sem suporte e 1 parcial` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 1 parcial (T1_CONFORMITY_REPORT), 1 preparatório (T4_IN09_DRT), 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -102,13 +110,18 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 ## Estados finais obrigatórios
 
 `SOL_CONTRACT_REVIEW=PASS` (Onda A/C)
-`SOL_REVIEW=PENDING` (aprovação final de toda Fase 6)
+`SOL_REVIEW=PENDING_IDENTITY` (aprovação final de toda Fase 6)
 `AUTO_ADMISSION_THRESHOLD=0.80`
 `AUTO_ADMISSION_POLICY=CONTRACT_READY; CORRELATION_ENGINE_CONSUMER=READY; PRODUCTION_CALLER=PENDING`
 `CALIBRATION_GATE=BLOCKED` até calibração empírica adequada
 `CORRELATION_INTEGRATION=ENGINE_CONSUMER_READY; PRODUCTION_CALLER=PENDING`
 `REPORT_DISCLOSURE_CONTRACT=READY`
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`
+`VALIDATED_TO_ANALYZED=PENDING`
+`PROMOTION=NOT_AUTHORIZED`
+`FASE_6A_STATUS=COMPLETE`
+`FASE_6B_STATUS=IN_PROGRESS`
+`CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=1; CRITERIA_PREPARATORY=1; CRITERIA_PENDING=19`
 `FASE_6_STATUS=IN_PROGRESS`
 
 ## Reconciliação e ciclo Onda B atual
@@ -790,8 +803,9 @@ Foi supersedido pela reconciliação abaixo e pela matriz canônica em
 
 ### Estado reconciliado e regra de classificação
 
-Fonte reconciliada em 2026-10-16: HEAD remoto `1b1503266abca949a25d37231fcddc3b8198208b`
-mais o lote local não commitado de autenticação do `evaluateCriterion`.
+Fonte original desta análise em 2026-10-16: HEAD remoto
+`1b1503266abca949a25d37231fcddc3b8198208b` mais o lote local então não
+commitado de autenticação do `evaluateCriterion`; esses dados são históricos.
 O parágrafo de contagem acima era um snapshot histórico da KB `5.25.0`.
 Reconciliação vigente pela KB `5.34.0` e por
 `docs/FASE_6_INVENTARIO_COBERTURA.md`: 34 Criteria ativos, 29 produtivos,
@@ -823,7 +837,7 @@ para inferir fatos ou resultados.
 | `T4_DRT_SIGNED` | `T+F` | Mesma dependência de assinatura verificável/binding de `T1_DRT_SIGNED`, para a unidade produtiva da Tabela 4. |
 | `T4_IN07_COMMISSIONING` | `T+F` | Consumir DRT-produto-SMSCI-atividade explícitos para o relatório SHP e fato verificável de assinatura; sem cobertura inferida. |
 | `T4_IN08_ESTANQUEIDADE` | `T+F` | Além do binding de cobertura e assinatura, obter datas documentais estruturadas do laudo e referência temporal autorizada para o limite de cinco anos. |
-| `T4_IN09_DRT` | `T+F` | A decisão do usuário proíbe ao sistema conferir compatibilidade atividade↔SMSCI para RT-005/006/014. `REQ_IN09_DRT` ainda declara validações sem escopo por RT e `T4_IN09_DRT` usa o token RT-005 `VISTORIA_ENSAIO`; manter esse caminho em revisão humana até reconciliar a execução e a consequência NC, sem mapear token ou avaliar compatibilidade. |
+| `T4_IN09_DRT` | `T+F` | O Criterion encaminha sempre a revisão humana e o Requirement não executa compatibilidade atividade↔SMSCI. Permanecem o binding documental de RT-005 ainda não formalizado e a impossibilidade de provar ausência de DRT; não mapear `VISTORIA_ENSAIO` a RT-005 sem fonte/decisão correspondente nem gerar FAIL/NC por coleção vazia. |
 | `T4_IN09_TEST_REPORT` | `T+F` | Fatos individualizados sobre os componentes requeridos pelo art. 122, vínculo explícito DRT-produto-SMSCI-atividade e assinatura verificável; não completar itens de normas NBR por inferência. |
 | `T4_IN09_CHECKLIST` | `F+T` | Evidência verificável de assinatura na checklist exata e consumo pelo predicado de produto já declarado. |
 | `T4_IN10_COMMISSIONING` | `F+T` | Decisão operacional do usuário: basta a equipe/profissional RT que preparou o comissionamento ser distinta da pessoa solicitante. O escopo mecânico já está formalizado; faltam fato autenticado da identidade do autor do relatório, sua assinatura verificável ligada ao relatório exato e comparação com o solicitante. CPF/nome do responsável técnico no requerimento, sem vínculo factual com a autoria do relatório, não basta. |
