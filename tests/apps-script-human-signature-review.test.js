@@ -42,8 +42,8 @@ for (const relativePath of [
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
 }
 const inContext = value => vm.runInContext('JSON.parse(' + JSON.stringify(JSON.stringify(value)) + ')', context);
-function makeReviewContext(submissionOverrides = {}) {
-  context.reviewBindingJson = JSON.stringify(expectedContext);
+function makeReviewContext(submissionOverrides = {}, bindingOverrides = {}) {
+  context.reviewBindingJson = JSON.stringify({ ...expectedContext, ...bindingOverrides });
   context.reviewSubmissionJson = JSON.stringify({
     processId: 'TEST_PROCESS',
     protocolIdentifier: 'TEST_PROTOCOL',
@@ -63,13 +63,14 @@ function makeReviewContext(submissionOverrides = {}) {
 }
 const testContext = makeReviewContext();
 const testEvidence = inContext(evidenceReferences);
-
-const receipt = context.createHumanSignatureReviewReceipt_(testContext, inContext({
+const testReview = inContext({
   reviewMethod: 'IN_DOCUMENT_VISUAL',
   methodDetails: 'Reviewed the exact document bytes identified in this receipt.',
   evidenceReferences: JSON.parse(JSON.stringify(evidenceReferences)),
   decision: 'CONFIRMED_SIGNATURE_PRESENT'
-}));
+});
+
+const receipt = context.createHumanSignatureReviewReceipt_(testContext, testReview);
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, testContext), true);
 assert.equal(receipt.payload.reviewerIdentity, 'reviewer@example.test');
 assert.equal(receipt.payload.cryptographicStatus, 'NOT_EVALUATED_BY_HUMAN_REVIEW');
@@ -85,6 +86,9 @@ assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt,
   makeReviewContext({ requestDate: '2026-10-21' })), false);
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt,
   makeReviewContext({ reIdentifier: 'OTHER_RE', processId: 'OTHER_PROCESS' })), true);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt,
+  makeReviewContext({}, { sourceDocumentDigest: '3'.repeat(64) })), false,
+  'a digest mismatch with a valid presentation context must fail binding');
 context.reviewBindingJson = JSON.stringify({
   ...expectedContext,
   presentationIdentity: 'caller-supplied'
@@ -95,9 +99,24 @@ assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, vm.runInContext
     currentSubmissionContext: createCurrentSubmissionContext(JSON.parse(reviewSubmissionJson)) });
 })()`, context)), false);
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, makeReviewContext()), true);
-assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, inContext({
-  ...expectedContext, sourceDocumentDigest: '3'.repeat(64)
-})), false);
+
+context.authenticatedReviewContext = testContext.currentSubmissionContext;
+const clonedReviewBinding = vm.runInContext(`(() => {
+  const binding = JSON.parse(reviewBindingJson);
+  return Object.freeze({ ...binding,
+    currentSubmissionContext: Object.freeze({ ...authenticatedReviewContext }) });
+})()`, context);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, clonedReviewBinding), false,
+  'an unbranded CurrentSubmissionContext clone must not verify a review receipt');
+const freeStringReviewBinding = vm.runInContext(`(() => {
+  const binding = JSON.parse(reviewBindingJson);
+  return Object.freeze({ ...binding,
+    presentationIdentity: 'caller-supplied',
+    currentSubmissionContext: authenticatedReviewContext });
+})()`, context);
+assert.throws(() => context.createHumanSignatureReviewReceipt_(freeStringReviewBinding, testReview),
+  /invalid human signature review input/,
+  'receipt producer must reject a caller-supplied presentation identity');
 
 properties.set('SSCI_HUMAN_SIGNATURE_REVIEW_HMAC_KEY', Buffer.alloc(32, 8).toString('base64url'));
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, testContext), false);

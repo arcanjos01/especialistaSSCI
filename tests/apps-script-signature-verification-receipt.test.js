@@ -74,10 +74,9 @@ function canonicalJson(value) {
     JSON.stringify(key) + ':' + canonicalJson(value[key])).join(',') + '}';
 }
 
-const canonicalPayload = {
-  ...sourceFixture.payload,
-  presentationIdentity: canonicalPresentationIdentity
-};
+assert.equal(sourceFixture.payload.presentationIdentity, canonicalPresentationIdentity,
+  'static receipt fixture must carry the canonical presentation identity');
+const canonicalPayload = sourceFixture.payload;
 const rsaReceipt = {
   payload: canonicalPayload,
   authentication: {
