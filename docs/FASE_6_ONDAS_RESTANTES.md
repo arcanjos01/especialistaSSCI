@@ -3411,3 +3411,37 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   local, sem endpoints de conselhos ou validação. Revisões independentes desta
   implementação `1` (Luna), sem re-review necessária; Sol 6.1 da arquitetura
   global permanece pendente.
+
+### Rechecagem oficial dos perfis de registro ART/RRT/TRT — 2026-10-20
+
+- Rechecagem dirigida dos Criteria `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED`, mantendo o vocabulário aprovado e sem consulta a APIs
+  dos conselhos. A Resolução Confea nº 1.137/2023 art. 5º descreve formulário
+  eletrônico e assinatura; a Resolução nº 1.160/2025 substitui modelos anexos
+  e entra em vigor 90 dias após publicação. O serviço oficial do Confea
+  descreve disponibilização da ART válida para impressão após pagamento.
+  Fontes primárias: [Resolução nº 1.137/2023](https://normativos.confea.org.br/Ementas/Visualizar?id=76099),
+  [Resolução nº 1.160/2025](https://normativos.confea.org.br/Ementas/Visualizar?id=83001),
+  [serviço oficial ART](https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art).
+- A Carta de Serviços CAU/BR atualizada em 2026 descreve o fluxo de RRT Simples
+  no CAU Digital, inclusive revisão, boleto e pagamento; a resolução anterior
+  documenta distinção entre rascunho e final, mas não comprova que os mesmos
+  campos/status persistem em todas as modalidades e gerações atuais.
+  Fontes primárias: [Carta de Serviços RRT Simples](https://transparencia.caubr.gov.br/cartadeservicos6-1/),
+  [Resolução CAU/BR nº 91/2014 consolidada](https://transparencia.caubr.gov.br/resolucao91/).
+- O manual de geração TRT localizado no portal CFT lista estados, mas é de
+  2018. Comunicados oficiais de 2025 confirmam mudanças de pagamento no
+  Sistema CFT/CRTs, sem publicar um esquema atual de estados de TRT nem
+  equivalências completas entre status e registro/emissão/pagamento.
+  Fontes primárias: [manual CFT de TRT](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf),
+  [pagamento Pix no Sistema CFT/CRTs](https://cft.org.br/pagamento-via-pix-esta-disponivel-em-todo-o-sistema-cft-crts/).
+- Resultado: permanece válido exigir mapeamento exato, versionado por
+  conselho, modalidade e geração do documento, preservando literal e
+  proveniência. Fontes consultadas não sustentam um mapeamento operacional
+  completo para ART, RRT e TRT; status ausente/desconhecido continua
+  `MANUAL_REVIEW`, sem conversão em `FAIL`/NC. Não houve mudança de Base,
+  runtime, código ou testes; Criteria integrais `10/29 → 10/29`, parcial
+  `1 → 1`, pendentes `19 → 19`. Benefício: bloqueio de interpretação
+  obsoleta/universal e manutenção de trilha oficial para o próximo perfil
+  específico. Revisões independentes `0` (registro documental de fonte); gates
+  de código não aplicáveis; `git diff --check=PASS`.
