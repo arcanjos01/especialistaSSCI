@@ -3646,3 +3646,9 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   codificado quando puder obter uma fonte de enumeração completa por
   apresentação e vínculo autenticado ao RDE; um codec isolado não demonstraria
   completude nem aumentaria cobertura.
+- Checkpoint documental publicado em `34f35d7c243282e29ef6d36e357099069607b8b1`;
+  build limpo de validação técnica `PASS`, 10 documentos, Base `5.34.0`,
+  `SOURCE_COMMIT` exato. As suítes completas executadas no candidato de código
+  `e0ff314792e0ff4c9d4a547482f43092deb4a455` permanecem aplicáveis: 197 testes
+  Python (12 SKIP), 11 suítes Apps Script, sintaxe/runtime/diff PASS. A alteração
+  posterior `34f35d7` é documental, sem delta de código/runtime.
