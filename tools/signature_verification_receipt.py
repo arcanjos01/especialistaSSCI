@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-RECEIPT_SCHEMA_VERSION = "1.0.0"
+RECEIPT_SCHEMA_VERSION = "1.1.0"
 RECEIPT_TYPE = "LOCAL_PDF_SIGNATURE_VERIFICATION_RECEIPT"
 AUTHENTICATION_ALGORITHM = "HMAC_SHA256"
 RSA_AUTHENTICATION_ALGORITHM = "RSA_SHA256_PKCS1_V1_5"
@@ -47,13 +47,13 @@ _CONTEXT_KEYS = {
 _INSPECTION_KEYS = {
     "verifier_version", "pdfsig_version", "openssl_version", "document",
     "signature_count", "signatures", "trust", "certificate_chain",
-    "revocation", "pades", "professional_identity",
+    "revocation", "pades", "professional_identity", "verifier_components",
 }
 _PAYLOAD_KEYS = {
     "receiptType", "schemaVersion", "receiptId", "presentationIdentity",
     "rdeIdentity", "rdeDigest", "sourceDocumentIdentity",
     "sourceDocumentDigest", "verifierId", "verifierVersion",
-    "verifierExecutableSha256", "createdAt", "verificationResult",
+    "verifierSourceSha256", "createdAt", "verificationResult",
 }
 
 
@@ -217,6 +217,13 @@ def _validate_inspection(inspection: Any, pdf_bytes: bytes) -> tuple[dict[str, A
         raise SignatureReceiptError("verifier signature count is malformed")
     if not isinstance(result["signatures"], list) or len(result["signatures"]) != result["signature_count"]:
         raise SignatureReceiptError("verifier signatures do not match the reported count")
+    components = _require_exact_keys(
+        result["verifier_components"],
+        {"pdfsig_executable_sha256", "openssl_executable_sha256"},
+        "verifier executable digests",
+    )
+    for key, value in components.items():
+        _require_digest(value, f"{key} verifier component digest")
     sanitized = dict(result)
     sanitized["document"] = {"size": document["size"], "sha256": actual_digest}
     _validate_normalized_result(sanitized, actual_digest)
@@ -237,6 +244,13 @@ def _validate_normalized_result(result: Any, document_digest: str) -> dict[str, 
     for key in ("verifier_version", "pdfsig_version", "openssl_version", "trust",
                 "revocation", "pades", "professional_identity"):
         _require_text(data[key], f"receipt {key}", 128)
+    components = _require_exact_keys(
+        data["verifier_components"],
+        {"pdfsig_executable_sha256", "openssl_executable_sha256"},
+        "receipt verifier executable digests",
+    )
+    for key, value in components.items():
+        _require_digest(value, f"receipt {key} verifier component digest")
     chain = _require_exact_keys(
         data["certificate_chain"], {"result", "trust_anchor_bundle_sha256"},
         "receipt certificate-chain result",
@@ -254,7 +268,7 @@ def issue_signature_verification_receipt(
     inspection: Mapping[str, Any],
     pdf_bytes: bytes,
     verifier_id: str,
-    verifier_executable_sha256: str,
+    verifier_source_sha256: str,
     key_id: str,
     hmac_key: str,
     created_at: str,
@@ -266,7 +280,7 @@ def issue_signature_verification_receipt(
         inspection=inspection,
         pdf_bytes=pdf_bytes,
         verifier_id=verifier_id,
-        verifier_executable_sha256=verifier_executable_sha256,
+        verifier_source_sha256=verifier_source_sha256,
         key_id=key_id,
         created_at=created_at,
         receipt_id=receipt_id,
@@ -290,7 +304,7 @@ def issue_signature_verification_receipt_rsa(
     inspection: Mapping[str, Any],
     pdf_bytes: bytes,
     verifier_id: str,
-    verifier_executable_sha256: str,
+    verifier_source_sha256: str,
     key_id: str,
     signing_private_key_path: str | Path,
     created_at: str,
@@ -302,7 +316,7 @@ def issue_signature_verification_receipt_rsa(
         inspection=inspection,
         pdf_bytes=pdf_bytes,
         verifier_id=verifier_id,
-        verifier_executable_sha256=verifier_executable_sha256,
+        verifier_source_sha256=verifier_source_sha256,
         key_id=key_id,
         created_at=created_at,
         receipt_id=receipt_id,
@@ -393,7 +407,7 @@ def issue_local_pdf_signature_verification_receipt(
         inspection=inspection,
         pdf_bytes=pdf_bytes,
         verifier_id="PROJECT_LOCAL_PDF_SIGNATURE_VERIFIER",
-        verifier_executable_sha256=verifier_digest,
+        verifier_source_sha256=verifier_digest,
         key_id=key_id,
         signing_private_key_path=signing_private_key_path,
         created_at=created_at,
@@ -407,7 +421,7 @@ def _prepare_signature_receipt_payload(
     inspection: Mapping[str, Any],
     pdf_bytes: bytes,
     verifier_id: str,
-    verifier_executable_sha256: str,
+    verifier_source_sha256: str,
     key_id: str,
     created_at: str,
     receipt_id: str | None,
@@ -415,7 +429,7 @@ def _prepare_signature_receipt_payload(
     bound = _validate_context(dict(context))
     normalized_result, document_digest = _validate_inspection(inspection, pdf_bytes)
     verifier_name = _require_text(verifier_id, "verifier id", 128)
-    executable_digest = _require_digest(verifier_executable_sha256, "verifier executable digest")
+    source_digest = _require_digest(verifier_source_sha256, "verifier source digest")
     identifier = _require_text(receipt_id or str(uuid.uuid4()), "receipt id", 128)
     _require_text(key_id, "verifier key id", 128)
     timestamp = _validate_timestamp(created_at)
@@ -428,7 +442,7 @@ def _prepare_signature_receipt_payload(
         "sourceDocumentDigest": document_digest,
         "verifierId": verifier_name,
         "verifierVersion": _require_text(normalized_result["verifier_version"], "verifier version", 128),
-        "verifierExecutableSha256": executable_digest,
+        "verifierSourceSha256": source_digest,
         "createdAt": timestamp,
         "verificationResult": normalized_result,
     }
@@ -455,7 +469,7 @@ def verify_signature_verification_receipt(
         _require_text(payload["receiptId"], "receipt id", 128)
         _validate_context({key: payload[key] for key in _CONTEXT_KEYS})
         _require_digest(payload["rdeDigest"], "receipt RDE digest")
-        _require_digest(payload["verifierExecutableSha256"], "receipt verifier digest")
+        _require_digest(payload["verifierSourceSha256"], "receipt verifier source digest")
         _require_text(payload["verifierId"], "receipt verifier id", 128)
         _require_text(payload["verifierVersion"], "receipt verifier version", 128)
         _require_text(payload["createdAt"], "receipt timestamp", 64)

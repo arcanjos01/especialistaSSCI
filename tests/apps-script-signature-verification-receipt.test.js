@@ -138,6 +138,10 @@ function verifyMutated(mutationSource, binding = expected) {
 }
 
 assert.equal(verify(), true, 'Python receipt payload signed by RSA test key must verify');
+const missingExecutableDigestPayload = JSON.parse(JSON.stringify(sourceFixture.payload));
+delete missingExecutableDigestPayload.verificationResult.verifier_components.openssl_executable_sha256;
+assert.equal(verify(JSON.stringify(authenticatedReceipt(missingExecutableDigestPayload))), false,
+  'receipt must require both verifier executable digests even when authentication is valid');
 const unicodePayload = JSON.parse(JSON.stringify(rsaReceipt.payload));
 unicodePayload.receiptId = '😀'.repeat(64);
 unicodePayload.createdAt = '2026-10-20T12:00:00.123456Z';

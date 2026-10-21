@@ -194,7 +194,31 @@ Signature #1:
         self.assertEqual(kwargs["env"]["LC_ALL"], "C")
         self.assertEqual(dump_args[-1], "input.pdf")
         self.assertEqual(args[-1], "input.pdf")
+        pdfsig_paths = [Path(call.args[0][0]) for call in run.call_args_list[1:4]]
+        self.assertTrue(all(item.is_absolute() and item == pdfsig_paths[0] for item in pdfsig_paths))
+        self.assertTrue(Path(run.call_args_list[0].args[0][0]).is_absolute())
+        self.assertEqual(Path(run.call_args_list[0].args[0][0]).name, "openssl")
         self.assertEqual(dump_kwargs["cwd"], kwargs["cwd"])
+
+    def test_inspection_fails_if_pinned_executable_changes_during_use(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            pdf = root / "input.pdf"
+            pdf.write_bytes(b"%PDF-1.7\nTEST_ONLY")
+            pdfsig = root / "pdfsig"
+            openssl = root / "openssl"
+            pdfsig.write_bytes(b"test pdfsig executable")
+            openssl.write_bytes(b"test openssl executable")
+            with patch.object(self.tool, "_resolve_executable", side_effect=[pdfsig, openssl]), \
+                 patch.object(self.tool, "_executable_sha256", side_effect=[
+                     "a" * 64, "b" * 64, "a" * 64, "c" * 64
+                 ]), \
+                 patch.object(self.tool, "_openssl_version", return_value="OpenSSL TEST"), \
+                 patch.object(self.tool, "_run_pdfsig", return_value=(
+                     "No signatures.", 0, [], "24.02.0"
+                 )):
+                with self.assertRaisesRegex(self.tool.PdfSignatureError, "changed during inspection"):
+                    self.tool.inspect_pdf(pdf)
 
     @patch.object(subprocess, "run")
     def test_original_is_read_once_and_commands_share_copy(self, run):
@@ -206,7 +230,7 @@ Signature #1:
         ]
         with patch.object(Path, "read_bytes", wraps=Path(__file__).read_bytes) as read:
             self.tool.inspect_pdf(Path(__file__))
-        self.assertEqual(read.call_count, 1)
+        self.assertEqual(read.call_count, 1, "the input document bytes must be snapshotted once")
         self.assertEqual(run.call_args_list[2].kwargs["cwd"], run.call_args_list[3].kwargs["cwd"])
 
     @patch.object(subprocess, "run")
@@ -264,7 +288,7 @@ Signature #1:
             inspection=inspection,
             pdf_bytes=pdf_bytes,
             verifier_id="local-pdfsig-openssl",
-            verifier_executable_sha256="b" * 64,
+            verifier_source_sha256="b" * 64,
             key_id="LOCAL_VERIFIER_KEY_V1",
             hmac_key=key,
             created_at="2026-10-20T12:00:00Z",
@@ -396,7 +420,7 @@ Signature #1:
                 actual_run = subprocess.run
 
                 def run_with_ambient_trust(args, **kwargs):
-                    if args[:3] == ["openssl", "cms", "-verify"]:
+                    if [Path(args[0]).name, *args[1:3]] == ["openssl", "cms", "-verify"]:
                         args = [arg for arg in args if arg not in ("-no-CApath", "-no-CAstore")]
                         kwargs.pop("env", None)
                     return actual_run(args, **kwargs)
@@ -451,6 +475,14 @@ Signature #2:
             signed, tampered, incremental = poc.build_fixture(Path(directory))
             valid = self.tool.inspect_pdf(signed)
             self.assertEqual(valid["signature_count"], 1)
+            self.assertEqual(
+                valid["verifier_components"]["pdfsig_executable_sha256"],
+                hashlib.sha256(Path(shutil.which("pdfsig")).resolve().read_bytes()).hexdigest(),
+            )
+            self.assertEqual(
+                valid["verifier_components"]["openssl_executable_sha256"],
+                hashlib.sha256(Path(shutil.which("openssl")).resolve().read_bytes()).hexdigest(),
+            )
             self.assertTrue(valid["signatures"][0]["integrity"]["valid"])
             self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["name"], "CMS_SIGNATURE_INTEGRITY")
             self.assertEqual(valid["signatures"][0]["cms_signature_integrity"]["result"], "VALID")
@@ -467,7 +499,7 @@ Signature #2:
                 inspection=valid,
                 pdf_bytes=signed.read_bytes(),
                 verifier_id="local-pdfsig-openssl",
-                verifier_executable_sha256="b" * 64,
+                verifier_source_sha256="b" * 64,
                 key_id="LOCAL_VERIFIER_KEY_V1",
                 hmac_key=key,
                 created_at="2026-10-20T12:00:00Z",
@@ -481,6 +513,10 @@ Signature #2:
             ))
             self.assertEqual(
                 receipt["payload"]["verificationResult"]["trust"], "UNKNOWN/NOT_EVALUATED"
+            )
+            self.assertEqual(
+                receipt["payload"]["verificationResult"]["verifier_components"],
+                valid["verifier_components"],
             )
             tampered_result = self.tool.inspect_pdf(tampered)["signatures"][0]
             self.assertFalse(tampered_result["integrity"]["valid"])

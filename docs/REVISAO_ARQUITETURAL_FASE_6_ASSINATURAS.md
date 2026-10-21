@@ -220,3 +220,25 @@ worktree limpa com dez documentos, KB 5.32.0 e `SOURCE_COMMIT` exato. Este
 follow-up fecha somente a divergência de evidência dos testes; não reabre nem
 substitui a revisão arquitetural aceita para 5534c3f e não atribui parecer ao
 Sol 6.1.
+
+## Candidato 6B — proveniência executável do recibo local (schema 1.1.0)
+
+O recibo passa a distinguir `verifierSourceSha256` (SHA-256 do módulo Python)
+dos SHA-256 de `pdfsig` e OpenSSL, obrigatórios no resultado técnico. A POC
+resolve os dois executáveis uma vez, executa os caminhos absolutos resolvidos e
+compara os respectivos bytes antes e depois da inspeção; mudança durante o uso
+interrompe a emissão do resultado. O consumidor Apps Script valida a forma e
+os digests dos componentes sob o payload autenticado.
+
+Limites: os hashes cobrem bytes dos executáveis e do módulo do projeto; não
+atestam bibliotecas dinâmicas, interpretador Python, sistema operacional,
+ambiente de execução ou identidade de quem operou a ferramenta. Não criam
+perfil de confiança, validade PAdES, estado de revogação, identidade
+profissional nem admissão de `SIGNED`. O recibo continua preparatório, sem
+caller de produção; Criteria e cobertura não mudam.
+
+```text
+ARCHITECTURAL_REVIEW=PENDING
+SOL_REVIEW=NOT_PERFORMED
+PROMOTION=NOT_AUTHORIZED
+```

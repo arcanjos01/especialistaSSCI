@@ -33,7 +33,7 @@ CONTEXT = {
 }
 
 
-def inspection(pdf_bytes: bytes = PDF) -> dict:
+def inspection(pdf_bytes: bytes = PDF, verifier_components: dict | None = None) -> dict:
     return {
         "verifier_version": "local-pdf-signature-verifier/1.3",
         "pdfsig_version": "24.02.0",
@@ -54,6 +54,10 @@ def inspection(pdf_bytes: bytes = PDF) -> dict:
         "revocation": "UNKNOWN/NOT_EVALUATED",
         "pades": "UNKNOWN/NOT_EVALUATED",
         "professional_identity": "UNKNOWN/NOT_EVALUATED",
+        "verifier_components": verifier_components or {
+            "pdfsig_executable_sha256": "c" * 64,
+            "openssl_executable_sha256": "d" * 64,
+        },
     }
 
 
@@ -63,7 +67,7 @@ def issue(pdf_bytes: bytes = PDF) -> dict:
         inspection=inspection(pdf_bytes),
         pdf_bytes=pdf_bytes,
         verifier_id="local-pdfsig-openssl",
-        verifier_executable_sha256="b" * 64,
+        verifier_source_sha256="b" * 64,
         key_id=KEY_ID,
         hmac_key=KEY,
         created_at="2026-10-20T12:00:00Z",
@@ -72,6 +76,28 @@ def issue(pdf_bytes: bytes = PDF) -> dict:
 
 
 class SignatureVerificationReceiptTests(unittest.TestCase):
+    def test_receipt_issuer_requires_both_exact_executable_digests(self):
+        for components in (
+            {"pdfsig_executable_sha256": "c" * 64},
+            {
+                "pdfsig_executable_sha256": "not-a-digest",
+                "openssl_executable_sha256": "d" * 64,
+            },
+        ):
+            malformed = inspection()
+            malformed["verifier_components"] = components
+            with self.subTest(components=components), self.assertRaises(SignatureReceiptError):
+                issue_signature_verification_receipt(
+                    context=CONTEXT,
+                    inspection=malformed,
+                    pdf_bytes=PDF,
+                    verifier_id="local-pdfsig-openssl",
+                    verifier_source_sha256="b" * 64,
+                    key_id=KEY_ID,
+                    hmac_key=KEY,
+                    created_at="2026-10-20T12:00:00Z",
+                )
+
     @unittest.skipUnless(shutil.which("openssl"), "OpenSSL CLI unavailable")
     def test_rsa_issuer_signs_canonical_receipt_for_pinned_public_key(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -90,7 +116,7 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
             receipt = issue_signature_verification_receipt_rsa(
                 context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
                 verifier_id="project-controlled-local-verifier",
-                verifier_executable_sha256="b" * 64,
+                verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, signing_private_key_path=private_key,
                 created_at="2026-10-20T12:00:00.123456Z", receipt_id="😀" * 64,
             )
@@ -121,8 +147,16 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
                  "rsa_keygen_bits:2048", "-out", str(private_key)],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
+            tools = {
+                "pdfsig_executable_sha256": hashlib.sha256(
+                    Path(shutil.which("pdfsig")).resolve().read_bytes()
+                ).hexdigest(),
+                "openssl_executable_sha256": hashlib.sha256(
+                    Path(shutil.which("openssl")).resolve().read_bytes()
+                ).hexdigest(),
+            }
             with patch("tools.verify_pdf_signatures_local.inspect_pdf",
-                       return_value=inspection(PDF)) as inspect:
+                       return_value=inspection(PDF, tools)) as inspect:
                 receipt = issue_local_pdf_signature_verification_receipt(
                     pdf_path=pdf_path, context=CONTEXT, key_id=KEY_ID,
                     signing_private_key_path=private_key,
@@ -132,8 +166,11 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
             self.assertEqual(receipt["payload"]["sourceDocumentDigest"], PDF_DIGEST)
             verifier_source = Path("tools/verify_pdf_signatures_local.py").read_bytes()
             self.assertEqual(
-                receipt["payload"]["verifierExecutableSha256"],
+                receipt["payload"]["verifierSourceSha256"],
                 hashlib.sha256(verifier_source).hexdigest(),
+            )
+            self.assertEqual(
+                receipt["payload"]["verificationResult"]["verifier_components"], tools
             )
             self.assertEqual(
                 receipt["payload"]["verificationResult"]["trust"],
@@ -197,7 +234,7 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=inspection(b"other bytes"), pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
             )
 
@@ -207,7 +244,7 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=unsafe, pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
             )
         bad_inspection = inspection()
@@ -215,7 +252,7 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=bad_inspection, pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
             )
 
@@ -226,7 +263,7 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(SignatureReceiptError):
                 issue_signature_verification_receipt(
                     context=CONTEXT, inspection=unsafe, pdf_bytes=PDF,
-                    verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                    verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                     key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z"
                 )
 
@@ -234,20 +271,20 @@ class SignatureVerificationReceiptTests(unittest.TestCase):
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z",
                 receipt_id="😀" * 80,
             )
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20 12:00:00Z",
             )
         with self.assertRaises(SignatureReceiptError):
             issue_signature_verification_receipt(
                 context=CONTEXT, inspection=inspection(), pdf_bytes=PDF,
-                verifier_id="local-pdfsig-openssl", verifier_executable_sha256="b" * 64,
+                verifier_id="local-pdfsig-openssl", verifier_source_sha256="b" * 64,
                 key_id=KEY_ID, hmac_key=KEY, created_at="2026-10-20T12:00:00Z",
                 receipt_id="\ufeffRECEIPT_TEST_001",
             )

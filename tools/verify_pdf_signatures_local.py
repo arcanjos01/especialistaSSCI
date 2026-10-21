@@ -46,10 +46,35 @@ def _dump_sort_key(path: Path) -> int:
     return int(match.group(1))
 
 
-def _openssl_version() -> str:
+def _resolve_executable(name: str) -> Path:
+    located = shutil.which(name)
+    if not located:
+        raise PdfSignatureError(f"required verifier executable is unavailable: {name}")
+    try:
+        path = Path(located).resolve(strict=True)
+    except OSError as exc:
+        raise PdfSignatureError(f"required verifier executable is unavailable: {name}") from exc
+    if not path.is_file():
+        raise PdfSignatureError(f"required verifier executable is not a file: {name}")
+    return path
+
+
+def _executable_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as executable:
+            for chunk in iter(lambda: executable.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise PdfSignatureError("verifier executable bytes are unavailable") from exc
+    return digest.hexdigest()
+
+
+def _openssl_version(executable: Path | None = None) -> str:
+    openssl = executable or _resolve_executable("openssl")
     try:
         result = subprocess.run(
-            ["openssl", "version"], text=True, capture_output=True, check=False, timeout=60
+            [str(openssl), "version"], text=True, capture_output=True, check=False, timeout=60
         )
     except (OSError, subprocess.TimeoutExpired):
         return "UNKNOWN/NOT_EVALUATED"
@@ -59,12 +84,15 @@ def _openssl_version() -> str:
     return line[0]
 
 
-def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int, list[bytes], str]:
+def _run_pdfsig(
+    path: Path, data: bytes, executable: Path | None = None
+) -> tuple[str, int, list[bytes], str]:
+    pdfsig = executable or _resolve_executable("pdfsig")
     env = os.environ.copy()
     env["LC_ALL"] = "C"
     try:
         version = subprocess.run(
-            ["pdfsig", "-v"], text=True, capture_output=True, env=env, check=False, timeout=60
+            [str(pdfsig), "-v"], text=True, capture_output=True, env=env, check=False, timeout=60
         )
     except subprocess.TimeoutExpired as exc:
         raise PdfSignatureError("pdfsig version check timed out after 60 seconds") from exc
@@ -77,7 +105,7 @@ def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int, list[bytes], str]:
             fixed_pdf = Path(directory) / "input.pdf"
             fixed_pdf.write_bytes(data)
             dump = subprocess.run(
-                ["pdfsig", "-nocert", "-no-ocsp", "-dump", "input.pdf"],
+                [str(pdfsig), "-nocert", "-no-ocsp", "-dump", "input.pdf"],
                 text=True, capture_output=True, cwd=directory, env=env, check=False, timeout=60,
             )
             dump_text = ((dump.stdout or "") + (dump.stderr or "")).strip()
@@ -94,7 +122,7 @@ def _run_pdfsig(path: Path, data: bytes) -> tuple[str, int, list[bytes], str]:
                     raise PdfSignatureError("pdfsig dump produced an unexpected entry")
                 dump_count = len(dumped)
             result = subprocess.run(
-                ["pdfsig", "-nocert", "-no-ocsp", "input.pdf"],
+                [str(pdfsig), "-nocert", "-no-ocsp", "input.pdf"],
                 text=True, capture_output=True, cwd=directory, env=env, check=False, timeout=60,
             )
             combined = ((result.stdout or "") + (result.stderr or "")).strip()
@@ -223,18 +251,25 @@ def _der_length(data: bytes) -> int:
     return total
 
 
-def _cms_cross_check(data: bytes, signatures: list[dict[str, Any]], dumps: list[bytes]) -> list[dict[str, str]]:
+def _cms_cross_check(
+    data: bytes, signatures: list[dict[str, Any]], dumps: list[bytes],
+    openssl_executable: Path | None = None,
+) -> list[dict[str, str]]:
     if len(dumps) != len(signatures):
         raise PdfSignatureError("pdfsig dump and parsed records are not a 1:1 ordered match")
     # The report-to-dump ordering contract is not independently proven for multi-signature PDFs.
     if len(signatures) > 1:
         return [{"name": "CMS_SIGNATURE_INTEGRITY", "result": "INCONCLUSIVE"} for _ in signatures]
+    openssl = openssl_executable or _resolve_executable("openssl")
     with tempfile.TemporaryDirectory(prefix="ssci-cms-") as directory_name:
         directory = Path(directory_name)
-        return _cms_cross_check_in_directory(directory, data, signatures, dumps)
+        return _cms_cross_check_in_directory(directory, data, signatures, dumps, openssl)
 
 
-def _cms_cross_check_in_directory(directory: Path, data: bytes, signatures: list[dict[str, Any]], dumps: list[bytes]) -> list[dict[str, str]]:
+def _cms_cross_check_in_directory(
+    directory: Path, data: bytes, signatures: list[dict[str, Any]],
+    dumps: list[bytes], openssl_executable: Path,
+) -> list[dict[str, str]]:
     results: list[dict[str, str]] = []
     for index, (dump, signature) in enumerate(zip(dumps, signatures)):
         try:
@@ -249,7 +284,7 @@ def _cms_cross_check_in_directory(directory: Path, data: bytes, signatures: list
             content_path.write_bytes(content)
             cms_path.write_bytes(cms)
             verified = subprocess.run(
-                ["openssl", "cms", "-verify", "-binary", "-noverify", "-verify_retcode",
+                [str(openssl_executable), "cms", "-verify", "-binary", "-noverify", "-verify_retcode",
                  "-inform", "DER", "-in", cms_path.name, "-content", content_path.name,
                  "-out", os.devnull], cwd=directory, text=True, capture_output=True,
                 check=False, timeout=60,
@@ -274,10 +309,12 @@ def _verify_certificate_chain(
     cms_dump: bytes,
     trust_anchor_bundle: bytes,
     signature_integrity: dict[str, str],
+    openssl_executable: Path | None = None,
 ) -> dict[str, str]:
     if signature_integrity.get("result") != "VALID":
         return {"result": "NOT_EVALUATED_INTEGRITY_NOT_CONFIRMED"}
     try:
+        openssl = openssl_executable or _resolve_executable("openssl")
         cms_length = _der_length(cms_dump)
         if any(cms_dump[cms_length:]):
             raise PdfSignatureError("CMS dump has nonzero trailing bytes")
@@ -296,7 +333,7 @@ def _verify_certificate_chain(
         openssl_env.pop("SSL_CERT_FILE", None)
         openssl_env.pop("SSL_CERT_DIR", None)
         checked = subprocess.run(
-            ["openssl", "cms", "-verify", "-binary", "-verify_retcode",
+            [str(openssl), "cms", "-verify", "-binary", "-verify_retcode",
              "-no-CApath", "-no-CAstore",
              "-inform", "DER", "-in", cms_path.name, "-content",
              content_path.name, "-CAfile", anchors_path.name, "-out", os.devnull],
@@ -322,8 +359,14 @@ def inspect_pdf(
         or b"PRIVATE KEY-----" in trust_anchors
     ):
         raise PdfSignatureError("trust-anchor bundle must contain public certificates only")
-    openssl_version = _openssl_version()
-    run_result = _run_pdfsig(path, data)
+    pdfsig_executable = _resolve_executable("pdfsig")
+    openssl_executable = _resolve_executable("openssl")
+    component_digests_before = {
+        "pdfsig_executable_sha256": _executable_sha256(pdfsig_executable),
+        "openssl_executable_sha256": _executable_sha256(openssl_executable),
+    }
+    openssl_version = _openssl_version(openssl_executable)
+    run_result = _run_pdfsig(path, data, pdfsig_executable)
     if len(run_result) == 2:  # compatibility with focused mocks of the legacy helper
         report, cryptographic_count = run_result
         dumps: list[bytes] = []
@@ -334,7 +377,7 @@ def inspect_pdf(
     if len(signatures) != cryptographic_count:
         raise PdfSignatureError("pdfsig record count differs from dumped signature count")
     if signatures:
-        cms_results = _cms_cross_check(data, signatures, dumps)
+        cms_results = _cms_cross_check(data, signatures, dumps, openssl_executable)
         for signature, cms_result in zip(signatures, cms_results):
             signature["cms_signature_integrity"] = cms_result
         if trust_anchors is not None:
@@ -342,16 +385,23 @@ def inspect_pdf(
                 with tempfile.TemporaryDirectory(prefix="ssci-chain-") as directory_name:
                     chain = _verify_certificate_chain(
                         Path(directory_name), data, signatures[0], dumps[0],
-                        trust_anchors, cms_results[0],
+                        trust_anchors, cms_results[0], openssl_executable,
                     )
             else:
                 chain = {"result": "INCONCLUSIVE_MULTIPLE_SIGNATURE_ORDER_UNPROVEN"}
             for signature in signatures:
                 signature["certificate_chain_verification"] = chain
+    component_digests_after = {
+        "pdfsig_executable_sha256": _executable_sha256(pdfsig_executable),
+        "openssl_executable_sha256": _executable_sha256(openssl_executable),
+    }
+    if component_digests_after != component_digests_before:
+        raise PdfSignatureError("verifier executable changed during inspection")
     return {
         "verifier_version": VERIFIER_VERSION,
         "pdfsig_version": pdfsig_version,
         "openssl_version": openssl_version,
+        "verifier_components": component_digests_before,
         "document": {"path": str(path), "size": len(data), "sha256": hashlib.sha256(data).hexdigest()},
         "signature_count": len(signatures),
         "signatures": signatures,

@@ -14,12 +14,12 @@
     'receiptType', 'schemaVersion', 'receiptId', 'presentationIdentity',
     'rdeIdentity', 'rdeDigest', 'sourceDocumentIdentity',
     'sourceDocumentDigest', 'verifierId', 'verifierVersion',
-    'verifierExecutableSha256', 'createdAt', 'verificationResult'
+    'verifierSourceSha256', 'createdAt', 'verificationResult'
   ];
   const inspectionKeys_ = [
     'verifier_version', 'pdfsig_version', 'openssl_version', 'document',
     'signature_count', 'signatures', 'trust', 'certificate_chain',
-    'revocation', 'pades', 'professional_identity'
+    'revocation', 'pades', 'professional_identity', 'verifier_components'
   ];
 
   function exactDataObject_(value, expectedKeys) {
@@ -202,6 +202,10 @@
         !hasText_(result.openssl_version, 128) || !hasText_(result.trust, 128) ||
         !hasText_(result.revocation, 128) || !hasText_(result.pades, 128) ||
         !hasText_(result.professional_identity, 128) ||
+        !exactDataObject_(result.verifier_components, [
+          'pdfsig_executable_sha256', 'openssl_executable_sha256'
+        ]) || !digest_(result.verifier_components.pdfsig_executable_sha256) ||
+        !digest_(result.verifier_components.openssl_executable_sha256) ||
         !exactDataObject_(result.certificate_chain, ['result', 'trust_anchor_bundle_sha256']) ||
         !hasText_(result.certificate_chain.result, 128) ||
         (result.certificate_chain.trust_anchor_bundle_sha256 !== null &&
@@ -221,9 +225,9 @@
       if (!key || auth.keyId !== key.keyId ||
           !hasText_(auth.signature, 2048) || !/^[A-Za-z0-9+/]+={0,2}$/.test(auth.signature) ||
           payload.receiptType !== 'LOCAL_PDF_SIGNATURE_VERIFICATION_RECEIPT' ||
-          payload.schemaVersion !== '1.0.0' || !hasText_(payload.receiptId, 128) ||
+          payload.schemaVersion !== '1.1.0' || !hasText_(payload.receiptId, 128) ||
           !hasText_(payload.verifierId, 128) || !hasText_(payload.verifierVersion, 128) ||
-          !digest_(payload.verifierExecutableSha256) || !hasText_(payload.createdAt, 64) ||
+          !digest_(payload.verifierSourceSha256) || !hasText_(payload.createdAt, 64) ||
           !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$/.test(payload.createdAt) ||
           payload.verificationResult.verifier_version !== payload.verifierVersion ||
           !validInspection_(payload.verificationResult, payload.sourceDocumentDigest)) return false;
