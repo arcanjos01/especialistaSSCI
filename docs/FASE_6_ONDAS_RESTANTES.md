@@ -3471,3 +3471,33 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
 - Estado neste checkpoint: `HUMAN_DECISION_REQUIRED=1` para esse binding;
   `T4_IN09_DRT` continua pendente. Nenhuma mudança em código, Base, Criterion,
   Nonconformity, contagem ou testes; `git diff --check=PASS` após o registro.
+
+### Correção autorizada da fronteira RT-005/006/014 — KB 5.34.0
+
+- Em 2026-10-20, removidas de `REQ_IN09_DRT` as duas validações genéricas
+  `RESPONSIBILITY_ACTIVITY_COMPATIBLE`, que podiam avaliar atividade/serviço
+  declarado contra SMSCI sem escopo por RT. `T4_IN09_DRT` agora retorna
+  incondicionalmente `MANUAL_REVIEW` com instrução ao vistoriador; as RT-003 e
+  RT-005 exigidas e `NC_T4_004` permanecem declaradas. Nenhuma relação
+  `VISTORIA_ENSAIO`→RT-005 foi criada e não se conclui ausência de DRT.
+- A decisão focal de binding permanece pendente. O manual-review é classificado
+  como capacidade preparatória, não como suporte funcional parcial nem Criterion
+  coberto: contagens permanecem 10/29 integrais, 1 parcial e 19 pendentes; 17
+  sem suporte de execução, 1 preparatório (`T4_IN09_DRT`) e 1 parcial
+  (`T1_CONFORMITY_REPORT`).
+- Base: requirements 3.7.0, Table 4 3.5.0, reports 3.22.0, pipeline 4.36.0,
+  KB 5.34.0; runtime regenerado. Testes de identidade/manifest e teste
+  integrado Apps Script do resultado, trace e ausência de NC adicionados.
+- Ganho integral de Criteria: `0`; blocker encerrado: execução indevida da
+  comparação atividade↔SMSCI; blocker mantido: binding documental RT-005 e
+  cobertura da presença das DRTs. Nenhum novo requisito normativo introduzido.
+- Gates locais deste candidato: Python `187` testes (`175 PASS`, `12 SKIP`);
+  nove suítes Apps Script PASS; `node --check` em módulos e
+  testes JavaScript e `Code.gs` PASS; runtime compilado regenerado byte-idêntico
+  com SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`;
+  `git diff --check=PASS`. Teste integrado IN09
+  confirma resultado/trace `MANUAL_REVIEW`, sem NC.
+- Revisão independente deste lote ainda pendente. `SOL_REVIEW=PENDING_IDENTITY`
+  para a revisão arquitetural global. Este é checkpoint técnico candidato;
+  build limpo por SOURCE_COMMIT, revisão e promoção seguem pendentes.

@@ -62,6 +62,8 @@ assert.equal(vm.runInContext("typeof criterionExecutionMaterializeAssert_", cont
 const PILOT_UNIT = 'UNIT_KEY (REQ_IN08_MANUAL, T4_IN08_MANUAL)';
 const PRESSURIZATION_MANUAL_UNIT =
   'UNIT_KEY (REQ_IN09_MANUAL, T4_IN09_MANUAL)';
+const PRESSURIZATION_DRT_UNIT =
+  'UNIT_KEY (REQ_IN09_DRT, T4_IN09_DRT)';
 const CONFORMITY_REPORT_SIGNED_UNIT =
   'UNIT_KEY (REQ_T1_CONFORMITY_REPORT_SIGNED, T1_CONFORMITY_REPORT_SIGNED)';
 const PRESSURIZATION_CHECKLIST_SIGNED_UNIT =
@@ -758,6 +760,26 @@ assert.deepEqual(
 );
 assert.equal(missingPressurizationManualResult.traceability.documentaryBinding.reason,
   'DOCUMENT_INVENTORY_UNAVAILABLE');
+
+const in09DrtMetadata = contract.criteria.find(item =>
+  item.criterionId === 'T4_IN09_DRT'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(in09DrtMetadata.assertIr)), {
+  type: 'LITERAL', value: 'MANUAL_REVIEW'
+});
+assert.deepEqual(JSON.parse(JSON.stringify(contract.requirements.find(item =>
+  item.requirementId === 'REQ_IN09_DRT').validate)), []);
+const in09DrtCandidate = prepare({ includeGas: false, includePressurization: true });
+const in09DrtResult = api.executePlannedCriterion(
+  contract, in09DrtCandidate.plan, PRESSURIZATION_DRT_UNIT, in09DrtCandidate.view
+);
+assert.equal(in09DrtResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(in09DrtResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(in09DrtResult.nonconformityOnFalse, undefined);
+assert.equal(in09DrtResult.trace.length, 1);
+assert.equal(in09DrtResult.trace[0].predicateId, 'ASSERT_LITERAL');
+assert.deepEqual(JSON.parse(JSON.stringify(in09DrtResult.trace[0].arguments)),
+  { value: 'MANUAL_REVIEW' });
 
 for (const testCase of IN19_DRT_EXISTENCE_CASES) {
   const unitKey = 'UNIT_KEY (' + testCase.requirementId + ', ' + testCase.criterionId + ')';

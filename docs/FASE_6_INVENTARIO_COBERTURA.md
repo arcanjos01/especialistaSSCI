@@ -242,9 +242,9 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
 define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
-## Matriz por Criterion (estado reconciliado até KB 5.33.0)
+## Matriz por Criterion (estado reconciliado até KB 5.34.0)
 
-As colunas estruturais acompanham a Base vigente KB 5.33.0. Criteria retirados
+As colunas estruturais acompanham a Base vigente KB 5.34.0. Criteria retirados
 permanecem listados somente para rastreabilidade histórica e estão marcados
 `WITHDRAWN`; não integram os 34 ativos nem os 29 produtivos. Campos: Criterion,
 Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT, VALIDATE,
@@ -271,7 +271,7 @@ fonte canônica.
 | T4_IN07_COMMISSIONING | REQ_IN07_COMMISSIONING | 4 | APPLIES_TO `SMSCI_SHP` | — | `ALL(EXISTS(SHP_COMMISSIONING_REPORT), DRT_COVERS(SHP_COMMISSIONING_REPORT,SMSCI_SHP))` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_001 | SHP report, DRT, SMSCI_SHP | MISSING_EVIDENCE_CONTRACT / F6-MC-003: contrato final de DRT_COVERS pendente; SIGNATURE_MECHANISM é texto FACT-ONLY, sem verificabilidade de assinatura | 04_table4.txt:56-84; 02_requirements.txt:117-134; 01_entities.txt:1455-1473; Documento 10:456-458,644-646 |
 | T4_IN08_ESTANQUEIDADE | REQ_IN08_ESTANQUEIDADE | 4 | APPLIES_TO `SMSCI_GAS` | — | `ALL(EXISTS(GAS_TIGHTNESS_REPORT), VALID_WITHIN_YEARS(report,5), DRT_COVERS(report,SMSCI_GAS))` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_002 | laudo gás, DRT, SMSCI_GAS | MISSING_EVIDENCE_CONTRACT / F6-MC-003,005: falta data tipada/associada para validade e predicado DRT_COVERS; SIGNATURE_MECHANISM é texto FACT-ONLY | 04_table4.txt:86-114; 02_requirements.txt:135-167; 01_entities.txt:1494-1510; 00_engine.txt:231,239 |
 | T4_IN08_MANUAL | REQ_IN08_MANUAL | 4 | APPLIES_TO `SMSCI_GAS` | — | `EXISTS(GAS_OWNER_MANUAL)` | — | NC_T4_003 | GAS_OWNER_MANUAL | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC | decisão do usuário 2026-10-19; 04_table4.txt:116-138; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js |
-| T4_IN09_DRT | REQ_IN09_DRT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `ALL(HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,EXECUCAO), HAS_DRT_ACTIVITY(SMSCI_PRESSURIZATION,VISTORIA_ENSAIO))` | duas `RESPONSIBILITY_ACTIVITY_COMPATIBLE` | NC_T4_004 | SMSCI pressurização, RT-003, RT-005, DRT/atividade | BLOCKED_BY_USER_SCOPE_DECISION_AND_BINDING: o usuário determinou que o sistema não confira compatibilidade atividade↔SMSCI para RT-005/006/014. `REQ_IN09_DRT` ainda declara duas validações globais sem escopo por RT e o Criterion vincula `VISTORIA_ENSAIO` ao SMSCI; não mapear token por semelhança nem avaliar essa compatibilidade. Manter revisão humana até reconciliar o caminho e a consequência NC sem suprimi-la; coleção vazia não prova ausência | 04_table4.txt:140-166; 02_requirements.txt:168-186; `references/irv habitese.pdf`, IRV Habite-se 2024, Tabela 4, p. 7; Anexo A RT-005; decisão do usuário 2026-10-17; RDE 0.7 |
+| T4_IN09_DRT | REQ_IN09_DRT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `MANUAL_REVIEW` | — | NC_T4_004 | SMSCI pressurização, RT-003, RT-005, DRT/atividade | PREPARATORY_MANUAL_REVIEW_ONLY: o executor encaminha o Criterion integralmente à revisão humana e não verifica compatibilidade atividade/serviço↔SMSCI para RT-005/006/014. As duas RT exigidas e NC declarada permanecem no contrato. Não há conclusão automática de presença/cobertura nem cobertura integral. O binding documental de `VISTORIA_ENSAIO` a RT-005 ainda depende da decisão humana focal; coleção vazia não prova ausência | 04_table4.txt:140-166; 02_requirements.txt:168-186; IRV Habite-se 2024, Tabela 4, p. 7; Anexo A RT-005; decisão do usuário 2026-10-17 e decisão focal pendente; RDE 0.7 |
 | T4_IN09_TEST_REPORT | REQ_IN09_TEST_REPORT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `ALL(EXISTS(PRESSURIZATION_TEST_REPORT), DRT_COVERS(report,SMSCI_PRESSURIZATION), REPORT_CONTAINS(report,IN09_ART122_REQUIRED_ITEMS))` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_005 | laudo, DRT, itens art. 122, SMSCI | MISSING_EVIDENCE_CONTRACT / F6-MC-006: RDE 0.7 pode registrar declaração conjunta literal DRT-produto-SMSCI-atividade, mas faltam predicado de cobertura e fatos estruturados para os itens a–g; SIGNATURE_MECHANISM é texto FACT-ONLY | 04_table4.txt:168-196; 02_requirements.txt:187-205; 01_entities.txt:1541-1560; RDE 1.8 § DRT SCOPE DECLARATION ITEMS |
 | T4_IN09_MANUAL | REQ_IN09_MANUAL | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `EXISTS(PRESSURIZATION_OPERATION_MANUAL)` | — | NC_T4_006 | PRESSURIZATION_OPERATION_MANUAL | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC | decisão do usuário 2026-10-19; 04_table4.txt:198-218; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js |
 | T4_IN09_CHECKLIST | REQ_IN09_CHECKLIST | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `EXISTS(PRESSURIZATION_MAINTENANCE_CHECKLIST)` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_007 | checklist + assinatura | SOURCE_DEFINED_NEEDS_FORMALIZATION: SIGNATURE_MECHANISM é texto FACT-ONLY, não comprova autoria/autenticidade; validar condição normativa segue pendente | 04_table4.txt:220-242; 02_requirements.txt:220-230; 01_entities.txt:1563-1583; 00_engine.txt:293-317 |
@@ -976,13 +976,13 @@ Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
 EXTRACTION, o quantitativo vigente é: 34 ativos, 29 produtivos, 10 cobertos,
-1 parcial e 19 pendentes de cobertura integral.
+1 parcial, 1 preparatório e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até
-a KB 5.33.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+a KB 5.34.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada da RDE Schema `0.7.0` e da KB `5.33.0`; ela contém 34 Criteria e
+regenerada da RDE Schema `0.7.0` e da KB `5.34.0`; ela contém 34 Criteria e
 não contém os dois Criteria de regularidade. A applicability atual mantém cinco
 Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 
@@ -990,7 +990,8 @@ Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 10 | `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_LEGACY_DOCUMENTATION`, `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_FINAL_VERIFICATION`. Para os Criteria cobertos sob a decisão C, presença/declaracão documental explícita pode produzir TRUE; ausência ou cobertura de extração sem comprovação permanece MANUAL_REVIEW, sem FALSE/NC. Testes focados verificam resultado, trace e provenance; readiness comprova somente seleção e materialização da unidade. |
 | `PARTIAL_EXECUTION_SUPPORT` | 1 | `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 12 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR` |
+| `PREPARATORY_MANUAL_REVIEW_ONLY` | 1 | `T4_IN09_DRT`: executor preserva a insuficiência e encaminha sempre à revisão humana; nenhum fato positivo/negativo sobre presença ou cobertura é avaliado automaticamente. |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 11 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR` |
 | `MISSING_EVIDENCE_CONTRACT` | 6 | `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
 | `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | A decisão sobre o fundamento de independência em `T4_IN10_COMMISSIONING` foi respondida em 2026-10-17 e está registrada em `docs/FASE_6_ONDAS_RESTANTES.md` (“Decisão de fundamento IN10/IRV — resolvida pelo usuário”). A pendência factual e de formalização executável permanece; não há decisão normativa humana aberta para este ponto. |
@@ -998,16 +999,17 @@ Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=1` (`T1_CONFORMITY_REPORT`) e
-`CRITERIA_PENDING=19`, contando o parcial como pendente de cobertura integral.
-Há 18 Criteria sem qualquer suporte integral além do parcial. A contagem de retirados
+ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=1` (`T1_CONFORMITY_REPORT`),
+`CRITERIA_PREPARATORY=1` (`T4_IN09_DRT`) e `CRITERIA_PENDING=19`, contando o
+parcial e o preparatório como pendentes de cobertura integral. Há 17 Criteria
+sem suporte de execução, um apenas preparatório e um parcial. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
 para 2; a decisão C agora reconhece os Criteria cujas rotas completas
 consistem em TRUE para evidência explícita e MANUAL_REVIEW quando completude não
-pode ser provada. Na matriz vigente, são 10 Criteria integrais e 1 parcial. A
+pode ser provada. Na matriz vigente, são 10 Criteria integrais, 1 parcial e 1 preparatório. A
 formalização RDE 0.4.0 não aumentou a cobertura no checkpoint em que foi
-aprovada; esse número é histórico e não representa o total atual. Os 12 casos
+aprovada; esse número é histórico e não representa o total atual. Os 11 casos
 `SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
 genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
 sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
@@ -1111,7 +1113,7 @@ Apps Script 9/9, sintaxe JS/Code.gs, regeneração runtime byte-idêntica (SHA-2
 manifest 10/10, KB 5.28.0 e `SOURCE_COMMIT` exato. A aprovação Sol final da
 Fase 6 permanece pendente.
 
-## Reconciliação no checkpoint `b999a1c` — 2026-10-19
+## Reconciliação do candidato IN09 — 2026-10-20
 
 | Categoria | Quantidade | Definição |
 |---|---:|---|
@@ -1119,12 +1121,14 @@ Fase 6 permanece pendente.
 | Produtivos | 29 | selecionáveis para execução |
 | Cobertos integralmente | 10 | executor, facts/binding, resultado, trace, readiness e testes completos |
 | Parciais | 1 | `T1_CONFORMITY_REPORT` |
-| Pendentes de cobertura integral | 19 | 18 sem suporte integral + 1 parcial |
+| Preparatórios | 1 | `T4_IN09_DRT`, somente encaminhamento à revisão humana |
+| Pendentes de cobertura integral | 19 | 17 sem suporte de execução + 1 preparatório + 1 parcial |
 | Não selecionáveis | 5 | quatro M5 e um regime legado UNRESOLVED |
 | Retirados | 2 | regularidade profissional T1/T4 |
 
-Esta alteração não altera a contagem. Para a divisão gerencial aprovada, os
-10 Criteria integralmente cobertos e o parcial permanecem estado de entrada;
+Esta alteração não altera os totais de Criteria ativos, integrais ou pendentes;
+classifica separadamente o caminho de revisão humana como preparatório. Para a
+divisão gerencial aprovada, os 10 Criteria integralmente cobertos e o parcial permanecem estado de entrada;
 interfaces ou testes preparatórios não mudam `COVERED`. Fase 6A encerra-se
 pelos entregáveis e gates de núcleo/contratos listados no Plano de Migração,
 sem promover cobertura fictícia. Verificação local/humana de assinatura,

@@ -43,7 +43,27 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.33\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.34\.0")
+
+    def test_in09_drt_is_manual_and_does_not_evaluate_activity_smsci_compatibility(self):
+        requirement = re.search(
+            r"REQUIREMENT REQ_IN09_DRT\b(.*?)\nEND\b",
+            self.requirements,
+            re.S,
+        )
+        criterion = re.search(
+            r"CRITERION T4_IN09_DRT\b(.*?)\nEND\b",
+            self.table_4,
+            re.S,
+        )
+        self.assertIsNotNone(requirement)
+        self.assertIsNotNone(criterion)
+        self.assertIn("RT_003_EXECUCAO_DE_SISTEMA", requirement.group(1))
+        self.assertIn("RT_005_INSPECAO_TECNICA", requirement.group(1))
+        self.assertNotIn("VALIDATE RESPONSIBILITY_ACTIVITY_COMPATIBLE", requirement.group(1))
+        self.assertIn("ASSERT MANUAL_REVIEW", criterion.group(1))
+        self.assertNotIn("HAS_DRT_ACTIVITY", criterion.group(1))
+        self.assertIn("FAIL NC_T4_004", criterion.group(1))
 
     def test_manifest_matches_exactly_the_real_ten_document_set(self):
         self.assertEqual(len(self.actual_documents), 10)
@@ -127,7 +147,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.33.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.34.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",
