@@ -20,7 +20,9 @@ os contratos canônicos nem o inventário de cobertura.
   `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`.
   Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 1 parcial,
   1 preparatório e 19 pendentes de cobertura integral; 5 não selecionáveis e 2
-  retirados. Fase 6A `COMPLETE`; 6B `IN_PROGRESS`.
+  retirados. Fase 6A `COMPLETE`; 6B `IN_PROGRESS`. Build técnico limpo do
+  mesmo HEAD: `PASS`, 10 documentos, `SOURCE_COMMIT` exato
+  `26e881c54c3034d7c892c3dc0d1912698d42c8b7`; a saída não é promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -3750,6 +3752,24 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   Benefício: planejamento e relatório de cobertura deixam de tratar Criteria
   já cobertos como pendentes e refletem o blocker factual real de IN10.
   `git diff --check` é o gate desta alteração documental.
+
+### Triagem técnica do próximo Criterion temporal — IN08
+
+- `T4_IN08_ESTANQUEIDADE` continua sem campo de data do laudo em
+  `knowledge-base/01_entities.txt`; a entidade `GAS_TIGHTNESS_REPORT` expõe
+  somente `SIGNATURE_MECHANISM`. `VALID_WITHIN_YEARS` no contrato do Engine só
+  fixa `UNKNOWN` quando a data de emissão não pode ser verificada; não define
+  por si a data de referência da comparação nem implementa executor Apps
+  Script. O Requirement declara janela máxima de cinco anos, mas não há RDE
+  factual para a data de emissão/ensaio e binding ao laudo exato.
+- Portanto não criei atributo ou comparação temporal por suposição. Critério
+  permanece pendente até formalização FACT-ONLY de data e referência autorizada,
+  seguida de binding do produto/DRT e assinatura verificável. Este slice não
+  altera código, Base ou contagem; esforço: inspeção dirigida de Entity,
+  Requirement, Criterion, Engine e RDE.
+- `git diff --check` e conferência da matriz de 19 IDs passaram. A validação
+  técnica completa de código permanece no commit RSA `e9297c2`; o release limpo
+  deste HEAD documental `26e881c` também passou com SHA de origem exato.
 - Checkpoint documental `34f35d7c243282e29ef6d36e357099069607b8b1` e snapshot
   atual `447d47a072bb8ff7c25d5a64c9873a7da5e16636`: builds limpos de validação
   técnica `PASS`, 10 documentos, Base `5.34.0`, `SOURCE_COMMIT` exato em cada SHA.
