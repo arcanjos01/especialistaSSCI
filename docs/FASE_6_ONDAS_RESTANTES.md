@@ -3578,7 +3578,16 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   da VM, permitindo rejeição prematura. A correção alinha explicitamente o
   conjunto de espaços ECMAScript no Python e recria mutações dentro do mesmo
   realm; a suíte agora exige que a fixture válida passe pelo helper antes dos
-  ataques. Re-review dirigida final pendente.
+  ataques. Re-review dirigida final do SHA
+  `f2261400b4d4a9b72b255796f0d335fb64b5a94d` pendente.
+- Gates completos no SHA `f2261400b4d4a9b72b255796f0d335fb64b5a94d`:
+  Python `197` (185 PASS, 12 SKIP); Apps Script `11/11 PASS`; `node --check` em
+  todos os módulos/testes JS e sintaxe de `Code.gs` PASS; runtime regenerado
+  byte-identical, SHA-256
+  `2ff633c9e4e6c9b1e671d178338b5d7a2ee0e53e9cec351c0b7cdd4cd83f64e8`;
+  manifest/build PASS, dez documentos da Base `5.34.0`, build limpo com
+  `SOURCE_COMMIT=f2261400b4d4a9b72b255796f0d335fb64b5a94d`; os testes de guards
+  presentes na suíte completa passaram; `git diff --check` PASS.
 - Gates completos no candidato corrigido `b3bb8d6c633b4342599b4c2c57bf6c2a84005906`:
   Python `197` (185 PASS, 12 SKIP); Apps Script `11/11 PASS`; `node --check` em
   todos os módulos/testes JS e sintaxe de `Code.gs` PASS; runtime regenerado
