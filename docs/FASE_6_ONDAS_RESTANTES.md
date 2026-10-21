@@ -3925,3 +3925,24 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   independente já existente foi acionada para revisão somente leitura, sem
   parecer recebido até este registro. Cobertura integral permanece `10/29`; os seis
   Criteria são preparatórios e continuam pendentes de cobertura integral.
+
+### Revisão arquitetural independente do gate manual — 2026-10-21
+
+- `INDEPENDENT_ARCH_REVIEW=PASS` para o candidato exato
+  `6720290821472fec203c3773da35842dcc4251e5`; pai
+  `346764208001b5a38de9daf88a00e8307a466ff0`.
+- `REVIEWER_IDENTITY=Codex GPT-6`, sessão independente
+  `01a16015-b139-7a70-8b3a-47abde6a7aa9`. Revisão read-only do diff e das fontes
+  `00_engine`, Requirements, Criteria, `08_execution_pipeline`, RDE, Engine,
+  readiness, contrato compilado, testes e inventário. O revisor declarou nenhum
+  achado BLOCKER/HIGH/MEDIUM; nenhum achado pendente no escopo examinado.
+- Testes executados pelo revisor: teste direcionado de readiness PASS; módulos
+  Python de runtime/identidade `46/46 PASS`; sintaxe JS alterada PASS. Ele não
+  executou a suíte Python integral nem release build; estes foram executados
+  separadamente pelo orquestrador no candidato exato: `199/199 PASS`, `11/11`
+  suítes Apps Script PASS e release build limpo de 10 documentos PASS.
+- A revisão equivalente cumpre o gate de independência da seção 25.2 e a
+  autorização prévia do usuário para revisão GPT-6. `SOL_REVIEW=NOT_PERFORMED`;
+  não se atribui parecer ao Sol 6.1. `PROMOTION=NOT_AUTHORIZED` permanece.
+  O candidato funcional não mudou após a revisão; os commits seguintes são
+  somente documentação.
