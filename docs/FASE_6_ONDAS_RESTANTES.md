@@ -4147,12 +4147,18 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   nos termos da seção 25.2. Nenhum finding conhecido está aberto para os dois
   pontos corrigidos; a aprovação arquitetural do lote continua pendente da
   revisão integral. `PROMOTION=NOT_AUTHORIZED`.
-- Foi solicitado à mesma revisora Luna o exame integral do candidato
-  arquitetural `f4dffeb3bbdb3718b11b57f5e672fe1f996ba385` →
-  `2c617cead8fa2325bd31f752508022148775510a`, estendendo o escopo da re-review
-  focal sem repetir seus testes já executados. Até o momento deste registro, a
-  revisão integral não retornou; logo `LUNA_FULL_REVIEW=PENDING_RESPONSE` e não
-  há aprovação de lote para consolidação.
+- Revisão independente integral deste lote: `INDEPENDENT_ARCH_REVIEW=PASS`.
+  Candidato exato `2c617cead8fa2325bd31f752508022148775510a`, base
+  `f4dffeb3bbdb3718b11b57f5e672fe1f996ba385`; revisora efetiva do papel Luna
+  `luna_economy` (`gpt-5.6-luna`, autodescrição GPT-5), sessão
+  `01a1603f-03f0-76d0-9ef0-4a3307251aef`. A revisora examinou o diff completo
+  do lote e os contratos RDE, Engine e pipeline; confirmou snapshot persistido,
+  paths de sucesso/erro da EXTRACTION e invariantes, sem BLOCKER/HIGH pendente.
+  Re-review dirigida também `PASS`; executou os dois testes focais, RDE core,
+  46 testes Python de identidade/runtime, sintaxe e diff check. Sem findings
+  abertos neste lote. `LUNA_FULL_REVIEW=PASS`; `SOL_REVIEW=NOT_PERFORMED`, pois
+  a revisão final Sol é requisito da Fase 6 completa, ainda não deste checkpoint.
+  `PROMOTION=NOT_AUTHORIZED`; não houve homologação institucional ou uso real.
 - Criteria integrais `10/29 → 10/29`; nenhum resultado ou `SIGNED` foi
   habilitado. A compatibilidade de registry legado exige migração planejada
   antes de implantação; nenhum processo real foi usado ou alterado.
