@@ -3271,3 +3271,54 @@ implementação: o verificador não pode depender de `crypto.subtle` nativo no G
   `SOL_REVIEW=PENDING_CAPACITY`, `PROMOTION=NOT_AUTHORIZED`.
   `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`. Cobertura permanece `10/29`.
+
+### Revalidação do checkpoint e prova local com pyHanko — 2026-10-20
+
+- Estado confirmado antes da validação: `feature/apps-script-engine-core`, HEAD
+  local/remoto `51a9db376f7cc52f10c8ef3b8b4ed8548a939821`; arquivos rastreados
+  limpos. `.codex-local-evidence/` permaneceu fora do Git.
+- Gates no checkpoint: Python `181/181 PASS`, incluindo as integrações locais
+  PDF (`PDF_SIGNATURE_POC_INTEGRATION=1`); Apps Script `10/10 PASS`; sintaxe de
+  `apps-script/*.js` e `tests/apps-script-*.test.js` PASS; `Code.gs` PASS após
+  cópia temporária `.js` para compatibilidade com `node --check` do Node 22;
+  runtime regenerado byte-idêntico, SHA-256
+  `3353f7123003b62b8f1ba38189d56ab0eb06a25c0c8b429212e3bb8f48c582ae`; 62
+  verificações de contrato/runtime/identidade e guards PASS; `git diff --check`
+  PASS. Build de validação em worktree destacada limpa produziu os dez
+  documentos canônicos; `SOURCE_COMMIT=51a9db376f7cc52f10c8ef3b8b4ed8548a939821`,
+  KB `5.33.0`, Pipeline `4.35.0`. O build não é promoção.
+- Avaliada a biblioteca local pyHanko `0.38.0`, instalada somente em
+  `/tmp/ssci-pyhanko-eval` (nenhum arquivo/dependência foi adicionado ao
+  repositório). A API foi executada sobre as fixtures sintéticas existentes,
+  com `ValidationContext(allow_fetching=False)` e âncora PEM explícita; nenhuma
+  API de validação externa foi chamada. A fixture assinada retornou integridade
+  `intact=true`, cobertura `ENTIRE_FILE` e `bottom_line=true` para a âncora
+  local declarada. A fixture adulterada retornou `intact=false` e
+  `bottom_line=false`. A revisão incremental manteve a assinatura original
+  criptograficamente íntegra (`intact=true`), mas retornou cobertura
+  `ENTIRE_REVISION`, `bottom_line=false` e rejeitou alterações estruturais não
+  explicadas pela fixture.
+- Resultado da avaliação: há componente local tecnicamente capaz de analisar
+  integridade CMS, caminho de certificados e alterações incrementais com
+  contexto explícito. Isso não define âncoras institucionais, política de
+  revogação, identidade profissional ou autorização de admissão. A documentação
+  oficial alerta que o parser processa conteúdo PDF não confiável e requer
+  isolamento/limites de recursos; a ferramenta também não declara validação da
+  conformidade estrutural de um perfil PAdES.
+  Fontes primárias: [API e limites de validação](https://docs.pyhanko.eu/en/latest/lib-guide/validation/general-api.html),
+  [validação de assinaturas PDF](https://docs.pyhanko.eu/en/stable/cli-guide/validation.html).
+  O spike ficou em `/tmp`; não foi criada integração confiável nem alterada a
+  RDE ou o Engine.
+- Ganho funcional: Criteria integrais `10/29 → 10/29`; parcial `1 → 1`; novos
+  findings `0`; regressões encontradas `0`. Nenhum Criterion é contado pela
+  disponibilidade isolada do componente. Benefício: prova local de uma rota
+  futura de verificação, incluindo a separação entre integridade do conteúdo,
+  confiança da cadeia e cobertura da revisão assinada. Esforço: uma avaliação
+  isolada de biblioteca e uma revalidação completa dos gates; revisões
+  independentes novas `0` (sem alteração de código/contrato). Próximo passo
+  técnico: integrar o componente apenas após fechar perfil de confiança,
+  limites de recursos e contrato de recibo; cobertura e estado da fase ficam
+  inalterados.
+- Estado: `CALIBRATION_GATE=BLOCKED`, `SOL_REVIEW=PENDING_CAPACITY`,
+  `PROMOTION=NOT_AUTHORIZED`, `VALIDATED_TO_ANALYZED=PENDING` e
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
