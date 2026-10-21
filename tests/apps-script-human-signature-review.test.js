@@ -72,6 +72,35 @@ const testReview = inContext({
 
 const receipt = context.createHumanSignatureReviewReceipt_(testContext, testReview);
 assert.equal(context.verifyHumanSignatureReviewReceipt_(receipt, testContext), true);
+
+context.humanReceiptJson = JSON.stringify(receipt);
+context.originalHumanEvidenceJson = JSON.stringify(receipt.payload.evidenceReferences);
+const forgedEvidenceReceipt = vm.runInContext(`(() => {
+  const forged = JSON.parse(humanReceiptJson);
+  const originalEvidence = JSON.parse(originalHumanEvidenceJson);
+  forged.payload.evidenceReferences[0].description = 'tampered after HMAC';
+  Object.setPrototypeOf(forged.payload.evidenceReferences, {
+    map(mapper) { return originalEvidence.map(mapper); }
+  });
+  return forged;
+})()`, context);
+assert.equal(context.verifyHumanSignatureReviewReceipt_(forgedEvidenceReceipt, testContext), false,
+  'inherited array map must not hide a post-authentication evidence mutation');
+
+context.customPrototypeReviewJson = JSON.stringify(testReview);
+const customPrototypeReview = vm.runInContext(`(() => {
+  const review = JSON.parse(customPrototypeReviewJson);
+  Object.setPrototypeOf(review.evidenceReferences, { map() { return []; } });
+  return review;
+})()`, context);
+const customPrototypeReceipt = context.createHumanSignatureReviewReceipt_(
+  testContext, customPrototypeReview
+);
+assert.equal(customPrototypeReceipt.payload.evidenceReferences[0].description,
+  'Visible signature assessed by reviewer',
+  'receipt copying must use the evidence array own indices');
+assert.equal(context.verifyHumanSignatureReviewReceipt_(customPrototypeReceipt, testContext), true);
+
 assert.equal(receipt.payload.reviewerIdentity, 'reviewer@example.test');
 assert.equal(receipt.payload.cryptographicStatus, 'NOT_EVALUATED_BY_HUMAN_REVIEW');
 assert.equal(receipt.payload.authorityStatus, 'NOT_ESTABLISHED_AUDIT_ONLY');

@@ -10,43 +10,132 @@
     'cryptographicStatus', 'authorityStatus'
   ];
   const expectedEnvelopeKeys_ = ['payload', 'authentication'];
+  const arrayConstructor_ = Array;
+  const arrayIsArray_ = Array.isArray;
+  const getOwnPropertyDescriptor_ = Object.getOwnPropertyDescriptor;
+  const getOwnPropertyNames_ = Object.getOwnPropertyNames;
+  const getOwnPropertySymbols_ = Object.getOwnPropertySymbols;
+  const getPrototypeOf_ = Object.getPrototypeOf;
+  const objectKeys_ = Object.keys;
+  const defineProperty_ = Object.defineProperty;
+  const freeze_ = Object.freeze;
+  const stringify_ = JSON.stringify;
+  const hasOwn_ = Function.call.bind(Object.prototype.hasOwnProperty);
+
+  function ownArrayLength_(value) {
+    if (!arrayIsArray_(value) || getOwnPropertySymbols_(value).length !== 0) return null;
+    const lengthDescriptor = getOwnPropertyDescriptor_(value, 'length');
+    if (!lengthDescriptor || !hasOwn_(lengthDescriptor, 'value') ||
+        !Number.isSafeInteger(lengthDescriptor.value) || lengthDescriptor.value < 0 ||
+        lengthDescriptor.value > 10000 ||
+        getOwnPropertyNames_(value).length !== lengthDescriptor.value + 1) return null;
+    return lengthDescriptor.value;
+  }
+
+  function sortStrings_(values) {
+    for (let index = 1; index < values.length; index += 1) {
+      const current = values[index];
+      let position = index;
+      while (position > 0 && current < values[position - 1]) {
+        values[position] = values[position - 1];
+        position -= 1;
+      }
+      values[position] = current;
+    }
+    return values;
+  }
+
+  function includesString_(values, target) {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === target) return true;
+    }
+    return false;
+  }
 
   function exactDataObject_(value, expectedKeys) {
-    if (!value || typeof value !== 'object' || Array.isArray(value) ||
-        Object.getPrototypeOf(value) !== Object.prototype || Object.getOwnPropertySymbols(value).length) return false;
-    const keys = Object.keys(value);
-    if (Object.getOwnPropertyNames(value).length !== keys.length || keys.length !== expectedKeys.length) return false;
-    return keys.every(key => expectedKeys.includes(key) &&
-      Object.prototype.hasOwnProperty.call(Object.getOwnPropertyDescriptor(value, key), 'value'));
+    if (!value || typeof value !== 'object' || arrayIsArray_(value) ||
+        getPrototypeOf_(value) !== Object.prototype || getOwnPropertySymbols_(value).length) return false;
+    const keys = objectKeys_(value);
+    if (getOwnPropertyNames_(value).length !== keys.length || keys.length !== expectedKeys.length) return false;
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (!includesString_(expectedKeys, key) ||
+          !hasOwn_(getOwnPropertyDescriptor_(value, key), 'value')) return false;
+    }
+    return true;
   }
 
   function immutableJson_(value) {
-    if (Array.isArray(value)) return Object.freeze(value.map(immutableJson_));
+    if (arrayIsArray_(value)) {
+      const length = ownArrayLength_(value);
+      if (length === null) throw new Error('signature review receipt contains an invalid array');
+      const copy = new arrayConstructor_(length);
+      for (let index = 0; index < length; index += 1) {
+        const descriptor = getOwnPropertyDescriptor_(value, String(index));
+        if (!descriptor || !hasOwn_(descriptor, 'value') || !descriptor.enumerable) {
+          throw new Error('signature review receipt contains a sparse or accessor array');
+        }
+        defineProperty_(copy, String(index), {
+          value: immutableJson_(descriptor.value), enumerable: true,
+          writable: false, configurable: false
+        });
+      }
+      return freeze_(copy);
+    }
     if (!value || typeof value !== 'object') return value;
     const copy = {};
-    Object.keys(value).sort().forEach(key => {
+    const keys = sortStrings_(objectKeys_(value));
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
       if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
         throw new Error('signature review receipt contains an unsafe property');
       }
-      Object.defineProperty(copy, key, {
-        value: immutableJson_(value[key]), enumerable: true, writable: false, configurable: false
+      const descriptor = getOwnPropertyDescriptor_(value, key);
+      if (!descriptor || !hasOwn_(descriptor, 'value')) {
+        throw new Error('signature review receipt contains an accessor property');
+      }
+      defineProperty_(copy, key, {
+        value: immutableJson_(descriptor.value), enumerable: true, writable: false, configurable: false
       });
-    });
-    return Object.freeze(copy);
+    }
+    return freeze_(copy);
   }
 
   function canonicalJson_(value) {
-    if (value === null || typeof value === 'string' || typeof value === 'boolean') return JSON.stringify(value);
+    if (value === null || typeof value === 'string' || typeof value === 'boolean') return stringify_(value);
     if (typeof value === 'number') {
       if (!Number.isFinite(value)) throw new Error('signature review receipt contains a non-finite number');
-      return JSON.stringify(value);
+      return stringify_(value);
     }
-    if (Array.isArray(value)) return '[' + value.map(canonicalJson_).join(',') + ']';
-    if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
+    if (arrayIsArray_(value)) {
+      const length = ownArrayLength_(value);
+      if (length === null) throw new Error('signature review receipt contains an invalid array');
+      let serialized = '[';
+      for (let index = 0; index < length; index += 1) {
+        if (index !== 0) serialized += ',';
+        const descriptor = getOwnPropertyDescriptor_(value, String(index));
+        if (!descriptor || !hasOwn_(descriptor, 'value') || !descriptor.enumerable) {
+          throw new Error('signature review receipt contains a sparse or accessor array');
+        }
+        serialized += canonicalJson_(descriptor.value);
+      }
+      return serialized + ']';
+    }
+    if (!value || typeof value !== 'object' || getPrototypeOf_(value) !== Object.prototype) {
       throw new Error('signature review receipt contains an unsupported value');
     }
-    const keys = Object.keys(value).sort();
-    return '{' + keys.map(key => JSON.stringify(key) + ':' + canonicalJson_(value[key])).join(',') + '}';
+    const keys = sortStrings_(objectKeys_(value));
+    let serialized = '{';
+    for (let index = 0; index < keys.length; index += 1) {
+      if (index !== 0) serialized += ',';
+      const key = keys[index];
+      const descriptor = getOwnPropertyDescriptor_(value, key);
+      if (!descriptor || !hasOwn_(descriptor, 'value')) {
+        throw new Error('signature review receipt contains an accessor property');
+      }
+      serialized += stringify_(key) + ':' + canonicalJson_(descriptor.value);
+    }
+    return serialized + '}';
   }
 
   function hasText_(value, maxLength) {
@@ -68,7 +157,7 @@
 
   function isCanonicalHmacKey_(key) {
     if (typeof key !== 'string' || key.length !== 43 || !/^[A-Za-z0-9_-]{43}$/.test(key)) return false;
-    return 'AEIMQUYcgkosw048'.includes(key.charAt(42));
+    return includesString_('AEIMQUYcgkosw048', key.charAt(42));
   }
 
   function hmac_(payload, key) {
@@ -97,12 +186,11 @@
   }
 
   function validateEvidenceReferences_(items) {
-    if (!Array.isArray(items) || items.length < 1 || items.length > 32 ||
-        Object.getOwnPropertySymbols(items).length ||
-        Object.getOwnPropertyNames(items).length !== items.length + 1) return false;
-    for (let index = 0; index < items.length; index += 1) {
-      const descriptor = Object.getOwnPropertyDescriptor(items, String(index));
-      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) return false;
+    const length = ownArrayLength_(items);
+    if (length === null || length < 1 || length > 32) return false;
+    for (let index = 0; index < length; index += 1) {
+      const descriptor = getOwnPropertyDescriptor_(items, String(index));
+      if (!descriptor || !hasOwn_(descriptor, 'value') || !descriptor.enumerable) return false;
       const item = descriptor.value;
       if (!exactDataObject_(item, ['documentIdentity', 'documentDigest', 'locator', 'description']) ||
           !hasText_(item.documentIdentity, 512) || !digest_(item.documentDigest) ||
@@ -116,12 +204,11 @@
       'sourceDocumentIdentity', 'sourceDocumentDigest'];
     const reviewKeys = ['reviewMethod', 'methodDetails', 'evidenceReferences', 'decision'];
     if (!exactDataObject_(context, contextKeys) || !exactDataObject_(review, reviewKeys) ||
-        !contextKeys.filter(key => key !== 'currentSubmissionContext')
-          .every(key => hasText_(context[key], 512)) ||
+        !hasValidContextText_(context, contextKeys) ||
         !digest_(context.rdeDigest) || !digest_(context.sourceDocumentDigest) ||
-        !['IN_DOCUMENT_VISUAL', 'DOCUMENT_METADATA', 'OTHER'].includes(review.reviewMethod) ||
+        !includesString_(['IN_DOCUMENT_VISUAL', 'DOCUMENT_METADATA', 'OTHER'], review.reviewMethod) ||
         !hasText_(review.methodDetails, 2048) || !validateEvidenceReferences_(review.evidenceReferences) ||
-        !['CONFIRMED_SIGNATURE_PRESENT', 'NOT_CONFIRMED', 'INCONCLUSIVE'].includes(review.decision)) {
+        !includesString_(['CONFIRMED_SIGNATURE_PRESENT', 'NOT_CONFIRMED', 'INCONCLUSIVE'], review.decision)) {
       throw new Error('invalid human signature review input');
     }
     const presentationIdentity = global.getCanonicalPresentationIdentity(
@@ -162,6 +249,14 @@
     });
   }
 
+  function hasValidContextText_(context, keys) {
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (key !== 'currentSubmissionContext' && !hasText_(context[key], 512)) return false;
+    }
+    return true;
+  }
+
   function verifyHumanSignatureReviewReceipt_(receipt, expectedContext) {
     try {
       if (!exactDataObject_(receipt, expectedEnvelopeKeys_) ||
@@ -185,9 +280,9 @@
           !hasText_(payload.rdeIdentity, 512) || !digest_(payload.rdeDigest) ||
           !hasText_(payload.sourceDocumentIdentity, 512) || !digest_(payload.sourceDocumentDigest) ||
           !hasText_(payload.reviewerIdentity, 320) || !hasText_(payload.recordedAt, 64) ||
-          !['IN_DOCUMENT_VISUAL', 'DOCUMENT_METADATA', 'OTHER'].includes(payload.reviewMethod) ||
+          !includesString_(['IN_DOCUMENT_VISUAL', 'DOCUMENT_METADATA', 'OTHER'], payload.reviewMethod) ||
           !hasText_(payload.methodDetails, 2048) || !validateEvidenceReferences_(payload.evidenceReferences) ||
-          !['CONFIRMED_SIGNATURE_PRESENT', 'NOT_CONFIRMED', 'INCONCLUSIVE'].includes(payload.decision) ||
+          !includesString_(['CONFIRMED_SIGNATURE_PRESENT', 'NOT_CONFIRMED', 'INCONCLUSIVE'], payload.decision) ||
           payload.cryptographicStatus !== 'NOT_EVALUATED_BY_HUMAN_REVIEW' ||
           payload.authorityStatus !== 'NOT_ESTABLISHED_AUDIT_ONLY') return false;
       const expected = hmac_(canonicalJson_(payload), key.key);
