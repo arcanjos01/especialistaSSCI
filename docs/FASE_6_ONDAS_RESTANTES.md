@@ -5383,10 +5383,21 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   revisões; uma revisão geral do lote e uma re-review dirigida. Benefício
   verificável: o vistoriador recebe os quatro literais e suas fontes no trace
   para conferência manual. Nenhum Criterion integral foi ganho.
-- Próximos gates: suítes Python e Apps Script completas, sintaxe de todos os
-  módulos JavaScript e `Code.gs`, runtime byte-identical, SHA-256, release build
-  em worktree limpa, manifests/phase guards e diff check; depois re-review do
-  commit candidato exato. Estados preservados:
+- Gates completos no candidato `1ffdd44aa23e6e1dc853c2a409b6f06cb36cff98`:
+  Python `202` (189 PASS, 13 SKIP); Apps Script `12/12 PASS`; `node --check`
+  para todos os módulos/testes JavaScript e `Code.gs` PASS; runtime regenerado
+  byte-identical, SHA-256
+  `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`;
+  manifests e phase guards PASS pela suíte Python; `git diff --check` PASS.
+  Release build de validação em worktree limpa PASS, 10 documentos,
+  `SOURCE_COMMIT=1ffdd44aa23e6e1dc853c2a409b6f06cb36cff98`. Push não destrutivo
+  confirmado na branch autorizada.
+- Revisão independente Luna read-only e re-review do finding, para o mesmo
+  SHA, `PASS`; finding médio de provenance fechado, nenhum BLOCKER/HIGH/MEDIUM
+  aberto no escopo. A re-review dirigida não reexaminou os dois documentos de
+  acompanhamento, que foram conferidos separadamente. Sol 6.1 não revisou este
+  commit (`SOL_REVIEW=PENDING_CAPACITY`).
+- Estados preservados:
   `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `SOL_REVIEW=PENDING_CAPACITY`, `ARCHITECTURAL_REVIEW=PENDING` e
