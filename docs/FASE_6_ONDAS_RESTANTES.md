@@ -5788,7 +5788,7 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   em worktree limpa: Python `204` (191 PASS, 13 SKIP); Apps Script `12/12 PASS`;
   `node --check` dos módulos/testes JS e sintaxe de `apps-script/Code.gs` PASS;
   runtime compilado `23/23 PASS`, regeneração byte-identical e SHA-256
-  `229073ecee9d0ef4609e327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
+  `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
   manifests/phase guards PASS; `git diff --check` PASS; release build PASS,
   dez documentos, KB `5.46.0`, `SOURCE_COMMIT` exatamente `8c042787d7692416457f85dc8b0526d746cdd84e`.
   A POC opt-in pyHanko do código-base teve `38/38 PASS` no checkpoint de código
@@ -5825,3 +5825,15 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   porque o pacote não está instalado; o runner `unittest` do projeto executou
   com sucesso os mesmos testes focais. O commit contém apenas este tracker e
   não altera fontes compiladas ou runtime.
+
+
+### Finding F6-FINAL-002 — correção do SHA de runtime em registro histórico — 2026-10-22
+
+- Revisor independente Codex/GPT-6 apontou que o checkpoint do candidato
+  `8c042787d7692416457f85dc8b0526d746cdd84e` transcreveu o digest como
+  `229073ecee9d0ef4609e327aaba6db74a33e656f4fef5e808a365cb6d74119e7`.
+  O valor correto, confirmado pela regeneração byte-identical e pelo artefato,
+  é `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`.
+- Correção documental limitada ao dígito transcrito. Nenhum código, runtime,
+  Base ou contagem de cobertura mudou. O finding permanece `PENDING` até
+  re-review dirigida do candidato com esta correção.
