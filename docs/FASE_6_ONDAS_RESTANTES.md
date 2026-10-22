@@ -13,15 +13,17 @@ os contratos canônicos nem o inventário de cobertura.
 
 ## Estado reconciliado
 
-- Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, HEAD `93769e336967f74307bf9013b299535ed309e329`;
-  último lote funcional em `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5` e
-  checkpoint documental corrente `93769e3`. `.codex-local-evidence/` permanece
-  local e não rastreado. KB `5.43.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
+- Reconciliação desta retomada em 2026-10-22: branch
+  `feature/apps-script-engine-core`; candidato funcional validado
+  `93769e336967f74307bf9013b299535ed309e329`, cujo último lote de código é
+  `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`. Um checkpoint posterior é
+  exclusivamente documental. `.codex-local-evidence/` permanece local e não
+  rastreado. KB `5.43.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
   29 produtivos, 10 integrais, 17 parciais, 2 preparatórios e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
-  `IN_PROGRESS`. Os gates do último lote de código estão registrados abaixo;
-  a atualização do HEAD é documental. Sem merge, deploy ou promoção.
+  `IN_PROGRESS`. Os gates do candidato funcional estão registrados abaixo;
+  reconciliações documentais posteriores não mudam código nem cobertura. Sem
+  merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -5459,3 +5461,42 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   integral `0`. Release build limpo `PASS`, 10 documentos,
   `SOURCE_COMMIT=e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`; worktree limpa e
   `git push` não destrutivo confirmado na branch.
+
+### Retomada após falha bwrap e revisão da reconciliação documental — 2026-10-22
+
+- Estado reconciliado antes da correção: branch local/remota sincronizada em
+  `93769e336967f74307bf9013b299535ed309e329`; `.codex-local-evidence/` foi
+  preservado fora do Git. A revisão read-only do candidato identificou finding
+  LOW: resumos vigentes diziam 9 parciais, enquanto o inventário atual dizia
+  17; uma frase do inventário também apresentava 13 como valor vigente. As
+  duas referências foram corrigidas, preservando snapshots históricos, e
+  publicadas no checkpoint documental `79a494af71fcbf47951786ca7b01285561b56c19`.
+- A revisão ampla foi despachada pelo roteador `gpt-6.1-sol`, mas o revisor se
+  identificou como `Codex/GPT-6` e negou ser Sol. A re-review dirigida também
+  se identificou como `Codex/GPT-6`, confirmou as contagens e não encontrou
+  findings residuais no diff documental. A reconfirmação do SHA publicado não
+  foi obtida por limite de threads. Não atribuir esses pareceres a Luna ou Sol;
+  a identidade do revisor e a reconfirmação do SHA permanecem pendentes, então
+  `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY` para o candidato corrente.
+- A revisão final via Sol Web `chatgpt-web/gpt-5.6-sol` não iniciou por
+  indisponibilidade de capacidade. `SOL_REVIEW=PENDING_CAPACITY`; nenhuma
+  aprovação Sol foi declarada.
+- Gates reexecutados em worktree limpa no commit publicado
+  `79a494af71fcbf47951786ca7b01285561b56c19`: Python `202` (189 PASS,
+  13 SKIP); Apps Script `12/12 PASS`; `node --check` dos módulos/testes JS e
+  sintaxe `Code.gs` PASS; contrato de runtime `23/23 PASS`, byte-identical,
+  SHA-256 `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`;
+  manifests e phase guards PASS pela suíte Python; `git diff --check` PASS;
+  release build limpo exit `0`, dez documentos. O commit contém apenas
+  documentação; não alterou Base, Engine, runtime ou resultados.
+- Cobertura permanece `10/29` integrais, `17` parciais, `2` preparatórios e
+  `19` pendentes de cobertura integral; ganho integral `0`; findings documentais
+  fechados no escopo da re-review `1`; findings BLOCKER/HIGH/MEDIUM `0` no
+  escopo inspecionado; nenhuma revisão Sol válida do candidato.
+- A origem para provar inventário completo da apresentação continua pendente de
+  decisão do responsável. O intake atual cria um processo por arquivo, enquanto
+  a identidade de apresentação autenticada usa protocolo + data; sem o contrato
+  de conjunto e fechamento, ausência de documento/atividade permanece
+  `MANUAL_REVIEW`. A decisão não altera `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING` ou `PROMOTION=NOT_AUTHORIZED`.
