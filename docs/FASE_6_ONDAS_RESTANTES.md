@@ -4619,17 +4619,29 @@ duplicados com payload devidamente autenticado; negativos que apenas alteravam
 payload sem reassinar podiam ser recusados pela autenticação antes de testar a
 validação semântica. A correção adiciona helper de assinatura de fixture e
 testes para emissor duplicado e verificação criptográfica duplicada, ambos
-reassinados pela chave sintética correta. Re-review dirigida desse finding
-pendente; digest do conjunto, vínculo do perfil ao binding e replay persistente
-continuam limitações INFO/preparatórias, não autorizadas para admissão.
+reassinados pela chave sintética correta. Naquele checkpoint, a re-review
+dirigida permanecia pendente; seu resultado final aparece abaixo. Digest do
+conjunto, vínculo do perfil ao binding e replay persistente continuam limitações
+INFO/preparatórias, não autorizadas para admissão.
 
 A primeira re-review do mesmo agente confirmou que os testes de duplicatas
 fecharam essa parte do finding, mas o manteve parcialmente aberto porque os
 negativos de contract digest divergente, campo extra e `unknownTreatment`
 também alteravam o payload sem reassinar. A correção seguinte reassina esses
 três fixtures com a autoridade sintética; cada caso agora chega à validação do
-schema. A suíte focal passou. Re-review final dirigida ainda pendente; nenhum
-achado de implementação/runtime foi identificado.
+schema. A suíte focal passou; nenhum achado de implementação/runtime foi
+identificado.
+
+Re-review final do finding LOW: `PASS`, examinando exatamente
+`4b4575d25d1b2c982691e294f1eb8755e4ae1a15..578f01703a04ba9ebb6b25579486988138e34071`.
+O revisor confirmou as assinaturas válidas nos três negativos de schema, os
+testes de adulteração/autoridade incorreta como casos de autenticação e zero
+findings novos. Executou suíte focal, sintaxe dos dois JS e `git diff --check`;
+não repetiu gates amplos/build. Identidade efetiva declarada: Codex/GPT-6,
+backend/versão sem atestado; não é revisão Sol. O finding LOW fica fechado
+nesse escopo. `SOL_REVIEW=PENDING_IDENTITY`,
+`ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`; cobertura continua
+`10/29` integral, 1 parcial, 7 preparatórios e 19 pendentes integrais.
 
 ### Rechecagem de comparandos factuais para dados básicos — 2026-10-22
 
