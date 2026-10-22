@@ -4710,7 +4710,17 @@ Fonte primária consultada: [IN 1 - Parte 1, edição 2024, Anexo B, pp. 46–47
   `84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96`.
   Validação executada no candidato local: Python `201` (`189 PASS`, `12 SKIP`);
   Apps Script `12/12`; sintaxe JS e `Code.gs`; manifest/runtime/diff check
-  focais PASS. Build limpo e revisão independente ainda pendentes neste registro.
+  PASS. Build limpo de validação: 10/10 documentos, KB `5.40.0`,
+  `SOURCE_COMMIT=8afcb08d5ac4649389f91dea2139903e959a2eb7`.
 - Esta é uma alteração de contrato FACT-ONLY, não uma mudança de semântica
   normativa. Exige revisão arquitetural independente antes de consolidação;
   `PROMOTION=NOT_AUTHORIZED` e `SOL_REVIEW=PENDING_IDENTITY` permanecem.
+
+Revisão independente Luna read-only do SHA `8afcb08d5ac4649389f91dea2139903e959a2eb7`:
+parecer técnico `PASS`, sem findings de código/contrato. O revisor executou a
+suíte RDE, 46 testes de versão/runtime, sintaxe e diff check. Identidade
+declarada: Codex; backend/versão não atestados, portanto o parecer não é Sol e
+não conclui o gate formal de aprovação arquitetural. Finding LOW exclusivamente
+documental (build já executado mas marcado como pendente) foi corrigido acima;
+re-review dirigida pendente. `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`,
+`SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
