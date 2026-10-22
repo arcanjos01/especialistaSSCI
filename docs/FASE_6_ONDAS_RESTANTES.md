@@ -4590,3 +4590,21 @@ Esforço aproximado: 25 minutos entre regressões, gates e revisão; uma revisã
 independente focada. Findings bloqueantes novos: zero. O estado da Fase 6B e
 as contagens de cobertura não mudam. A consolidação arquitetural e a promoção
 continuam pendentes; sem merge ou deploy.
+
+#### Situação da revisão Sol solicitada para este candidato
+
+Em 2026-10-22 foi iniciada uma revisão read-only do candidato consolidado
+`6f937694bd0714bbc3c570727e29ab9c3f0770d0` pelo agente configurado como
+`gpt-6.1-sol` (sessão `01a163e2-da71-7ee3-8893-b0dc1a9559de`). O agente não
+retornou parecer dentro dos dois limites de espera observados; identidade
+efetiva e conteúdo da revisão não foram recebidos. Portanto:
+
+```text
+SOL_REVIEW=PENDING
+ARCHITECTURAL_REVIEW=PENDING
+PROMOTION=NOT_AUTHORIZED
+```
+
+Não houve segunda tentativa de revisão Sol. O checkpoint provisionado na
+branch segue publicado sob a seção 25.1 e não é considerado consolidado. A
+Fase 6B continua em andamento.
