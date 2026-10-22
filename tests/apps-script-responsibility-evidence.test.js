@@ -338,8 +338,14 @@ function activityCase(activityServiceText, secondActivityServiceText = null, opt
   if (options.omitDocumentProvenance) {
     delete raw.records.find(record => record.record_id === 'DRT_0').provenance;
   }
+  if (options.emptyDocumentProvenance) {
+    raw.records.find(record => record.record_id === 'DRT_0').provenance = {};
+  }
   if (options.omitActivityProvenance) {
     delete raw.drt_activity_items[0].provenance;
+  }
+  if (options.emptyActivityProvenance) {
+    raw.drt_activity_items[0].provenance = {};
   }
   if (options.omitAdditionalActivityProvenance && raw.drt_activity_items[1]) {
     delete raw.drt_activity_items[1].provenance;
@@ -467,6 +473,15 @@ function in19FinalVerificationCase(activityText =
     parent_record_id: null, source_document: 'DRT_0', attributes: {},
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'FINAL_VERIFICATION_ROLE' }
   });
+  if (options.emptyActivityProvenance && raw.drt_activity_items[0]) {
+    raw.drt_activity_items[0].provenance = {};
+  }
+  if (options.emptySourceDocumentProvenance) {
+    raw.records.find(record => record.record_id === 'DRT_0').provenance = {};
+  }
+  if (options.emptyRoleProvenance) {
+    raw.records.find(record => record.record_id === 'ROLE_FINAL_VERIFICATION').provenance = {};
+  }
   if (options.omitRoleProvenance) {
     delete raw.records.find(record => record.record_id === 'ROLE_FINAL_VERIFICATION').provenance;
   }
@@ -521,6 +536,21 @@ for (const [provenanceGap, missingProvenanceField] of [
   assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(result.nonconformityOnFalse, undefined);
   assert.equal(result.trace[0].documentaryEvidence[0][missingProvenanceField], null);
+}
+for (const [provenanceGap, snapshotPath] of [
+  [{ emptyActivityProvenance: true }, ['activities', 0, 'itemProvenance']],
+  [{ emptySourceDocumentProvenance: true }, ['sourceProvenance']],
+  [{ emptyRoleProvenance: true }, ['roleProvenance']]
+]) {
+  const result = in19FinalVerificationCase(
+    'verificação final da instalação elétrica de baixa tensão', provenanceGap
+  ).result;
+  assert.equal(result.engineResult, 'MANUAL_REVIEW');
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(result.nonconformityOnFalse, undefined);
+  let snapshot = result.trace[0].documentaryEvidence[0];
+  for (const key of snapshotPath) snapshot = snapshot[key];
+  assert.deepEqual(JSON.parse(JSON.stringify(snapshot)), {});
 }
 
 const activityWithAdditionalService = activityCase('EXECUÇÃO', 'ATIVIDADE ADICIONAL NÃO CATALOGADA');
@@ -667,6 +697,15 @@ for (const [activity, options] of [
   const snapshot = insufficientProvenance.trace[0].documentaryEvidence[0].activityItems[0];
   assert.equal(snapshot.activityServiceText, activity);
   assert.equal(snapshot.sourceProvenance === null || snapshot.itemProvenance === null, true);
+}
+for (const options of [
+  { emptyActivityProvenance: true },
+  { emptyDocumentProvenance: true }
+]) {
+  const insufficientProvenance = activityCase('EXECUÇÃO', null, options);
+  assert.equal(insufficientProvenance.engineResult, 'MANUAL_REVIEW');
+  assert.equal(insufficientProvenance.pipelineResult, 'MANUAL_REVIEW');
+  assert.equal(insufficientProvenance.nonconformityOnFalse, undefined);
 }
 const inheritedProvenanceAttack = activityCase('EXECUÇÃO', null, {
   omitActivityProvenance: true,

@@ -544,8 +544,9 @@ function responsibilityDrtActivityExecutionPredicateContract() {
                 matchesCatalogLiteral = true;
               }
             }
-            if (matchesCatalogLiteral && item.itemProvenance !== null &&
-                item.sourceProvenance !== null && item.sourceProvenance !== undefined) {
+            if (matchesCatalogLiteral &&
+                engineHasUsableDocumentaryProvenance_(item.itemProvenance) &&
+                engineHasUsableDocumentaryProvenance_(item.sourceProvenance)) {
               thisDrtDeclaresExpectedActivity = true;
             }
           }
@@ -895,9 +896,10 @@ function responsibilityDrtActivityFinalVerificationPredicateContract() {
               itemProvenance: itemProvenance === undefined ? null : itemProvenance,
               sourceProvenance: sourceProvenance === undefined ? null : sourceProvenance
             });
-            if (matchesLiteral && itemProvenance !== undefined && itemProvenance !== null &&
-                rawSourceProvenance !== undefined && rawSourceProvenance !== null &&
-                rawRoleProvenance !== undefined && rawRoleProvenance !== null) matched = true;
+            if (matchesLiteral &&
+                engineHasUsableDocumentaryProvenance_(itemProvenance) &&
+                engineHasUsableDocumentaryProvenance_(rawSourceProvenance) &&
+                engineHasUsableDocumentaryProvenance_(rawRoleProvenance)) matched = true;
           }
           ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length, drt);
           ENGINE_ARRAY_SET_OWN_(memoryReferences, memoryReferences.length, sourceDocument);
