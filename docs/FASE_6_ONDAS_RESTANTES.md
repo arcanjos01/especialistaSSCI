@@ -5539,7 +5539,7 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   calibração, validação institucional e decisão IN10 não foi alterado. Os dois
   commits foram publicados por fast-forward `2fc450c..9644e84`; sem merge/deploy.
 
-### Divulgação de datas documentais do laudo IN08 — em validação
+### Divulgação de datas documentais do laudo IN08 — validado
 
 - Candidato local sobre `18471bd8ee529ccdc2a4200d6cb3db48cbb90b2c`, já
   sincronizado com `origin/feature/apps-script-engine-core`; o diretório
@@ -5575,7 +5575,7 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   pendentes integrais `19`. Esforço aproximado: 25 minutos; uma revisão
   independente, sem re-review. Findings abertos `0`, blockers novos `0`.
 
-### Disclosure do mecanismo declarado em produtos assinados — em validação
+### Disclosure do mecanismo declarado em produtos assinados — validado
 
 - Para os oito Criteria cujo `VALIDATE` é
   `TECHNICAL_PRODUCT_ATTRIBUTE(..., SIGNED)`, o binding factual passa a expor
@@ -5600,11 +5600,14 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `202` (189 PASS, 13 SKIP), Apps Script `12/12`, sintaxe JS/Code.gs,
   regeneração byte-identical do runtime SHA-256
   `1a934eb43935c6e19561c8f41fc9112e18b6ccd0f0c3aeecd4c9f4bfe7f1dfab` e
-  `git diff --check`. Revisão independente e release limpo pendentes.
-- Esforço aproximado: 20 minutos; nenhuma revisão independente deste lote
-  ainda. Findings abertos `0`; blockers novos `0`.
-- Contagens esperadas após validação: integrais `10/29` (sem ganho), parciais
-  `18`, preparatórios `1`, pendentes integrais `19`. Esforço até o registro
-  inicial: cerca de 15 minutos; nenhuma revisão deste lote ainda. Próximo gate:
-  suíte completa, revisão read-only do candidato exato, re-review dirigida se
-  houver finding e novo gate completo após correções.
+  `git diff --check` PASS. Release build limpo PASS com dez documentos e
+  `SOURCE_COMMIT=c0c04f85e393b6f3b9612348280d208398e3e0b2`.
+- Revisão independente read-only `Codex (GPT-6)`, execução distinta, avaliou
+  o diff exato `e49a6d08630766fe80040532ae7db1879b8d7790` →
+  `c0c04f85e393b6f3b9612348280d208398e3e0b2`: `PASS`, sem findings. O revisor
+  confirmou binding/provenance, disclosure literal, `NO_LITERAL_IN_RDE` sem
+  alegação de ausência e manutenção de `MANUAL_REVIEW`; consultou o código e os
+  contratos, mas não executou testes. Não é revisão Sol.
+- Esforço aproximado: 20 minutos; uma revisão independente deste lote, sem
+  re-review. Findings abertos `0`; blockers novos `0`.
+  `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
