@@ -14,7 +14,7 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, HEAD documental `797f9285bec4ce4e65125c1346bfe0f98c61757c`, código da onda anterior em `e8d6f32` e
+  `feature/apps-script-engine-core`, HEAD documental `9f0a08b72b55a6cb2a822da207376ebcc09a5459`, código da onda anterior em `89ad82e` e
   novo candidato `89ad82e9bc51d26758fa7154319a3598636334e4`; `.codex-local-evidence/`
   permanece local e não rastreado. KB candidata `5.43.0`, RDE `0.7.0`.
   O novo lote registra presença de `CONFORMITY_REPORT` dentro do Criterion
@@ -69,7 +69,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 3 parciais, 7 preparatórios, 19 pendentes de cobertura integral` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 9 parciais, 2 preparatórios, 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -5246,3 +5246,40 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   necessária. `SOL_REVIEW=PENDING_CAPACITY` para a revisão final da fase;
   `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
+
+### Retomada após erro de infraestrutura — 2026-10-22
+
+- Reconciliação: branch local e remota `feature/apps-script-engine-core`, HEAD
+  `9f0a08b72b55a6cb2a822da207376ebcc09a5459`; árvore rastreada limpa antes desta
+  atualização. `.codex-local-evidence/` permanece local e não rastreada. Nenhum
+  reset, descarte ou alteração ao Criterion IN10 foi feito.
+- Revalidação do HEAD: Python `202` (189 PASS, 13 SKIP); Apps Script `12/12
+  PASS`; `node --check` em 26 módulos/testes JavaScript e sintaxe de
+  `apps-script/Code.gs` `PASS`; runtime recompilado byte-idêntico, SHA-256
+  `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`;
+  phase/manifest guards cobertos pela suíte Python `PASS`; release build em
+  worktree limpa `PASS`, 10 documentos, `SOURCE_COMMIT=9f0a08b72b55a6cb2a822da207376ebcc09a5459`.
+- Produtividade: os 10 Criteria integrais vigentes já são os únicos Criteria
+  produtivos sem lacuna de cobertura. Os nove parciais permanecem condicionados
+  a assinatura verificável, conteúdo estruturado ou relação documental exata;
+  `T4_IN09_DRT` e `T4_IN10_COMMISSIONING` são preparatórios. Os demais pendentes
+  exigem comparandos de processo/DRT, semântica autorizada de endereço/área,
+  mapeamentos atuais de status ART/RRT/TRT, evidência autenticada ou fatos de
+  ensaio/comissionamento ainda não formalizados. Nenhum pode ser integralmente
+  concluído com segurança somente pelos contratos e fatos atuais; adicionar
+  executor ou inferência não produziria cobertura real. Decisão IN10 permanece
+  registrada e fora deste lote.
+- Resultado deste retorno: ganho integral `0`; parcial `9`; preparatório `2`;
+  pendentes integrais `19`; blockers encerrados `0`; novos blockers `0`. Nenhuma
+  implementação de código foi iniciada por ausência de um Criterion independente
+  integralmente implementável neste estado. Esforço: cerca de 20 minutos de
+  reconciliação, triagem e gates; revisões novas `0`, pois não houve diff de
+  código ou contrato e as revisões do candidato `89ad82e` permanecem válidas
+  para aquele candidato.
+- Estado mantido: `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `VALIDATED_TO_ANALYZED=PENDING`,
+  `SOL_REVIEW=PENDING_CAPACITY`, `PROMOTION=NOT_AUTHORIZED`. `git diff --check=PASS`.
+  Próxima execução funcional deve
+  iniciar quando surgir evidência/decisão autorizada para um dos blockers ou
+  quando for possível avançar uma interface preparatória sem admiti-la como
+  evidência confiável.
