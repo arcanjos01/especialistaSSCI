@@ -5148,10 +5148,21 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   blockers `0`. Benefício: cinco tipos de relatório passam a ter presença
   documental positiva rastreável no trace para o vistoriador, sem afirmar
   assinatura ou cobertura DRT. Esta é execução parcial, não Criterion coberto.
-- Testes direcionados antes da documentação: 66 testes Python de contratos/
-  identidade/projeção PASS; readiness Apps Script PASS; suíte piloto PASS após
-  correção de expectativas de trace; suítes restantes e gates completos,
-  revisão independente e build do candidato exato ainda pendentes. Esforço
-  estimado até esta etapa: cerca de 45 minutos; nenhuma revisão independente
-  deste lote foi realizada ainda. `SOL_REVIEW=PENDING_CAPACITY` se Sol não puder
-  ser acessado após candidato consolidado; não reivindicar aprovação. `PROMOTION=NOT_AUTHORIZED`.
+- Gates do candidato exato `e8d6f329ac89dec582f37f4a902a062008445c0e`:
+  Python `202` (189 passaram, 13 skips); Apps Script `12/12 PASS`; sintaxe de
+  14 módulos JS e 12 suítes JS `PASS`; `apps-script/Code.gs` `PASS`; runtime
+  regenerado byte-idêntico, SHA-256
+  `694ae90e2583a26b058dc45273619072d3cefb7b9f4eb13a5b82096c314e0fdf`;
+  release build em worktree limpa `PASS`, 10 documentos, KB `5.42.0`,
+  `SOURCE_COMMIT=e8d6f329ac89dec582f37f4a902a062008445c0e`; manifest/guards
+  cobertos pela suíte Python `PASS`; `git diff --check` `PASS`.
+- Revisão independente read-only foi despachada para Galileo (`terra_worker`),
+  agente `01a1642b-b46f-7c72-871f-0e03bd2d2a5b`, para o SHA exato. Parecer ainda
+  não retornou; registrar revisão deste lote como `IN_PROGRESS`, sem afirmar
+  PASS. Sol não revisou este lote; `SOL_REVIEW=PENDING_IDENTITY` para aprovação
+  arquitetural final e `PROMOTION=NOT_AUTHORIZED`.
+- Esforço estimado: cerca de 60 minutos entre reconciliação, implementação,
+  testes direcionados/completos, checkpoint e build. Ainda sem re-review ou
+  finding aberto/encerrado neste lote. As tarefas seguintes permanecem focadas
+  em Criteria independentes; comparandos, status DRT, calibração, assinatura e
+  vínculo institucional continuam blockers específicos, sem alterar IN10.

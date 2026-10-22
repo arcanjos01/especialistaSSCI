@@ -975,14 +975,14 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
-EXTRACTION, o quantitativo vigente é: 34 ativos, 29 produtivos, 10 cobertos,
-3 parciais, 7 preparatórios e 19 pendentes de cobertura integral.
+EXTRACTION, o quantitativo vigente em KB 5.42.0 é: 34 ativos, 29 produtivos,
+10 cobertos, 8 parciais, 2 preparatórios e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até
-a KB 5.41.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+a KB 5.42.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada da RDE Schema `0.7.0` e da KB `5.41.0`; ela contém 34 Criteria e
+regenerada da RDE Schema `0.7.0` e da KB `5.42.0`; ela contém 34 Criteria e
 não contém os dois Criteria de regularidade. A applicability atual mantém cinco
 Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 
