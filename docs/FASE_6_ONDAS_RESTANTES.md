@@ -5728,3 +5728,35 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED` e
   `FASE_6_STATUS=IN_PROGRESS`.
+
+### Fechamento dirigido F6-FINAL-001 — proveniência vazia — 2026-10-22
+
+- Finding MEDIUM encontrado pelo revisor independente GPT-6 no candidato
+  `9d48ff78a122adaeac27853f6ff5b23e9c06a770`: objetos de proveniência `{}`
+  permitiam resultado positivo em `T1_DRT_ACTIVITY_EXECUTION` e
+  `T4_IN19_FINAL_VERIFICATION`. No commit `f7fc9e9509fc8a7f61b02030f7d91bf637954f32`,
+  os dois caminhos passaram a usar o helper existente
+  `engineHasUsableDocumentaryProvenance_`, que reconhece as formas de origem/
+  localização já aceitas pelo Engine. Não foi criado schema novo nem feita
+  inferência normativa.
+- Regressões acrescentadas para proveniência vazia no item de atividade e no
+  documento-fonte de RT-002, e no item, documento-fonte e papel RT-007. Os cinco
+  casos agora retornam `MANUAL_REVIEW`, sem `FAIL`/NC; positivos com provenance
+  válida continuam `TRUE/PASS`, e o trace preserva os fatos disponíveis.
+  A primeira execução das novas regressões reproduziu `TRUE`, confirmando o
+  finding antes do fix.
+- Gates em worktree limpa no candidato exato: Python `203` (190 pass, 13 skip);
+  Apps Script `12/12`; sintaxe de todos os módulos/testes JS e
+  `apps-script/Code.gs`; contrato compilado `23/23`; runtime byte-identical,
+  SHA-256 `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
+  `git diff --check`; POC opt-in local com pyHanko `38/38 PASS`; release build
+  limpo com dez documentos, KB `5.46.0` e
+  `SOURCE_COMMIT=f7fc9e9509fc8a7f61b02030f7d91bf637954f32`.
+- Re-review dirigida independente Codex/GPT-6 no SHA exato: `PASS`,
+  `F6-FINAL-001=CLOSED`; suíte de responsabilidade executada, cinco cenários
+  vazios e positivos válidos confirmados; nenhum efeito colateral relevante no
+  escopo. Não é revisão Sol nem aprovação geral da Fase 6.
+- Cobertura continua `10/29`; ganho integral `0`. O finding global está fechado,
+  porém a auditoria consolidada ainda não cobriu integralmente os 57 arquivos:
+  `FINDINGS_OPEN_GLOBAL=UNKNOWN`, `INDEPENDENT_ARCH_REVIEW=PENDING_SCOPE`,
+  `SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
