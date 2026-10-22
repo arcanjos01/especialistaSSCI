@@ -4716,11 +4716,14 @@ Fonte primária consultada: [IN 1 - Parte 1, edição 2024, Anexo B, pp. 46–47
   normativa. Exige revisão arquitetural independente antes de consolidação;
   `PROMOTION=NOT_AUTHORIZED` e `SOL_REVIEW=PENDING_IDENTITY` permanecem.
 
-Revisão independente Luna read-only do SHA `8afcb08d5ac4649389f91dea2139903e959a2eb7`:
-parecer técnico `PASS`, sem findings de código/contrato. O revisor executou a
-suíte RDE, 46 testes de versão/runtime, sintaxe e diff check. Identidade
-declarada: Codex; backend/versão não atestados, portanto o parecer não é Sol e
-não conclui o gate formal de aprovação arquitetural. Finding LOW exclusivamente
-documental (build já executado mas marcado como pendente) foi corrigido acima;
-re-review dirigida pendente. `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`,
-`SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
+Revisão técnica independente read-only do SHA
+`8afcb08d5ac4649389f91dea2139903e959a2eb7`: parecer técnico `PASS`, sem findings
+de código/contrato. A sessão de revisão foi solicitada com papel
+`luna_economy`, mas a identidade declarada na resposta foi Codex; backend e
+versão não foram atestados. Portanto o parecer não é atribuído a Luna nem a Sol
+e não conclui o gate formal de aprovação arquitetural. O revisor executou a
+suíte RDE, 46 testes de versão/runtime, sintaxe e diff check. O finding LOW
+exclusivamente documental (build executado mas marcado como pendente) foi
+corrigido acima; re-review dirigida pendente.
+`INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`, `SOL_REVIEW=PENDING_IDENTITY`,
+`PROMOTION=NOT_AUTHORIZED`.
