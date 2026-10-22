@@ -1134,7 +1134,7 @@ melhoram o trace de presença documental, mas mantêm revisão humana para os
 controles restantes; seis Criteria são parciais. Os totais ativos, integrais e
 pendentes não mudam.
 Para a
-divisão gerencial aprovada, os 10 Criteria integralmente cobertos e o parcial permanecem estado de entrada;
+divisão gerencial aprovada, os 10 Criteria integralmente cobertos e os parciais permanecem estado de entrada;
 interfaces ou testes preparatórios não mudam `COVERED`. Fase 6A encerra-se
 pelos entregáveis e gates de núcleo/contratos listados no Plano de Migração,
 sem promover cobertura fictícia. Verificação local/humana de assinatura,

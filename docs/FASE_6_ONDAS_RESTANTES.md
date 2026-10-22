@@ -14,17 +14,15 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, baseline do lote
-  `3fbf8efede876098d7ff8e94c8eb3b428c5febe0`, candidato funcional commitado e
-  publicado em `e8d6f329ac89dec582f37f4a902a062008445c0e`; checkpoint documental
-  de gates em `aa39fed22d1690a49b4ed066a323fe41c087b52c`. `.codex-local-evidence/`
-  permanece local e não rastreado. KB candidata `5.42.0`, RDE `0.7.0`.
-  O lote adiciona rastreamento explícito de presença de cinco
-  produtos técnicos e mantém as cinco decisões `MANUAL_REVIEW`; contagem
-  candidata: 34 ativos, 29 produtivos, 10 integrais, 8 parciais, 2 preparatórios
-  e 19 pendentes de cobertura integral; 5 não selecionáveis e 2 retirados. Fase
-  6A `COMPLETE`; 6B `IN_PROGRESS`. Gates e build do SHA exato estão registrados
-  abaixo; re-review documental dirigida pendente. Sem merge, deploy ou promoção.
+  `feature/apps-script-engine-core`, código da onda anterior em `e8d6f32` e
+  novo candidato `89ad82e9bc51d26758fa7154319a3598636334e4`; `.codex-local-evidence/`
+  permanece local e não rastreado. KB candidata `5.43.0`, RDE `0.7.0`.
+  O novo lote registra presença de `CONFORMITY_REPORT` dentro do Criterion
+  assinado, sem remover o predicado `SIGNED`; contagem candidata: 34 ativos,
+  29 produtivos, 10 integrais, 9 parciais, 2 preparatórios e 19 pendentes de
+  cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
+  `IN_PROGRESS`. Gates/build registrados abaixo; revisão independente Luna em
+  andamento. Sem merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -5211,3 +5209,39 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `0` (nenhum código/contrato alterado); findings novos `0`. Próximo avanço
   continua dependendo de um perfil institucional de confiança/identidade ou de
   Criteria independentes com comparandos documentais suficientes.
+
+### Lote funcional: presença rastreável no Criterion de assinatura do relatório — 2026-10-22
+
+- Candidato de código `89ad82e9bc51d26758fa7154319a3598636334e4`, baseline
+  `b7b2d2b0a0730fc63d22cec9fbc72e18ba969b12`; KB `5.43.0`. `T1_CONFORMITY_REPORT_SIGNED`
+  agora declara `ALL(EXISTS(CONFORMITY_REPORT),
+  TECHNICAL_PRODUCT_ATTRIBUTE(CONFORMITY_REPORT, SIGNED))`. O ASSERT original de
+  assinatura foi preservado; somente a presença exata foi adicionada. O resultado
+  continua `MANUAL_REVIEW` sem recibo autenticado admissível e não há FAIL/NC
+  declarado para este Criterion. Não prova relação DRT/produto, que permanece
+  responsabilidade de `T1_CONFORMITY_REPORT`.
+- Testes positivos confirmam presença `TRUE` no trace, binding e documento exatos,
+  provenance preservada, assinatura ainda manual e sem Nonconformity. Fixtures
+  sem relatório mantêm presença `UNVERIFIED/MANUAL_REVIEW`; casos com mecanismos
+  de assinatura vazios/indeterminados continuam manuais; multiplicidade segue
+  erro de integridade. O guard Python foi ajustado para ler o bloco do Criterion
+  até o END externo do `ALL`, exigindo simultaneamente MANUAL_REVIEW, EXISTS e
+  TECHNICAL_PRODUCT_ATTRIBUTE SIGNED; nenhum gate foi enfraquecido.
+- Métricas: integral `10/29 → 10/29`; parcial `8 → 9`; preparatório `2 → 2`;
+  pendente integral `19 → 19`; Criteria sem suporte de execução `9 → 8`.
+  Blockers encerrados `0`; novos `0`. Benefício: o vistoriador vê um relatório
+  de conformidade exato como presente sem interpretar o nome do mecanismo de
+  assinatura como prova criptográfica. Não há admissão `SIGNED`.
+- Gates: Python `202` (189 PASS, 13 SKIP); Apps Script `12/12 PASS`; sintaxe de
+  26 módulos/testes JavaScript e `apps-script/Code.gs` PASS; runtime regenerado
+  duas vezes byte-idêntico, SHA-256
+  `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`; release
+  build limpo `10/10 PASS`, KB `5.43.0`,
+  `SOURCE_COMMIT=89ad82e9bc51d26758fa7154319a3598636334e4`; manifest/phase guards
+  pela suíte Python PASS; `git diff --check` PASS. Revisão independente Luna
+  read-only solicitada para o SHA exato, ainda em andamento neste registro.
+- Esforço aproximado: 45 minutos entre implementação, correção do guard, testes,
+  checkpoint e build. Uma revisão independente em curso; re-review apenas se
+  houver finding. `SOL_REVIEW=PENDING_CAPACITY` para a revisão final da fase;
+  `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
