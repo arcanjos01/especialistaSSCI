@@ -4830,3 +4830,27 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   técnica da POC local, mas não satisfaz confiança institucional, revogação,
   identidade do signatário ou binding de produção. Cobertura permanece
   `10/29`; nenhum Criterion mudou de estado.
+
+### Gates completos no candidato publicado — 2026-10-22
+
+- Candidato validado: `50e01fb51ac76384dfcc1a87f7e9e950eebe58f8`.
+- Python: `201` testes (`189 PASS`, `12 SKIP`). Apps Script: `12/12 PASS`.
+  `node --check` de módulos/testes JavaScript e sintaxe `Code.gs`: `PASS`.
+- Runtime regenerado byte-idêntico; SHA-256
+  `84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96`.
+  `git diff --check`: `PASS`.
+- Release build executado em worktree limpa: `10/10` documentos,
+  `SOURCE_COMMIT=50e01fb51ac76384dfcc1a87f7e9e950eebe58f8`.
+- Os artefatos e versões permanecem KB `5.40.0`; nenhum código/Base/runtime foi
+  alterado neste lote. Cobertura: `34` Criteria ativos, `29` produtivos, `10`
+  integrais e `19` pendentes de cobertura integral; esses 19 incluem o parcial
+  e os sete preparatórios. Permanecem cinco ativos não selecionáveis e dois
+  retirados fora dos ativos.
+- Resultado da investigação de mapeamento: o CREA-SC informa que o registro da
+  ART se efetiva após cadastro e pagamento e documenta o literal de taxa paga;
+  a fonte CAU localizada descreve estados SICCAU de 2020; a fonte CFT localizada
+  é um manual de 2018. Esse material não estabelece mapeamentos atuais completos
+  de registro, emissão e pagamento para todos os tipos. `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` permanecem sem classificação conclusiva.
+- Sem findings novos de código porque não houve alteração de código. Revisão
+  arquitetural e revisão Sol seguem pendentes; sem merge, deploy ou promoção.
