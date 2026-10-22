@@ -11,6 +11,14 @@ const keyPair = crypto.generateKeyPairSync('rsa', {
   modulusLength: 2048,
   publicExponent: 65537
 });
+const admissionAuthorityKeyId = 'SYNTHETIC_ADMISSION_AUTHORITY_V1';
+const admissionAuthorityPair = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicExponent: 65537
+});
+const admissionAuthorityJwk = admissionAuthorityPair.publicKey.export({ format: 'jwk' });
+const admissionAuthorityModulusHex = Buffer.from(admissionAuthorityJwk.n, 'base64url').toString('hex');
+const admissionAuthorityExponentHex = Buffer.from(admissionAuthorityJwk.e, 'base64url').toString('hex');
 const publicJwk = keyPair.publicKey.export({ format: 'jwk' });
 const modulusHex = Buffer.from(publicJwk.n, 'base64url').toString('hex');
 const exponentHex = Buffer.from(publicJwk.e, 'base64url').toString('hex');
@@ -25,6 +33,9 @@ const context = {
           if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_KEY_ID') return pinnedKeyId;
           if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_MODULUS_HEX') return pinnedModulusHex;
           if (name === 'SSCI_SIGNATURE_VERIFICATION_RSA_EXPONENT_HEX') return pinnedExponentHex;
+          if (name === 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_KEY_ID') return admissionAuthorityKeyId;
+          if (name === 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_MODULUS_HEX') return admissionAuthorityModulusHex;
+          if (name === 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_EXPONENT_HEX') return admissionAuthorityExponentHex;
           return null;
         }
       };
@@ -343,7 +354,8 @@ function createBindingWith(overrides = {}) {
     bindingOverrides.view || executionBindingView,
     bindingOverrides.rde || executionBindingRde,
     bindingOverrides.source || executionBindingSource,
-    bindingOverrides.submission || currentSubmissionContextForVerification)`, context);
+    bindingOverrides.submission || currentSubmissionContextForVerification,
+    bindingOverrides.profile)`, context);
 }
 const freshPayload = JSON.parse(JSON.stringify(bindingPayload));
 freshPayload.receiptId = 'TEST_BINDING_NEGATIVES';
@@ -391,6 +403,78 @@ assert.equal(vm.runInContext(
 ), false, 'a second genuine plan cannot consume the first plan binding');
 assert.equal(createBindingWith({ receipt: freshReceipt, plan: secondPlan }), null,
   'receipt ids are unique within this runtime even across genuine plans');
+
+function admissionProfileJson() {
+  const contractText = canonicalJson(context.COMPILED_RUNTIME_CONTRACT);
+  const payload = {
+    profileType: 'SIGNATURE_ADMISSION_PROFILE', schemaVersion: '0.1.0',
+    compiledContractDigest: crypto.createHash('sha256').update(contractText, 'utf8').digest('hex'),
+    policyId: 'SYNTHETIC_POLICY', policyVersion: 'SYNTHETIC_V1', policyDigest: '1'.repeat(64),
+    permittedMechanism: 'SYNTHETIC_RSA_TEST', trustedIssuerSet: ['SYNTHETIC_ISSUER'],
+    trustedIssuerSetDigest: '2'.repeat(64), requiredCryptographicChecks: ['SYNTHETIC_INTEGRITY_CHECK'],
+    requiredSignerIssuerRole: 'SYNTHETIC_SIGNER_OR_ISSUER', validationLevel: 'SYNTHETIC_FIXTURE_ONLY',
+    unknownTreatment: 'MANUAL_REVIEW'
+  };
+  const payloadText = canonicalJson(payload);
+  return JSON.stringify({ payload, authentication: {
+    keyId: admissionAuthorityKeyId, algorithm: 'RSA_SHA256_PKCS1_V1_5',
+    digest: crypto.createHash('sha256').update(payloadText, 'utf8').digest('hex'),
+    signature: crypto.sign('RSA-SHA256', Buffer.from(payloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64')
+  }});
+}
+const validAdmissionProfile = admissionProfileJson();
+context.validAdmissionProfile = validAdmissionProfile;
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(validAdmissionProfile, COMPILED_RUNTIME_CONTRACT)', context), true,
+  'synthetic profile signed by distinct authority key is accepted preparatorily');
+const preparatoryProfileReceiptPayload = JSON.parse(JSON.stringify(bindingPayload));
+preparatoryProfileReceiptPayload.receiptId = 'TEST_PREPARATORY_PROFILE_BINDING';
+assert.equal(createBindingWith({
+  receipt: JSON.stringify(authenticatedReceipt(preparatoryProfileReceiptPayload)),
+  profile: validAdmissionProfile
+}).admissionStatus, 'MANUAL_REVIEW',
+'an authenticated preparatory profile never authorizes automatic Engine admission');
+const emptyIssuerSet = JSON.parse(validAdmissionProfile);
+emptyIssuerSet.payload.trustedIssuerSet = [];
+const emptyIssuerPayloadText = canonicalJson(emptyIssuerSet.payload);
+emptyIssuerSet.authentication.digest = crypto.createHash('sha256').update(emptyIssuerPayloadText, 'utf8').digest('hex');
+emptyIssuerSet.authentication.signature = crypto.sign('RSA-SHA256', Buffer.from(emptyIssuerPayloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64');
+context.emptyIssuerSetProfile = JSON.stringify(emptyIssuerSet);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'an authenticated profile without trust issuers is rejected');
+const emptyChecks = JSON.parse(validAdmissionProfile);
+emptyChecks.payload.requiredCryptographicChecks = [];
+const emptyChecksPayloadText = canonicalJson(emptyChecks.payload);
+emptyChecks.authentication.digest = crypto.createHash('sha256').update(emptyChecksPayloadText, 'utf8').digest('hex');
+emptyChecks.authentication.signature = crypto.sign('RSA-SHA256', Buffer.from(emptyChecksPayloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64');
+context.emptyChecksProfile = JSON.stringify(emptyChecks);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyChecksProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'an authenticated profile without required cryptographic checks is rejected');
+const forgedProfile = JSON.parse(validAdmissionProfile);
+forgedProfile.payload.policyId = 'FORGED_POLICY';
+context.forgedProfile = JSON.stringify(forgedProfile);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(forgedProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'forged profile is rejected');
+const sharedKeyProfile = JSON.parse(validAdmissionProfile);
+sharedKeyProfile.authentication.keyId = keyId;
+sharedKeyProfile.authentication.signature = crypto.sign('RSA-SHA256', Buffer.from(canonicalJson(sharedKeyProfile.payload), 'utf8'), keyPair.privateKey).toString('base64');
+context.sharedKeyProfile = JSON.stringify(sharedKeyProfile);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(sharedKeyProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'verifier key cannot authenticate the admission profile');
+const wrongContractProfile = JSON.parse(validAdmissionProfile);
+wrongContractProfile.payload.compiledContractDigest = '3'.repeat(64);
+context.wrongContractProfile = JSON.stringify(wrongContractProfile);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(wrongContractProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'different compiled contract digest is rejected');
+const extraProfileField = JSON.parse(validAdmissionProfile);
+extraProfileField.payload.extra = true;
+context.extraProfileField = JSON.stringify(extraProfileField);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(extraProfileField, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'extra profile fields are rejected');
+const unknownPolicyProfile = JSON.parse(validAdmissionProfile);
+unknownPolicyProfile.payload.unknownTreatment = 'UNKNOWN';
+context.unknownPolicyProfile = JSON.stringify(unknownPolicyProfile);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(unknownPolicyProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'unknown treatment other than MANUAL_REVIEW is rejected');
 
 // Regressions for independent review findings HIGH and MEDIUM.
 const referenceAttackPayload = JSON.parse(JSON.stringify(bindingPayload));

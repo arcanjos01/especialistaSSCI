@@ -6,6 +6,9 @@
   const keyIdProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_KEY_ID';
   const modulusProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_MODULUS_HEX';
   const exponentProperty_ = 'SSCI_SIGNATURE_VERIFICATION_RSA_EXPONENT_HEX';
+  const profileKeyIdProperty_ = 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_KEY_ID';
+  const profileModulusProperty_ = 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_MODULUS_HEX';
+  const profileExponentProperty_ = 'SSCI_SIGNATURE_ADMISSION_PROFILE_RSA_EXPONENT_HEX';
   const contextKeys_ = [
     'currentSubmissionContext', 'rdeIdentity', 'rdeDigest',
     'sourceDocumentIdentity', 'sourceDocumentDigest'
@@ -161,6 +164,21 @@
     }
   }
 
+  function admissionProfilePublicKey_() {
+    try {
+      const properties = global.PropertiesService.getScriptProperties();
+      const keyId = properties.getProperty(profileKeyIdProperty_);
+      const modulusHex = properties.getProperty(profileModulusProperty_);
+      const exponentHex = properties.getProperty(profileExponentProperty_);
+      if (!hasText_(keyId, 128) || typeof modulusHex !== 'string' ||
+          !/^(?:[89a-f][0-9a-f]{511}|[89a-f][0-9a-f]{767}|[89a-f][0-9a-f]{1023})$/.test(modulusHex) ||
+          exponentHex !== '010001') return null;
+      return { keyId, modulusHex, exponentHex };
+    } catch (error) {
+      return null;
+    }
+  }
+
   function bytesToHex_(bytes) {
     let result = '';
     for (let index = 0; index < bytes.length; index += 1) {
@@ -296,10 +314,67 @@
     }
   }
 
+  const admissionProfilePayloadKeys_ = [
+    'profileType', 'schemaVersion', 'compiledContractDigest',
+    'policyId', 'policyVersion', 'policyDigest', 'permittedMechanism',
+    'trustedIssuerSet', 'trustedIssuerSetDigest', 'requiredCryptographicChecks',
+    'requiredSignerIssuerRole', 'validationLevel', 'unknownTreatment'
+  ];
+  const admissionProfileAuthenticationKeys_ = ['keyId', 'algorithm', 'digest', 'signature'];
+
+  function validAdmissionProfilePayload_(payload, contractDigest) {
+    return exactDataObject_(payload, admissionProfilePayloadKeys_) &&
+      payload.profileType === 'SIGNATURE_ADMISSION_PROFILE' &&
+      payload.schemaVersion === '0.1.0' && digest_(payload.compiledContractDigest) &&
+      payload.compiledContractDigest === contractDigest && hasText_(payload.policyId, 128) &&
+      hasText_(payload.policyVersion, 64) && digest_(payload.policyDigest) &&
+      hasText_(payload.permittedMechanism, 128) &&
+      Array.isArray(payload.trustedIssuerSet) && payload.trustedIssuerSet.length > 0 &&
+      payload.trustedIssuerSet.length <= 256 &&
+      payload.trustedIssuerSet.every(value => hasText_(value, 256)) &&
+      new Set(payload.trustedIssuerSet).size === payload.trustedIssuerSet.length &&
+      digest_(payload.trustedIssuerSetDigest) &&
+      Array.isArray(payload.requiredCryptographicChecks) &&
+      payload.requiredCryptographicChecks.length > 0 &&
+      payload.requiredCryptographicChecks.length <= 256 &&
+      payload.requiredCryptographicChecks.every(value => hasText_(value, 128)) &&
+      new Set(payload.requiredCryptographicChecks).size === payload.requiredCryptographicChecks.length &&
+      hasText_(payload.requiredSignerIssuerRole, 128) &&
+      hasText_(payload.validationLevel, 128) &&
+      payload.unknownTreatment === 'MANUAL_REVIEW' && safeJsonValue_(payload);
+  }
+
+  // Preparatory only: authenticates a profile with a distinct pinned authority
+  // key and checks contract applicability. It never admits SIGNED or Engine input.
+  function verifySignatureAdmissionProfile_(profileJson, contract) {
+    try {
+      if (typeof profileJson !== 'string' || profileJson.length > 2000000 ||
+          typeof global.isCanonicalCompiledRuntimeContract !== 'function' ||
+          !global.isCanonicalCompiledRuntimeContract(contract)) return false;
+      const profile = copyFrozen_(parse_(profileJson));
+      if (!exactDataObject_(profile, ['payload', 'authentication']) ||
+          !exactDataObject_(profile.authentication, admissionProfileAuthenticationKeys_)) return false;
+      const contractDigest = sha256_(canonicalJsonValue_(contract));
+      const payload = profile.payload;
+      const auth = profile.authentication;
+      const key = admissionProfilePublicKey_();
+      const verifierKey = receiptPublicKey_();
+      if (!key || auth.keyId !== key.keyId || auth.algorithm !== 'RSA_SHA256_PKCS1_V1_5' ||
+          !verifierKey || key.keyId === verifierKey.keyId ||
+          key.modulusHex === verifierKey.modulusHex || key.exponentHex !== verifierKey.exponentHex ||
+          !digest_(auth.digest) || auth.digest !== sha256_(canonicalJsonValue_(payload)) ||
+          !hasText_(auth.signature, 2048) || !/^[A-Za-z0-9+/]+={0,2}$/.test(auth.signature) ||
+          !validAdmissionProfilePayload_(payload, contractDigest)) return false;
+      return verifyRsaSha256_(canonicalJson_(payload), auth.signature, key);
+    } catch (error) {
+      return false;
+    }
+  }
+
   // Preparatory only: there is no authenticated per-document external
   // identity/digest map or approved admission profile in the current contracts.
   function createTechnicalReceiptExecutionBinding_(receiptJson, contract, plan, view, rde,
-    sourceDocument, currentSubmissionContext) {
+    sourceDocument, currentSubmissionContext, admissionProfileJson) {
     try {
       if (typeof receiptJson !== 'string' || receiptJson.length > 2000000) return null;
       const receipt = copyFrozen_(parse_(receiptJson));
@@ -343,6 +418,8 @@
       const contractDigest = sha256_(canonicalJsonValue_(contract));
       const planDigest = sha256_(canonicalJsonValue_(plan));
       if (!digest_(contractDigest) || !digest_(planDigest)) return null;
+      const profileAuthenticated = typeof admissionProfileJson === 'string' &&
+        verifySignatureAdmissionProfile_(admissionProfileJson, contract);
       const binding = copyFrozen_({
         bindingType: 'TECHNICAL_SIGNATURE_RECEIPT_EXECUTION_BINDING', schemaVersion: '0.1.0',
         receiptId: receipt.payload.receiptId, compiledContractDigest: contractDigest,
@@ -352,7 +429,8 @@
         sourceDocumentIdentity: receipt.payload.sourceDocumentIdentity,
         sourceDocumentDigest: receipt.payload.sourceDocumentDigest,
         admissionStatus: 'MANUAL_REVIEW', diagnostics: [
-          'ADMISSION_PROFILE_UNDEFINED',
+          profileAuthenticated ? 'ADMISSION_PROFILE_AUTHENTICATED_PREPARATORY_ONLY' :
+            'ADMISSION_PROFILE_UNDEFINED',
           'SOURCE_DOCUMENT_IDENTITY_DIGEST_NOT_INDEPENDENTLY_AUTHENTICATED'
         ]
       });
@@ -385,6 +463,10 @@
 
   Object.defineProperty(global, 'verifySignatureVerificationReceipt_', {
     value: verifySignatureVerificationReceipt_, enumerable: false,
+    writable: false, configurable: false
+  });
+  Object.defineProperty(global, 'verifySignatureAdmissionProfile_', {
+    value: verifySignatureAdmissionProfile_, enumerable: false,
     writable: false, configurable: false
   });
   Object.defineProperty(global, 'createTechnicalReceiptExecutionBinding_', {
