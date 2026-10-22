@@ -4916,3 +4916,34 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   lacunas por dependência; essa triagem não é revisão arquitetural nem altera
   cobertura. Critérios com novas fontes/fatos ou decisão técnica autorizada
   continuam no escopo da Fase 6B.
+
+### Reconciliação corrente após fechamento do finding da POC — 2026-10-22
+
+```text
+BRANCH=feature/apps-script-engine-core
+LOCAL_HEAD=234ebd4023b6e68776d8c9dc6b21f38716a06783
+REMOTE_HEAD=234ebd4023b6e68776d8c9dc6b21f38716a06783
+WORKTREE_TRACKED=CLEAN
+LOCAL_EVIDENCE=.codex-local-evidence/ preservado, não rastreado
+KNOWLEDGE_BASE_VERSION=5.40.0
+CODE_CANDIDATE=b69ba074e01e7f1178a73cca66249dd9db636d6b
+INDEPENDENT_ARCH_REVIEW=PASS (Codex/GPT-6, substituto aceito pelo usuário conforme AGENTS.md §25.2)
+SOL_REVIEW=PENDING_IDENTITY
+FINDINGS_OPEN=0 para o escopo arquitetural revisto
+CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PENDING=19 (inclui parcial e preparatórios)
+PYTHON_TESTS=202 (189 PASS, 13 SKIP)
+PYHANKO_SYNTHETIC_TESTS=36/36 PASS (ambiente isolado, pyHanko 0.38.0)
+APPS_SCRIPT_SUITES=12 PASS
+RUNTIME_SHA256=84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96
+RELEASE_BUILD=PASS; 10/10; SOURCE_COMMIT=b69ba074e01e7f1178a73cca66249dd9db636d6b
+PROMOTION=NOT_AUTHORIZED
+FASE_6A_STATUS=COMPLETE
+FASE_6B_STATUS=IN_PROGRESS
+NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING
+VALIDATED_TO_ANALYZED=PENDING
+```
+
+Os commits `60add04` e `234ebd4` após o código candidato são somente
+documentação. A aprovação substituta encerra o finding MEDIUM específico, não
+substitui a identificação Sol requerida pelo estado de `SOL_REVIEW`, não fecha
+nenhum Criterion adicional e não declara conclusão da Fase 6B.
