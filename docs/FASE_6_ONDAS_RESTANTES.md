@@ -16,8 +16,9 @@ os contratos canônicos nem o inventário de cobertura.
 - Reconciliação desta retomada em 2026-10-22: branch
   `feature/apps-script-engine-core`; novo candidato funcional `7d1c723`
   (`7d1c723ed10cc77457be031656be8f44370619ba`), com commit anterior
-  `2fc450cc61af0dbe3baf67a0ad89205ed5a9cc8b`. Push do checkpoint pendente.
-  `.codex-local-evidence/` permanece local e não rastreado. KB `5.44.0`,
+  `2fc450cc61af0dbe3baf67a0ad89205ed5a9cc8b`. Commit documental de gates
+  `9644e84cbd963341aa5ec9a9fed36eec80c126db`; branch local e remoto sincronizados
+  por push fast-forward. `.codex-local-evidence/` permanece local e não rastreado. KB `5.44.0`,
   RDE `0.7.0`. Contagem vigente: 34 ativos,
   29 produtivos, 10 integrais, 18 parciais, 1 preparatório e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
@@ -5535,4 +5536,5 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   não é revisão Sol. `SOL_REVIEW=PENDING_CAPACITY`.
 - Esforço aproximado: 35 minutos; 1 revisão do lote e 2 re-reviews dirigidas.
   Findings abertos no escopo: `0`; blockers novos: `0`. Estado de promoção,
-  calibração, validação institucional e decisão IN10 não foi alterado.
+  calibração, validação institucional e decisão IN10 não foi alterado. Os dois
+  commits foram publicados por fast-forward `2fc450c..9644e84`; sem merge/deploy.
