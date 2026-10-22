@@ -5283,3 +5283,41 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   iniciar quando surgir evidência/decisão autorizada para um dos blockers ou
   quando for possível avançar uma interface preparatória sem admiti-la como
   evidência confiável.
+
+### Fontes oficiais atuais para status ART/RRT/TRT — 2026-10-22
+
+- Reavaliação da dependência compartilhada de `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED`, com páginas primárias dos conselhos. O Confea descreve
+  que a ART eletrônica é registrada após cadastro e recolhimento da taxa e que
+  a versão válida para impressão fica disponível após o pagamento. O CREA-SC
+  afirma que a ART válida deve estar quitada e mostra o literal
+  `TAXA DA ART PAGA`. Isso sustenta a relação normativa entre registro/pagamento,
+  mas não oferece um catálogo atual e independente de literais para os três
+  campos tipados do contrato. Fontes: [Confea — ART](https://www.confea.org.br/servicos-prestados/anotacao-de-responsabilidade-tecnica-art),
+  [CREA-SC — ART](https://portal.crea-sc.org.br/saiba-tudo-sobre-anotacao-de-responsabilidade-tecnica/).
+- O CAU/BR informa que RRTs elaborados sem boleto, elaborados com boleto
+  pendente e registrados aptos à baixa são categorias distintas; também informa
+  que o RRT derivado é gratuito e depende de análise/aprovação. A FAQ descreve
+  formulário preliminar sem número e formulário definitivo numerado após
+  pagamento. Esses fatos não definem uma tradução completa e separada por campo
+  que trate as exceções e tipos de RRT sem inferência. Fontes: [CAU/BR — estados
+  do SICCAU](https://caubr.gov.br/siccau-tire-suas-duvidas-sobre-as-mudancas-nas-regras-do-rrt/),
+  [CAU/BR — perguntas frequentes de RRT](https://transparencia.caubr.gov.br/perguntas-frequentes-registro-de-responsabilidade-tecnica-rrt/).
+- A Resolução CFT 55/2019 define registro de TRT após cadastro eletrônico e
+  recolhimento do valor; o CFT informa que o sistema SINCETI recebe pagamentos
+  por boleto e PIX. O manual CFT v1.2/2018 enumera status de tela, mas não define
+  equivalência entre cada estado e os três campos `REGISTERED`, `ISSUED` e
+  `PAID`; além disso, é anterior ao sistema atual. Fontes: [Resolução CFT
+  55/2019](https://www.cft.org.br/wp-content/uploads/2019/02/RESOLUCAO-CFT-N-055-2019.pdf),
+  [CFT — pagamento via PIX](https://cft.org.br/pagamento-via-pix-esta-disponivel-em-todo-o-sistema-cft-crts/),
+  [Manual de TRT v1.2/2018](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
+- Resultado: as fontes atuais reforçam que o registro pode depender de pagamento
+  e/ou aprovação, mas não autorizam mapear isoladamente os literais extraídos
+  para todos os campos requeridos, tipos de DRT e exceções. Nenhum mapa ou
+  classificador foi criado; ausência/unmapped status permanece `MANUAL_REVIEW`,
+  sem `FAIL`/NC por insuficiência. Critérios integrais continuam `10/29`; este
+  diagnóstico não aumenta cobertura e não altera o contrato normativo. Uma
+  implementação futura requer catálogo oficial contemporâneo de estados por
+  sistema/campo, ou mapeamentos expressos cuja autoridade tenha sido confirmada.
+- Coleta documental feita por `luna_economy`, read-only; principal integrou a
+  conclusão. Não foi revisão independente de código/arquitetura nem parecer Sol.
