@@ -521,6 +521,8 @@ function criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, uni
   };
   const registrationCriteria = ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED'];
   const signatureCriteria = ['T1_DRT_SIGNED', 'T4_DRT_SIGNED'];
+  const isIn09Drt = unit.requirement && unit.requirement.id === 'REQ_IN09_DRT' &&
+    unit.criterion.id === 'T4_IN09_DRT';
   const isBasicData = unit.requirement &&
     unit.requirement.id === 'REQ_T1_DRT_BASIC_DATA' &&
     Object.prototype.hasOwnProperty.call(basicAttributes, unit.criterion.id);
@@ -530,11 +532,11 @@ function criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, uni
   const isSignature = unit.requirement &&
     unit.requirement.id === 'REQ_T1_DRT_SIGNED' &&
     signatureCriteria.includes(unit.criterion.id);
-  criterionExecutionRequire_(isBasicData || isRegistration || isSignature,
-    'DRT attribute disclosure is restricted to declared basic-data/registration/signature Criteria');
+  criterionExecutionRequire_(isBasicData || isRegistration || isSignature || isIn09Drt,
+    'DRT attribute disclosure is restricted to declared Criterion attributes');
   const attributes = isBasicData ? [basicAttributes[unit.criterion.id]] : isRegistration ? [
     'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
-  ] : ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM'];
+  ] : isSignature ? ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM'] : ['RESPONSIBILITY_TYPE'];
   const evidenceReferences = [];
   Object.keys(contract.entityCatalog).forEach(entityId => {
     const entity = contract.entityCatalog[entityId];
@@ -661,7 +663,10 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         ((assertIr.arguments[1].value === 'REGISTERED' &&
           ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED'].includes(unit.criterion.id)) ||
          (assertIr.arguments[1].value === 'SIGNED' &&
-          ['T1_DRT_SIGNED', 'T4_DRT_SIGNED'].includes(unit.criterion.id))),
+          ['T1_DRT_SIGNED', 'T4_DRT_SIGNED'].includes(unit.criterion.id)) ||
+         (assertIr.arguments[1].value === 'RESPONSIBILITY_TYPE' &&
+          unit.requirement && unit.requirement.id === 'REQ_IN09_DRT' &&
+          unit.criterion.id === 'T4_IN09_DRT')),
       'DRT status disclosure assertion is not declared for this Criterion');
       return criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, unit,
         assertIr.arguments[0]);

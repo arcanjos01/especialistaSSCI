@@ -18,8 +18,8 @@ os contratos canônicos nem o inventário de cobertura.
   `93769e336967f74307bf9013b299535ed309e329`, cujo último lote de código é
   `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`. Um checkpoint posterior é
   exclusivamente documental. `.codex-local-evidence/` permanece local e não
-  rastreado. KB `5.43.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
-  29 produtivos, 10 integrais, 17 parciais, 2 preparatórios e 19 pendentes de
+  rastreado. KB `5.44.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
+  29 produtivos, 10 integrais, 18 parciais, 1 preparatório e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
   `IN_PROGRESS`. Os gates do candidato funcional estão registrados abaixo;
   reconciliações documentais posteriores não mudam código nem cobertura. Sem
@@ -70,7 +70,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 17 parciais, 2 preparatórios, 19 pendentes de cobertura integral` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 18 parciais, 1 preparatório, 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -5500,3 +5500,35 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `MANUAL_REVIEW`. A decisão não altera `CALIBRATION_GATE=BLOCKED`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING` ou `PROMOTION=NOT_AUTHORIZED`.
+
+### Divulgação factual limitada de DRT em `T4_IN09_DRT` — 2026-10-22
+
+- Escopo: ampliar `RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE` exclusivamente
+  para `REQ_IN09_DRT/T4_IN09_DRT` e divulgar o literal `RESPONSIBILITY_TYPE`
+  dos documentos ART/RRT/TRT efetivamente presentes na ImmutableExecutionView.
+  Cada fato conserva referência ao documento-fonte e provenance suficiente;
+  o trace marca a evidência como `UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY`.
+- O ASSERT combina esse disclosure com `MANUAL_REVIEW`. Nenhum tipo ou atividade
+  é comparado ao SMSCI; não há associação a RT-005/006/014, declaração de
+  ausência a partir de lista vazia, `FAIL` ou Nonconformity por insuficiência.
+  Assinatura, suficiência normativa e vínculo continuam para conferência humana.
+- Ganho: `CRITERIA_COVERED=10/29` permanece; parciais `17→18`;
+  preparatórios `2→1`; pendentes integrais `19`; ganhos integrais `0`.
+  Benefício demonstrado: o vistoriador vê os tipos de responsabilidade que
+  foram extraídos, com sua origem, sem o sistema atribuí-los ao SMSCI.
+- Testes completos no candidato local: Python `202` (189 PASS, 13 SKIP);
+  Apps Script `12/12 PASS`; `node --check` em todos os módulos/testes JS e
+  sintaxe de `Code.gs` PASS; guards de Base, manifests e applicability PASS
+  pela suíte Python; runtime gerado SHA-256
+  `1a934eb43935c6e19561c8f41fc9112e18b6ccd0f0c3aeecd4c9f4bfe7f1dfab`;
+  `git diff --check PASS`. Build limpo e validação byte-identical após novo
+  commit ainda pendentes.
+- Revisão independente read-only: `Codex (GPT-6)`, subagente Lovelace,
+  execução distinta da implementação. Primeira rodada `FAIL` MÉDIO por matriz
+  desatualizada; correção e re-review encontraram `FAIL` LOW por frase residual;
+  correção e segunda re-review dirigida `PASS`, sem achados restantes.
+  O revisor não executou testes. Isso não é revisão Sol. Reconfirmação do SHA
+  final do commit permanece pendente.
+- Esforço aproximado: 35 minutos; 1 revisão do lote e 2 re-reviews dirigidas.
+  Findings abertos no escopo: `0`; blockers novos: `0`. Estado de promoção,
+  calibração, validação institucional e decisão IN10 não foi alterado.

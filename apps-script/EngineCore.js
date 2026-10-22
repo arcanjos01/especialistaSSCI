@@ -575,12 +575,15 @@ function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
       'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
     ],
     T1_DRT_SIGNED: ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM'],
-    T4_DRT_SIGNED: ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM']
+    T4_DRT_SIGNED: ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM'],
+    T4_IN09_DRT: ['RESPONSIBILITY_TYPE']
   };
+  const in09Drt = context && context.requirementId === 'REQ_IN09_DRT' &&
+    context.criterionId === 'T4_IN09_DRT';
   if (!context ||
       (context.requirementId !== 'REQ_T1_DRT_BASIC_DATA' &&
        context.requirementId !== 'REQ_T1_DRT_REGISTERED' &&
-       context.requirementId !== 'REQ_T1_DRT_SIGNED') ||
+       context.requirementId !== 'REQ_T1_DRT_SIGNED' && !in09Drt) ||
       !ENGINE_HAS_OWN_(attributesByCriterion, context.criterionId) ||
       (context.role !== 'ASSERT' && context.role !== 'VALIDATE') ||
       typeof isImmutableExecutionView !== 'function' || !isImmutableExecutionView(memory) ||

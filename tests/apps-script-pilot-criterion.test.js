@@ -1118,7 +1118,13 @@ const in09DrtMetadata = contract.criteria.find(item =>
   item.criterionId === 'T4_IN09_DRT'
 );
 assert.deepEqual(JSON.parse(JSON.stringify(in09DrtMetadata.assertIr)), {
-  type: 'LITERAL', value: 'MANUAL_REVIEW'
+  type: 'ALL', expressions: [
+    { type: 'CALL', name: 'RESPONSIBILITY_EVIDENCE_ATTRIBUTE', arguments: [
+      { type: 'SYMBOL', value: 'REQUIRED_TECHNICAL_RESPONSIBILITY' },
+      { type: 'SYMBOL', value: 'RESPONSIBILITY_TYPE' }
+    ] },
+    { type: 'LITERAL', value: 'MANUAL_REVIEW' }
+  ]
 });
 assert.deepEqual(JSON.parse(JSON.stringify(contract.requirements.find(item =>
   item.requirementId === 'REQ_IN09_DRT').validate)), []);
@@ -1129,9 +1135,43 @@ const in09DrtResult = api.executePlannedCriterion(
 assert.equal(in09DrtResult.engineResult, api.EngineResult.MANUAL_REVIEW);
 assert.equal(in09DrtResult.pipelineResult, 'MANUAL_REVIEW');
 assert.equal(in09DrtResult.nonconformityOnFalse, undefined);
-assert.equal(in09DrtResult.trace.length, 1);
-assert.equal(in09DrtResult.trace[0].predicateId, 'ASSERT_LITERAL');
-assert.deepEqual(JSON.parse(JSON.stringify(in09DrtResult.trace[0].arguments)),
+assert.equal(in09DrtResult.trace.length, 2);
+const in09Disclosure = in09DrtResult.trace.find(item => item.predicateId ===
+  'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE');
+assert.ok(in09Disclosure);
+assert.equal(in09Disclosure.arguments.attribute, 'RESPONSIBILITY_TYPE');
+assert.deepEqual(JSON.parse(JSON.stringify(in09Disclosure.documentaryEvidence)), []);
+assert.equal(in09DrtResult.trace.find(item => item.predicateId === 'ASSERT_LITERAL') !== undefined, true);
+
+const in09DrtDisclosureCandidate = prepare({
+  includeGas: false,
+  includePressurization: true,
+  executionDrts: ['ART', 'RRT', 'TRT'].map((entityId, index) => ({
+    entityId,
+    attributes: { RESPONSIBILITY_TYPE: ['EXECUCAO', 'VISTORIA_ENSAIO', 'ELABORACAO'][index] },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'IN09_DRT_' + index }
+  }))
+});
+const in09DisclosedResult = api.executePlannedCriterion(
+  contract, in09DrtDisclosureCandidate.plan, PRESSURIZATION_DRT_UNIT,
+  in09DrtDisclosureCandidate.view
+);
+assert.equal(in09DisclosedResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(in09DisclosedResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(in09DisclosedResult.nonconformityOnFalse, undefined);
+const in09DrtEvidence = in09DisclosedResult.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE'
+).documentaryEvidence;
+assert.deepEqual(JSON.parse(JSON.stringify(in09DrtEvidence.map(item => item.literal))),
+  ['EXECUCAO', 'VISTORIA_ENSAIO', 'ELABORACAO']);
+assert.deepEqual(JSON.parse(JSON.stringify(in09DrtEvidence.map(item => item.documentEntityId))),
+  ['ART', 'RRT', 'TRT']);
+assert.ok(in09DrtEvidence.every(item => item.associationStatus ===
+  'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'));
+assert.ok(in09DrtEvidence.every(item => item.provenanceSufficient && item.disclosureSufficient));
+assert.equal(in09DisclosedResult.trace.some(item => item.predicateId === 'ASSERT_LITERAL'), true);
+assert.deepEqual(JSON.parse(JSON.stringify(in09DisclosedResult.trace.find(item =>
+  item.predicateId === 'ASSERT_LITERAL').arguments)),
   { value: 'MANUAL_REVIEW' });
 
 for (const testCase of IN19_DRT_EXISTENCE_CASES) {

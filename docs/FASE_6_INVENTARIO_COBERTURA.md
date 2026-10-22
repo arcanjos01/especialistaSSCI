@@ -242,9 +242,9 @@ aceita o construct; não é evidência de cobertura de todos os fixtures ou de
 `T4_IN19_APPLICABILITY_REVIEW` e `T4_IN19_LEGACY_DOCUMENTATION`: Documento 10
 define resultado MANUAL_REVIEW e composição OR; foram cobertos na onda 1.
 
-## Matriz por Criterion (estado reconciliado até KB 5.43.0)
+## Matriz por Criterion (estado reconciliado até KB 5.44.0)
 
-As colunas estruturais acompanham a Base vigente KB 5.43.0. Criteria retirados
+As colunas estruturais acompanham a Base vigente KB 5.44.0. Criteria retirados
 permanecem listados somente para rastreabilidade histórica e estão marcados
 `WITHDRAWN`; não integram os 34 ativos nem os 29 produtivos. Campos: Criterion,
 Requirement, Table, APPLIES_TO/CONTEXT, FOR_EACH, ASSERT, VALIDATE,
@@ -271,7 +271,7 @@ fonte canônica.
 | T4_IN07_COMMISSIONING | REQ_IN07_COMMISSIONING | 4 | APPLIES_TO `SMSCI_SHP` | — | `ALL(EXISTS(SHP_COMMISSIONING_REPORT), MANUAL_REVIEW)` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_001 | SHP report, DRT, SMSCI_SHP | PARTIAL_EXECUTION_SUPPORT: existência do relatório documentado gera TRUE rastreável no trace, mas a decisão permanece MANUAL_REVIEW para assinatura e correspondência DRT/produto/SMSCI; ausência/inventário insuficiente também permanece manual, sem FAIL/NC. A declaração FACT-ONLY de escopo não é admissão | 04_table4.txt:56-84; 02_requirements.txt:117-134; 01_entities.txt:1455-1473; Documento 10:456-458,644-646 |
 | T4_IN08_ESTANQUEIDADE | REQ_IN08_ESTANQUEIDADE | 4 | APPLIES_TO `SMSCI_GAS` | — | `ALL(EXISTS(GAS_TIGHTNESS_REPORT), MANUAL_REVIEW)` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_002 | laudo gás, DRT, SMSCI_GAS | PARTIAL_EXECUTION_SUPPORT: existência do laudo documentado gera TRUE rastreável no trace, mas o resultado permanece MANUAL_REVIEW para assinatura, validade temporal e correspondência DRT/produto/SMSCI; ausência/inventário insuficiente permanece manual, sem FAIL/NC. DRT_COVERS não é inferido nem consumido | 04_table4.txt:86-114; 02_requirements.txt:135-167; 01_entities.txt:1494-1510; 00_engine.txt:231,239 |
 | T4_IN08_MANUAL | REQ_IN08_MANUAL | 4 | APPLIES_TO `SMSCI_GAS` | — | `EXISTS(GAS_OWNER_MANUAL)` | — | NC_T4_003 | GAS_OWNER_MANUAL | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC | decisão do usuário 2026-10-19; 04_table4.txt:116-138; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js |
-| T4_IN09_DRT | REQ_IN09_DRT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `MANUAL_REVIEW` | — | NC_T4_004 | SMSCI pressurização, RT-003, RT-005, DRT/atividade | PREPARATORY_MANUAL_REVIEW_ONLY: o executor encaminha o Criterion integralmente à revisão humana e não verifica compatibilidade atividade/serviço↔SMSCI para RT-005/006/014. As duas RT exigidas e NC declarada permanecem no contrato. Não há conclusão automática de presença/cobertura nem cobertura integral. O binding documental de `VISTORIA_ENSAIO` a RT-005 ainda depende da decisão humana focal; coleção vazia não prova ausência | 04_table4.txt:140-166; 02_requirements.txt:168-186; IRV Habite-se 2024, Tabela 4, p. 7; Anexo A RT-005; decisão do usuário 2026-10-17 e decisão focal pendente; RDE 0.7 |
+| T4_IN09_DRT | REQ_IN09_DRT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `ALL(RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, RESPONSIBILITY_TYPE), MANUAL_REVIEW)` | — | NC_T4_004 | SMSCI pressurização, RT-003, RT-005, DRT/atividade | PARTIAL_EXECUTION_SUPPORT: divulga o literal `RESPONSIBILITY_TYPE` de cada ART/RRT/TRT presente na ImmutableExecutionView, com fonte e provenance; cada item fica explicitamente `UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY`. O resultado permanece `MANUAL_REVIEW`; lista vazia/inventário incompleto não prova ausência. Não compara atividade/serviço com SMSCI para RT-005/006/014, não cria associação e não emite FAIL/NC por insuficiência | 04_table4.txt:134-157; 02_requirements.txt:168-186; IRV Habite-se 2024, Tabela 4, p. 7; Anexo A RT-005; decisão do usuário sobre escopo de verificação RT-005/006/014; RDE 0.7; apps-script/EngineCore.js; tests/apps-script-pilot-criterion.test.js |
 | T4_IN09_TEST_REPORT | REQ_IN09_TEST_REPORT | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `ALL(EXISTS(PRESSURIZATION_TEST_REPORT), MANUAL_REVIEW)` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_005 | laudo, DRT, itens art. 122, SMSCI | PARTIAL_EXECUTION_SUPPORT: presença do relatório documentado gera TRUE rastreável, mas conteúdo, DRTs, correspondência produto/SMSCI e assinatura permanecem para conferência humana; ausência/inventário insuficiente fica manual, sem FAIL/NC. DRT_COVERS não é inferido nem consumido | 04_table4.txt:168-196; 02_requirements.txt:187-205; 01_entities.txt:1541-1560; RDE 1.8 § DRT SCOPE DECLARATION ITEMS; decisão do responsável 2026-10-21 |
 | T4_IN09_MANUAL | REQ_IN09_MANUAL | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `EXISTS(PRESSURIZATION_OPERATION_MANUAL)` | — | NC_T4_006 | PRESSURIZATION_OPERATION_MANUAL | COVERED_UNDER_USER_DECISION_C: presença explícita rastreada produz TRUE; coleção vazia sem inventário e cobertura de extração confiáveis produz MANUAL_REVIEW, nunca NC | decisão do usuário 2026-10-19; 04_table4.txt:198-218; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js |
 | T4_IN09_CHECKLIST | REQ_IN09_CHECKLIST | 4 | APPLIES_TO `SMSCI_PRESSURIZATION` | — | `EXISTS(PRESSURIZATION_MAINTENANCE_CHECKLIST)` | `TECHNICAL_PRODUCT_ATTRIBUTE(SIGNED)` | NC_T4_007 | checklist + assinatura | PARTIAL_EXECUTION_SUPPORT: checklist presente gera `EXISTS=TRUE` no trace mesmo quando SIGNED fica `MANUAL_REVIEW`; produto/inventário ausente permanece `MANUAL_REVIEW`, sem FAIL/NC por insuficiência | 04_table4.txt:220-242; 02_requirements.txt:220-230; apps-script/CriterionExecutionCore.js; tests/apps-script-pilot-criterion.test.js |
@@ -976,22 +976,22 @@ Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
 EXTRACTION, e aos lotes de divulgação factual de 2026-10-22, o quantitativo
-vigente em KB 5.43.0 é: 34 ativos, 29 produtivos, 10 cobertos, 17 parciais,
-2 preparatórios e 19 pendentes de cobertura integral.
+vigente em KB 5.44.0 é: 34 ativos, 29 produtivos, 10 cobertos, 18 parciais,
+1 preparatório e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até
-a KB 5.43.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
+a KB 5.44.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
 Somente as contagens 36/31 são snapshots anteriores à retirada dos dois
 Criteria de regularidade profissional. A fonte operacional atual é `CompiledRuntimeContract.js`,
-regenerada da RDE Schema `0.7.0` e da KB `5.43.0`; ela contém 34 Criteria e
+regenerada da RDE Schema `0.7.0` e da KB `5.44.0`; ela contém 34 Criteria e
 não contém os dois Criteria de regularidade. A applicability atual mantém cinco
 Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 10 | `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_LEGACY_DOCUMENTATION`, `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_FINAL_VERIFICATION`. Para os Criteria cobertos sob a decisão C, presença/declaracão documental explícita pode produzir TRUE; ausência ou cobertura de extração sem comprovação permanece MANUAL_REVIEW, sem FALSE/NC. Testes focados verificam resultado, trace e provenance; readiness comprova somente seleção e materialização da unidade. |
-| `PARTIAL_EXECUTION_SUPPORT` | 17 | `T1_DRT_SIGNED` e `T4_DRT_SIGNED`: signatário e mecanismo textual são divulgados, mas não provam autenticidade; assinatura segue MANUAL_REVIEW. `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`: literais de registro/emissão/pagamento são exibidos separadamente para revisão humana, sem classificação de estado. `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA`: literais da DRT com fonte/provenance são exibidos para revisão humana; comparações não são automatizadas e resultados permanecem MANUAL_REVIEW. `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. `T1_CONFORMITY_REPORT_SIGNED`: presença do relatório é registrada, mas SIGNED permanece no ASSERT e em MANUAL_REVIEW sem recibo autenticado admissível. `T4_IN09_CHECKLIST` e `T4_IN18_CMAR`: existência é reportada no trace, mas assinatura não autenticada mantém o resultado final em MANUAL_REVIEW. `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING` e `T4_IN15_COMMISSIONING`: presença documental explícita é reportada no trace, mas cada Criterion permanece MANUAL_REVIEW para os demais controles declarados; ausência não gera FAIL/NC. |
-| `PREPARATORY_MANUAL_REVIEW_ONLY` | 2 | `T4_IN09_DRT` e `T4_IN10_COMMISSIONING`: encaminhamento integral à revisão humana sem avaliação automática da presença/cobertura; IN10 conserva a decisão e os limites registrados. |
+| `PARTIAL_EXECUTION_SUPPORT` | 18 | `T1_DRT_SIGNED` e `T4_DRT_SIGNED`: signatário e mecanismo textual são divulgados, mas não provam autenticidade; assinatura segue MANUAL_REVIEW. `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`: literais de registro/emissão/pagamento são exibidos separadamente para revisão humana, sem classificação de estado. `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA`: literais da DRT com fonte/provenance são exibidos para revisão humana; comparações não são automatizadas e resultados permanecem MANUAL_REVIEW. `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. `T1_CONFORMITY_REPORT_SIGNED`: presença do relatório é registrada, mas SIGNED permanece no ASSERT e em MANUAL_REVIEW sem recibo autenticado admissível. `T4_IN09_DRT`: o literal RESPONSIBILITY_TYPE por ART/RRT/TRT presente é exibido com provenance, sem associação à responsabilidade de pressurização; resultado permanece MANUAL_REVIEW. `T4_IN09_CHECKLIST` e `T4_IN18_CMAR`: existência é reportada no trace, mas assinatura não autenticada mantém o resultado final em MANUAL_REVIEW. `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING` e `T4_IN15_COMMISSIONING`: presença documental explícita é reportada no trace, mas cada Criterion permanece MANUAL_REVIEW para os demais controles declarados; ausência não gera FAIL/NC. |
+| `PREPARATORY_MANUAL_REVIEW_ONLY` | 1 | `T4_IN10_COMMISSIONING`: encaminhamento integral à revisão humana sem avaliação automática de identidade/autoria; conserva a decisão e os limites registrados. |
 | `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 0 | nenhum Criterion desta categoria após disclosure parcial dos dois Criteria SIGNED; a verificação criptográfica permanece bloqueada e classificada como revisão humana |
 | `MISSING_EVIDENCE_CONTRACT` | 0 | nenhum Criterion fica sem encaminhamento preparatório; as lacunas factuais/contratuais dos Criteria pendentes estão descritas nas respectivas linhas |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
@@ -1000,21 +1000,21 @@ Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=17` (`T1_DRT_SIGNED`,
+ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=18` (`T1_DRT_SIGNED`,
 `T4_DRT_SIGNED`, `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED`,
 `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`,
 `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_CONFORMITY_REPORT`,
-`T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`,
+`T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`,
 `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`,
-`T4_IN15_COMMISSIONING`), `CRITERIA_PREPARATORY=2` (`T4_IN09_DRT` e
-`T4_IN10_COMMISSIONING`) e `CRITERIA_PENDING=19`, contando o
-parcial e o preparatório como pendentes de cobertura integral. Há 0 Criteria sem suporte de execução, dois apenas preparatórios e dezessete parciais. A contagem de retirados
+`T4_IN15_COMMISSIONING`), `CRITERIA_PREPARATORY=1` (`T4_IN10_COMMISSIONING`)
+e `CRITERIA_PENDING=19`, contando o
+parcial e o preparatório como pendentes de cobertura integral. Há 0 Criteria sem suporte de execução, um apenas preparatório e dezoito parciais. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
 para 2; a decisão C agora reconhece os Criteria cujas rotas completas
 consistem em TRUE para evidência explícita e MANUAL_REVIEW quando completude não
-pode ser provada. Na matriz vigente, são 10 Criteria integrais, 17 parciais e 2
-preparatórios. A
+pode ser provada. Na matriz vigente, são 10 Criteria integrais, 18 parciais e 1
+preparatório. A
 formalização RDE 0.4.0 não aumentou a cobertura no checkpoint em que foi
 aprovada; esse número é histórico e não representa o total atual. A contagem
 anterior de 11 casos `SOURCE_DEFINED_NEEDS_FORMALIZATION` também é histórica;
@@ -1129,9 +1129,9 @@ Fase 6 permanece pendente.
 | Criteria ativos | 34 | runtime/base compilada |
 | Produtivos | 29 | selecionáveis para execução |
 | Cobertos integralmente | 10 | executor, facts/binding, resultado, trace, readiness e testes completos |
-| Parciais | 17 | `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
-| Preparatórios | 2 | `T4_IN09_DRT` e `T4_IN10_COMMISSIONING` |
-| Pendentes de cobertura integral | 19 | 0 sem suporte de execução + 2 preparatórios + 17 parciais |
+| Parciais | 18 | `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_DRT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
+| Preparatórios | 1 | `T4_IN10_COMMISSIONING` |
+| Pendentes de cobertura integral | 19 | 0 sem suporte de execução + 1 preparatório + 18 parciais |
 | Não selecionáveis | 5 | quatro M5 e um regime legado UNRESOLVED |
 | Retirados | 2 | regularidade profissional T1/T4 |
 

@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.7
+# VERSION 3.8
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -145,7 +145,13 @@ REQUIREMENT REQ_IN09_DRT
 
 REQUIRE DOCUMENT PRESSURIZATION_DRT
 
-ASSERT MANUAL_REVIEW
+ASSERT ALL
+RESPONSIBILITY_EVIDENCE_ATTRIBUTE(
+        REQUIRED_TECHNICAL_RESPONSIBILITY,
+        RESPONSIBILITY_TYPE
+)
+MANUAL_REVIEW
+END
 MANUAL_REVIEW "Conferir manualmente as DRTs exigidas para o sistema de pressurização. O sistema não verifica compatibilidade entre atividade/serviço declarado e SMSCI para RT-005/006/014."
 
 FAIL NC_T4_004
