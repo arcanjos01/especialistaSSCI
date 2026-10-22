@@ -975,8 +975,8 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
-EXTRACTION, e ao lote de divulgação factual de 2026-10-22, o quantitativo
-vigente em KB 5.43.0 é: 34 ativos, 29 produtivos, 10 cobertos, 13 parciais,
+EXTRACTION, e aos lotes de divulgação factual de 2026-10-22, o quantitativo
+vigente em KB 5.43.0 é: 34 ativos, 29 produtivos, 10 cobertos, 17 parciais,
 2 preparatórios e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até

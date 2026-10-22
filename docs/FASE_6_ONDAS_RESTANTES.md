@@ -14,15 +14,14 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, HEAD documental `9f0a08b72b55a6cb2a822da207376ebcc09a5459`, código da onda anterior em `89ad82e` e
-  novo candidato `89ad82e9bc51d26758fa7154319a3598636334e4`; `.codex-local-evidence/`
-  permanece local e não rastreado. KB candidata `5.43.0`, RDE `0.7.0`.
-  O novo lote registra presença de `CONFORMITY_REPORT` dentro do Criterion
-  assinado, sem remover o predicado `SIGNED`; contagem candidata: 34 ativos,
-  29 produtivos, 10 integrais, 9 parciais, 2 preparatórios e 19 pendentes de
+  `feature/apps-script-engine-core`, HEAD `93769e336967f74307bf9013b299535ed309e329`;
+  último lote funcional em `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5` e
+  checkpoint documental corrente `93769e3`. `.codex-local-evidence/` permanece
+  local e não rastreado. KB `5.43.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
+  29 produtivos, 10 integrais, 17 parciais, 2 preparatórios e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
-  `IN_PROGRESS`. Gates/build registrados abaixo; revisão independente Luna do
-  candidato `89ad82e` PASS, sem findings. Sem merge, deploy ou promoção.
+  `IN_PROGRESS`. Os gates do último lote de código estão registrados abaixo;
+  a atualização do HEAD é documental. Sem merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -69,7 +68,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 9 parciais, 2 preparatórios, 19 pendentes de cobertura integral` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 17 parciais, 2 preparatórios, 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
