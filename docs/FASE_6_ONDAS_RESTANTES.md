@@ -4884,3 +4884,35 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   revogação completa, identidade real e binding de produção seguem fora do que
   os testes sintéticos demonstram. Cobertura permanece `10/29`; promoção não
   autorizada.
+
+### Atualização de fontes oficiais para status de ART/RRT/TRT — 2026-10-22
+
+- A pesquisa ampliada localizou fontes oficiais mais atuais/específicas:
+  [CREA-SC, Manual M-DRP-01 rev. 11](https://portal.crea-sc.org.br/wp-content/uploads/2023/02/M-DRP-001-Manual-ART-rv11-REVISADO.pdf)
+  e [orientação CREA-SC sobre registro e pagamento da ART](https://portal.crea-sc.org.br/profissional/art/anotacao-de-responsabilidade-tecnica-art/);
+  [CAU/BR, Resolução 184/2019](https://transparencia.caubr.gov.br/resolucao184/),
+  com alterações da Resolução 190/2020; e [CFT, orientação sobre emissão do
+  TRT de 2025](https://cft.org.br/termo-de-responsabilidade-tecnica-seguranca-e-transparencia-no-exercicio-legal-da-profissao/).
+- CREA-SC distingue rascunhos não confirmados, ART confirmada com número e
+  informação própria de pagamento; informa que a eficácia do registro depende
+  de cadastro e recolhimento. CAU distingue documento rascunho de documento
+  final; este é emitido após pagamento validado ou deferimento e contém número
+  de registro e indicação de valores pagos. CFT informa que o TRT virtual com
+  número único é gerado após aprovação do sistema, mas a orientação localizada
+  não estabelece o status de pagamento da taxa no documento.
+- Mesmo combinadas, essas fontes não permitem mapear de modo completo e
+  versionado os três fatos requeridos (`registration`, `issuance`, `payment`)
+  para cada conselho, tipo documental e literal. Em particular, não converter
+  documento final/deferido em pagamento confirmado quando a fonte admite
+  deferimento; nem inferir pagamento do TRT a partir de aprovação/numeração.
+  Portanto, não foi criado mapa nem executor; `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` continuam em revisão manual até haver fato explícito e
+  classificável para cada campo. Ganho de cobertura: `0`; bloqueio permanece
+  delimitado e sem decisão normativa presumida.
+- Triagem de viabilidade read-only Luna no snapshot `50e01fb` também não
+  identificou Criterion pendente integralmente fechável com os fatos/contratos
+  existentes e implementação localizada. A matriz `docs/FASE_6_ONDAS_RESTANTES.md`
+  e o inventário `docs/FASE_6_INVENTARIO_COBERTURA.md` continuam apontando as
+  lacunas por dependência; essa triagem não é revisão arquitetural nem altera
+  cobertura. Critérios com novas fontes/fatos ou decisão técnica autorizada
+  continuam no escopo da Fase 6B.
