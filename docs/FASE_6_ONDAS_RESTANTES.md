@@ -4727,3 +4727,10 @@ exclusivamente documental (build executado mas marcado como pendente) foi
 corrigido acima; re-review dirigida pendente.
 `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`, `SOL_REVIEW=PENDING_IDENTITY`,
 `PROMOTION=NOT_AUTHORIZED`.
+
+Re-review dirigida do finding documental no commit `ca05677` confirmou o
+encerramento: título neutro, papel solicitado separado da identidade declarada,
+sem atribuição a Luna/Sol e sem novos findings. O revisor executou apenas a
+verificação read-only do tracker, sem repetir gates/build. Sua identidade
+continuou declarada como Codex, backend/versão não atestados; esta re-review
+encerra somente o finding de texto e não altera `INDEPENDENT_ARCH_REVIEW`.
