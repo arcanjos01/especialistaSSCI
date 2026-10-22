@@ -13,18 +13,19 @@ os contratos canônicos nem o inventário de cobertura.
 
 ## Estado reconciliado
 
-- Atualização corrente em 2026-10-21: branch local e remoto sincronizados em
-  `aecd37c1c0191828000c9c3ea0ba47b37737968e`; worktree rastreada limpa e
-  `.codex-local-evidence/` preservado, local e não rastreado. KB `5.39.0`, RDE
-  `0.7.0`, runtime SHA-256
-  `43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`.
-  Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 1 parcial,
-  7 preparatórios e 19 pendentes de cobertura integral (11 sem suporte de
-  execução + 7 preparatórios + 1 parcial); 5 não selecionáveis e 2 retirados.
-  Fase 6A `COMPLETE`; 6B `IN_PROGRESS`. O build técnico limpo anterior foi
-  executado em `12db1d35ebe79aff4d0bcc35a55ffdb72bbdd0b5`; os commits seguintes
-  `2c178e8` e `aecd37c` alteraram somente documentação. Não declarar build do
-  HEAD atual sem reexecutá-lo; build não é promoção.
+- Reconciliação corrente em 2026-10-22: branch local/remota
+  `feature/apps-script-engine-core`, code candidate `c2ab442426da44718ed893b3c364661bf0d65156`;
+  classificação parcial reconciliada no inventário e neste tracker.
+  `.codex-local-evidence/`
+  permanece local e não rastreado. KB `5.41.0`, RDE `0.7.0`, runtime SHA-256
+  `1fbeed86227bcfba98f5b5aac623afd0feb8d0985195c27aa5cb8c6e484b0940`.
+  Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 3 parciais
+  (`T1_CONFORMITY_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`), 7 preparatórios
+  e 19 pendentes de cobertura integral (9 sem suporte + 7 preparatórios + 3
+  parciais); 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
+  `IN_PROGRESS`. Build técnico limpo 10/10 para o code candidate c2ab442;
+  `SOURCE_COMMIT` exato. Revisão independente do code candidate `PASS`; Sol
+  não revisou; sem merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -71,7 +72,7 @@ os contratos canônicos nem o inventário de cobertura.
 | A | Contratos de correlação, identidade, proveniência, política/calibração, admissão e revisão | Decisão do usuário; contratos RDE/Engine/Pipeline | Diff revisado; preservar FACT ONLY | `SOL_CONTRACT_REVIEW=PASS`; `LUNA_REVIEW=PASS` |
 | B | Correlacionador determinístico e fronteira autenticada ao Engine; sem fornecedor de IA | Onda A | Gates completos; ataques adversariais; revisão independente; revisão final após Onda D | `CORRELATION_ENGINE_CONSUMER=READY; CALIBRATION_GATE=BLOCKED; PRODUCTION_CALLER=PENDING; Sol 6.1 slice review=PASS; revisão final da fase pendente` |
 | C | Contrato e fixtures de disclosure do relatório, sem implementar Fase 8 | Onda A/B | Aviso obrigatório e rastreabilidade testados | `REPORT_DISCLOSURE_CONTRACT=READY`; `LUNA_REVIEW=PASS`; integrado à revisão Sol da Onda A/C |
-| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 1 parcial (T1_CONFORMITY_REPORT), 7 preparatórios, 19 pendentes de cobertura integral` |
+| D | Critérios produtivos restantes, por prioridade do pedido | Cobertura reconciliada; fontes oficiais; applicability e evidence contracts | Fixtures positivos/negativos/insuficientes; trace; readiness; cobertura demonstrada | `IN_PROGRESS; vigente: 10/29 integrais, 3 parciais, 7 preparatórios, 19 pendentes de cobertura integral` |
 | Fechamento | Revisão adversarial independente Sol 6.1, correções e revisão final | A–D | Todos os gates e zero findings abertos; commits e push seguro | PENDING |
 
 Em cada onda: suíte Python; todas as suítes Apps Script; `node --check` dos
@@ -131,7 +132,7 @@ BASELINE=a9478fb6538c27fd28baf38ce8f47b8a09edfc72
 CANDIDATE=30f5e3c099598f7813a93c5be05b8b4e335d7721
 BRANCH=feature/apps-script-engine-core
 CRITERIA_COVERED=10/29 (inalterado)
-CRITERIA_PARTIAL=1 (inalterado)
+CRITERIA_PARTIAL=3 (T1_CONFORMITY_REPORT, T4_IN09_CHECKLIST, T4_IN18_CMAR)
 CRITERIA_PREPARATORY=7 (inalterado)
 CRITERIA_PENDING_INTEGRAL=19 (inalterado)
 PYTHON_TESTS=202 (189 PASS, 13 SKIP)
@@ -172,13 +173,14 @@ PROMOTION=NOT_AUTHORIZED
   `INDEPENDENT_ARCH_REVIEW=PENDING_EXACT_SHA`; não se atribui revisão a Sol.
   `SOL_REVIEW=PENDING_IDENTITY`; `ARCHITECTURAL_REVIEW=PENDING`;
   `FINDINGS_OPEN=0` no escopo focal revisto; `PROMOTION=NOT_AUTHORIZED`.
-- Estado do trabalho: preparatório/observacional para `T4_IN09_CHECKLIST` e
-  `T4_IN18_CMAR`; nenhum Criterion tornou-se integralmente coberto. Assinatura
+- Estado do trabalho: parcial para `T4_IN09_CHECKLIST` e
+  `T4_IN18_CMAR`; ASSERT de existência é registrado no trace, mas nenhum
+  Criterion tornou-se integralmente coberto. Assinatura
   verificável e confiança institucional continuam pendentes. Sem reabertura da
   decisão IN10, sem merge/deploy ou uso de processos reais.
 `FASE_6A_STATUS=COMPLETE`
 `FASE_6B_STATUS=IN_PROGRESS`
-`CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=1; CRITERIA_PREPARATORY=7; CRITERIA_PENDING=19`
+`CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=3; CRITERIA_PREPARATORY=7; CRITERIA_PENDING=19`
 `FASE_6_STATUS=IN_PROGRESS`
 
 ## Reconciliação e ciclo Onda B atual
@@ -930,7 +932,7 @@ humana. Não generalizar esta regra para outros SMSCI.
 | 0 | Associação documental explícita exata DRT↔produto, com binding à apresentação/RDE | `T1_CONFORMITY_REPORT` | Concluído e publicado em `fc3fb760e5dc58a0fb9b381443d583c0938d2c99`; o ramo explícito pode produzir positivo com evidência única e rastreável. O Criterion continua parcial; associação inferida não é admitida sem calibração empírica válida. |
 | 1 | Mapeamento versionado dos status `REGISTERED` por conselho, tipo ART/RRT/TRT e campo | 2: `T1_DRT_REGISTERED`, `T4_DRT_REGISTERED` | O vocabulário comum e a preservação literal estão formalizados; a regra-fonte da IRV descreve a condição, mas não define os mapas literais de cada conselho. Fontes oficiais consultadas mostram ciclos/status próprios. Não codificar equivalências sem mapa versionado autorizado; manter revisão humana. |
 | 2 | Consumidor de declarações RDE 0.7 para relações DRT-produto e cobertura explicitamente declarada, com endpoints exatos, multiplicidade e insuficiência | Potencial teórico até 5: `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` | `DRT_COVERS` consta como operador conceitual, mas não há executor/binding genérico para esses produtos. A RDE preserva declarações sem derivar cobertura. Não conferir compatibilidade atividade↔SMSCI para RT-005/006/014; o operador não pode ser aplicado a essas responsabilidades. Também faltam fatos de assinatura, datas ou conteúdo para vários produtos. O alcance é apenas potencial; um consumidor isolado não fecha esses Criteria. `T1_DRT_ACTIVITY_EXECUTION` e `T1_DRT_SMSCI_COVERAGE` já estão integralmente cobertos pela matriz vigente e foram excluídos desta pendência. |
-| 3 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 11: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`, `T4_IN18_CMAR` | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
+| 3 | Evidência de assinatura verificável com provenance e binding ao documento exato, consumível por DRT e produto | Até 9 ainda sem suporte: `T1_DRT_SIGNED`, `T4_DRT_SIGNED`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN10_COMMISSIONING`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING`; `T4_IN09_CHECKLIST` e `T4_IN18_CMAR` agora têm suporte parcial à existência do produto | Maior alcance; requer contrato/fato de verificação ou integração autorizada. Não aceitar nome textual do mecanismo como prova. Avaliar capacidade local antes de assumir serviço externo. |
 | 4 | Comparandos tipados de pessoa jurídica, RT, endereço e área vinculados a processo/DRT/produto | 4: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA` | Fonte define comparações conservadoras; fatos do processo e relações exatas precisam existir. Bloquear resultado conclusivo se faltarem. |
 | 5 | Datas e itens de relatório estruturados com origem, associação ao produto e escopo de exaustividade | 2 principais: `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`; também requisitos de laudos/comissionamentos relacionados | Não inventar datas, conteúdo NBR ou presença de itens não extraídos. |
 | 6 | Fatos RDE autenticados do solicitante e da identidade do autor do relatório, comparados com assinatura ligada ao relatório exato | 1: `T4_IN10_COMMISSIONING` | A decisão operacional do usuário está registrada e a applicability do modo mecânico já foi formalizada. Não há fato autenticado da autoria do relatório; o campo de RT no requerimento, isoladamente, não comprova quem preparou ou assinou o laudo. Manter revisão humana até existir essa evidência. |
@@ -5040,7 +5042,7 @@ CANDIDATE=c2ab442426da44718ed893b3c364661bf0d65156
 KNOWLEDGE_BASE_VERSION=5.41.0
 PROFILE_SCHEMA=0.2.0
 CRITERIA_COVERED=10/29 (inalterado)
-CRITERIA_PARTIAL=1 (inalterado)
+CRITERIA_PARTIAL=3 (reconciliado com execução da ASSERT de existência)
 CRITERIA_PREPARATORY=7 (inalterado)
 CRITERIA_PENDING_INTEGRAL=19 (inalterado)
 PYTHON_TESTS=202 (189 PASS, 13 SKIP)
@@ -5075,3 +5077,46 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   gates, revisão focal e build limpo; uma revisão independente e uma re-review
   dirigida dos hunks adicionados. A calibração empírica e validação institucional
   seguem pendentes; sem merge, deploy ou uso real.
+
+### Reclassificação de suporte parcial e triagem de Criteria — 2026-10-22
+
+- O checkout atual contém o commit de código
+  `c2ab442426da44718ed893b3c364661bf0d65156` e não tinha mudanças rastreadas de
+  código. A revisão do diff de `CriterionExecutionCore.js` e dos testes mostra
+  que `T4_IN09_CHECKLIST` e `T4_IN18_CMAR` preservam no trace o ASSERT de
+  existência quando a validação independente de `SIGNED` resulta em
+  `MANUAL_REVIEW`. Isso melhora a informação apresentada ao vistoriador, mas a
+  conclusão geral continua `MANUAL_REVIEW`; ausência de inventário não produz
+  `FAIL`/NC. Cobertura integral permanece `10/29`; parciais passam de 1 a 3;
+  pendentes integrais permanecem 19.
+- Triagem de implementabilidade imediata: nenhum Criterion restante pode ser
+  concluído integralmente com os fatos e contratos hoje disponíveis sem
+  introduzir semântica/fatos ausentes. `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` dependem de mapeamentos contemporâneos, versionados e
+  específicos para status de registro, emissão e pagamento de ART/RRT/TRT.
+  `T1_DRT_RI_LEGAL_ENTITY` e `T1_DRT_RT_NAME` carecem de comparandos de processo
+  autenticados e vínculo exato ao produto/RT. `T1_DRT_ADDRESS` e `T1_DRT_AREA`
+  carecem de fatos processuais e de definição documental do escopo/área
+  comparável. Os Criteria de assinatura exigem recibo técnico confiável e
+  binding exato consumível pelo Engine; a POC atual ainda não é autoridade de
+  admissão. Os Criteria de comissionamento e ensaio ainda carecem de evidências
+  estruturadas de presença, relação e conteúdo. Não inferir dados nem completar
+  regras por código.
+- Bloqueios e próximos desbloqueios: obter fatos canônicos do solicitante/imóvel
+  e vínculo explícito por apresentação/RDE; formalizar institucionalmente o
+  contrato de cobertura DRT→produto onde aplicável; obter mapeamentos atuais de
+  status de ART/RRT/TRT; e concluir a validação criptográfica e a fronteira
+  autenticada do recibo `SIGNED`. A decisão IN10 não foi reaberta.
+  `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+  `VALIDATED_TO_ANALYZED=PENDING`.
+- Métrica: Criteria integrais `10/29 → 10/29`; parciais `1 → 3`; blockers
+  encerrados `0`; novos blockers `0`; 19 continuam pendentes de cobertura
+  integral. Benefício demonstrado: vistoriador recebe fato positivo rastreável
+  de presença de checklist/declaração apesar da insuficiência autônoma de
+  assinatura. Esforço aproximado desta retomada: 35 minutos entre reconciliação,
+  leitura dirigida e documentação. Uma revisão independente e uma re-review
+  dirigidas pertencem ao candidato de código `c2ab442`; nenhuma revisão geral
+  adicional foi solicitada para a atualização documental. Testes direcionados
+  e gates do candidato de código permanecem registrados; nenhuma nova alteração
+  de código, Base ou runtime nesta triagem. `SOL_REVIEW=PENDING_IDENTITY` e
+  `PROMOTION=NOT_AUTHORIZED`.
