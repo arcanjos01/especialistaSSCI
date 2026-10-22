@@ -334,6 +334,20 @@ const signedRequirement = contract.requirements.find(
 );
 assert.equal(signedRequirement.technicalProduct, 'CONFORMITY_REPORT');
 assert.deepEqual(JSON.parse(JSON.stringify(signedRequirement.evidenceAttributes)), ['SIGNED']);
+const signedConformityCriterion = contract.criteria.find(
+  item => item.criterionId === 'T1_CONFORMITY_REPORT_SIGNED'
+);
+assert.deepEqual(JSON.parse(JSON.stringify(signedConformityCriterion.assertIr)), {
+  type: 'ALL',
+  expressions: [
+    { type: 'CALL', name: 'EXISTS',
+      arguments: [{ type: 'SYMBOL', value: 'CONFORMITY_REPORT' }] },
+    { type: 'CALL', name: 'TECHNICAL_PRODUCT_ATTRIBUTE', arguments: [
+      { type: 'SYMBOL', value: 'CONFORMITY_REPORT' },
+      { type: 'SYMBOL', value: 'SIGNED' }
+    ] }
+  ]
+});
 
 const signedConformity = prepare({
   includeGas: false,
@@ -350,19 +364,33 @@ assert.equal(signedConformityResult.resultOrigin, 'EVALUATED');
 assert.equal(signedConformityResult.engineResult, api.EngineResult.MANUAL_REVIEW);
 assert.equal(signedConformityResult.pipelineResult, 'MANUAL_REVIEW');
 assert.equal(signedConformityResult.normalization, 'IDENTITY');
-assert.equal(signedConformityResult.trace.length, 1);
-assert.equal(signedConformityResult.trace[0].predicateId, 'TECHNICAL_PRODUCT_ATTRIBUTE');
+assert.equal(signedConformityResult.trace.length, 3);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  signedConformityResult.trace.map(entry => entry.predicateId)
+)), ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS', 'TECHNICAL_PRODUCT_ATTRIBUTE']);
 assert.equal(signedConformityResult.trace[0].result, api.EngineResult.MANUAL_REVIEW);
+assert.equal(signedConformityResult.trace[1].result, api.EngineResult.TRUE,
+  'exact product presence is independently visible in the trace');
+assert.equal(signedConformityResult.trace[2].result, api.EngineResult.MANUAL_REVIEW,
+  'product presence does not satisfy the unresolved signed predicate');
 assert.equal(signedConformityResult.nonconformityOnFalse, undefined);
+const conformityBinding = signedConformityResult.traceability.documentaryBinding;
+assert.equal(conformityBinding.type, 'ALL');
+const conformityPresenceBinding = conformityBinding.expressions[0];
+assert.equal(conformityPresenceBinding.entityId, 'CONFORMITY_REPORT');
+assert.equal(conformityPresenceBinding.matchedCount, 1);
+assert.deepEqual(JSON.parse(JSON.stringify(conformityPresenceBinding.witness)), {
+  kind: 'REPORT', identifier: 'CONFORMITY_1'
+});
 assert.deepEqual(
-  JSON.parse(JSON.stringify(signedConformityResult.traceability.documentaryBinding.sourceDocument)),
+  JSON.parse(JSON.stringify(conformityPresenceBinding.sourceDocument)),
   { kind: 'DOCUMENT', identifier: 'DOC_CONFORMITY_1' }
 );
 assert.deepEqual(
-  JSON.parse(JSON.stringify(signedConformityResult.traceability.documentaryBinding.provenance)),
+  JSON.parse(JSON.stringify(conformityBinding.validationBinding.provenance)),
   { sourceKind: 'TEST_ONLY', sourceReference: 'CONFORMITY_1_FACT' }
 );
-assert.equal(Object.isFrozen(signedConformityResult.traceability.documentaryBinding.provenance), true);
+assert.equal(Object.isFrozen(conformityBinding.validationBinding.provenance), true);
 assert.deepEqual(
   JSON.parse(JSON.stringify(
     signedConformity.view.read(new api.TypedReference('REPORT', 'CONFORMITY_1'))
@@ -553,6 +581,7 @@ for (const signedProductCase of [
 
 for (const conformityReports of [[], [undefined], [''], ['   ']]) {
   const unsignedConformity = prepare({ includeGas: false, conformityReports });
+  const reportPresent = conformityReports.length > 0;
   const result = api.executePlannedCriterion(
     contract, unsignedConformity.plan, CONFORMITY_REPORT_SIGNED_UNIT,
     unsignedConformity.view
@@ -561,8 +590,25 @@ for (const conformityReports of [[], [undefined], [''], ['   ']]) {
   assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW);
   assert.equal(result.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(result.normalization, 'IDENTITY');
-  assert.equal(result.trace.length, 1, 'MR validation must skip the ASSERT');
-  assert.equal(result.trace[0].result, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(result.trace.length, 3);
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    result.trace.map(entry => entry.result)
+  )), [api.EngineResult.MANUAL_REVIEW,
+    reportPresent ? api.EngineResult.TRUE : api.EngineResult.MANUAL_REVIEW,
+    api.EngineResult.MANUAL_REVIEW]);
+  const presenceBinding = result.traceability.documentaryBinding.expressions[0];
+  assert.equal(presenceBinding.entityId, 'CONFORMITY_REPORT');
+  if (reportPresent) {
+    assert.equal(presenceBinding.matchedCount, 1);
+    assert.deepEqual(JSON.parse(JSON.stringify(presenceBinding.sourceDocument)), {
+      kind: 'DOCUMENT', identifier: 'DOC_CONFORMITY_1'
+    });
+  } else {
+    assert.equal(presenceBinding.type, 'EXISTS');
+    assert.equal(presenceBinding.matchedCount, 0);
+    assert.equal(presenceBinding.status, 'UNVERIFIED');
+    assert.equal(presenceBinding.reason, 'DOCUMENT_INVENTORY_UNAVAILABLE');
+  }
   assert.equal(Object.hasOwn(result, 'nonconformityOnFalse'), false);
 }
 

@@ -337,12 +337,17 @@ class IRVOperationalProjectionContractTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
 
     def test_n_conformity_report_signature_reference_is_consistent(self):
-        criterion = TABLE1.split("CRITERION T1_CONFORMITY_REPORT_SIGNED", 1)[1].split("END", 1)[0]
+        criterion_start = TABLE1.index("CRITERION T1_CONFORMITY_REPORT_SIGNED")
+        manual_review_start = TABLE1.index("MANUAL_REVIEW", criterion_start)
+        criterion_end = TABLE1.index("\nEND", manual_review_start)
+        criterion = TABLE1[criterion_start:criterion_end]
         requirement = REQUIREMENTS.split("REQUIREMENT REQ_T1_CONFORMITY_REPORT_SIGNED", 1)[1].split("END", 1)[0]
         self.assertNotIn("NC_T1_003_SIGNED", requirement)
         self.assertNotIn("NC_T1_003_SIGNED", CATALOG)
         self.assertNotIn("FAIL", criterion)
         self.assertIn("MANUAL_REVIEW", criterion)
+        self.assertIn("EXISTS(CONFORMITY_REPORT)", criterion)
+        self.assertIn("TECHNICAL_PRODUCT_ATTRIBUTE(CONFORMITY_REPORT, SIGNED)", criterion)
         self.assertIn("NC_T4_018", CATALOG)
         self.assertNotIn("NC_T4_018", ACTIONABLE)
 
