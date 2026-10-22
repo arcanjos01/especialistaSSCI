@@ -5835,5 +5835,40 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   O valor correto, confirmado pela regeneração byte-identical e pelo artefato,
   é `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`.
 - Correção documental limitada ao dígito transcrito. Nenhum código, runtime,
-  Base ou contagem de cobertura mudou. O finding permanece `PENDING` até
-  re-review dirigida do candidato com esta correção.
+  Base ou contagem de cobertura mudou. Re-review dirigida independente por
+  Codex/GPT-6 no candidato exato `58a896f293c937d46bcdc2e1a37886d745758299`:
+  `PASS`, `F6-FINAL-002=CLOSED`, sem findings novos. O valor errado permanece
+  citado somente como descrição do erro original.
+- Teste focal de identidade/inventário `25/25 PASS`; release build em worktree
+  limpa `PASS`, 10 documentos, KB `5.46.0`,
+  `SOURCE_COMMIT=58a896f293c937d46bcdc2e1a37886d745758299`; `git diff --check`
+  PASS. As suítes completas Python `204` (13 SKIP), Apps Script `12/12`, sintaxe,
+  runtime byte-identical SHA-256 correto acima e phase guards passaram no pai
+  `ddfd638`; esse commit e o atual alteram somente o tracker.
+
+### Triagem Luna no HEAD corrente — 2026-10-22
+
+- Agente independente `luna_economy` (`gpt-5.6-luna`), read-only, examinou o
+  tracker e inventário vigentes e os contratos associados no HEAD. Resultado:
+  nenhum dos 18 Criteria parciais ou do preparatório pode alcançar cobertura
+  integral com os fatos e contratos atuais, sem decisão normativa, dados,
+  calibração ou integração ausentes. Não propôs alteração do executor; outra
+  implementação apenas adicionaria divulgação preparatória ou MANUAL_REVIEW.
+- Dependências agrupadas: recibo criptográfico e identidade autenticados para
+  `SIGNED`; mapeamento oficial de estados por conselho para REGISTERED; pares
+  de comparação autorizados para dados básicos DRT; calibração empírica para
+  correlação inferida; fatos estruturados e regras temporais/conteúdo para laudos
+  e comissionamentos. `T4_IN10_COMMISSIONING` não foi reaberto.
+- O revisor independente Codex/GPT-6 recomendou `PASS` arquitetural para o
+  candidato `ddfd63857081dd4e388972ac7e3d2099b81df34f`, limitado ao estágio
+  preparatório; o finding LOW acima foi fechado pela re-review do `58a896f`.
+  `INDEPENDENT_ARCH_REVIEW=PASS` como revisão equivalente sob AGENTS.md §25.2;
+  `REVIEWER_IDENTITY=Codex/GPT-6`; `SOL_REVIEW=NOT_PERFORMED`. Nenhuma aprovação
+  foi atribuída a Sol 6.1.
+- Cobertura continua `10/29` integral, `18` parcial, `1` preparatório e `19`
+  pendentes integrais. `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `VALIDATED_TO_ANALYZED=PENDING`,
+  `PROMOTION=NOT_AUTHORIZED`, `FASE_6B_STATUS=IN_PROGRESS`. A escolha dos
+  comparandos de `T1_DRT_BASIC_DATA` continua aguardando o responsável; a IRV
+  não identifica o comparando, e o requerimento não traz um campo de RI nem
+  escolhe entre área do terreno e construída.
