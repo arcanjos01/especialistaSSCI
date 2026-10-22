@@ -14,11 +14,11 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação desta retomada em 2026-10-22: branch
-  `feature/apps-script-engine-core`; candidato funcional validado
-  `93769e336967f74307bf9013b299535ed309e329`, cujo último lote de código é
-  `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`. Um checkpoint posterior é
-  exclusivamente documental. `.codex-local-evidence/` permanece local e não
-  rastreado. KB `5.44.0`, RDE `0.7.0`. Contagem vigente: 34 ativos,
+  `feature/apps-script-engine-core`; novo candidato funcional `7d1c723`
+  (`7d1c723ed10cc77457be031656be8f44370619ba`), com commit anterior
+  `2fc450cc61af0dbe3baf67a0ad89205ed5a9cc8b`. Push do checkpoint pendente.
+  `.codex-local-evidence/` permanece local e não rastreado. KB `5.44.0`,
+  RDE `0.7.0`. Contagem vigente: 34 ativos,
   29 produtivos, 10 integrais, 18 parciais, 1 preparatório e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
   `IN_PROGRESS`. Os gates do candidato funcional estão registrados abaixo;
@@ -5516,19 +5516,23 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   preparatórios `2→1`; pendentes integrais `19`; ganhos integrais `0`.
   Benefício demonstrado: o vistoriador vê os tipos de responsabilidade que
   foram extraídos, com sua origem, sem o sistema atribuí-los ao SMSCI.
-- Testes completos no candidato local: Python `202` (189 PASS, 13 SKIP);
+- Testes completos no commit candidato `7d1c723ed10cc77457be031656be8f44370619ba`:
+  Python `202` (189 PASS, 13 SKIP);
   Apps Script `12/12 PASS`; `node --check` em todos os módulos/testes JS e
   sintaxe de `Code.gs` PASS; guards de Base, manifests e applicability PASS
   pela suíte Python; runtime gerado SHA-256
   `1a934eb43935c6e19561c8f41fc9112e18b6ccd0f0c3aeecd4c9f4bfe7f1dfab`;
-  `git diff --check PASS`. Build limpo e validação byte-identical após novo
-  commit ainda pendentes.
+  `git diff --check PASS`. Runtime regenerado duas vezes byte-idêntico ao hash
+  registrado. Release build de validação em worktree limpa: `PASS`, dez
+  documentos, KB `5.44.0`, `SOURCE_COMMIT=7d1c723ed10cc77457be031656be8f44370619ba`.
 - Revisão independente read-only: `Codex (GPT-6)`, subagente Lovelace,
   execução distinta da implementação. Primeira rodada `FAIL` MÉDIO por matriz
   desatualizada; correção e re-review encontraram `FAIL` LOW por frase residual;
   correção e segunda re-review dirigida `PASS`, sem achados restantes.
-  O revisor não executou testes. Isso não é revisão Sol. Reconfirmação do SHA
-  final do commit permanece pendente.
+  Reconfirmação do commit exato `7d1c723ed10cc77457be031656be8f44370619ba`:
+  `INDEPENDENT_ARCH_REVIEW=PASS`; o revisor consultou os logs, não executou os
+  testes. Identidade efetiva `Codex (GPT-6)` em execução independente distinta;
+  não é revisão Sol. `SOL_REVIEW=PENDING_CAPACITY`.
 - Esforço aproximado: 35 minutos; 1 revisão do lote e 2 re-reviews dirigidas.
   Findings abertos no escopo: `0`; blockers novos: `0`. Estado de promoção,
   calibração, validação institucional e decisão IN10 não foi alterado.
