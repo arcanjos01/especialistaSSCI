@@ -4805,3 +4805,19 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   IN10 não foi reaberta. `CALIBRATION_GATE=BLOCKED`,
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
+
+### Validação focal da dependência compartilhada de assinatura — 2026-10-22
+
+- Sem alteração de código: foram executados os testes existentes
+  `tests.test_local_pdf_signature_verifier`,
+  `tests.test_pyhanko_signature_validation_poc` e
+  `tests.test_signature_verification_receipt`: `47` testes, `35 PASS`, `12 SKIP`.
+  A suíte `tests/apps-script-signature-verification-receipt.test.js` e
+  `git diff --check` também passaram.
+- Resultado limitado à validação da POC e do recibo técnico. Não valida perfil
+  institucional de confiança, revogação/cadeia completa, identidade real do
+  signatário, binding de produção nem admissão `SIGNED` pelo Engine. Portanto
+  não altera os Criteria integrais (`10/29`); os Criteria dependentes de
+  assinatura permanecem preparatórios ou pendentes conforme a matriz acima.
+- `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`,
+  `SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
