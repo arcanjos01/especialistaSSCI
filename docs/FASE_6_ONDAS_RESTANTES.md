@@ -5817,3 +5817,11 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   25 minutos em reconciliação e triagem; implementação funcional `0` Criteria
   porque os blockers são de evidência/autoridade, gates validados contra o SHA
   informado acima; revisões novas gerais `0`, uma re-review dirigida já concluída.
+
+- Revalidação do checkpoint publicado `6e2306aa281140e43ff7ccf95e2c31c1058e9e8e`:
+  worktree limpa; build técnico PASS, dez documentos, KB `5.46.0` e
+  `SOURCE_COMMIT` exato. Teste focal de identidade/inventário `25/25 PASS`;
+  `git diff --check` PASS. A tentativa inicial com `pytest` não foi aplicável
+  porque o pacote não está instalado; o runner `unittest` do projeto executou
+  com sucesso os mesmos testes focais. O commit contém apenas este tracker e
+  não altera fontes compiladas ou runtime.
