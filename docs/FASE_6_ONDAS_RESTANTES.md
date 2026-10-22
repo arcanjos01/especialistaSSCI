@@ -4422,3 +4422,12 @@ clarificação do responsável sobre associações documentais explícitas em
 `T1_CONFORMITY_REPORT`. `CALIBRATION_GATE=BLOCKED`,
 `VALIDATED_TO_ANALYZED=PENDING` e
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`.
+
+### Diretriz operacional IN 10 — esclarecimento do responsável (2026-10-22)
+
+- **Natureza:** orientação operacional do projeto sobre a finalidade da independência do comissionamento mecânico, e não nova norma ou validação institucional de interpretação restritiva.
+- **Finalidade informada pelo responsável:** assegurar que o comissionamento do sistema mecânico de controle de fumaça seja realizado por profissional/equipe distinto do solicitante e efetivamente habilitado para a atividade especializada; a atuação por engenheiro mecânico é usual, mas não se cria exigência exclusiva desse título nem se conclui habilitação profissional por inferência.
+- **Critério normativo preservado:** o art. 41 da IN 10 e a IRV Habite-se 2024, Anexo A, Tabela 4, exigem equipe/profissional independente, **sem vínculo técnico com o projeto ou com a execução**. RT do comissionamento diferente do solicitante é uma verificação auxiliar e **não demonstra sozinho** a condição integral de independência.
+- **Contratos de evidência:** identificar de modo confiável o solicitante da apresentação e o verdadeiro RT/equipe autor do relatório de comissionamento, vinculado ao relatório e à DRT exatos. Não assumir que o RT informado genericamente no requerimento é o responsável pelo comissionamento. Não inferir ausência de vínculo técnico a partir de CPF diferente, cargo, nome ou formação.
+- **Comportamento obrigatório:** verificar automaticamente somente relações documentais explicitamente suportadas e autenticadas; na falta de prova confiável da independência integral, emitir `MANUAL_REVIEW`, com explicação ao vistoriador, sem `FAIL`/Nonconformity unicamente por insuficiência. Não alterar RDE FACT ONLY nem avaliar habilitação profissional no lugar do conselho.
+- **Governança:** interpretação institucional do alcance da exigência ainda depende de confirmação pela autoridade competente; não converter a intenção operacional atribuída à DSCI em equivalência normativa já homologada. `T4_IN10_COMMISSIONING` continua preparatório/não integral; critérios independentes podem prosseguir. Esta atualização é **exclusivamente documental**: nenhum código, predicate, contrato normativo, gate, status de assinatura ou cobertura foi promovido. `CRITERIA_COVERED=10/29`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
