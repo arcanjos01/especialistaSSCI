@@ -5574,6 +5574,35 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
 - Contagens: integrais `10/29` (ganho `0`), parciais `18`, preparatórios `1`,
   pendentes integrais `19`. Esforço aproximado: 25 minutos; uma revisão
   independente, sem re-review. Findings abertos `0`, blockers novos `0`.
+
+### Disclosure do mecanismo declarado em produtos assinados — em validação
+
+- Para os oito Criteria cujo `VALIDATE` é
+  `TECHNICAL_PRODUCT_ATTRIBUTE(..., SIGNED)`, o binding factual passa a expor
+  no trace o texto literal `SIGNATURE_MECHANISM` que estiver presente no
+  registro exato do produto, junto ao documento-fonte e provenance já ligados
+  ao produto. Se o atributo não estiver na RDE, o estado emitido é
+  `NO_LITERAL_IN_RDE`; isso não afirma que o documento esteja sem assinatura.
+- O disclosure limita-se a `SIGNATURE_MECHANISM` texto: `PAdES`, `ICP-Brasil`,
+  imagem ou qualquer valor não é interpretado como prova, identidade de
+  signatário, integridade, cadeia de confiança ou revogação. O predicado
+  `SIGNED` permanece `MANUAL_REVIEW`; não se produz `PASS`, `FAIL` ou NC.
+  A alteração não toca a RDE, Engine evaluator, política de admissão ou Base.
+- Alcance: `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN07_COMMISSIONING`,
+  `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN09_CHECKLIST`,
+  `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` e `T4_IN18_CMAR`.
+  O estado `NO_LITERAL_IN_RDE`, literal presente, origem e imutabilidade são
+  cobertos por fixtures sintéticas.
+- Cobertura permanece `10/29` integral, `18` parcial, `1` preparatório e `19`
+  pendentes integrais; ganho integral `0`. O ganho operacional é tornar
+  visível ao vistoriador a declaração de mecanismo no trace para confrontação
+  manual. Gates completos passaram no candidato local antes de commit: Python
+  `202` (189 PASS, 13 SKIP), Apps Script `12/12`, sintaxe JS/Code.gs,
+  regeneração byte-identical do runtime SHA-256
+  `1a934eb43935c6e19561c8f41fc9112e18b6ccd0f0c3aeecd4c9f4bfe7f1dfab` e
+  `git diff --check`. Revisão independente e release limpo pendentes.
+- Esforço aproximado: 20 minutos; nenhuma revisão independente deste lote
+  ainda. Findings abertos `0`; blockers novos `0`.
 - Contagens esperadas após validação: integrais `10/29` (sem ganho), parciais
   `18`, preparatórios `1`, pendentes integrais `19`. Esforço até o registro
   inicial: cerca de 15 minutos; nenhuma revisão deste lote ainda. Próximo gate:

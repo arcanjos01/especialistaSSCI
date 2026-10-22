@@ -530,6 +530,17 @@ for (const signedProductCase of [
     )),
     { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_1_FACT' }
   );
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    signedProductResult.traceability.documentaryBinding.validationBinding
+      .signatureMechanismDisclosure
+  )), {
+    state: 'LITERAL_PRESENT_IN_RDE',
+    literal: 'ICP-Brasil / PAdES'
+  });
+  assert.equal(Object.isFrozen(
+    signedProductResult.traceability.documentaryBinding.validationBinding
+      .signatureMechanismDisclosure
+  ), true);
   if (signedProductCase.criterionId === 'T4_IN08_ESTANQUEIDADE') {
     assert.deepEqual(JSON.parse(JSON.stringify(
       signedProductResult.traceability.documentaryBinding.validationBinding.documentaryDateItems
@@ -552,6 +563,16 @@ for (const signedProductCase of [
   assert.equal(unsignedProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(unsignedProductResult.resultOrigin, 'EVALUATED');
   assert.equal(unsignedProductResult.nonconformityOnFalse, undefined);
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    unsignedProductResult.traceability.documentaryBinding.validationBinding
+      .signatureMechanismDisclosure
+  )), {
+    state: 'NO_LITERAL_IN_RDE', literal: null
+  });
+  assert.equal(Object.isFrozen(
+    unsignedProductResult.traceability.documentaryBinding.validationBinding
+      .signatureMechanismDisclosure
+  ), true);
 
   const absentProduct = prepare({
     includeGas: signedProductCase.includeGas === true,

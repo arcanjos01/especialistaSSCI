@@ -131,6 +131,17 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
   criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
     sourceDocument.kind === 'DOCUMENT',
   'technical product has an invalid source document');
+  const productAttributes = view.read(product);
+  criterionExecutionRequire_(productAttributes && typeof productAttributes === 'object' &&
+    !Array.isArray(productAttributes),
+  'technical product attributes are invalid');
+  const signatureMechanismValue = productAttributes.SIGNATURE_MECHANISM;
+  const hasSignatureMechanism = signatureMechanismValue !== undefined;
+  const signatureMechanismText = hasSignatureMechanism
+    ? signatureMechanismValue : null;
+  criterionExecutionRequire_(!hasSignatureMechanism ||
+    typeof signatureMechanismText === 'string',
+  'technical product SIGNATURE_MECHANISM must remain literal text');
   const isIn08Tightness = unit.requirement &&
     unit.requirement.id === 'REQ_IN08_ESTANQUEIDADE' &&
     unit.criterion.id === 'T4_IN08_ESTANQUEIDADE';
@@ -149,7 +160,11 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
     attribute: evidenceAttribute,
     matchedCount: references.length,
     sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
-    provenance: view.provenance(product) === undefined ? null : view.provenance(product)
+    provenance: view.provenance(product) === undefined ? null : view.provenance(product),
+    signatureMechanismDisclosure: {
+      state: hasSignatureMechanism ? 'LITERAL_PRESENT_IN_RDE' : 'NO_LITERAL_IN_RDE',
+      literal: signatureMechanismText
+    }
   };
   if (isIn08Tightness) binding.documentaryDateItems = documentaryDateItems;
   return Object.freeze({
