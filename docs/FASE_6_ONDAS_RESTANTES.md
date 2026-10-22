@@ -5160,15 +5160,28 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
 - Revisão read-only no SHA `e8d6f329ac89dec582f37f4a902a062008445c0e` encontrou
   um finding MÉDIO: estado de commit incorreto no cabeçalho do tracker e KB
   `5.41.0` ainda declarada no cabeçalho da matriz. As duas referências foram
-  corrigidas neste checkpoint documental; re-review dirigida ainda pendente.
-  O parecer autodeclarou “Codex, GPT-6”, mas o papel despachado/configurado era
-  `terra_worker` (`gpt-5.6-terra`). Como a identidade efetiva não coincide, o
-  parecer não é contabilizado como aprovação independente válida até revisão
-  dirigida por agente de identidade comprovável. Sol não revisou este lote;
-  `SOL_REVIEW=PENDING_IDENTITY` para aprovação arquitetural final e
-  `PROMOTION=NOT_AUTHORIZED`.
+  corrigidas no checkpoint documental `d7652c154d70eeac6c0313f83295816b742b9936`.
+  Uma revisão completa read-only por `luna_economy` (`gpt-5.6-luna` conforme o
+  papel configurado) aprovou o candidato técnico exato `e8d6f329...`, sem
+  findings BLOCKER/HIGH/MEDIUM/LOW. Re-review dirigida também confirmou o
+  fechamento do finding médio e que IN10 não mudou. A primeira avaliação foi
+  recebida de agente despachado como `terra_worker`, mas com autodescrição
+  divergente; seu parecer não conta como aprovação independente.
+- Revisão Sol Web solicitada uma vez para a arquitetura do candidato, mas o
+  roteamento retornou “Selected model is at capacity”. `SOL_REVIEW=PENDING_CAPACITY`;
+  não houve revisão Sol nem promoção. `INDEPENDENT_ARCH_REVIEW=PASS` para o
+  lote técnico limitado a `e8d6f329...` (estado documental verificado em
+  `d7652c1...`); `PROMOTION=NOT_AUTHORIZED`.
 - Esforço estimado: cerca de 60 minutos entre reconciliação, implementação,
   testes direcionados/completos, checkpoint e build. O finding MÉDIO está
   corrigido, sujeito a re-review dirigida. As tarefas seguintes permanecem focadas
   em Criteria independentes; comparandos, status DRT, calibração, assinatura e
   vínculo institucional continuam blockers específicos, sem alterar IN10.
+- Triagem para o lote seguinte: `T4_IN09_DRT` não tem uma entidade concreta
+  `PRESSURIZATION_DRT` no catálogo; `DRT` é genérica e não representa documento
+  concreto. Marcar `EXISTS(DRT)` como presença da DRT exigida arriscaria sugerir
+  relação RT/SMSCI que não está formalizada. Mantém-se revisão humana, sem
+  inferir compatibilidade nem ausência. `T1_DRT_ADDRESS` e `T1_DRT_AREA`
+  continuam dependentes, respectivamente, de semântica de comparação e escolha
+  normativa da dimensão aplicável, conforme triagem anterior. Nenhum desses
+  pontos bloqueia integração de assinatura ou outras tarefas independentes.
