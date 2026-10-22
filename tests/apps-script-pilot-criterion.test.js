@@ -958,6 +958,46 @@ assert.ok(multipleAreaDisclosure.documentaryEvidence.every(item =>
   item.associationStatus === 'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'));
 assert.equal(multipleAreaDisclosure.memoryReferences.length, 2);
 
+const drtRegistrationFacts = prepare({
+  includeGas: false,
+  executionDrts: ['ART', 'RRT', 'TRT'].map((entityId, index) => ({
+    entityId,
+    attributes: {
+      COUNCIL_REGISTRATION_STATUS: ['Aguardando validação', 'Rascunho', 'Válido'][index],
+      COUNCIL_ISSUANCE_STATUS: ['Gerado', 'Em processamento', 'Emitido'][index],
+      COUNCIL_PAYMENT_STATUS: ['Aguardando pagamento', 'Isento', 'Aprovado'][index]
+    },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_STATUS_' + index }
+  }))
+});
+for (const criterionId of ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED']) {
+  const unitKey = 'UNIT_KEY (REQ_T1_DRT_REGISTERED, ' + criterionId + ')';
+  const result = api.executePlannedCriterion(
+    contract, drtRegistrationFacts.plan, unitKey, drtRegistrationFacts.view
+  );
+  assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW, criterionId);
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW', criterionId);
+  assert.equal(result.nonconformityOnFalse, undefined, criterionId);
+  const expectedByAttribute = {
+    COUNCIL_REGISTRATION_STATUS: ['Aguardando validação', 'Rascunho', 'Válido'],
+    COUNCIL_ISSUANCE_STATUS: ['Gerado', 'Em processamento', 'Emitido'],
+    COUNCIL_PAYMENT_STATUS: ['Aguardando pagamento', 'Isento', 'Aprovado']
+  };
+  for (const [attribute, literals] of Object.entries(expectedByAttribute)) {
+    const disclosureTrace = result.trace.find(item =>
+      item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' &&
+      item.arguments.attribute === attribute);
+    assert.ok(disclosureTrace, criterionId + ':' + attribute);
+    assert.deepEqual(JSON.parse(JSON.stringify(
+      disclosureTrace.documentaryEvidence.map(item => item.literal)
+    )), literals, criterionId + ':' + attribute);
+    assert.ok(disclosureTrace.documentaryEvidence.every(item =>
+      item.disclosureSufficient &&
+      item.associationStatus === 'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'));
+  }
+  assert.equal(result.trace.length, 3, criterionId);
+}
+
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
 assert.equal(negativeResult.unitKey, PILOT_UNIT);

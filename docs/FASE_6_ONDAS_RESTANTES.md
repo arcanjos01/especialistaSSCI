@@ -5402,3 +5402,33 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `SOL_REVIEW=PENDING_CAPACITY`, `ARCHITECTURAL_REVIEW=PENDING` e
   `PROMOTION=NOT_AUTHORIZED`.
+
+### Lote de disclosure literal dos status de registro DRT — 2026-10-22
+
+- Escopo independente: `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`. O Engine
+  registra em traces distintos `COUNCIL_REGISTRATION_STATUS`,
+  `COUNCIL_ISSUANCE_STATUS` e `COUNCIL_PAYMENT_STATUS` para cada ART/RRT/TRT,
+  preservando texto exato, provenance e documento-fonte. Não há map de estado;
+  `Aprovado`, `Válido`, `Rascunho` e qualquer outro literal não são traduzidos
+  em `REGISTERED`.
+- Resultado dos dois Criteria: `MANUAL_REVIEW`, sem `FAIL` e sem NC. Não cria
+  vínculo a RT por semelhança. A confirmação institucional e o catálogo
+  versionado de literais por conselho/tipo continuam necessários para
+  classificação automática.
+- Cobertura: `CRITERIA_COVERED=10/29` antes/depois (ganho integral `0`);
+  `CRITERIA_PARTIAL=13→15`; preparatórios `2→2`; pendentes integrais `19→19`.
+  O suporte é divulgação factual parcial, não verificação positiva de estado.
+- Revisão independente Luna read-only do diff desde `b855472`:
+  `PASS`, nenhum finding BLOCKER/HIGH/MEDIUM/LOW; autenticidade da view/plan/
+  apresentação, escopo e semântica manual foram conferidos. Teste direcionado
+  `node tests/apps-script-pilot-criterion.test.js`: `PASS`; re-review não
+  necessária, pois não houve finding.
+- Benefício operacional: o vistoriador recebe os três status documentais lado
+  a lado por DRT em vez de ter de localizar esses fatos separadamente na RDE.
+  Esforço deste lote: cerca de 30 minutos de implementação, fixture e revisão;
+  uma revisão independente, sem re-review. Nenhum Criteria integral foi ganho.
+- Gates completos do checkpoint e build limpo ainda pendentes; manter
+  `ARCHITECTURAL_REVIEW=PENDING`, `PROMOTION=NOT_AUTHORIZED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
+  `VALIDATED_TO_ANALYZED=PENDING`. Sol 6.1 permanece indisponível/capacidade;
+  não atribuir parecer a Sol. IN10 não foi alterado.

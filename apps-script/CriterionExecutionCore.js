@@ -513,17 +513,24 @@ function criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, uni
   criterionExecutionRequire_(argument && argument.type === 'SYMBOL' &&
     argument.value === 'REQUIRED_TECHNICAL_RESPONSIBILITY',
   'DRT attribute disclosure requires REQUIRED_TECHNICAL_RESPONSIBILITY');
-  criterionExecutionRequire_(unit.requirement &&
-    unit.requirement.id === 'REQ_T1_DRT_BASIC_DATA',
-  'DRT attribute disclosure is restricted to REQ_T1_DRT_BASIC_DATA');
-  const attributes = {
+  const basicAttributes = {
     T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
     T1_DRT_RT_NAME: 'RT_NAME',
     T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
     T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
   };
-  const attribute = attributes[unit.criterion.id];
-  criterionExecutionRequire_(attribute, 'unsupported DRT disclosure Criterion');
+  const registrationCriteria = ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED'];
+  const isBasicData = unit.requirement &&
+    unit.requirement.id === 'REQ_T1_DRT_BASIC_DATA' &&
+    Object.prototype.hasOwnProperty.call(basicAttributes, unit.criterion.id);
+  const isRegistration = unit.requirement &&
+    unit.requirement.id === 'REQ_T1_DRT_REGISTERED' &&
+    registrationCriteria.includes(unit.criterion.id);
+  criterionExecutionRequire_(isBasicData || isRegistration,
+    'DRT attribute disclosure is restricted to declared basic-data/registration Criteria');
+  const attributes = isBasicData ? [basicAttributes[unit.criterion.id]] : [
+    'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
+  ];
   const evidenceReferences = [];
   Object.keys(contract.entityCatalog).forEach(entityId => {
     const entity = contract.entityCatalog[entityId];
@@ -542,14 +549,15 @@ function criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, uni
       evidenceReferences.push(reference);
     });
   });
+  const expressions = attributes.map(attribute => new PredicateCall(
+    'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE', { evidenceReferences, attribute }
+  ));
   return Object.freeze({
-    expression: new PredicateCall('RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE', {
-      evidenceReferences, attribute
-    }),
+    expression: expressions.length === 1 ? expressions[0] : new All(expressions),
     binding: immutableCopy({
       type: 'DRT_ATTRIBUTE_DISCLOSURE',
       responsibility: argument.value,
-      attribute,
+      attributes,
       evidenceReferences
     })
   });
@@ -640,6 +648,17 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
       return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument,
         unit.criterion.id);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_EVIDENCE_ATTRIBUTE') {
+      criterionExecutionRequire_(Array.isArray(assertIr.arguments) &&
+        assertIr.arguments.length === 2 &&
+        assertIr.arguments[1] &&
+        assertIr.arguments[1].type === 'SYMBOL' &&
+        assertIr.arguments[1].value === 'REGISTERED' &&
+        ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED'].includes(unit.criterion.id),
+      'REGISTERED disclosure assertion is not declared for this Criterion');
+      return criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, unit,
+        assertIr.arguments[0]);
     }
     if (assertIr.name === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY' ||
         assertIr.name === 'RESPONSIBILITY_RT_MATCHES_PRODUCT' ||

@@ -563,14 +563,22 @@ function responsibilityDrtActivityExecutionPredicateContract() {
 
 function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
   const empty = { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
-  const attributeByCriterion = {
-    T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
-    T1_DRT_RT_NAME: 'RT_NAME',
-    T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
-    T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
+  const attributesByCriterion = {
+    T1_DRT_RI_LEGAL_ENTITY: ['RI_NAME'],
+    T1_DRT_RT_NAME: ['RT_NAME'],
+    T1_DRT_ADDRESS: ['PROPERTY_ADDRESS_TEXT'],
+    T1_DRT_AREA: ['PROPERTY_AREA_TEXT'],
+    T1_DRT_REGISTERED: [
+      'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
+    ],
+    T4_DRT_REGISTERED: [
+      'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
+    ]
   };
-  if (!context || context.requirementId !== 'REQ_T1_DRT_BASIC_DATA' ||
-      !ENGINE_HAS_OWN_(attributeByCriterion, context.criterionId) ||
+  if (!context ||
+      (context.requirementId !== 'REQ_T1_DRT_BASIC_DATA' &&
+       context.requirementId !== 'REQ_T1_DRT_REGISTERED') ||
+      !ENGINE_HAS_OWN_(attributesByCriterion, context.criterionId) ||
       (context.role !== 'ASSERT' && context.role !== 'VALIDATE') ||
       typeof isImmutableExecutionView !== 'function' || !isImmutableExecutionView(memory) ||
       typeof isCanonicalCompiledRuntimeContract !== 'function' ||
@@ -579,10 +587,21 @@ function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
       !isCanonicalFrozenExecutionPlan(context.executionPlan, context.compiledContract, memory) ||
       typeof isCanonicalCurrentSubmissionContext !== 'function' ||
       !isCanonicalCurrentSubmissionContext(context.currentSubmissionContext)) return empty;
-  if (context.role === 'ASSERT' && args.attribute !== attributeByCriterion[context.criterionId]) {
-    return empty;
+  const isBasicData = context.requirementId === 'REQ_T1_DRT_BASIC_DATA';
+  if ((isBasicData && !ENGINE_HAS_OWN_(
+    { T1_DRT_RI_LEGAL_ENTITY: true, T1_DRT_RT_NAME: true,
+      T1_DRT_ADDRESS: true, T1_DRT_AREA: true }, context.criterionId)) ||
+      (!isBasicData && (context.criterionId !== 'T1_DRT_REGISTERED' &&
+        context.criterionId !== 'T4_DRT_REGISTERED'))) return empty;
+  const allowedAttributes = ENGINE_OWN_DATA_VALUE_(attributesByCriterion, context.criterionId);
+  let attributeAllowed = false;
+  for (let index = 0; index < allowedAttributes.length; index += 1) {
+    if (ENGINE_OWN_DATA_VALUE_(allowedAttributes, String(index)) === args.attribute) {
+      attributeAllowed = true;
+    }
   }
-  if (context.role === 'VALIDATE' && args.attribute !== 'RI_NAME') return empty;
+  if (context.role === 'ASSERT' && !attributeAllowed) return empty;
+  if (context.role === 'VALIDATE' && (!isBasicData || args.attribute !== 'RI_NAME')) return empty;
   let plannedUnitFound = false;
   const units = context.executionPlan.PLANNED_EXECUTION_UNITS;
   for (let index = 0; index < units.length; index += 1) {
