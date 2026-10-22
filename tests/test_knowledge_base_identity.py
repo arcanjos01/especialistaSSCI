@@ -95,6 +95,20 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertIn("A correspondência entre DRT, produto e SMSCI permanece", body)
         self.assertNotRegex(body, r"(?m)^ASSERT\s+FAIL\b")
 
+    def test_coverage_inventory_identifies_current_runtime_versions(self):
+        self.assertRegex(
+            self.coverage_inventory,
+            r"quantitativo\s+vigente em KB 5\.46\.0",
+        )
+        self.assertRegex(
+            self.coverage_inventory,
+            r"regenerada da RDE Schema `0\.8\.0` e da KB `5\.46\.0`",
+        )
+        self.assertNotRegex(
+            self.coverage_inventory,
+            r"quantitativo\s+vigente em KB 5\.44\.0",
+        )
+
     def test_in10_request_party_identity_is_fact_only_and_report_private(self):
         entity = re.search(
             r"ENTITY REQUERIMENTO_ESCI\b(.*?)\nEND\b",
