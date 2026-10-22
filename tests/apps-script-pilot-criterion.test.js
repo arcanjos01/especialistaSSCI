@@ -390,11 +390,13 @@ for (const signedProductCase of [
   assert.equal(signedProductResult.engineResult, api.EngineResult.MANUAL_REVIEW);
   assert.equal(signedProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(signedProductResult.resultOrigin, 'EVALUATED');
-  assert.equal(signedProductResult.trace.length, 1);
+  assert.equal(signedProductResult.trace.length, 2);
   assert.deepEqual(JSON.parse(JSON.stringify(
     signedProductResult.trace.map(entry => entry.predicateId)
-  )), ['TECHNICAL_PRODUCT_ATTRIBUTE']);
+  )), ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS']);
   assert.equal(signedProductResult.trace[0].result, api.EngineResult.MANUAL_REVIEW);
+  assert.equal(signedProductResult.trace[1].result, api.EngineResult.TRUE,
+    'document presence is reported independently of unresolved signature validity');
   assert.deepEqual(
     JSON.parse(JSON.stringify(
       signedProductResult.traceability.documentaryBinding.sourceDocument
@@ -441,6 +443,13 @@ for (const signedProductCase of [
   assert.equal(absentProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(absentProductResult.resultOrigin, 'EVALUATED');
   assert.equal(absentProductResult.nonconformityOnFalse, undefined);
+  assert.deepEqual(JSON.parse(JSON.stringify(
+    absentProductResult.trace.map(entry => entry.predicateId)
+  )), ['ASSERT_LITERAL', 'ASSERT_LITERAL']);
+  assert.equal(absentProductResult.trace[0].result, api.EngineResult.MANUAL_REVIEW,
+    'absent document inventory remains manual for the SIGNED validation');
+  assert.equal(absentProductResult.trace[1].result, api.EngineResult.MANUAL_REVIEW,
+    'unverified inventory stays manual even when the product was not located');
 }
 
 for (const conformityReports of [[], [undefined], [''], ['   ']]) {

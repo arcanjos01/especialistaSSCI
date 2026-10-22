@@ -776,7 +776,19 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
     const validationResult = evaluateCriterion_(validationCriterion, registry, view,
       correlationProjection, { contract, plan, unitKey, role: 'VALIDATE', currentSubmissionContext });
     if (validationResult.engineResult === EngineResult.MANUAL_REVIEW) {
-      result = validationResult;
+      // Preserve useful, independent ASSERT evidence even when SIGNED cannot
+      // be authenticated. The overall Criterion remains MANUAL_REVIEW; an
+      // unresolved validation must never turn an ASSERT FALSE into FAIL/NC.
+      const assertRepeatsSignatureValidation = materialized.metadata.assertIr.type === 'CALL' &&
+        materialized.metadata.assertIr.name === 'TECHNICAL_PRODUCT_ATTRIBUTE';
+      if (assertRepeatsSignatureValidation) {
+        result = validationResult;
+      } else {
+        const assertResult = evaluateCriterion_(materialized.criterion, registry, view,
+          correlationProjection, { contract, plan, unitKey, role: 'ASSERT', currentSubmissionContext });
+        result = immutableCopy({ ...validationResult,
+          trace: validationResult.trace.concat(assertResult.trace) });
+      }
     } else {
       criterionExecutionRequire_(validationResult.engineResult === EngineResult.TRUE,
         'TECHNICAL_PRODUCT_ATTRIBUTE VALIDATE returned an unsupported EngineResult');
