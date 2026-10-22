@@ -4658,14 +4658,29 @@ nesse escopo. `SOL_REVIEW=PENDING_IDENTITY`,
   continuam sem execução integral segura. A matriz não autoriza diferença de
   texto a produzir `FAIL`/Nonconformity sem comparando confiável e semântica
   explícita.
-- Próximo contrato factual de maior alcance, caso fonte documental apropriada
-  seja identificada: slots FACT-ONLY independentes para RI da edificação,
-  endereço e área do imóvel no documento/processo que os declarar, com
-  `source_document`, provenance e tratamento de multiplicidade/conflito. Isso
-  não cria igualdade entre solicitante e RI nem vínculo com produto. Após essa
-  formalização, cada comparador e Criterion ainda exigirá teste de readiness e
-  decisão de resultado conforme a fonte autorizada.
+- Fonte documental candidata identificada: Anexo B da IN 1/2024, no próprio
+  requerimento, p. 46–47. A seção “Dados do Imóvel” traz os componentes do
+  endereço e campos distintos para “Área do terreno” e “Área total construída
+  no terreno”; “Responsável pelo imóvel - Bloco” identifica nome, CPF/CNPJ e
+  endereço do responsável nominal. Isso não autoriza usar dados do solicitante
+  no lugar do responsável pelo imóvel nem prova identidade entre RI e o nome da
+  DRT. A `REQUERIMENTO_ESCI` atual só formaliza solicitante e responsável
+  técnico; esses campos de imóvel ainda não entram na RDE.
+- Próximo contrato factual de maior alcance: acrescentar representação FACT-ONLY
+  dos valores literais do Anexo B, mantendo separadas as duas áreas e os
+  responsáveis por bloco, com documento de origem, locators/provenance e
+  multiplicidade. Antes de comparações, preservar duas lacunas: a IRV Tabela 1
+  diz genericamente “Área do Imóvel” sem selecionar entre os dois campos da IN
+  1; o texto do endereço da DRT não é estruturalmente decomposto para comparar
+  seus componentes. O RI do Anexo B pode ser repetido por bloco, sem vínculo
+  estruturado ao DRT correspondente. Os três Criteria (RI, endereço, área)
+  podem receber suporte factual preparatório, mas ainda não suporte integral
+  sem essas comparações autorizadas. Não normalizar, escolher área, associar
+  bloco ou gerar FAIL por inferência.
 - Resultado desta rechecagem: Criteria integrais `10/29 → 10/29`; parciais `1`;
   preparatórios `7`; pendentes integrais `19`. Nenhum código ou cobertura foi
-  alterado. O resultado justifica manter esses Criteria fora do lote executável
-  até existir fonte factual adequada, sem bloquear trabalho independente.
+  alterado. O avanço seguinte é formalizar os fatos do Anexo B preservando os
+  limites acima, sem alterar resultados até os comparandos estarem autorizados.
+
+Fonte primária consultada: [IN 1 - Parte 1, edição 2024, Anexo B, pp. 46–47](https://documentoscbmsc.cbm.sc.gov.br/uploads/ab8c2bdadfee54d4097ac6cf1e1be128.pdf);
+[IRV Habite-se 2024, Anexo A, Tabela 1, p. 4](https://documentoscbmsc.cbm.sc.gov.br/uploads/007b6741900db4f57a80d467023bfead.pdf).
