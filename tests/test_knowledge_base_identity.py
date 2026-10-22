@@ -98,6 +98,14 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
     def test_coverage_inventory_identifies_current_runtime_versions(self):
         self.assertRegex(
             self.coverage_inventory,
+            r"Matriz por Criterion \(snapshot histórico reconciliado até KB 5\.44\.0\)",
+        )
+        self.assertNotRegex(
+            self.coverage_inventory,
+            r"Base vigente KB 5\.44\.0",
+        )
+        self.assertRegex(
+            self.coverage_inventory,
             r"quantitativo\s+vigente em KB 5\.46\.0",
         )
         self.assertRegex(
