@@ -14,16 +14,17 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, HEAD de base `3fbf8efede876098d7ff8e94c8eb3b428c5febe0`;
-  candidato funcional local ainda não commitado neste registro. `.codex-local-evidence/`
+  `feature/apps-script-engine-core`, baseline do lote
+  `3fbf8efede876098d7ff8e94c8eb3b428c5febe0`, candidato funcional commitado e
+  publicado em `e8d6f329ac89dec582f37f4a902a062008445c0e`; checkpoint documental
+  de gates em `aa39fed22d1690a49b4ed066a323fe41c087b52c`. `.codex-local-evidence/`
   permanece local e não rastreado. KB candidata `5.42.0`, RDE `0.7.0`.
-  A mudança em elaboração adiciona rastreamento explícito de presença de cinco
+  O lote adiciona rastreamento explícito de presença de cinco
   produtos técnicos e mantém as cinco decisões `MANUAL_REVIEW`; contagem
   candidata: 34 ativos, 29 produtivos, 10 integrais, 8 parciais, 2 preparatórios
   e 19 pendentes de cobertura integral; 5 não selecionáveis e 2 retirados. Fase
-  6A `COMPLETE`; 6B `IN_PROGRESS`. Evidências completas de gates, revisão e
-  build serão anexadas após validação do candidato exato. Sem merge, deploy ou
-  promoção.
+  6A `COMPLETE`; 6B `IN_PROGRESS`. Gates e build do SHA exato estão registrados
+  abaixo; re-review documental dirigida pendente. Sem merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -5156,13 +5157,18 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   release build em worktree limpa `PASS`, 10 documentos, KB `5.42.0`,
   `SOURCE_COMMIT=e8d6f329ac89dec582f37f4a902a062008445c0e`; manifest/guards
   cobertos pela suíte Python `PASS`; `git diff --check` `PASS`.
-- Revisão independente read-only foi despachada para Galileo (`terra_worker`),
-  agente `01a1642b-b46f-7c72-871f-0e03bd2d2a5b`, para o SHA exato. Parecer ainda
-  não retornou; registrar revisão deste lote como `IN_PROGRESS`, sem afirmar
-  PASS. Sol não revisou este lote; `SOL_REVIEW=PENDING_IDENTITY` para aprovação
-  arquitetural final e `PROMOTION=NOT_AUTHORIZED`.
+- Revisão read-only no SHA `e8d6f329ac89dec582f37f4a902a062008445c0e` encontrou
+  um finding MÉDIO: estado de commit incorreto no cabeçalho do tracker e KB
+  `5.41.0` ainda declarada no cabeçalho da matriz. As duas referências foram
+  corrigidas neste checkpoint documental; re-review dirigida ainda pendente.
+  O parecer autodeclarou “Codex, GPT-6”, mas o papel despachado/configurado era
+  `terra_worker` (`gpt-5.6-terra`). Como a identidade efetiva não coincide, o
+  parecer não é contabilizado como aprovação independente válida até revisão
+  dirigida por agente de identidade comprovável. Sol não revisou este lote;
+  `SOL_REVIEW=PENDING_IDENTITY` para aprovação arquitetural final e
+  `PROMOTION=NOT_AUTHORIZED`.
 - Esforço estimado: cerca de 60 minutos entre reconciliação, implementação,
-  testes direcionados/completos, checkpoint e build. Ainda sem re-review ou
-  finding aberto/encerrado neste lote. As tarefas seguintes permanecem focadas
+  testes direcionados/completos, checkpoint e build. O finding MÉDIO está
+  corrigido, sujeito a re-review dirigida. As tarefas seguintes permanecem focadas
   em Criteria independentes; comparandos, status DRT, calibração, assinatura e
   vínculo institucional continuam blockers específicos, sem alterar IN10.
