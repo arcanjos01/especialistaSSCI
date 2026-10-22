@@ -4854,3 +4854,33 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   `T4_DRT_REGISTERED` permanecem sem classificação conclusiva.
 - Sem findings novos de código porque não houve alteração de código. Revisão
   arquitetural e revisão Sol seguem pendentes; sem merge, deploy ou promoção.
+
+### Finding MEDIUM da POC pyHanko — correção e re-review — 2026-10-22
+
+- Revisão arquitetural independente inicial do candidato
+  `12e88799139354291128be033a64121d638afe97`: `FAIL` por um finding MEDIUM.
+  O verificador apresentava `integrity=VALID` quando `status.intact=true` mas
+  `status.valid=false`, perdendo a invalidação criptográfica CMS.
+- Correção no commit `b69ba074e01e7f1178a73cca66249dd9db636d6b`: o resultado
+  separa `content_integrity` de `cryptographic_signature_validity`; o resumo
+  `integrity` só é `VALID` quando ambos são válidos. Fixture sintética altera
+  apenas a assinatura CMS, verifica o padding DER/PDF e demonstra
+  `content_integrity=VALID`, `cryptographic_signature_validity=INVALID` e
+  `integrity=INVALID`. Nenhuma admissão Engine `SIGNED` foi ligada.
+- Re-review dirigida do candidato exato `b69ba074e01e7f1178a73cca66249dd9db636d6b`:
+  finding fechado, nenhum BLOCKER/HIGH/MEDIUM aberto, decisão técnica explícita
+  `PASS`. Identidade efetiva declarada: Codex/GPT-6; execução independente
+  `01a16408-0a46-75c0-a776-9c0ff44265c0`. Não foi Sol 6.1. A substituição é
+  aceita conforme AGENTS.md §25.2 e a aceitação prévia expressa do usuário.
+- Validação do candidato: Python completo `202` (`189 PASS`, `13 SKIP`);
+  verificação sintética local + pyHanko `36/36 PASS` no ambiente isolado
+  `pyHanko 0.38.0`; Apps Script `12/12 PASS`; sintaxe JS e `Code.gs` `PASS`;
+  `py_compile` e diff check `PASS`; runtime byte-idêntico, SHA-256
+  `84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96`;
+  release build limpo 10/10, `SOURCE_COMMIT=b69ba074e01e7f1178a73cca66249dd9db636d6b`.
+- Esta aprovação fecha o finding e o gate de revisão arquitetural independente
+  substituta para este candidato; `SOL_REVIEW=PENDING_IDENTITY` porque Sol não
+  executou a revisão. A POC continua não operacional: confiança institucional,
+  revogação completa, identidade real e binding de produção seguem fora do que
+  os testes sintéticos demonstram. Cobertura permanece `10/29`; promoção não
+  autorizada.

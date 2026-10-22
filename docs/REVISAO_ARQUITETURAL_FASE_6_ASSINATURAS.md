@@ -242,3 +242,38 @@ ARCHITECTURAL_REVIEW=PENDING
 SOL_REVIEW=NOT_PERFORMED
 PROMOTION=NOT_AUTHORIZED
 ```
+
+## Finding MEDIUM — POC pyHanko reportava só integridade do conteúdo
+
+Na revisão independente do candidato `12e88799139354291128be033a64121d638afe97`,
+foi reproduzido o estado `status.intact=true` e `status.valid=false` após mutação
+apenas da assinatura CMS. A POC marcava `integrity=VALID`, apesar de a assinatura
+criptográfica ser inválida.
+
+O candidato `b69ba074e01e7f1178a73cca66249dd9db636d6b` separa os resultados:
+`content_integrity` deriva somente de `status.intact`,
+`cryptographic_signature_validity` somente de `status.valid`, e o resumo
+`integrity` exige ambos válidos. O teste `test_cms_signature_mutation_preserves_byte_range_integrity_but_invalidates_signature`
+modifica somente o valor CMS e confirma conteúdo intacto, validade criptográfica
+inválida e integridade geral inválida. O helper decodifica o objeto DER, exige
+padding zero e reconstitui o campo PDF sem tocar nos bytes cobertos pela
+assinatura.
+
+```text
+FINDING_MEDIUM=RESOLVED
+REVIEWED_CANDIDATE=b69ba074e01e7f1178a73cca66249dd9db636d6b
+INDEPENDENT_ARCH_REVIEW=PASS
+REVIEWER_IDENTITY=Codex/GPT-6 (declaração efetiva; não Sol)
+REVIEWER_EXECUTION=01a16408-0a46-75c0-a776-9c0ff44265c0
+DIRECTED_REREVIEW=PASS
+SOL_REVIEW=PENDING_IDENTITY
+POC_TESTS=36/36 PASS (ambiente isolado pyHanko 0.38.0)
+CRITERIA_COVERAGE=UNCHANGED (10/29)
+SIGNED_ENGINE_ADMISSION=NOT_ENABLED
+PROMOTION=NOT_AUTHORIZED
+```
+
+O parecer Codex/GPT-6 foi aceito como revisão independente substituta conforme
+AGENTS.md §25.2 e autorização prévia do usuário. Sol 6.1 não executou esta
+revisão. Os testes sintéticos não estabelecem confiança institucional, estado
+global de revogação, identidade profissional ou integração de produção.
