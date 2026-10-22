@@ -1161,3 +1161,31 @@ validação criptográfica e não altera a RDE.
 
 Estado do diff arquitetural submetido à revisão Sol 6.1: `PENDING`. O snapshot
 de cobertura acima não é fechamento da Fase 6 nem promoção operacional.
+
+## Atualização preparatória de evidências literais IN09 — candidata RDE 0.8
+
+Contrato candidato registra trechos literais genéricos, vinculados ao registro
+e documento-fonte exatos, sem rotulagem normativa. Para
+`T4_IN09_TEST_REPORT`, o trace pode exibir trechos e provenance da RDE
+`documentary_text_excerpt_items`; completude não é afirmada, e uma coleção
+vazia ou indisponível em schema histórico não prova ausência de itens no laudo.
+O resultado permanece `MANUAL_REVIEW`; não há cobertura integral nova.
+
+| Medida | Antes | Depois deste lote |
+|---|---:|---:|
+| Criteria ativos | 34 | 34 |
+| Produtivos | 29 | 29 |
+| Integrais | 10 | 10 |
+| Parciais | 18 | 18 |
+| Preparatórios | 1 | 1 |
+| Pendentes de cobertura integral | 19 | 19 |
+| Não selecionáveis | 5 | 5 |
+| Retirados | 2 | 2 |
+
+`T4_IN09_TEST_REPORT` continua parcial porque a camada não declara quais
+componentes normativos foram documentados, não determina completude/exatidão,
+não valida assinatura e não liga uma DRT ao produto. A futura EXTRACTION e os
+contratos específicos de evidência permanecem necessários. Este contrato
+preparatório não antecipa a Fase 8 e não altera Requirements, Criteria ou
+Nonconformities. A base candidata passa a KB `5.45.0`, RDE `0.8.0`; os dados
+de cobertura permanecem inalterados.

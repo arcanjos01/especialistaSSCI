@@ -45,6 +45,7 @@ assert.equal(core.isSupportedRdeSchemaVersion_('0.4.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.5.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.6.0'), true);
 assert.equal(core.isSupportedRdeSchemaVersion_('0.7.0'), true);
+assert.equal(core.isSupportedRdeSchemaVersion_('0.8.0'), true);
 const originalArrayIncludes = Array.prototype.includes;
 try {
   vm.runInContext(`
@@ -72,7 +73,7 @@ const expected = {
   sourceSha256: input.sourceSha256
 };
 
-assert.equal(core.RDE_SCHEMA_VERSION, '0.7.0');
+assert.equal(core.RDE_SCHEMA_VERSION, '0.8.0');
 assert.equal(
   core.sha256Hex_(Array.from(Buffer.from('abc'))),
   'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
@@ -104,7 +105,7 @@ assert.equal(core.getValidatedRdeIdentity_(secondRde), 'second-rde-file-id');
 assert.notEqual(core.getValidatedRdeIdentity_(unicodeRde), core.getValidatedRdeIdentity_(secondRde));
 
 const rde = core.buildFakeRde_(input);
-assert.equal(rde.schema_version, '0.7.0');
+assert.equal(rde.schema_version, '0.8.0');
 assert.equal(rde.process_id, input.processId);
 assert.equal(rde.source.file_id, input.sourceFileId);
 assert.equal(rde.source.sha256, input.sourceSha256);
@@ -125,6 +126,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_declaration_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_date_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_activity_items)), []);
 assert.deepEqual(JSON.parse(JSON.stringify(rde.drt_scope_declaration_items)), []);
+assert.deepEqual(JSON.parse(JSON.stringify(rde.documentary_text_excerpt_items)), []);
 
 const existingJson = JSON.stringify(rde, null, 2);
 const originalExistingJson = existingJson;
@@ -369,6 +371,7 @@ delete legacyStructuralRde.drt_declaration_items;
 delete legacyStructuralRde.documentary_date_items;
 delete legacyStructuralRde.drt_activity_items;
 delete legacyStructuralRde.drt_scope_declaration_items;
+delete legacyStructuralRde.documentary_text_excerpt_items;
 assert.equal(core.validateRdeStructure_(legacyStructuralRde, operationalExpected, entityCatalog),
   legacyStructuralRde);
 assert.equal(core.parseAndValidateOperationalRdeJson_(
@@ -384,11 +387,13 @@ delete legacyV3Rde.drt_declaration_items;
 delete legacyV3Rde.documentary_date_items;
 delete legacyV3Rde.drt_activity_items;
 delete legacyV3Rde.drt_scope_declaration_items;
+delete legacyV3Rde.documentary_text_excerpt_items;
 assert.equal(core.validateRdeStructure_(legacyV3Rde, operationalExpected, entityCatalog), legacyV3Rde);
 const legacyV4Rde = { ...operationalRde, schema_version: '0.4.0' };
 delete legacyV4Rde.documentary_date_items;
 delete legacyV4Rde.drt_activity_items;
 delete legacyV4Rde.drt_scope_declaration_items;
+delete legacyV4Rde.documentary_text_excerpt_items;
 assert.equal(core.validateRdeStructure_(legacyV4Rde, operationalExpected, entityCatalog), legacyV4Rde);
 const malformedV4AssociationRde = {
   ...legacyV4Rde,
@@ -520,6 +525,7 @@ const legacyV4DeclarationRde = {
 delete legacyV4DeclarationRde.documentary_date_items;
 delete legacyV4DeclarationRde.drt_activity_items;
 delete legacyV4DeclarationRde.drt_scope_declaration_items;
+delete legacyV4DeclarationRde.documentary_text_excerpt_items;
 for (const sourceText of [
   'Somente o sistema de hidrantes está citado.',
   'Atividade: execução de instalação.'
@@ -612,6 +618,50 @@ assert.throws(() => core.validateRdeStructure_({
   ...dateRde, documentary_date_items: new Array(1)
 }, operationalExpected, dateCatalog), error => error.code === 'RDE_DOCUMENTARY_DATES_INVALID');
 
+const excerptRde = {
+  ...operationalRde,
+  schema_version: '0.8.0',
+  records: dateRecords,
+  documentary_associations: [],
+  drt_declaration_items: [],
+  documentary_date_items: [],
+  drt_activity_items: [],
+  drt_scope_declaration_items: [],
+  documentary_text_excerpt_items: [{
+    excerpt_item_id: 'EXCERPT-001', record_id: 'R_DATE_REPORT',
+    excerpt_text: 'Pressão estabilizada conforme ensaio.',
+    source_document: 'R_DATE_SOURCE', provenance: { page: 7, span: 'p7:l4-5' }
+  }]
+};
+assert.doesNotThrow(() => core.validateRdeStructure_(excerptRde, operationalExpected, dateCatalog));
+function invalidExcerpt(candidate, code, overrides = {}) {
+  assert.throws(() => core.validateRdeStructure_({
+    ...excerptRde, documentary_text_excerpt_items: [candidate], ...overrides
+  }, operationalExpected, dateCatalog), error => error.code === code);
+}
+const excerpt = excerptRde.documentary_text_excerpt_items[0];
+invalidExcerpt({ ...excerpt, record_id: 'R_MISSING' }, 'RDE_TEXT_EXCERPT_RECORD_DANGLING');
+invalidExcerpt({ ...excerpt, source_document: 'R_DATE_REPORT' }, 'RDE_TEXT_EXCERPT_SOURCE_INVALID');
+invalidExcerpt({ ...excerpt, excerpt_item_id: '' }, 'RDE_TEXT_EXCERPT_ITEM_INVALID');
+invalidExcerpt({ ...excerpt, unexpected: true }, 'RDE_TEXT_EXCERPT_ITEM_INVALID');
+invalidExcerpt({ ...excerpt, provenance: [] }, 'RDE_TEXT_EXCERPT_PROVENANCE_INVALID');
+const excerptWithAccessor = { ...excerpt };
+Object.defineProperty(excerptWithAccessor, 'excerpt_text', {
+  enumerable: true, get() { throw new Error('excerpt accessor must not execute'); }
+});
+invalidExcerpt(excerptWithAccessor, 'RDE_TEXT_EXCERPT_ITEM_INVALID');
+invalidExcerpt(excerpt, 'RDE_TEXT_EXCERPT_SOURCE_MISMATCH', {
+  records: [...dateRecords, record('R_OTHER_SOURCE', 'TEST_DOCUMENT', null, 'R_OTHER_SOURCE', {})],
+  documentary_text_excerpt_items: [{ ...excerpt, source_document: 'R_OTHER_SOURCE' }]
+});
+assert.throws(() => core.validateRdeStructure_({
+  ...excerptRde,
+  documentary_text_excerpt_items: [excerpt, { ...excerpt, excerpt_item_id: 'EXCERPT-001' }]
+}, operationalExpected, dateCatalog), error => error.code === 'RDE_TEXT_EXCERPT_ID_DUPLICATE');
+assert.throws(() => core.validateRdeStructure_({
+  ...excerptRde, documentary_text_excerpt_items: new Array(1)
+}, operationalExpected, dateCatalog), error => error.code === 'RDE_TEXT_EXCERPT_ITEMS_INVALID');
+
 const activityRde = {
   ...declarationRde,
   schema_version: '0.6.0',
@@ -624,6 +674,7 @@ const activityRde = {
   }]
 };
 delete activityRde.drt_scope_declaration_items;
+delete activityRde.documentary_text_excerpt_items;
 assert.doesNotThrow(() => core.validateRdeStructure_(activityRde, operationalExpected, declarationCatalog));
 assert.throws(() => core.validateRdeStructure_({
   ...activityRde,

@@ -2,8 +2,8 @@ Documento 09 – Especificação da Representação Documental Estruturada (RDE)
 
 PURPOSE
 
-RDE_SCHEMA_VERSION: 0.7.0
-DOCUMENT_VERSION: 1.10.0
+RDE_SCHEMA_VERSION: 0.8.0
+DOCUMENT_VERSION: 1.11.0
 
 Este documento define exclusivamente a estrutura e os princípios da
 Representação Documental Estruturada (RDE).
@@ -471,7 +471,7 @@ interface de consumo pelo Engine deve ser autenticada e somente leitura.
 A representação do sidecar segue o contrato do pipeline definido em
 08_execution_pipeline.txt.
 
-RDE 0.2.0/0.3.0/0.4.0/0.5.0/0.6.0/0.7.0 → IMMUTABLE EXECUTION VIEW
+RDE 0.2.0/0.3.0/0.4.0/0.5.0/0.6.0/0.7.0/0.8.0 → IMMUTABLE EXECUTION VIEW
 
 Cada registro RDE gera exatamente um TypedReference documental primário:
 
@@ -616,3 +616,38 @@ nem navegação arbitrária por caminhos.
 Esta projeção não normaliza `OFFICIAL_ESCI_CODE`, não resolve applicability e
 não cria `PROCESS.SMSCI`. A normalização de códigos permanece conforme
 `02a_applicability` e `08_execution_pipeline`.
+
+------------------------------------------------------------------------
+
+DOCUMENTARY TEXT EXCERPT ITEMS — DRAFT 0.8.0
+
+RDE 0.8.0 acrescenta a coleção `documentary_text_excerpt_items`, composta por
+fatos de transcrição literal sem classificação normativa. Cada item contém:
+
+`excerpt_item_id`, `record_id`, `excerpt_text`, `source_document` e, quando
+disponível, `provenance`.
+
+`excerpt_item_id` é opaco, único e estável após a validação. `record_id` deve
+resolver para um registro da mesma RDE. `source_document` deve resolver para
+`TYPE DOCUMENT` e coincidir exatamente com o `source_document` do registro
+vinculado. `excerpt_text` é trecho literal não vazio (máximo técnico de 10.000
+caracteres); não deve ser parafraseado, corrigido, combinado a partir de
+ocorrências distintas ou convertido em categorias/identificadores normativos.
+`provenance`, quando presente, preserva somente origem/localização factual em
+JSON simples. A coleção preserva multiplicidade e ordem; IDs duplicados ou
+referências órfãs tornam a RDE inválida.
+
+A coleção não afirma que o trecho seja completo, que todos os itens exigidos
+estejam presentes, nem que um item normativo tenha sido atendido. Uma coleção
+vazia significa somente que nenhum item foi emitido; não prova ausência do
+conteúdo no documento. A ausência da coleção em RDE 0.2.0–0.7.0 significa
+`COLLECTION_UNAVAILABLE_IN_SCHEMA`, não coleção vazia. Nenhum consumidor pode
+deduzir completude, ausência, conformidade ou não conformidade desses trechos.
+
+A ImmutableExecutionView expõe `documentaryTextExcerptItems(ref)`, filtrada
+pelo registro exato e contendo referências tipadas ao registro e ao documento
+fonte, texto literal e provenance. O resultado é imutável e vinculado à RDE
+validada original e ao seu digest. A interface não reabre o documento-fonte.
+Não é criado mapeamento para itens do art. 122, NBR, Requirements, Criteria,
+Nonconformities ou resultados. A execução permanece a cargo dos contratos
+declarados fora da RDE.

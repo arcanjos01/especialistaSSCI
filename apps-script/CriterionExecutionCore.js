@@ -145,6 +145,9 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
   const isIn08Tightness = unit.requirement &&
     unit.requirement.id === 'REQ_IN08_ESTANQUEIDADE' &&
     unit.criterion.id === 'T4_IN08_ESTANQUEIDADE';
+  const isIn09TestReport = unit.requirement &&
+    unit.requirement.id === 'REQ_IN09_TEST_REPORT' &&
+    unit.criterion.id === 'T4_IN09_TEST_REPORT';
   let documentaryDateItems = null;
   if (isIn08Tightness) {
     criterionExecutionRequire_(product.kind === 'TEST_REPORT' &&
@@ -153,6 +156,24 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
     documentaryDateItems = view.documentaryDateItems(product);
     criterionExecutionRequire_(Array.isArray(documentaryDateItems),
       'IN08 date disclosure collection is invalid');
+  }
+  let documentaryTextExcerptItems = null;
+  let documentaryTextExcerptCollectionState = null;
+  if (isIn09TestReport) {
+    criterionExecutionRequire_(product.kind === 'TEST_REPORT',
+      'IN09 excerpt disclosure requires the exact TEST_REPORT reference');
+    if (view.schemaVersion() === '0.8.0') {
+      criterionExecutionRequire_(typeof view.documentaryTextExcerptItems === 'function',
+        'IN09 excerpt collection is unavailable in the execution view');
+      documentaryTextExcerptItems = view.documentaryTextExcerptItems(product);
+      criterionExecutionRequire_(Array.isArray(documentaryTextExcerptItems),
+        'IN09 excerpt collection is invalid');
+      documentaryTextExcerptCollectionState = documentaryTextExcerptItems.length
+        ? 'EXCERPTS_PRESERVED' : 'NO_EXCERPT_ITEMS_IN_COLLECTION';
+    } else {
+      documentaryTextExcerptItems = null;
+      documentaryTextExcerptCollectionState = 'COLLECTION_UNAVAILABLE_IN_SCHEMA';
+    }
   }
   const binding = {
     type: 'TECHNICAL_PRODUCT_ATTRIBUTE',
@@ -167,6 +188,13 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
     }
   };
   if (isIn08Tightness) binding.documentaryDateItems = documentaryDateItems;
+  if (isIn09TestReport) {
+    binding.documentaryTextExcerptDisclosure = {
+      state: documentaryTextExcerptCollectionState,
+      completeness: 'NOT_ASSERTED',
+      items: documentaryTextExcerptItems
+    };
+  }
   return Object.freeze({
     expression: new PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE', {
       technicalProduct: product, attribute: evidenceAttribute

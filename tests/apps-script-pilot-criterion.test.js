@@ -98,6 +98,8 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   signedProducts = [], in19DrtEntityId = null,
   executionDrts = [],
   documentaryDateItems = [],
+  documentaryTextExcerptItems = [],
+  useExcerptSchema = false,
   requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -279,9 +281,10 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       }
     });
   }
+  const usesExcerptSchema = useExcerptSchema || documentaryTextExcerptItems.length > 0;
   const usesDateItems = documentaryDateItems.length > 0;
   return {
-    schema_version: usesDateItems ? '0.5.0' : '0.2.0', process_id: 'TEST_ONLY_PROCESS',
+    schema_version: usesExcerptSchema ? '0.8.0' : (usesDateItems ? '0.5.0' : '0.2.0'), process_id: 'TEST_ONLY_PROCESS',
     source: {
       file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf', mime_type: 'application/pdf',
       source_url: 'TEST_ONLY_URL', sha256: '0'.repeat(64)
@@ -296,6 +299,14 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       documentary_associations: [],
       drt_declaration_items: [],
       documentary_date_items: documentaryDateItems
+    } : {}),
+    ...(usesExcerptSchema ? {
+      documentary_associations: [],
+      drt_declaration_items: [],
+      documentary_date_items: documentaryDateItems,
+      drt_activity_items: [],
+      drt_scope_declaration_items: [],
+      documentary_text_excerpt_items: documentaryTextExcerptItems
     } : {})
   };
 }
@@ -483,7 +494,16 @@ for (const signedProductCase of [
     signedProducts: [{
       entityId: signedProductCase.entityId,
       signatureMechanism: 'ICP-Brasil / PAdES'
-    }]
+    }],
+    ...(signedProductCase.criterionId === 'T4_IN09_TEST_REPORT' ? {
+      useExcerptSchema: true,
+      documentaryTextExcerptItems: [{
+        excerpt_item_id: 'IN09-EXCERPT-001', record_id: 'SIGNED_PRODUCT_1',
+        excerpt_text: 'Pressão estabilizada durante o ensaio.',
+        source_document: 'DOC_SIGNED_PRODUCT_1',
+        provenance: { sourceKind: 'TEST_ONLY', page: 7, line: 12 }
+      }]
+    } : {})
   });
   assert.equal(signedProduct.plan.PLANNED_EXECUTION_UNITS.some(
     unit => unit.unitKey === signedProductCase.unitKey
@@ -546,6 +566,21 @@ for (const signedProductCase of [
       signedProductResult.traceability.documentaryBinding.validationBinding.documentaryDateItems
     )), []);
   }
+  if (signedProductCase.criterionId === 'T4_IN09_TEST_REPORT') {
+    const disclosure = signedProductBinding.validationBinding.documentaryTextExcerptDisclosure;
+    assert.equal(disclosure.state, 'EXCERPTS_PRESERVED');
+    assert.equal(disclosure.completeness, 'NOT_ASSERTED');
+    assert.deepEqual(JSON.parse(JSON.stringify(disclosure.items)), [{
+      excerptItemId: 'IN09-EXCERPT-001',
+      record: { kind: 'TEST_REPORT', identifier: 'SIGNED_PRODUCT_1' },
+      excerptText: 'Pressão estabilizada durante o ensaio.',
+      sourceDocument: { kind: 'DOCUMENT', identifier: 'DOC_SIGNED_PRODUCT_1' },
+      provenance: { sourceKind: 'TEST_ONLY', page: 7, line: 12 }
+    }]);
+    assert.equal(signedProductResult.engineResult, api.EngineResult.MANUAL_REVIEW,
+      'literal excerpts do not determine normative completeness or PASS');
+    assert.equal(signedProductResult.nonconformityOnFalse, undefined);
+  }
 
   const unsignedProduct = prepare({
     includeGas: signedProductCase.includeGas === true,
@@ -554,7 +589,8 @@ for (const signedProductCase of [
     includeSprinkler: signedProductCase.includeSprinkler === true,
     includePressurization: signedProductCase.includePressurization,
     includeCmar: signedProductCase.includeCmar,
-    signedProducts: [{ entityId: signedProductCase.entityId }]
+    signedProducts: [{ entityId: signedProductCase.entityId }],
+    ...(signedProductCase.criterionId === 'T4_IN09_TEST_REPORT' ? { useExcerptSchema: true } : {})
   });
   const unsignedProductResult = api.executePlannedCriterion(
     contract, unsignedProduct.plan, signedProductCase.unitKey, unsignedProduct.view
@@ -563,6 +599,13 @@ for (const signedProductCase of [
   assert.equal(unsignedProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(unsignedProductResult.resultOrigin, 'EVALUATED');
   assert.equal(unsignedProductResult.nonconformityOnFalse, undefined);
+  if (signedProductCase.criterionId === 'T4_IN09_TEST_REPORT') {
+    const disclosure = unsignedProductResult.traceability.documentaryBinding
+      .validationBinding.documentaryTextExcerptDisclosure;
+    assert.equal(disclosure.state, 'NO_EXCERPT_ITEMS_IN_COLLECTION');
+    assert.equal(disclosure.completeness, 'NOT_ASSERTED');
+    assert.deepEqual(JSON.parse(JSON.stringify(disclosure.items)), []);
+  }
   assert.deepEqual(JSON.parse(JSON.stringify(
     unsignedProductResult.traceability.documentaryBinding.validationBinding
       .signatureMechanismDisclosure

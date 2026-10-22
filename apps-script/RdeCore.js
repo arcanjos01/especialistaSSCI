@@ -1,6 +1,6 @@
 /** Schema da RDE persistida pelo projeto Apps Script. */
-const RDE_SCHEMA_VERSION = '0.7.0';
-const RDE_PREVIOUS_SCHEMA_VERSION = '0.6.0';
+const RDE_SCHEMA_VERSION = '0.8.0';
+const RDE_PREVIOUS_SCHEMA_VERSION = '0.7.0';
 const RDE_LEGACY_SCHEMA_VERSION = '0.3.0';
 const RDE_HISTORICAL_SCHEMA_VERSION = '0.2.0';
 const RDE_INTRINSIC_GET_DESCRIPTOR_ = Object.getOwnPropertyDescriptor;
@@ -64,7 +64,7 @@ function lockRdeValidationHelpers_() {
     'isPlainRdeObject_', 'rdeEntityDefinition_', 'validateRdeRecordEnvelope_',
     'canonicalRdeJson_', 'validateRdeDocumentaryAssociations_',
     'validateRdeDrtDeclarationItems_', 'validateRdeDocumentaryDateItems_', 'validateRdeActivityItems_',
-    'validateRdeDrtScopeDeclarationItems_',
+    'validateRdeDrtScopeDeclarationItems_', 'validateRdeDocumentaryTextExcerptItems_',
     'rdeHasOwn_', 'rdeNonBlankText_', 'rdeLiteralIndexOf_',
     'validateRdeStructure_', 'parseAndValidateOperationalRdeJson_',
     'validateSourceHash_', 'sha256Hex_', 'rdeSha256Fallback_', 'validatedRdeDigest_'
@@ -83,7 +83,8 @@ function lockRdeValidationHelpers_() {
 }
 function isSupportedRdeSchemaVersion_(version) {
   return version === '0.2.0' || version === '0.3.0' || version === '0.4.0' ||
-    version === '0.5.0' || version === '0.6.0' || version === '0.7.0';
+    version === '0.5.0' || version === '0.6.0' || version === '0.7.0' ||
+    version === '0.8.0';
 }
 const RDE_EXTRACTOR_VERSION = '0.1.0';
 const RDE_FAKE_PROVIDER = 'FAKE_DETERMINISTIC';
@@ -113,6 +114,7 @@ function buildFakeRde_(input) {
     documentary_date_items: [],
     drt_activity_items: [],
     drt_scope_declaration_items: [],
+    documentary_text_excerpt_items: [],
     extraction_warnings: [RDE_FAKE_WARNING]
   };
 }
@@ -158,6 +160,7 @@ function validateRde_(rde, expected) {
     'documentary_date_items',
     'drt_activity_items',
     'drt_scope_declaration_items',
+    'documentary_text_excerpt_items',
     'extraction_warnings'
   ])) {
     throw new Error('RDE deve ser um objeto JSON.');
@@ -228,6 +231,10 @@ function validateRde_(rde, expected) {
   if (!Array.isArray(rde.drt_activity_items) || rde.drt_activity_items.length !== 0 ||
       !Array.isArray(rde.drt_scope_declaration_items) || rde.drt_scope_declaration_items.length !== 0) {
     throw new Error('drt_activity_items deve ser vazia no extrator fake.');
+  }
+  if (!Array.isArray(rde.documentary_text_excerpt_items) ||
+      rde.documentary_text_excerpt_items.length !== 0) {
+    throw new Error('documentary_text_excerpt_items deve ser vazia no extrator fake.');
   }
 
   if (
@@ -1118,6 +1125,90 @@ function validateRdeDocumentaryDateItems_(items, records, entityCatalog) {
   return true;
 }
 
+function validateRdeDocumentaryTextExcerptItems_(items, records, entityCatalog) {
+  if (!RDE_INTRINSIC_IS_ARRAY_(items) || RDE_INTRINSIC_GET_SYMBOLS_(items).length ||
+      RDE_INTRINSIC_KEYS_(items).length !== items.length ||
+      RDE_INTRINSIC_GET_NAMES_(items).length !== items.length + 1) {
+    throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ITEMS_INVALID',
+      'documentary_text_excerpt_items deve ser um array denso sem propriedades extras.');
+  }
+  const recordsById = Object.create(null);
+  for (let index = 0; index < records.length; index += 1) {
+    const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(records, String(index));
+    if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_RECORD_INVALID',
+        'records deve conter dados em todas as posições.');
+    }
+    recordsById[descriptor.value.record_id] = descriptor.value;
+  }
+  const ids = Object.create(null);
+  for (let index = 0; index < items.length; index += 1) {
+    const descriptor = RDE_INTRINSIC_GET_DESCRIPTOR_(items, String(index));
+    if (!descriptor || !rdeHasOwn_(descriptor, 'value')) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ITEMS_INVALID',
+        'documentary_text_excerpt_items deve conter dados em todas as posições.');
+    }
+    const item = descriptor.value;
+    if (!isPlainRdeObject_(item)) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ITEM_INVALID',
+        'item deve ser um objeto simples.');
+    }
+    const required = ['excerpt_item_id', 'record_id', 'excerpt_text', 'source_document'];
+    const allowed = required.concat(['provenance']);
+    const keys = RDE_INTRINSIC_KEYS_(item);
+    if (RDE_INTRINSIC_GET_SYMBOLS_(item).length ||
+        RDE_INTRINSIC_GET_NAMES_(item).length !== keys.length ||
+        keys.some(key => {
+          const field = RDE_INTRINSIC_GET_DESCRIPTOR_(item, key);
+          return !field || !rdeHasOwn_(field, 'value');
+        }) || required.some(key => !keys.includes(key)) ||
+        keys.some(key => !allowed.includes(key))) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ITEM_INVALID',
+        'item tem campos ausentes ou não declarados.');
+    }
+    if (!rdeNonBlankText_(item.excerpt_item_id) || item.excerpt_item_id.length > 128 ||
+        !rdeNonBlankText_(item.record_id) ||
+        !rdeNonBlankText_(item.excerpt_text) || item.excerpt_text.length > 10000 ||
+        !rdeNonBlankText_(item.source_document)) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ITEM_INVALID',
+        'id, vínculo, trecho e documento-fonte devem ser literais válidos.');
+    }
+    if (rdeHasOwn_(ids, item.excerpt_item_id)) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_ID_DUPLICATE',
+        'excerpt_item_id duplicado: ' + item.excerpt_item_id);
+    }
+    ids[item.excerpt_item_id] = true;
+    const record = recordsById[item.record_id];
+    if (!record || !entityCatalog[record.entity_id]) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_RECORD_DANGLING',
+        'record_id deve resolver para um registro da mesma RDE.');
+    }
+    const source = recordsById[item.source_document];
+    const sourceDefinition = source && entityCatalog[source.entity_id];
+    if (!source || !sourceDefinition || sourceDefinition.TYPE !== 'DOCUMENT') {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_SOURCE_INVALID',
+        'source_document deve resolver para TYPE DOCUMENT na mesma RDE.');
+    }
+    if (item.source_document !== record.source_document) {
+      throw makeRdeValidationError_('RDE_TEXT_EXCERPT_SOURCE_MISMATCH',
+        'source_document deve corresponder à origem exata do registro vinculado.');
+    }
+    if (rdeHasOwn_(item, 'provenance')) {
+      if (item.provenance !== null && !isPlainRdeObject_(item.provenance)) {
+        throw makeRdeValidationError_('RDE_TEXT_EXCERPT_PROVENANCE_INVALID',
+          'provenance deve ser objeto simples quando informada.');
+      }
+      try {
+        canonicalRdeJson_(item.provenance);
+      } catch (error) {
+        throw makeRdeValidationError_('RDE_TEXT_EXCERPT_PROVENANCE_INVALID',
+          'provenance deve conter somente valores JSON simples.');
+      }
+    }
+  }
+  return true;
+}
+
 function validateRdeActivityItems_(items, records, entityCatalog) {
   if (!RDE_INTRINSIC_IS_ARRAY_(items) || RDE_INTRINSIC_GET_SYMBOLS_(items).length ||
       RDE_INTRINSIC_KEYS_(items).length !== items.length ||
@@ -1320,7 +1411,7 @@ function validateRdeDrtScopeDeclarationItems_(items, records, entityCatalog) {
   return true;
 }
 
-/** Valida RDE 0.2.0-0.7.0 sem executar Requirements ou Criteria. */
+/** Valida RDE 0.2.0-0.8.0 sem executar Requirements ou Criteria. */
 function validateRdeStructure_(rde, expected, entityCatalog) {
   requireRdeObject_(rde, 'RDE');
 
@@ -1329,7 +1420,7 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
       !isSupportedRdeSchemaVersion_(schemaDescriptor.value)) {
     throw makeRdeValidationError_(
       'RDE_SCHEMA_VERSION_MISMATCH',
-      'schema_version deve ser 0.7.0, 0.6.0, 0.5.0, 0.4.0, 0.3.0 ou 0.2.0.'
+      'schema_version deve ser 0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0, 0.3.0 ou 0.2.0.'
     );
   }
   const schemaVersion = schemaDescriptor.value;
@@ -1343,7 +1434,14 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
     expectedEnvelopeKeys.push('documentary_date_items');
     expectedEnvelopeKeys.push('drt_activity_items');
     expectedEnvelopeKeys.push('drt_scope_declaration_items');
+    expectedEnvelopeKeys.push('documentary_text_excerpt_items');
   } else if (schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+    expectedEnvelopeKeys.push('documentary_associations');
+    expectedEnvelopeKeys.push('drt_declaration_items');
+    expectedEnvelopeKeys.push('documentary_date_items');
+    expectedEnvelopeKeys.push('drt_activity_items');
+    expectedEnvelopeKeys.push('drt_scope_declaration_items');
+  } else if (schemaVersion === '0.6.0') {
     expectedEnvelopeKeys.push('documentary_associations');
     expectedEnvelopeKeys.push('drt_declaration_items');
     expectedEnvelopeKeys.push('documentary_date_items');
@@ -1421,28 +1519,34 @@ function validateRdeStructure_(rde, expected, entityCatalog) {
 
   if (schemaVersion === RDE_SCHEMA_VERSION ||
       schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
+      schemaVersion === '0.6.0' ||
       schemaVersion === RDE_LEGACY_SCHEMA_VERSION ||
       schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     const associationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_associations');
     validateRdeDocumentaryAssociations_(associationsDescriptor.value, rde.records, entityCatalog);
   }
   if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
-      schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
+      schemaVersion === '0.6.0' || schemaVersion === '0.4.0' || schemaVersion === '0.5.0') {
     const declarationsDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_declaration_items');
     validateRdeDrtDeclarationItems_(declarationsDescriptor.value, rde.records, entityCatalog);
   }
   if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
-      schemaVersion === '0.5.0') {
+      schemaVersion === '0.6.0' || schemaVersion === '0.5.0') {
     const datesDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_date_items');
     validateRdeDocumentaryDateItems_(datesDescriptor.value, rde.records, entityCatalog);
   }
-  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION ||
+      schemaVersion === '0.6.0') {
     const activitiesDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_activity_items');
     validateRdeActivityItems_(activitiesDescriptor.value, rde.records, entityCatalog);
   }
-  if (schemaVersion === RDE_SCHEMA_VERSION) {
+  if (schemaVersion === RDE_SCHEMA_VERSION || schemaVersion === RDE_PREVIOUS_SCHEMA_VERSION) {
     const scopeItemsDescriptor = Object.getOwnPropertyDescriptor(rde, 'drt_scope_declaration_items');
     validateRdeDrtScopeDeclarationItems_(scopeItemsDescriptor.value, rde.records, entityCatalog);
+  }
+  if (schemaVersion === RDE_SCHEMA_VERSION) {
+    const excerptItemsDescriptor = Object.getOwnPropertyDescriptor(rde, 'documentary_text_excerpt_items');
+    validateRdeDocumentaryTextExcerptItems_(excerptItemsDescriptor.value, rde.records, entityCatalog);
   }
 
   if (!Array.isArray(rde.extraction_warnings)) {

@@ -298,6 +298,39 @@ assert.equal(Object.isFrozen(projectedScopes[0]), true);
 assert.throws(() => scopeView.drtScopeDeclarationItems(
   new api.TypedReference('DOCUMENT', 'R_DRT_SOURCE')
 ), /requires a concrete ART, RRT or TRT DOCUMENT reference/);
+const excerptRde = {
+  ...scopeRde,
+  schema_version: '0.8.0',
+  documentary_text_excerpt_items: [{
+    excerpt_item_id: 'EXCERPT-001', record_id: 'R_SCOPE_PRODUCT',
+    excerpt_text: 'Pressão estabilizada conforme ensaio.',
+    source_document: 'R_DRT_RECORD', provenance: { page: 5, line: 8 }
+  }]
+};
+const excerptSnapshot = JSON.stringify(excerptRde);
+const excerptView = api.projectRdeToExecutionView_(api.parseAndValidateOperationalRdeJson_(
+  JSON.stringify(excerptRde), scopeExpected, scopeEntityCatalog
+), scopeEntityCatalog);
+const excerptItems = excerptView.documentaryTextExcerptItems(
+  new api.TypedReference('TEST_REPORT', 'R_SCOPE_PRODUCT')
+);
+assert.deepEqual(JSON.parse(JSON.stringify(excerptItems)), [{
+  excerptItemId: 'EXCERPT-001',
+  record: { kind: 'TEST_REPORT', identifier: 'R_SCOPE_PRODUCT' },
+  excerptText: 'Pressão estabilizada conforme ensaio.',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'R_DRT_RECORD' },
+  provenance: { page: 5, line: 8 }
+}]);
+assert.equal(Object.isFrozen(excerptItems), true);
+assert.equal(Object.isFrozen(excerptItems[0]), true);
+assert.equal(Object.isFrozen(excerptItems[0].provenance), true);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  excerptView.documentaryTextExcerptItems(new api.TypedReference('TEST_REPORT', 'R_SCOPE_PRODUCT'))
+)), JSON.parse(JSON.stringify(excerptItems)));
+assert.equal(JSON.stringify(excerptRde), excerptSnapshot);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  scopeView.documentaryTextExcerptItems(new api.TypedReference('TEST_REPORT', 'R_SCOPE_PRODUCT'))
+)), [], 'legacy schema has no excerpt entries; callers must inspect schemaVersion');
 const dateRde = {
   ...declarationRde,
   schema_version: '0.5.0',

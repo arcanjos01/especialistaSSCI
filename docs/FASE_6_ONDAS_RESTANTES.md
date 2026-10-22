@@ -1,5 +1,32 @@
 # Fase 6 — acompanhamento das ondas restantes
 
+## Lote de trechos literais documentais para IN09 — em implementação, 2026-10-22
+
+- Checkout reconciliado: branch `feature/apps-script-engine-core`; HEAD local e
+  remoto `5b978414f2c4ca67e0be72bdb7da7900b70bc5eb`. Alterações locais
+  preexistentes em `RdeCore.js` e `ExecutionViewCore.js` foram preservadas;
+  `.codex-local-evidence/` continua fora do Git.
+- Objetivo do lote: reduzir o bloqueio factual `F6-MC-006` pela camada de
+  preservação/disclosure de trechos literais. Candidato adiciona coleção
+  FACT ONLY `documentary_text_excerpt_items` na RDE 0.8 e acesso imutável por
+  registro exato na ImmutableExecutionView. Não há classificação de conteúdo,
+  ids normativos, completude, associação DRT-produto ou comparação com itens
+  do art. 122/NBR.
+- `T4_IN09_TEST_REPORT` divulga os trechos e provenance ligados ao relatório
+  exato. RDE 0.2–0.7 informa `COLLECTION_UNAVAILABLE_IN_SCHEMA`; coleção vazia
+  informa somente que nenhum item foi emitido, com `completeness=NOT_ASSERTED`.
+  O Criterion permanece `MANUAL_REVIEW`, sem PASS/FAIL/Nonconformity por
+  insuficiência. Não há novo Criterion integralmente coberto.
+- Dependência reduzida: contrato genérico de transcrição e projeção factual
+  agora existe para evolução futura de extração. A extração real e o julgamento
+  de itens aplicáveis permanecem fora deste lote; não usar processo real.
+- Testes direcionados iniciais após implementação: RDE core, ImmutableExecutionView,
+  piloto do Criterion e identidades da KB; resultados finais serão anexados
+  após completar testes adversariais, gates completos e revisão independente.
+  Contagem atual não alterada: 34 ativos, 29 produtivos, 10 integrais, 18
+  parciais, 1 preparatório, 19 pendentes integrais, 5 não selecionáveis e 2
+  retirados. `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
+
 Status de acompanhamento: `IN_PROGRESS`
 Baseline reconciliado: `f826ac7d453b7744fed11bed23824acac9fcbb72`
 Branch: `feature/apps-script-engine-core`
