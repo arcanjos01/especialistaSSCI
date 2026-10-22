@@ -5452,9 +5452,11 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`, phase/
   manifest guards pela suíte Python e `git diff --check`: `PASS`. Revisão
   independente Luna read-only do delta desde `80ef905`: `PASS`, nenhum finding
-  BLOCKER/HIGH/MEDIUM/LOW; não executou testes.
+  BLOCKER/HIGH/MEDIUM/LOW; não executou testes. Parecer ratificado para o
+  candidato exato `e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`.
 - Benefício: o vistoriador vê o signatário e o mecanismo declarados na própria
   DRT junto à referência fonte, sem confundi-los com autenticidade. Esforço
   aproximado: 25 minutos; uma revisão independente, sem re-review; ganho
-  integral `0`. Build limpo, confirmação do SHA final e push do lote ainda
-  pendentes.
+  integral `0`. Release build limpo `PASS`, 10 documentos,
+  `SOURCE_COMMIT=e3c539b3800dc646f9c6d7731d5b57bbfb76dfc5`; worktree limpa e
+  `git push` não destrutivo confirmado na branch.
