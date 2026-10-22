@@ -5321,3 +5321,28 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   sistema/campo, ou mapeamentos expressos cuja autoridade tenha sido confirmada.
 - Coleta documental feita por `luna_economy`, read-only; principal integrou a
   conclusão. Não foi revisão independente de código/arquitetura nem parecer Sol.
+
+### IRV Tabela 1 — alcance dos dados básicos da DRT — 2026-10-22
+
+- Conferência visual e textual da página 4 de 38 do Anexo A da IRV Habite-se
+  2024 (`references/irv habitese.pdf`). Para “Correto registro das informações
+  básicas no(s) DRT”, a ação literal é: “Identificar e conferir no(s) DRT o
+  nome do RI, o nome do RT, o endereço da edificação e a área informada do
+  imóvel.” A coluna de causas fala em informações ausentes ou inconsistentes e
+  lista os mesmos quatro campos. O trecho não nomeia o documento comparando nem
+  escolhe uma regra de igualdade entre documentos.
+- O Anexo B da IN 1 - Parte 1, preservado como fatos distintos em
+  `REQUERIMENTO_ESCI`, contém componentes de endereço e duas dimensões de área:
+  `PROPERTY_LAND_AREA_TEXT` e `PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT`. A IRV usa
+  “área informada do imóvel”, sem indicar qual campo do Anexo B corresponde à
+  área registrada na DRT. A Base atual compara ao processo e atribui
+  Nonconformities por campo; não reescrever essa semântica sem decisão que
+  identifique o comparando.
+- Decisão humana solicitada para definir a próxima implementação: (a) expor
+  apenas presença/literal dos campos encontrados no DRT e manter a conferência
+  de consistência em `MANUAL_REVIEW`; ou (b) comparar com fonte indicada pelo
+  responsável, especificando comparandos para RI, RT, endereço e qual dimensão
+  de área prevalece. Até resposta, esses quatro Criteria continuam
+  `SOURCE_DEFINED_NEEDS_FORMALIZATION`; cobertura não muda.
+- Fonte visualmente conferida: Anexo A, Tabela 1, p. 4 de 38 da IRV Habite-se
+  2024. Nenhum requisito foi alterado nesta verificação.
