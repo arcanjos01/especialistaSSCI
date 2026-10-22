@@ -43,7 +43,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertEqual(self.pipeline.count("KNOWLEDGE_BASE_VERSION:"), 1)
         self.assertEqual(self.pipeline.count("SOURCE_COMMIT:"), 1)
         self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_ID: SSCI-HABITESE")
-        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.45\.0")
+        self.assertRegex(self.pipeline, r"KNOWLEDGE_BASE_VERSION: 5\.46\.0")
 
     def test_in09_drt_is_manual_and_does_not_evaluate_activity_smsci_compatibility(self):
         requirement = re.search(
@@ -78,6 +78,22 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
         self.assertIn("Do not infer `NON_MECHANICAL` from absence", self.applicability)
         self.assertIn("APPLIES_TO SMSCI_SMOKE_CONTROL_MECHANICAL", self.table_4)
         self.assertIn("SMSCI SMSCI_SMOKE_CONTROL_MECHANICAL", self.requirements)
+
+    def test_in10_manual_review_explains_independence_limit_without_concluding(self):
+        criterion = re.search(
+            r"(?ms)^CRITERION T4_IN10_COMMISSIONING\b(.*?)^END\s*$",
+            self.table_4,
+        )
+        self.assertIsNotNone(criterion)
+        body = criterion.group(1)
+        self.assertIn("ASSERT MANUAL_REVIEW", body)
+        self.assertIn("A execução automática não conclui a independência", body)
+        self.assertIn(
+            "RT diferente do solicitante, isoladamente, não comprova",
+            body,
+        )
+        self.assertIn("A correspondência entre DRT, produto e SMSCI permanece", body)
+        self.assertNotRegex(body, r"(?m)^ASSERT\s+FAIL\b")
 
     def test_in10_request_party_identity_is_fact_only_and_report_private(self):
         entity = re.search(
@@ -149,7 +165,7 @@ class KnowledgeBaseIdentityContractTests(unittest.TestCase):
 
     def test_operational_report_exposes_only_short_global_release(self):
         operational, audit = self.reports.split("ANEXO TÉCNICO DE AUDITORIA", 1)
-        self.assertIn("Base: SSCI-Habite-se 5.45.0", operational)
+        self.assertIn("Base: SSCI-Habite-se 5.46.0", operational)
         self.assertNotIn("SOURCE_COMMIT:", operational)
         self.assertIn(
             "Não exibir no relatório operacional SOURCE_COMMIT, DOCUMENT_SET",

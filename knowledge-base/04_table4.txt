@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.8
+# VERSION 3.9
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -247,7 +247,7 @@ REQUIREMENT REQ_IN10_COMMISSIONING
 REQUIRE DOCUMENT SMOKE_CONTROL_COMMISSIONING_REPORT
 
 ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a autoria independente do relatório e a correspondência entre DRT, produto e SMSCI."
+MANUAL_REVIEW "A execução automática não conclui a independência do responsável pelo comissionamento em relação ao projeto e à execução. Confira manualmente a autoria do relatório e as evidências pertinentes; RT diferente do solicitante, isoladamente, não comprova a independência exigida. A correspondência entre DRT, produto e SMSCI permanece para análise humana."
 
 FAIL NC_T4_008
 
