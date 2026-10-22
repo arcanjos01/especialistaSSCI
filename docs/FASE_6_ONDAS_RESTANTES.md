@@ -4471,3 +4471,26 @@ clarificação do responsável sobre associações documentais explícitas em
 `ARCHITECTURAL_REVIEW=PENDING`; `PROMOTION=NOT_AUTHORIZED`;
 `CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial; 19 pendentes)`;
 `FASE_6B_STATUS=IN_PROGRESS`.
+
+### Revisão independente e correções dirigidas do vínculo preparatório — 2026-10-22
+
+- `a70494b0d464ac644efe56a1638699b6a6ad7d7e`: revisão técnica independente
+  `FAIL`, execução `01a163ab-71cc-7b31-8ece-0e7ba1475418`. Revisor declarou
+  Codex baseado em GPT-6; backend/versão efetivos sem atestado. A flag CLI
+  `gpt-6.1-sol` não comprovou identidade Sol: `SOL_REVIEW=NOT_PERFORMED`.
+- HIGH: serialização dinâmica permitia autenticar `receiptId` alterado com a
+  assinatura anterior, contornando unicidade dentro da execução. MEDIUM:
+  referência forjada com `Object.create(TypedReference.prototype)` permanecia
+  mutável depois de aceita e autenticada por igualdade de objeto.
+- Correções: capturar o serializador intrínseco para valores e chaves; exigir
+  referência congelada com campos próprios de dados; revalidar congelamento no
+  consumo. Regressões reproduzem ambos os ataques e recusam os candidatos.
+- O revisor executou nove suítes JS, 12 testes Python do recibo, sintaxe/diff
+  e os ataques em memória. Não reproduziu os gates completos nem o build.
+  O orquestrador executou os gates completos no candidato e no follow-up:
+  Python 201/12 SKIP, 12 suítes JS, sintaxe, runtime byte-idêntico e diff PASS.
+  Re-review dirigida do SHA corrigido ainda pendente. O build limpo anterior
+  contém 10 documentos, KB 5.39.0, SOURCE_COMMIT exato `a70494b`.
+
+`ARCHITECTURAL_REVIEW=PENDING`; `PROMOTION=NOT_AUTHORIZED`;
+`CRITERIA_COVERAGE=UNCHANGED`; nenhuma correção introduz admissão de assinatura.

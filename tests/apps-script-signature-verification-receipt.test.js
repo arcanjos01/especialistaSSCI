@@ -392,4 +392,31 @@ assert.equal(vm.runInContext(
 assert.equal(createBindingWith({ receipt: freshReceipt, plan: secondPlan }), null,
   'receipt ids are unique within this runtime even across genuine plans');
 
+// Regressions for independent review findings HIGH and MEDIUM.
+const referenceAttackPayload = JSON.parse(JSON.stringify(bindingPayload));
+referenceAttackPayload.receiptId = 'TEST_MUTABLE_REFERENCE';
+context.referenceAttackReceiptJson = JSON.stringify(authenticatedReceipt(referenceAttackPayload));
+context.mutableSourceReference = vm.runInContext(
+  "Object.assign(Object.create(TypedReference.prototype), {kind:'DOCUMENT'," +
+  "identifier:'TEST_PRESENTATION_DOCUMENT'})", context
+);
+assert.equal(createBindingWith({ receipt: context.referenceAttackReceiptJson,
+  source: context.mutableSourceReference }), null,
+  'prototype-forged mutable references are rejected before storing private state');
+assert.ok(createBindingWith({ receipt: context.referenceAttackReceiptJson }),
+  'rejected mutable references do not consume the receipt id');
+const serializerAttackReceipt = JSON.parse(freshReceipt);
+serializerAttackReceipt.payload.receiptId = 'TEST_UNSIGNED_RECEIPT_ID';
+context.serializerAttackReceiptJson = JSON.stringify(serializerAttackReceipt);
+assert.equal(vm.runInContext(`(() => {
+  const originalStringify = JSON.stringify;
+  JSON.stringify = value => originalStringify(value === 'TEST_UNSIGNED_RECEIPT_ID'
+    ? 'TEST_BINDING_NEGATIVES' : value);
+  try {
+    return createTechnicalReceiptExecutionBinding_(serializerAttackReceiptJson,
+      COMPILED_RUNTIME_CONTRACT, executionBindingPlan, executionBindingView,
+      executionBindingRde, executionBindingSource, currentSubmissionContextForVerification);
+  } finally { JSON.stringify = originalStringify; }
+})()`, context), null, 'late JSON.stringify replacement cannot authenticate an unsigned receipt id');
+
 process.stdout.write('apps-script-signature-verification-receipt: PASS\n');

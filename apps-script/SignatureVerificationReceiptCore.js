@@ -29,6 +29,8 @@
   const setHas_ = Set.prototype.has;
   const setAdd_ = Set.prototype.add;
   const parse_ = JSON.parse;
+  const stringify_ = JSON.stringify;
+  const isFrozen_ = Object.isFrozen;
   const freeze_ = Object.freeze;
   const names_ = Object.getOwnPropertyNames;
   const descriptor_ = Object.getOwnPropertyDescriptor;
@@ -107,7 +109,7 @@
 
   function canonicalJsonValue_(value) {
     if (value === null || typeof value === 'string' || typeof value === 'boolean' ||
-        typeof value === 'number') return JSON.stringify(value);
+        typeof value === 'number') return stringify_(value);
     if (Array.isArray(value)) {
       let serialized = '';
       for (let index = 0; index < value.length; index += 1) {
@@ -130,7 +132,7 @@
     for (let index = 0; index < keys.length; index += 1) {
       const key = keys[index];
       if (index !== 0) serialized += ',';
-      serialized += JSON.stringify(key) + ':' + canonicalJsonValue_(value[key]);
+      serialized += stringify_(key) + ':' + canonicalJsonValue_(value[key]);
     }
     return '{' + serialized + '}';
   }
@@ -311,7 +313,11 @@
           typeof global.isCanonicalCurrentSubmissionContext !== 'function' ||
           !global.isCanonicalCurrentSubmissionContext(currentSubmissionContext) ||
           typeof global.selectCurrentComprovante !== 'function' ||
-          !(sourceDocument instanceof TypedReference) || sourceDocument.kind !== 'DOCUMENT' ||
+          !(sourceDocument instanceof TypedReference) || !isFrozen_(sourceDocument) ||
+          !descriptor_(sourceDocument, 'kind') || !descriptor_(sourceDocument, 'identifier') ||
+          !Object.prototype.hasOwnProperty.call(descriptor_(sourceDocument, 'kind'), 'value') ||
+          !Object.prototype.hasOwnProperty.call(descriptor_(sourceDocument, 'identifier'), 'value') ||
+          sourceDocument.kind !== 'DOCUMENT' ||
           !view.contains(sourceDocument)) return null;
       const exactSource = view.sourceDocument(sourceDocument);
       if (exactSource.kind !== sourceDocument.kind ||
@@ -364,7 +370,7 @@
     sourceDocument, currentSubmissionContext) {
     try {
       const source = apply_(weakGet_, executionBindings_, [binding]);
-      return !!source && Object.isFrozen(binding) && source.contract === contract &&
+      return !!source && isFrozen_(binding) && isFrozen_(sourceDocument) && source.contract === contract &&
         source.plan === plan && source.view === view && source.rde === rde &&
         source.sourceDocument === sourceDocument && source.currentSubmissionContext === currentSubmissionContext &&
         verifySignatureVerificationReceipt_(source.receipt, {
