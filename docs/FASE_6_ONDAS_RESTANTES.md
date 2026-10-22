@@ -5031,3 +5031,47 @@ nenhum Criterion adicional e não declara conclusão da Fase 6B.
   contemporâneos e sua proveniência para os campos independentes, incluindo
   exceções formais como deferimento. Sem APIs de conselho obrigatórias e sem
   reabrir decisão IN10.
+
+### Digest canônico do conjunto de emissores no perfil SIGNED — 2026-10-22
+
+```text
+BASELINE=ac25eb76e045c5880e2f5e2e3cfbfaf0505a85a8
+CANDIDATE=c2ab442426da44718ed893b3c364661bf0d65156
+KNOWLEDGE_BASE_VERSION=5.41.0
+PROFILE_SCHEMA=0.2.0
+CRITERIA_COVERED=10/29 (inalterado)
+CRITERIA_PARTIAL=1 (inalterado)
+CRITERIA_PREPARATORY=7 (inalterado)
+CRITERIA_PENDING_INTEGRAL=19 (inalterado)
+PYTHON_TESTS=202 (189 PASS, 13 SKIP)
+APPS_SCRIPT_SUITES=12/12 PASS
+JS_SYNTAX=26 files PASS
+CODE_GS_SYNTAX=PASS
+RUNTIME_REGENERATION=BYTE_IDENTICAL
+RUNTIME_SHA256=1fbeed86227bcfba98f5b5aac623afd0feb8d0985195c27aa5cb8c6e484b0940
+BUILD_VALIDATION=PASS; 10/10
+SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
+```
+
+- Finding técnico concreto encerrado: perfil de admissão corretamente
+  assinado podia carregar um `trustedIssuerSetDigest` arbitrário sem
+  corresponder à lista autenticada. Schema `0.2.0` recalcula o SHA-256 da
+  serialização JSON canônica UTF-8 de `trustedIssuerSet`, preservando ordem,
+  e rejeita digest inconsistente. Schema `0.1.0` não é aceito silenciosamente.
+- Testes cobrem perfil assinado com digest errado, alteração da lista, ordem
+  declarada/reordenada, identificador Unicode UTF-8, conjunto vazio e
+  duplicatas. O binding continua `MANUAL_REVIEW`; nenhuma admissão `SIGNED`,
+  chamada operacional ou Criterion é promovido. Ganho de cobertura integral:
+  `0`; benefício: identidade declarada do conjunto de trust passa a ser
+  verificável antes de qualquer futura política poder usá-la.
+- Revisão independente Codex/GPT-6, execução
+  `01a16408-0a46-75c0-a776-9c0ff44265c0`: revisão do núcleo do digest `PASS`,
+  zero findings. Re-review dirigida dos testes adicionais confirmou o
+  candidato exato `c2ab442426da44718ed893b3c364661bf0d65156`, sem findings.
+  Revisão técnica substituta válida conforme `AGENTS.md` §25.2 e aceite prévio
+  do usuário; não foi Sol. `INDEPENDENT_ARCH_REVIEW=PASS` para este candidato;
+  `SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
+- Esforço aproximado: 30 minutos entre atualização do contrato/schema, testes,
+  gates, revisão focal e build limpo; uma revisão independente e uma re-review
+  dirigida dos hunks adicionados. A calibração empírica e validação institucional
+  seguem pendentes; sem merge, deploy ou uso real.
