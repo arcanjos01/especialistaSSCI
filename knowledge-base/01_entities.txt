@@ -2,7 +2,7 @@
 # 01_entities.txt
 # BASECONHECIMENTO
 # ENTIDADES DO DOMÍNIO
-# VERSION 3.10
+# VERSION 3.11
 ###############################################################################
 
 ###############################################################################
@@ -717,6 +717,26 @@ ATTRIBUTE TECHNICAL_RESPONSIBLE_CPF_TEXT TEXT
 
 ATTRIBUTE TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT TEXT
 
+ATTRIBUTE PROPERTY_STREET_TEXT TEXT
+
+ATTRIBUTE PROPERTY_NUMBER_TEXT TEXT
+
+ATTRIBUTE PROPERTY_COMPLEMENT_TEXT TEXT
+
+ATTRIBUTE PROPERTY_REFERENCE_TEXT TEXT
+
+ATTRIBUTE PROPERTY_NEIGHBORHOOD_TEXT TEXT
+
+ATTRIBUTE PROPERTY_CITY_TEXT TEXT
+
+ATTRIBUTE PROPERTY_STATE_TEXT TEXT
+
+ATTRIBUTE PROPERTY_CEP_TEXT TEXT
+
+ATTRIBUTE PROPERTY_LAND_AREA_TEXT TEXT
+
+ATTRIBUTE PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT TEXT
+
 NAME
 
 REQUERIMENTO DO e-SCI (MODELO DO ANEXO B DA IN 1 - PARTE 1)
@@ -735,6 +755,17 @@ REQUESTER_EQUALITY_DECLARATION_TEXT e
 TECHNICAL_RESPONSIBLE_EQUALITY_DECLARATION_TEXT preservam literalmente as
 opções de igualdade marcadas em cada seção, sem propagar valores entre campos
 nem provar identidade autenticada.
+PROPERTY_STREET_TEXT, PROPERTY_NUMBER_TEXT, PROPERTY_COMPLEMENT_TEXT,
+PROPERTY_REFERENCE_TEXT, PROPERTY_NEIGHBORHOOD_TEXT, PROPERTY_CITY_TEXT,
+PROPERTY_STATE_TEXT e PROPERTY_CEP_TEXT preservam separadamente o texto dos
+campos de identificação do imóvel no Anexo B da IN 1 - Parte 1. Não compor um
+endereço agregado nem comparar ou normalizar esses componentes durante
+EXTRACTION. PROPERTY_LAND_AREA_TEXT e PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT
+preservam separadamente os dois campos de área da seção Dados do Imóvel; não
+selecionar um deles como o significado de “Área do Imóvel” da IRV e não
+compará-los ao campo de área de uma DRT durante EXTRACTION. Campos ausentes,
+ilegíveis ou não declarados permanecem ausentes; não completar dados a partir
+de endereço, bloco, requerente ou outra fonte.
 Os valores identificadores não constituem prova de identidade autenticada e
 não devem ser expostos no relatório. Campos não visíveis, ilegíveis ou não
 declarados permanecem ausentes.

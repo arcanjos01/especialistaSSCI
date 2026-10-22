@@ -4684,3 +4684,33 @@ nesse escopo. `SOL_REVIEW=PENDING_IDENTITY`,
 
 Fonte primária consultada: [IN 1 - Parte 1, edição 2024, Anexo B, pp. 46–47](https://documentoscbmsc.cbm.sc.gov.br/uploads/ab8c2bdadfee54d4097ac6cf1e1be128.pdf);
 [IRV Habite-se 2024, Anexo A, Tabela 1, p. 4](https://documentoscbmsc.cbm.sc.gov.br/uploads/007b6741900db4f57a80d467023bfead.pdf).
+
+### Candidato FACT-ONLY para comparandos do Anexo B — 2026-10-22
+
+- `REQUERIMENTO_ESCI` passa a declarar os campos literais de logradouro,
+  número, complemento, referência, bairro, cidade, estado, CEP, área do terreno
+  e área total construída. Os valores permanecem opcionais e separados; não
+  são sintetizados em endereço agregado. A distinção entre requester e
+  responsável pelo imóvel permanece. Não foram adicionados campos para
+  responsável por bloco neste lote, pois a multiplicidade exige um modelo
+  específico; não inferir RI do solicitante.
+- Fontes: IN 1 - Parte 1/2024, Anexo B, p. 46, para identificação/endereço e
+  áreas; IRV Habite-se 2024, Anexo A, Tabela 1, p. 4, para os campos exigidos
+  na DRT. A IRV não seleciona qual das duas áreas do formulário corresponde a
+  “Área do Imóvel”; o endereço da DRT também é textual e não foi decomposto.
+- Resultado de cobertura: `10/29 → 10/29`; 1 parcial, 7 preparatórios, 19
+  pendentes integrais. `T1_DRT_ADDRESS` e `T1_DRT_AREA` ficam apenas com fatos
+  preparatórios; `T1_DRT_RI_LEGAL_ENTITY` e `T1_DRT_RT_NAME` continuam sem
+  comparandos/vínculo. Nenhuma execução, comparação, `PASS`, `FAIL` ou NC foi
+  adicionada. Benefício: os dados explícitos do formulário poderão ser
+  preservados com rastreabilidade para comparadores futuros, sem confundir
+  solicitante, responsável pelo imóvel e RI.
+- A Base passa a KB `5.40.0`, `01_entities.txt` `3.11.0`, pipeline `4.41.0` e
+  relatório `3.23.0`; runtime regenerado byte-idêntico, SHA-256
+  `84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96`.
+  Validação executada no candidato local: Python `201` (`189 PASS`, `12 SKIP`);
+  Apps Script `12/12`; sintaxe JS e `Code.gs`; manifest/runtime/diff check
+  focais PASS. Build limpo e revisão independente ainda pendentes neste registro.
+- Esta é uma alteração de contrato FACT-ONLY, não uma mudança de semântica
+  normativa. Exige revisão arquitetural independente antes de consolidação;
+  `PROMOTION=NOT_AUTHORIZED` e `SOL_REVIEW=PENDING_IDENTITY` permanecem.
