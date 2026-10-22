@@ -123,6 +123,59 @@ SHA-256; release build; validação de manifests; phase guards; fixtures;
 `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`
 `VALIDATED_TO_ANALYZED=PENDING`
 `PROMOTION=NOT_AUTHORIZED`
+
+### Registro de presença ASSERT durante revisão de assinatura — 2026-10-22
+
+```text
+BASELINE=a9478fb6538c27fd28baf38ce8f47b8a09edfc72
+CANDIDATE=30f5e3c099598f7813a93c5be05b8b4e335d7721
+BRANCH=feature/apps-script-engine-core
+CRITERIA_COVERED=10/29 (inalterado)
+CRITERIA_PARTIAL=1 (inalterado)
+CRITERIA_PREPARATORY=7 (inalterado)
+CRITERIA_PENDING_INTEGRAL=19 (inalterado)
+PYTHON_TESTS=202 (189 PASS, 13 SKIP)
+APPS_SCRIPT_SUITES=12/12 PASS
+JS_SYNTAX=26 files PASS
+CODE_GS_SYNTAX=PASS
+RUNTIME_REGENERATION=BYTE_IDENTICAL
+RUNTIME_SHA256=84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96
+MANIFEST_AND_PHASE_GUARDS=PASS via Python suite
+DIFF_CHECK=PASS
+BUILD_VALIDATION=PASS (10/10 documents)
+SOURCE_COMMIT=30f5e3c099598f7813a93c5be05b8b4e335d7721
+PROMOTION=NOT_AUTHORIZED
+```
+
+- Mudança delimitada a `CriterionExecutionCore.js` e seu teste focal. Quando
+  `VALIDATE TECHNICAL_PRODUCT_ATTRIBUTE(..., SIGNED)` retorna
+  `MANUAL_REVIEW`, o executor avalia também uma ASSERT independente e inclui
+  seu trace, mantendo o resultado final `MANUAL_REVIEW`. Se a ASSERT repetir a
+  mesma verificação `TECHNICAL_PRODUCT_ATTRIBUTE`, ela não é executada duas
+  vezes. Inventário sem produto continua em `MANUAL_REVIEW`; não há `FAIL` nem
+  Nonconformity por falta de comprovação.
+- Benefício demonstrado: para checklist de manutenção e declaração CMAR
+  localizados, o trace registra `EXISTS=TRUE` mesmo quando a assinatura exige
+  revisão humana. A informação de presença não autentica assinatura e não
+  satisfaz o Criterion completo. Ganho de cobertura integral: zero; não houve
+  alteração de Base, runtime ou contagem.
+- Teste focal `node tests/apps-script-pilot-criterion.test.js`: `PASS`. Suítes
+  integrais e build exato constam acima. Esforço aproximado: 20 minutos entre
+  patch, regressão, gates, revisão e build. Uma revisão independente focal.
+- Revisão independente Codex/GPT-6, execução
+  `01a1640f-9e0c-7c50-8b1c-313e3d6f4a98`: avaliou o diff contra o baseline,
+  executou a suíte focal e `node --check`, declarou zero findings e `PASS`
+  técnico. O candidato foi commitado após essa leitura, sem alterações
+  posteriores no conteúdo revisado. A confirmação dirigida com HEAD/SHA
+  explicitamente examinado não pôde ser iniciada: limite de threads de agentes
+  atingido. Por isso o gate formal do candidato exato permanece
+  `INDEPENDENT_ARCH_REVIEW=PENDING_EXACT_SHA`; não se atribui revisão a Sol.
+  `SOL_REVIEW=PENDING_IDENTITY`; `ARCHITECTURAL_REVIEW=PENDING`;
+  `FINDINGS_OPEN=0` no escopo focal revisto; `PROMOTION=NOT_AUTHORIZED`.
+- Estado do trabalho: preparatório/observacional para `T4_IN09_CHECKLIST` e
+  `T4_IN18_CMAR`; nenhum Criterion tornou-se integralmente coberto. Assinatura
+  verificável e confiança institucional continuam pendentes. Sem reabertura da
+  decisão IN10, sem merge/deploy ou uso de processos reais.
 `FASE_6A_STATUS=COMPLETE`
 `FASE_6B_STATUS=IN_PROGRESS`
 `CRITERIA_ACTIVE=34; CRITERIA_PRODUCTIVE=29; CRITERIA_COVERED=10; CRITERIA_PARTIAL=1; CRITERIA_PREPARATORY=7; CRITERIA_PENDING=19`
