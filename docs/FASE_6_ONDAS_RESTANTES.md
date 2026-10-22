@@ -5000,3 +5000,34 @@ Os commits `60add04` e `234ebd4` após o código candidato são somente
 documentação. A aprovação substituta encerra o finding MEDIUM específico, não
 substitui a identificação Sol requerida pelo estado de `SOL_REVIEW`, não fecha
 nenhum Criterion adicional e não declara conclusão da Fase 6B.
+
+### Rechecagem das fontes públicas de status ART/RRT/TRT — 2026-10-22
+
+- A página vigente do CREA-SC afirma que o registro da ART se efetiva após o
+  cadastro no sistema e o recolhimento da taxa; também descreve emissão da ART
+  após aprovação e disponibilização do boleto. Fonte:
+  [CREA-SC — Anotação de Responsabilidade Técnica](https://portal.crea-sc.org.br/profissional/art/anotacao-de-responsabilidade-tecnica-art/).
+- A Resolução CAU/BR 184/2019, alterada pela 190/2020, distingue documento
+  rascunho e final; o documento final pode decorrer de pagamento validado ou
+  deferimento do CAU/UF e contém numeração de registro. Portanto, final/número
+  não basta para classificar pagamento como `PAID` em todos os casos. Fonte:
+  [CAU/BR — Resolução 184/2019](https://transparencia.caubr.gov.br/resolucao184/).
+- Para CFT, a Resolução 55/2019 diz que o registro efetiva-se após cadastro
+  eletrônico e recolhimento. O manual CFT localizado lista situações de TRT,
+  inclusive aguardando validação, aguardando pagamento, aprovado e válido,
+  mas é de 2018; a página tutorial de emissão publicada em 2024 incorpora
+  somente vídeo sem transcrição dos status, e não confirma a continuidade dos
+  mesmos literais no sistema atual. Fontes:
+  [CFT — Resolução 55/2019](https://www.cft.org.br/wp-content/uploads/2019/02/RESOLUCAO-CFT-N-055-2019.pdf),
+  [CFT — Manual de geração de TRT (2018)](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf),
+  [CFT — Tutorial de emissão de TRT (2024)](https://cft.org.br/emissao-do-trt-tutorial/).
+- Essas fontes esclarecem condições substantivas, mas ainda não fornecem
+  literais atuais e versionados por documento, conselho e campo para cada
+  `COUNCIL_REGISTRATION_STATUS`, `COUNCIL_ISSUANCE_STATUS` e
+  `COUNCIL_PAYMENT_STATUS`. Não codificar sinônimos nem inferir pagamento a
+  partir de número, aprovação ou documento final. `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` permanecem em revisão manual; ganho de cobertura `0`.
+  Próxima evidência necessária: status/literal exato previsto nos documentos
+  contemporâneos e sua proveniência para os campos independentes, incluindo
+  exceções formais como deferimento. Sem APIs de conselho obrigatórias e sem
+  reabrir decisão IN10.
