@@ -4821,3 +4821,12 @@ e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real
   assinatura permanecem preparatórios ou pendentes conforme a matriz acima.
 - `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`,
   `SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
+- Integração sintética opt-in executada separadamente com
+  `PDF_SIGNATURE_POC_INTEGRATION=1` para
+  `tests.test_local_pdf_signature_verifier` e
+  `tests.test_pyhanko_signature_validation_poc`: `35` testes, `30 PASS`,
+  `5 SKIP`; a suíte Apps Script do recibo permanece `PASS`. Os PDFs e
+  certificados são exclusivamente sintéticos. O resultado melhora a evidência
+  técnica da POC local, mas não satisfaz confiança institucional, revogação,
+  identidade do signatário ou binding de produção. Cobertura permanece
+  `10/29`; nenhum Criterion mudou de estado.
