@@ -53,6 +53,8 @@ for (const relativePath of [
   '../apps-script/RdeCore.js',
   '../apps-script/ExecutionViewCore.js',
   '../apps-script/CurrentSubmissionContextCore.js',
+  '../apps-script/CbmscApplicabilityCore.js',
+  '../apps-script/ExecutionPlanCore.js',
   '../apps-script/SignatureVerificationReceiptCore.js'
 ]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'), context);
@@ -249,5 +251,145 @@ assert.equal(
   'UNKNOWN/NOT_EVALUATED',
   'receipt fixture preserves unverified revocation as unknown'
 );
+
+// The preparatory binding is branded, immutable and scoped to the exact frozen
+// objects. It deliberately does not make SIGNED admissible.
+const executionBindingRdeInput = {
+  schema_version: '0.2.0', process_id: 'TEST_PROCESS',
+  source: { file_id: 'TEST_SOURCE_FILE', file_name: 'test.pdf', mime_type: 'application/pdf',
+    source_url: 'https://example.invalid/test.pdf', sha256: '0'.repeat(64) },
+  extraction: { provider: 'TEST_ONLY', extractor_version: 'TEST_ONLY',
+    created_at: '2026-10-20T12:00:00.000Z' },
+  records: [{ record_id: 'TEST_PRESENTATION_DOCUMENT',
+    entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE', parent_record_id: null,
+    source_document: 'TEST_PRESENTATION_DOCUMENT',
+    attributes: { PROTOCOL_IDENTIFIER: 'TEST_PROTOCOL', REQUEST_DATE: '2026-10-20',
+      RE_IDENTIFIER: 'TEST_RE' } }, {
+    record_id: 'TEST_SYSTEM_SECTION', entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA',
+    parent_record_id: 'TEST_PRESENTATION_DOCUMENT', source_document: 'TEST_PRESENTATION_DOCUMENT',
+    attributes: { STRUCTURALLY_COMPLETE: true, LEGIBLE: true, VERIFIABLE: true }
+  }], extraction_warnings: []
+};
+context.executionBindingRdeJson = JSON.stringify(executionBindingRdeInput);
+const executionBindingRde = vm.runInContext(
+  "parseAndValidateOperationalRdeJson_(executionBindingRdeJson,{processId:'TEST_PROCESS'," +
+  "sourceFileId:'TEST_SOURCE_FILE',rdeIdentity:'rde:TEST_RDE'},COMPILED_RUNTIME_CONTRACT.entityCatalog)", context
+);
+context.executionBindingRde = executionBindingRde;
+const executionBindingView = vm.runInContext(
+  'projectRdeToExecutionView_(executionBindingRde, COMPILED_RUNTIME_CONTRACT.entityCatalog)', context
+);
+const executionBindingSource = vm.runInContext(
+  "new TypedReference('DOCUMENT', 'TEST_PRESENTATION_DOCUMENT')", context
+);
+context.executionBindingSource = executionBindingSource;
+context.executionBindingView = executionBindingView;
+const executionBindingPlan = vm.runInContext(
+  'materializeFrozenExecutionPlan(COMPILED_RUNTIME_CONTRACT,' +
+  'resolveCbmscApplicability(executionBindingView, currentSubmissionContextForVerification,' +
+  'COMPILED_RUNTIME_CONTRACT), executionBindingView)', context
+);
+context.executionBindingPlan = executionBindingPlan;
+const bindingPayload = JSON.parse(JSON.stringify(rsaReceipt.payload));
+bindingPayload.rdeDigest = vm.runInContext('getValidatedRdeDigest_(executionBindingRde)', context);
+const bindingReceipt = authenticatedReceipt(bindingPayload);
+context.bindingReceiptJson = JSON.stringify(bindingReceipt);
+const technicalBinding = vm.runInContext(
+  'createTechnicalReceiptExecutionBinding_(bindingReceiptJson, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde,' +
+  'executionBindingSource, currentSubmissionContextForVerification)', context
+);
+assert.ok(technicalBinding, 'a valid technical receipt can be bound to the exact execution objects');
+assert.equal(technicalBinding.admissionStatus, 'MANUAL_REVIEW');
+assert.deepEqual(JSON.parse(JSON.stringify(technicalBinding.diagnostics)), [
+  'ADMISSION_PROFILE_UNDEFINED', 'SOURCE_DOCUMENT_IDENTITY_DIGEST_NOT_INDEPENDENTLY_AUTHENTICATED'
+]);
+assert.equal(Object.isFrozen(technicalBinding), true);
+context.technicalBinding = technicalBinding;
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(technicalBinding, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde,' +
+  "new TypedReference('DOCUMENT', 'TEST_PRESENTATION_DOCUMENT'), currentSubmissionContextForVerification)", context
+), false, 'a distinct TypedReference instance cannot replay the binding');
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(technicalBinding, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde, executionBindingSource,' +
+  'currentSubmissionContextForVerification)', context
+), true, 'the branded binding accepts only its exact source-document reference');
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(Object.freeze({...technicalBinding}),' +
+  'COMPILED_RUNTIME_CONTRACT, executionBindingPlan, executionBindingView, executionBindingRde,' +
+  'executionBindingSource, currentSubmissionContextForVerification)', context
+), false, 'a forged frozen binding object is rejected');
+assert.equal(vm.runInContext(
+  'createTechnicalReceiptExecutionBinding_(bindingReceiptJson, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde, executionBindingSource,' +
+  'currentSubmissionContextForVerification)', context
+), null, 'duplicate receipt ids are rejected before reuse');
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(technicalBinding, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde, executionBindingSource,' +
+  'createCurrentSubmissionContext({processId:"TEST_PROCESS",protocolIdentifier:"TEST_PROTOCOL",' +
+  'requestDate:"2026-10-21",reIdentifier:"TEST_RE",provenance:{sourceKind:"TEST_ONLY",sourceReference:"TEST_INTAKE"}}))', context
+), false, 'a divergent authenticated submission context cannot consume the binding');
+
+// Authenticity checks use real canonical objects, never a replacement verifier.
+function createBindingWith(overrides = {}) {
+  context.bindingOverrides = overrides;
+  return vm.runInContext(`createTechnicalReceiptExecutionBinding_(
+    Object.prototype.hasOwnProperty.call(bindingOverrides, 'receipt') ? bindingOverrides.receipt : bindingReceiptJson,
+    bindingOverrides.contract || COMPILED_RUNTIME_CONTRACT,
+    bindingOverrides.plan || executionBindingPlan,
+    bindingOverrides.view || executionBindingView,
+    bindingOverrides.rde || executionBindingRde,
+    bindingOverrides.source || executionBindingSource,
+    bindingOverrides.submission || currentSubmissionContextForVerification)`, context);
+}
+const freshPayload = JSON.parse(JSON.stringify(bindingPayload));
+freshPayload.receiptId = 'TEST_BINDING_NEGATIVES';
+const freshReceipt = JSON.stringify(authenticatedReceipt(freshPayload));
+assert.equal(createBindingWith({ receipt: authenticatedReceipt(freshPayload) }), null,
+  'the boundary accepts JSON text only, never caller objects or accessors');
+assert.equal(createBindingWith({ receipt: freshReceipt, contract: Object.freeze({}) }), null);
+assert.equal(createBindingWith({ receipt: freshReceipt, plan: Object.freeze({ ...executionBindingPlan }) }), null,
+  'a frozen plan copy is not a canonical frozen plan');
+assert.equal(createBindingWith({ receipt: freshReceipt, view: Object.freeze({}) }), null);
+assert.equal(createBindingWith({ receipt: freshReceipt, rde: JSON.parse(JSON.stringify(executionBindingRde)) }), null,
+  'an equivalent RDE copy is not the authenticated extraction object');
+assert.equal(createBindingWith({ receipt: freshReceipt, source: vm.runInContext(
+  "new TypedReference('DOCUMENT', 'NOT_PRESENT')", context) }), null);
+assert.equal(createBindingWith({ receipt: freshReceipt, source: vm.runInContext(
+  "new TypedReference('ENTITY', 'TEST_SYSTEM_SECTION')", context) }), null,
+  'a non-document fact cannot be substituted as the source document');
+assert.equal(createBindingWith({ receipt: freshReceipt, submission: Object.freeze({}) }), null);
+const tamperedReceipt = JSON.parse(freshReceipt);
+tamperedReceipt.payload.rdeDigest = 'b'.repeat(64);
+assert.equal(createBindingWith({ receipt: JSON.stringify(tamperedReceipt) }), null,
+  'tampering cannot consume the receipt id');
+const secondBinding = createBindingWith({ receipt: freshReceipt });
+assert.ok(secondBinding, 'rejected candidates do not reserve a receipt id');
+context.secondBinding = secondBinding;
+freshPayload.verificationResult.signature_count = 999;
+context.bindingReceiptJson = '{}';
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(secondBinding, COMPILED_RUNTIME_CONTRACT,' +
+  'executionBindingPlan, executionBindingView, executionBindingRde, executionBindingSource,' +
+  'currentSubmissionContextForVerification)', context
+), true, 'later caller mutations cannot alter the stored receipt snapshot');
+assert.equal(Object.isFrozen(secondBinding.diagnostics), true);
+assert.equal(Object.isFrozen(secondBinding.sourceDocumentReference), true);
+const secondPlan = vm.runInContext(
+  'materializeFrozenExecutionPlan(COMPILED_RUNTIME_CONTRACT,' +
+  'resolveCbmscApplicability(executionBindingView, currentSubmissionContextForVerification,' +
+  'COMPILED_RUNTIME_CONTRACT), executionBindingView)', context
+);
+context.secondPlan = secondPlan;
+assert.equal(vm.runInContext(
+  'isAuthenticatedTechnicalReceiptExecutionBinding_(secondBinding, COMPILED_RUNTIME_CONTRACT,' +
+  'secondPlan, executionBindingView, executionBindingRde, executionBindingSource,' +
+  'currentSubmissionContextForVerification)', context
+), false, 'a second genuine plan cannot consume the first plan binding');
+assert.equal(createBindingWith({ receipt: freshReceipt, plan: secondPlan }), null,
+  'receipt ids are unique within this runtime even across genuine plans');
 
 process.stdout.write('apps-script-signature-verification-receipt: PASS\n');

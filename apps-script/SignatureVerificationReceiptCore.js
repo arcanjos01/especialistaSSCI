@@ -21,6 +21,36 @@
     'signature_count', 'signatures', 'trust', 'certificate_chain',
     'revocation', 'pades', 'professional_identity', 'verifier_components'
   ];
+  const executionBindings_ = new WeakMap();
+  const boundReceiptIds_ = new Set();
+  const apply_ = Reflect.apply;
+  const weakGet_ = WeakMap.prototype.get;
+  const weakSet_ = WeakMap.prototype.set;
+  const setHas_ = Set.prototype.has;
+  const setAdd_ = Set.prototype.add;
+  const parse_ = JSON.parse;
+  const freeze_ = Object.freeze;
+  const names_ = Object.getOwnPropertyNames;
+  const descriptor_ = Object.getOwnPropertyDescriptor;
+  const define_ = Object.defineProperty;
+  const isArray_ = Array.isArray;
+
+  // Only internally constructed data or parsed JSON reaches this copier.
+  function copyFrozen_(value) {
+    if (value === null || typeof value !== 'object') return value;
+    const copy = isArray_(value) ? [] : {};
+    const keys = names_(value);
+    for (let index = 0; index < keys.length; index += 1) {
+      const name = keys[index];
+      if (isArray_(value) && name === 'length') continue;
+      const item = descriptor_(value, name);
+      if (!item || !Object.prototype.hasOwnProperty.call(item, 'value')) {
+        throw new Error('binding snapshot requires data properties');
+      }
+      define_(copy, name, { value: copyFrozen_(item.value), enumerable: true });
+    }
+    return freeze_(copy);
+  }
 
   function exactDataObject_(value, expectedKeys) {
     if (!value || typeof value !== 'object' || Array.isArray(value) ||
@@ -252,8 +282,111 @@
     }
   }
 
+  function sha256_(value) {
+    try {
+      const bytes = global.Utilities.computeDigest(
+        global.Utilities.DigestAlgorithm.SHA_256,
+        value, global.Utilities.Charset.UTF_8
+      );
+      return Array.isArray(bytes) && bytes.length === 32 ? bytesToHex_(bytes) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Preparatory only: there is no authenticated per-document external
+  // identity/digest map or approved admission profile in the current contracts.
+  function createTechnicalReceiptExecutionBinding_(receiptJson, contract, plan, view, rde,
+    sourceDocument, currentSubmissionContext) {
+    try {
+      if (typeof receiptJson !== 'string' || receiptJson.length > 2000000) return null;
+      const receipt = copyFrozen_(parse_(receiptJson));
+      if (typeof global.isCanonicalCompiledRuntimeContract !== 'function' ||
+          !global.isCanonicalCompiledRuntimeContract(contract) ||
+          typeof global.isCanonicalFrozenExecutionPlan !== 'function' ||
+          !global.isCanonicalFrozenExecutionPlan(plan, contract, view) ||
+          typeof global.isExecutionViewDerivedFromRde_ !== 'function' ||
+          typeof global.getValidatedRdeIdentity_ !== 'function' ||
+          typeof global.getValidatedRdeDigest_ !== 'function' ||
+          typeof global.isCanonicalCurrentSubmissionContext !== 'function' ||
+          !global.isCanonicalCurrentSubmissionContext(currentSubmissionContext) ||
+          typeof global.selectCurrentComprovante !== 'function' ||
+          !(sourceDocument instanceof TypedReference) || sourceDocument.kind !== 'DOCUMENT' ||
+          !view.contains(sourceDocument)) return null;
+      const exactSource = view.sourceDocument(sourceDocument);
+      if (exactSource.kind !== sourceDocument.kind ||
+          exactSource.identifier !== sourceDocument.identifier) return null;
+      const rdeIdentity = global.getValidatedRdeIdentity_(rde);
+      const rdeDigest = global.getValidatedRdeDigest_(rde);
+      if (!hasText_(rdeIdentity, 512) || !digest_(rdeDigest) ||
+          !global.isExecutionViewDerivedFromRde_(view, rde, rdeDigest)) return null;
+      const presentation = global.selectCurrentComprovante(view, currentSubmissionContext);
+      if (!presentation || !plan.selectedComprovante ||
+          presentation.kind !== plan.selectedComprovante.kind ||
+          presentation.identifier !== plan.selectedComprovante.identifier) return null;
+      const expectedContext = {
+        currentSubmissionContext, rdeIdentity, rdeDigest,
+        sourceDocumentIdentity: receipt && receipt.payload && receipt.payload.sourceDocumentIdentity,
+        sourceDocumentDigest: receipt && receipt.payload && receipt.payload.sourceDocumentDigest
+      };
+      if (!verifySignatureVerificationReceipt_(receipt, expectedContext) ||
+          apply_(setHas_, boundReceiptIds_, [receipt.payload.receiptId])) return null;
+      // Both inputs are already authenticated, frozen canonical objects. Their
+      // runtime JSON serialization is only an identity digest, never a new
+      // normative representation.
+      const contractDigest = sha256_(canonicalJsonValue_(contract));
+      const planDigest = sha256_(canonicalJsonValue_(plan));
+      if (!digest_(contractDigest) || !digest_(planDigest)) return null;
+      const binding = copyFrozen_({
+        bindingType: 'TECHNICAL_SIGNATURE_RECEIPT_EXECUTION_BINDING', schemaVersion: '0.1.0',
+        receiptId: receipt.payload.receiptId, compiledContractDigest: contractDigest,
+        frozenExecutionPlanDigest: planDigest, rdeIdentity, rdeDigest,
+        presentationIdentity: global.getCanonicalPresentationIdentity(currentSubmissionContext),
+        sourceDocumentReference: { kind: sourceDocument.kind, identifier: sourceDocument.identifier },
+        sourceDocumentIdentity: receipt.payload.sourceDocumentIdentity,
+        sourceDocumentDigest: receipt.payload.sourceDocumentDigest,
+        admissionStatus: 'MANUAL_REVIEW', diagnostics: [
+          'ADMISSION_PROFILE_UNDEFINED',
+          'SOURCE_DOCUMENT_IDENTITY_DIGEST_NOT_INDEPENDENTLY_AUTHENTICATED'
+        ]
+      });
+      apply_(weakSet_, executionBindings_, [binding, freeze_({
+        receipt, contract, plan, view, rde, sourceDocument, currentSubmissionContext
+      })]);
+      apply_(setAdd_, boundReceiptIds_, [receipt.payload.receiptId]);
+      return binding;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function isAuthenticatedTechnicalReceiptExecutionBinding_(binding, contract, plan, view, rde,
+    sourceDocument, currentSubmissionContext) {
+    try {
+      const source = apply_(weakGet_, executionBindings_, [binding]);
+      return !!source && Object.isFrozen(binding) && source.contract === contract &&
+        source.plan === plan && source.view === view && source.rde === rde &&
+        source.sourceDocument === sourceDocument && source.currentSubmissionContext === currentSubmissionContext &&
+        verifySignatureVerificationReceipt_(source.receipt, {
+          currentSubmissionContext, rdeIdentity: binding.rdeIdentity, rdeDigest: binding.rdeDigest,
+          sourceDocumentIdentity: binding.sourceDocumentIdentity,
+          sourceDocumentDigest: binding.sourceDocumentDigest
+        });
+    } catch (error) {
+      return false;
+    }
+  }
+
   Object.defineProperty(global, 'verifySignatureVerificationReceipt_', {
     value: verifySignatureVerificationReceipt_, enumerable: false,
+    writable: false, configurable: false
+  });
+  Object.defineProperty(global, 'createTechnicalReceiptExecutionBinding_', {
+    value: createTechnicalReceiptExecutionBinding_, enumerable: false,
+    writable: false, configurable: false
+  });
+  Object.defineProperty(global, 'isAuthenticatedTechnicalReceiptExecutionBinding_', {
+    value: isAuthenticatedTechnicalReceiptExecutionBinding_, enumerable: false,
     writable: false, configurable: false
   });
 })(globalThis);

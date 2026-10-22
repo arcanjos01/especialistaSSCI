@@ -4431,3 +4431,43 @@ clarificação do responsável sobre associações documentais explícitas em
 - **Contratos de evidência:** identificar de modo confiável o solicitante da apresentação e o verdadeiro RT/equipe autor do relatório de comissionamento, vinculado ao relatório e à DRT exatos. Não assumir que o RT informado genericamente no requerimento é o responsável pelo comissionamento. Não inferir ausência de vínculo técnico a partir de CPF diferente, cargo, nome ou formação.
 - **Comportamento obrigatório:** verificar automaticamente somente relações documentais explicitamente suportadas e autenticadas; na falta de prova confiável da independência integral, emitir `MANUAL_REVIEW`, com explicação ao vistoriador, sem `FAIL`/Nonconformity unicamente por insuficiência. Não alterar RDE FACT ONLY nem avaliar habilitação profissional no lugar do conselho.
 - **Governança:** interpretação institucional do alcance da exigência ainda depende de confirmação pela autoridade competente; não converter a intenção operacional atribuída à DSCI em equivalência normativa já homologada. `T4_IN10_COMMISSIONING` continua preparatório/não integral; critérios independentes podem prosseguir. Esta atualização é **exclusivamente documental**: nenhum código, predicate, contrato normativo, gate, status de assinatura ou cobertura foi promovido. `CRITERIA_COVERED=10/29`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
+
+### Retomada Fase 6B — vínculo técnico preparatório de recibo — 2026-10-22
+
+- Checkout reconciliado de `030cadb` para `607f1aef8e4b50b6470aa465ae085b8b1ea6b51b`,
+  dois commits descendentes e nenhuma alteração rastreada pendente. Avanço com
+  `reset --keep`, sem descarte e sem merge. `.codex-local-evidence/` preservado
+  byte a byte e copiado para `/tmp/especialistaSSCI-evidence-before-resume-20261022.tar.gz`
+  (SHA-256 `56f2fb4e5d346e6658e921d64918edebffd46eb4bbdf553841c4cc58655ea7e3`).
+  O sandbox ainda apresenta `bwrap: loopback: Failed RTM_NEWADDR`; comandos
+  necessários foram executados por escalonamento autorizado fora dele.
+- Incremento independente da decisão IN10: `SignatureVerificationReceiptCore`
+  passa a produzir um vínculo técnico preparatório, privado e imutável, entre
+  recibo RSA autenticado, contrato compilado, plano canônico, view derivada da
+  RDE validada, identidade/digest da RDE, contexto de apresentação e referência
+  documental. Recibo entra como JSON, recebe snapshot imutável e não é exposto
+  aos predicates. Cópias forjadas, outro plano/contexto/RDE e identificadores de
+  recibo duplicados são rejeitados; unicidade é somente por execução em memória,
+  sem alegar proteção persistente entre invocações Apps Script.
+- Limite explícito: a identidade/digest externo do PDF ainda é uma declaração
+  autenticada do verificador, sem mapa independente por documento da view; o
+  perfil de admissão também não está definido. Esses dois diagnósticos ficam
+  no vínculo. **Não é o binding completo de admissão previsto no Pipeline**:
+  nenhuma integração com o Engine, caller de produção, `TRUE`, `FAIL` ou NC foi
+  introduzida. `SIGNED` continua `MANUAL_REVIEW`; recibo humano audit-only.
+- Implementação inicial delegada à execução Terra `01a163a5-7d27-7941-a3fd-c2a0ccce9bac`
+  (modelo solicitado/anunciado pelo CLI `gpt-5.6-terra`). Após falhas focais
+  repetidas, o orquestrador encerrou o worker, integrou correções e substituiu o
+  mock de autenticação do plano por resolução/materialização canônicas reais.
+  Isso não constitui revisão independente nem comprova identidade do backend.
+- Gates do candidato: Python `201` (`189 PASS`, `12 SKIP` opcionais); Apps Script
+  `12/12 PASS`; sintaxe de módulos/testes JS e `Code.gs` PASS; runtime regenerado
+  byte-idêntico SHA-256
+  `43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`;
+  manifests/guards exercitados pela suíte Python; `git diff --check PASS`.
+  Release em worktree limpa e revisão independente do SHA exato serão registrados
+  no checkpoint seguinte. Nenhuma decisão IN10 foi repetida.
+
+`ARCHITECTURAL_REVIEW=PENDING`; `PROMOTION=NOT_AUTHORIZED`;
+`CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial; 19 pendentes)`;
+`FASE_6B_STATUS=IN_PROGRESS`.
