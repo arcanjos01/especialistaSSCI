@@ -987,8 +987,8 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
 ), false);
 
 // Basic DRT comparisons require explicit provenance-linked associations.
-// Address can pass on an exact positive match; area remains manual until the
-// DRT-scoped constructed-area comparand is represented in authenticated facts.
+// Exact address/area values remain review-only until the association and DRT
+// scope have typed authenticated semantics.
 const basicDrtAttributes = {
   RI_NAME: 'TEST_ONLY responsible party',
   RT_NAME: 'TEST_ONLY professional',
@@ -1027,8 +1027,7 @@ for (const [criterionId, attribute] of basicDataCriteria) {
   const result = api.executePlannedCriterion(
     contract, basicDataExecution.plan, unitKey, basicDataExecution.view
   );
-  const expectedResult = criterionId === 'T1_DRT_ADDRESS'
-    ? api.EngineResult.TRUE : api.EngineResult.MANUAL_REVIEW;
+  const expectedResult = api.EngineResult.MANUAL_REVIEW;
   assert.equal(result.engineResult, expectedResult, criterionId);
   assert.equal(result.pipelineResult, expectedResult === api.EngineResult.TRUE ? 'PASS' : 'MANUAL_REVIEW', criterionId);
   assert.equal(result.nonconformityOnFalse, undefined, criterionId);
@@ -1055,6 +1054,10 @@ for (const [criterionId, attribute] of basicDataCriteria) {
   }
   if (criterionId === 'T1_DRT_AREA') {
     assert.equal(evidence[0].comparison.status, 'EXACT_VALUE_MATCH_DRT_SCOPE_UNPROVEN');
+  }
+  if (criterionId === 'T1_DRT_ADDRESS') {
+    assert.equal(evidence[0].comparison.status,
+      'EXACT_VALUE_MATCH_RELATION_SEMANTICS_UNTYPED');
   }
 }
 function basicRequestFacts(overrides = {}) {

@@ -243,15 +243,17 @@ function engineBasicDataComparison_(args, memory, context, evidenceByReference) 
         ENGINE_OWN_DATA_VALUE_(facts, 'PROPERTY_AREA_TEXT'),
         ENGINE_OWN_DATA_VALUE_(request.facts, 'PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT'));
     }
-    // The current DRT fact exposes a property-area literal, but no typed
-    // comparand states that this quantity is the constructed area covered by
-    // this DRT. An exact number match therefore remains review evidence only.
+    // The current generic documentary association does not type its relation
+    // as same-property, and the DRT fact does not identify the area covered by
+    // that DRT. Exact values remain review evidence until both links are typed.
+    const addressRelationUnproven = context.criterionId === 'T1_DRT_ADDRESS' && matches;
     const areaScopeUnproven = context.criterionId === 'T1_DRT_AREA' && matches;
-    if (!matches || areaScopeUnproven) everyMatch = false;
+    if (!matches || addressRelationUnproven || areaScopeUnproven) everyMatch = false;
     evidenceStatuses.push({
       reference,
       status: areaScopeUnproven ? 'EXACT_VALUE_MATCH_DRT_SCOPE_UNPROVEN' :
-        (matches ? 'EXACT_COMPARAND_MATCH' : 'DIFFERENCE_OR_SCOPE_REQUIRES_HUMAN_REVIEW'),
+        (addressRelationUnproven ? 'EXACT_VALUE_MATCH_RELATION_SEMANTICS_UNTYPED' :
+          (matches ? 'EXACT_COMPARAND_MATCH' : 'DIFFERENCE_OR_SCOPE_REQUIRES_HUMAN_REVIEW')),
       associationId: association.associationId,
       associationSourceDocument: association.sourceDocument
     });
@@ -260,7 +262,8 @@ function engineBasicDataComparison_(args, memory, context, evidenceByReference) 
     result: everyMatch ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
     reason: everyMatch ? 'ALL_EXPLICIT_COMPARANDS_MATCH' :
       (context.criterionId === 'T1_DRT_AREA' ? 'DRT_SCOPE_COMPARAND_NOT_IDENTIFIED' :
-        'COMPARAND_INSUFFICIENT_OR_DIFFERENT'),
+        (context.criterionId === 'T1_DRT_ADDRESS' ? 'SAME_PROPERTY_RELATION_NOT_TYPED' :
+          'COMPARAND_INSUFFICIENT_OR_DIFFERENT')),
     requestReference: request.reference,
     requestProvenance: request.provenance,
     evidenceStatuses
