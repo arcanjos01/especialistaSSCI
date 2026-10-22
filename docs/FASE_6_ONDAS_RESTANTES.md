@@ -4724,7 +4724,7 @@ versão não foram atestados. Portanto o parecer não é atribuído a Luna nem a
 e não conclui o gate formal de aprovação arquitetural. O revisor executou a
 suíte RDE, 46 testes de versão/runtime, sintaxe e diff check. O finding LOW
 exclusivamente documental (build executado mas marcado como pendente) foi
-corrigido acima; re-review dirigida pendente.
+corrigido acima; naquele instante a re-review dirigida ainda estava pendente.
 `INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY`, `SOL_REVIEW=PENDING_IDENTITY`,
 `PROMOTION=NOT_AUTHORIZED`.
 
@@ -4734,3 +4734,40 @@ sem atribuição a Luna/Sol e sem novos findings. O revisor executou apenas a
 verificação read-only do tracker, sem repetir gates/build. Sua identidade
 continuou declarada como Codex, backend/versão não atestados; esta re-review
 encerra somente o finding de texto e não altera `INDEPENDENT_ARCH_REVIEW`.
+
+### Reconciliação atual após o lote factual — 2026-10-22
+
+```text
+BRANCH=feature/apps-script-engine-core
+LOCAL_HEAD=10d9599ccb9c03bd9f451186982ed870076c0455
+REMOTE_HEAD=10d9599ccb9c03bd9f451186982ed870076c0455
+WORKTREE_TRACKED=CLEAN
+LOCAL_EVIDENCE=.codex-local-evidence/ preservado, não rastreado
+KNOWLEDGE_BASE_VERSION=5.40.0
+RUNTIME_SHA256=84f82dbd1f46b59f5359c76ec55fb3f7faadb4a987b438bed7b16bcc05bd3a96
+CRITERIA_ACTIVE=34
+CRITERIA_PRODUCTIVE=29
+CRITERIA_INTEGRAL=10
+CRITERIA_PARTIAL=1
+CRITERIA_PREPARATORY=7
+CRITERIA_PENDING_INTEGRAL=19
+PYTHON_TESTS=201 (189 PASS, 12 SKIP)
+APPS_SCRIPT_SUITES=12 PASS
+RUNTIME_REGENERATION=BYTE_IDENTICAL
+BUILD_VALIDATION=PASS; 10/10; SOURCE_COMMIT=8afcb08d5ac4649389f91dea2139903e959a2eb7
+INDEPENDENT_TECHNICAL_REVIEW=PASS (escopo factual preparatório)
+INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY
+SOL_REVIEW=PENDING_IDENTITY
+PROMOTION=NOT_AUTHORIZED
+FASE_6B_STATUS=IN_PROGRESS
+```
+
+O release build corresponde ao commit de código/Base `8afcb08`; os commits
+seguintes `04c16a0`, `ca05677` e `10d9599` atualizam somente o tracker. A
+revisão independente factual não tem identidade/backend atestado e não é
+atribuída a Luna nem a Sol. A aprovação final arquitetural da Fase 6 segue
+pendente. Não houve aumento de cobertura neste lote. Próxima prioridade
+funcional: resolver apenas por fonte autorizada a dimensão de área e o
+comparando estruturado de endereço; paralelamente, continuar a verificação
+local de assinatura sem habilitar `SIGNED` enquanto perfil, digest de trust set
+e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real.
