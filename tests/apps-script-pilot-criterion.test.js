@@ -998,6 +998,40 @@ for (const criterionId of ['T1_DRT_REGISTERED', 'T4_DRT_REGISTERED']) {
   assert.equal(result.trace.length, 3, criterionId);
 }
 
+const drtSignatureFacts = prepare({
+  includeGas: false,
+  executionDrts: ['ART', 'RRT', 'TRT'].map((entityId, index) => ({
+    entityId,
+    attributes: {
+      SIGNATURE_PARTY: ['TEST_ONLY signer A', 'TEST_ONLY signer B', 'TEST_ONLY signer C'][index],
+      SIGNATURE_MECHANISM: ['PAdES', 'ICP-Brasil', 'imagem digitalizada'][index]
+    },
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'DRT_SIGNATURE_' + index }
+  }))
+});
+for (const criterionId of ['T1_DRT_SIGNED', 'T4_DRT_SIGNED']) {
+  const unitKey = 'UNIT_KEY (REQ_T1_DRT_SIGNED, ' + criterionId + ')';
+  const result = api.executePlannedCriterion(
+    contract, drtSignatureFacts.plan, unitKey, drtSignatureFacts.view
+  );
+  assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW, criterionId);
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW', criterionId);
+  assert.equal(result.nonconformityOnFalse, undefined, criterionId);
+  const expectedByAttribute = {
+    SIGNATURE_PARTY: ['TEST_ONLY signer A', 'TEST_ONLY signer B', 'TEST_ONLY signer C'],
+    SIGNATURE_MECHANISM: ['PAdES', 'ICP-Brasil', 'imagem digitalizada']
+  };
+  for (const [attribute, literals] of Object.entries(expectedByAttribute)) {
+    const disclosureTrace = result.trace.find(item =>
+      item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' &&
+      item.arguments.attribute === attribute);
+    assert.ok(disclosureTrace, criterionId + ':' + attribute);
+    assert.deepEqual(JSON.parse(JSON.stringify(
+      disclosureTrace.documentaryEvidence.map(item => item.literal)
+    )), literals, criterionId + ':' + attribute);
+  }
+}
+
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
 assert.equal(negativeResult.unitKey, PILOT_UNIT);

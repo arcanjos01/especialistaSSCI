@@ -573,11 +573,14 @@ function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
     ],
     T4_DRT_REGISTERED: [
       'COUNCIL_REGISTRATION_STATUS', 'COUNCIL_ISSUANCE_STATUS', 'COUNCIL_PAYMENT_STATUS'
-    ]
+    ],
+    T1_DRT_SIGNED: ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM'],
+    T4_DRT_SIGNED: ['SIGNATURE_PARTY', 'SIGNATURE_MECHANISM']
   };
   if (!context ||
       (context.requirementId !== 'REQ_T1_DRT_BASIC_DATA' &&
-       context.requirementId !== 'REQ_T1_DRT_REGISTERED') ||
+       context.requirementId !== 'REQ_T1_DRT_REGISTERED' &&
+       context.requirementId !== 'REQ_T1_DRT_SIGNED') ||
       !ENGINE_HAS_OWN_(attributesByCriterion, context.criterionId) ||
       (context.role !== 'ASSERT' && context.role !== 'VALIDATE') ||
       typeof isImmutableExecutionView !== 'function' || !isImmutableExecutionView(memory) ||
@@ -588,11 +591,15 @@ function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
       typeof isCanonicalCurrentSubmissionContext !== 'function' ||
       !isCanonicalCurrentSubmissionContext(context.currentSubmissionContext)) return empty;
   const isBasicData = context.requirementId === 'REQ_T1_DRT_BASIC_DATA';
+  const isRegistration = context.requirementId === 'REQ_T1_DRT_REGISTERED';
+  const isSignature = context.requirementId === 'REQ_T1_DRT_SIGNED';
   if ((isBasicData && !ENGINE_HAS_OWN_(
     { T1_DRT_RI_LEGAL_ENTITY: true, T1_DRT_RT_NAME: true,
       T1_DRT_ADDRESS: true, T1_DRT_AREA: true }, context.criterionId)) ||
-      (!isBasicData && (context.criterionId !== 'T1_DRT_REGISTERED' &&
-        context.criterionId !== 'T4_DRT_REGISTERED'))) return empty;
+      (isRegistration && context.criterionId !== 'T1_DRT_REGISTERED' &&
+        context.criterionId !== 'T4_DRT_REGISTERED') ||
+      (isSignature && context.criterionId !== 'T1_DRT_SIGNED' &&
+        context.criterionId !== 'T4_DRT_SIGNED')) return empty;
   const allowedAttributes = ENGINE_OWN_DATA_VALUE_(attributesByCriterion, context.criterionId);
   let attributeAllowed = false;
   for (let index = 0; index < allowedAttributes.length; index += 1) {

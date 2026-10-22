@@ -5432,3 +5432,29 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
   `VALIDATED_TO_ANALYZED=PENDING`. Sol 6.1 permanece indisponível/capacidade;
   não atribuir parecer a Sol. IN10 não foi alterado.
+
+### Lote de divulgação factual de assinatura em DRT — 2026-10-22
+
+- Escopo: `T1_DRT_SIGNED` e `T4_DRT_SIGNED`. O trace divulga por ART/RRT/TRT
+  os fatos textuais `SIGNATURE_PARTY` e `SIGNATURE_MECHANISM`, com provenance e
+  identidade da fonte. O Engine não interpreta esses campos: `PAdES`,
+  `ICP-Brasil`, texto, imagem ou carimbo não são aceitos como prova criptográfica.
+- Resultado: ambos permanecem `MANUAL_REVIEW`, sem `PASS`, `FAIL` ou NC por
+  insuficiência. Sem mudança em RDE, requisito, predicado normativo ou
+  integração do POC como verificador confiável.
+- Cobertura: `CRITERIA_COVERED=10/29` permanece; `CRITERIA_PARTIAL=15→17`;
+  preparatórios `2→2`; pendentes integrais `19→19`. A pendência de verificação
+  criptográfica local/recibo permanece bloqueante para integração automática.
+- Teste direcionado: os dois Criteria recebem assinatura de ART/RRT/TRT, com
+  literais de mecanismo variados, e permanecem `MANUAL_REVIEW`, sem NC.
+  Python `202` (189 PASS, 13 SKIP), Apps Script `12/12`, sintaxe de todos os
+  módulos/testes JavaScript e `Code.gs`, runtime byte-identical SHA-256
+  `3f8738c84f6e164642748171a4b9ed67d7645ed396c579de04585c27e6b0462b`, phase/
+  manifest guards pela suíte Python e `git diff --check`: `PASS`. Revisão
+  independente Luna read-only do delta desde `80ef905`: `PASS`, nenhum finding
+  BLOCKER/HIGH/MEDIUM/LOW; não executou testes.
+- Benefício: o vistoriador vê o signatário e o mecanismo declarados na própria
+  DRT junto à referência fonte, sem confundi-los com autenticidade. Esforço
+  aproximado: 25 minutos; uma revisão independente, sem re-review; ganho
+  integral `0`. Build limpo, confirmação do SHA final e push do lote ainda
+  pendentes.
