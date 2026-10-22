@@ -4,6 +4,7 @@ const ENGINE_ARRAY_IS_ARRAY_ = Array.isArray;
 const ENGINE_ARRAY_INCLUDES_ = Array.prototype.includes;
 const ENGINE_ARRAY_CONCAT_ = Array.prototype.concat;
 const ENGINE_ARRAY_MAP_ = Array.prototype.map;
+const ENGINE_ARRAY_FILTER_ = Array.prototype.filter;
 const ENGINE_ARRAY_SORT_ = Array.prototype.sort;
 const ENGINE_REFLECT_APPLY_ = Reflect.apply;
 const ENGINE_OBJECT_KEYS_ = Object.keys;
@@ -15,6 +16,8 @@ const ENGINE_OBJECT_GET_PROTOTYPE_OF_ = Object.getPrototypeOf;
 const ENGINE_NUMBER_IS_FINITE_ = Number.isFinite;
 const ENGINE_NUMBER_IS_INTEGER_ = Number.isInteger;
 const ENGINE_STRING_TRIM_ = String.prototype.trim;
+const ENGINE_STRING_SPLIT_ = String.prototype.split;
+const ENGINE_REGEXP_EXEC_ = RegExp.prototype.exec;
 
 const ENGINE_ARRAY_SET_OWN_ = function (array, index, value) {
   ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [array, index, {
@@ -94,6 +97,174 @@ function engineHasUsableDocumentaryProvenance_(provenance) {
     hasPositiveInteger('page') || hasPositiveInteger('row') ||
     hasPositiveInteger('column') || hasString('text_span') ||
     hasString('location') || hasString('attachment');
+}
+
+function engineBasicDataRequest_(memory) {
+  if (!memory || typeof memory.referencesByEntity !== 'function' ||
+      typeof memory.entityId !== 'function' || typeof memory.sourceDocument !== 'function' ||
+      typeof memory.provenance !== 'function') return null;
+  let references;
+  try { references = memory.referencesByEntity('REQUERIMENTO_ESCI'); } catch (error) { return null; }
+  if (!ENGINE_ARRAY_IS_ARRAY_(references) || references.length !== 1) return null;
+  const reference = references[0];
+  if (!(reference instanceof ENGINE_TYPED_REFERENCE_CLASS_) || reference.kind !== 'DOCUMENT' ||
+      !memory.contains(reference) || memory.entityId(reference) !== 'REQUERIMENTO_ESCI') return null;
+  const source = memory.sourceDocument(reference);
+  const provenance = memory.provenance(reference);
+  if (!(source instanceof ENGINE_TYPED_REFERENCE_CLASS_) || source.kind !== 'DOCUMENT' ||
+      source.identifier !== reference.identifier ||
+      !engineHasUsableDocumentaryProvenance_(provenance)) return null;
+  const facts = memory.read(reference);
+  if (!ENGINE_IS_PLAIN_OBJECT_(facts)) return null;
+  return { reference, facts, provenance };
+}
+
+function engineBasicDataExplicitAssociation_(memory, left, right) {
+  if (!memory || typeof memory.documentaryAssociations !== 'function') return null;
+  let associations;
+  try { associations = memory.documentaryAssociations(left); } catch (error) { return null; }
+  if (!ENGINE_ARRAY_IS_ARRAY_(associations)) return null;
+  const matches = [];
+  for (let index = 0; index < associations.length; index += 1) {
+    const association = associations[index];
+    if (!ENGINE_IS_PLAIN_OBJECT_(association)) continue;
+    const a = ENGINE_OWN_DATA_VALUE_(association, 'left');
+    const b = ENGINE_OWN_DATA_VALUE_(association, 'right');
+    const source = ENGINE_OWN_DATA_VALUE_(association, 'sourceDocument');
+    const statement = ENGINE_OWN_DATA_VALUE_(association, 'statementText');
+    const associationId = ENGINE_OWN_DATA_VALUE_(association, 'associationId');
+    const provenance = ENGINE_OWN_DATA_VALUE_(association, 'provenance');
+    const endpointMatches = (first, second) => first instanceof ENGINE_TYPED_REFERENCE_CLASS_ &&
+      second instanceof ENGINE_TYPED_REFERENCE_CLASS_ && first.kind === second.kind &&
+      first.identifier === second.identifier;
+    const endpointsMatch = (endpointMatches(a, left) && endpointMatches(b, right)) ||
+      (endpointMatches(a, right) && endpointMatches(b, left));
+    if (!endpointsMatch || !(source instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+        source.kind !== 'DOCUMENT' || !memory.contains(source) ||
+        typeof associationId !== 'string' || !associationId ||
+        typeof statement !== 'string' ||
+        !ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, statement, []).length ||
+        !engineHasUsableDocumentaryProvenance_(provenance) ||
+        !engineHasUsableDocumentaryProvenance_(memory.provenance(source))) continue;
+    ENGINE_ARRAY_SET_OWN_(matches, matches.length,
+      { associationId, sourceDocument: source, provenance });
+  }
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function engineBasicDataAddressTokens_(value) {
+  if (typeof value !== 'string' ||
+      !ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, value, []).length) return null;
+  const tokens = ENGINE_REFLECT_APPLY_(ENGINE_STRING_SPLIT_, value, [/[^\p{L}\p{N}]+/u]);
+  return ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_FILTER_, tokens, [Boolean]);
+}
+
+function engineBasicDataAddressMatches_(addressText, requestFacts) {
+  const fields = [
+    ['PROPERTY_STREET_TEXT', true], ['PROPERTY_NUMBER_TEXT', true],
+    ['PROPERTY_COMPLEMENT_TEXT', false], ['PROPERTY_REFERENCE_TEXT', false],
+    ['PROPERTY_NEIGHBORHOOD_TEXT', true], ['PROPERTY_CITY_TEXT', true],
+    ['PROPERTY_STATE_TEXT', true], ['PROPERTY_CEP_TEXT', false]
+  ];
+  const expected = [];
+  for (let index = 0; index < fields.length; index += 1) {
+    const [field, required] = fields[index];
+    const value = ENGINE_OWN_DATA_VALUE_(requestFacts, field);
+    if (typeof value !== 'string' ||
+        !ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, value, []).length) {
+      if (required) return false;
+      continue;
+    }
+    const tokens = engineBasicDataAddressTokens_(value);
+    if (!tokens || tokens.length === 0) return false;
+    for (let token = 0; token < tokens.length; token += 1) expected.push(tokens[token]);
+  }
+  const actual = engineBasicDataAddressTokens_(addressText);
+  if (!actual || expected.length === 0 || actual.length !== expected.length) return false;
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) return false;
+  }
+  return true;
+}
+
+function engineBasicDataAreaMatches_(drtAreaText, requestAreaText) {
+  if (typeof drtAreaText !== 'string' || typeof requestAreaText !== 'string') return false;
+  const drtMatch = ENGINE_REFLECT_APPLY_(ENGINE_REGEXP_EXEC_,
+    /^área total construída no terreno\s*[:=\-]?\s*(\d+(?:[,.]\d+)?)\s*m(?:²|2)$/i,
+    [ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, drtAreaText, [])]);
+  const requestMatch = ENGINE_REFLECT_APPLY_(ENGINE_REGEXP_EXEC_,
+    /^(\d+(?:[,.]\d+)?)$/,
+    [ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, requestAreaText, [])]);
+  return !!drtMatch && !!requestMatch && drtMatch[1] === requestMatch[1];
+}
+
+function engineBasicDataComparison_(args, memory, context, evidenceByReference) {
+  const manual = reason => ({
+    result: EngineResult.MANUAL_REVIEW,
+    reason,
+    requestReference: null,
+    evidenceStatuses: []
+  });
+  const request = engineBasicDataRequest_(memory);
+  if (!request) return manual('REQUEST_COMPARATOR_MISSING_AMBIGUOUS_OR_UNPROVEN');
+  if (context.criterionId === 'T1_DRT_RI_LEGAL_ENTITY') {
+    return { ...manual('NO_DOCUMENTED_RI_COMPARATOR_IN_CURRENT_REQUEST'),
+      requestReference: request.reference };
+  }
+  if (context.criterionId === 'T1_DRT_RT_NAME') {
+    return {
+      ...manual('SPECIFIC_REQUIRED_RT_TO_TECHNICAL_PRODUCT_BINDING_UNAVAILABLE'),
+      requestReference: request.reference,
+      processComparand: 'TECHNICAL_RESPONSIBLE_NAME_TEXT'
+    };
+  }
+
+  const references = args.evidenceReferences;
+  if (!ENGINE_ARRAY_IS_ARRAY_(references) || references.length === 0) {
+    return { ...manual('DRT_EVIDENCE_MISSING'), requestReference: request.reference };
+  }
+  const evidenceStatuses = [];
+  let everyMatch = true;
+  for (let index = 0; index < references.length; index += 1) {
+    const reference = references[index];
+    const facts = evidenceByReference[reference.identifier];
+    const association = engineBasicDataExplicitAssociation_(memory, request.reference, reference);
+    if (!facts || !association) {
+      everyMatch = false;
+      evidenceStatuses.push({ reference, status: 'EXPLICIT_LINK_OR_DRT_FACT_UNAVAILABLE' });
+      continue;
+    }
+    let matches = false;
+    if (context.criterionId === 'T1_DRT_ADDRESS') {
+      matches = engineBasicDataAddressMatches_(
+        ENGINE_OWN_DATA_VALUE_(facts, 'PROPERTY_ADDRESS_TEXT'), request.facts);
+    } else if (context.criterionId === 'T1_DRT_AREA') {
+      matches = engineBasicDataAreaMatches_(
+        ENGINE_OWN_DATA_VALUE_(facts, 'PROPERTY_AREA_TEXT'),
+        ENGINE_OWN_DATA_VALUE_(request.facts, 'PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT'));
+    }
+    // The current DRT fact exposes a property-area literal, but no typed
+    // comparand states that this quantity is the constructed area covered by
+    // this DRT. An exact number match therefore remains review evidence only.
+    const areaScopeUnproven = context.criterionId === 'T1_DRT_AREA' && matches;
+    if (!matches || areaScopeUnproven) everyMatch = false;
+    evidenceStatuses.push({
+      reference,
+      status: areaScopeUnproven ? 'EXACT_VALUE_MATCH_DRT_SCOPE_UNPROVEN' :
+        (matches ? 'EXACT_COMPARAND_MATCH' : 'DIFFERENCE_OR_SCOPE_REQUIRES_HUMAN_REVIEW'),
+      associationId: association.associationId,
+      associationSourceDocument: association.sourceDocument
+    });
+  }
+  return {
+    result: everyMatch ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
+    reason: everyMatch ? 'ALL_EXPLICIT_COMPARANDS_MATCH' :
+      (context.criterionId === 'T1_DRT_AREA' ? 'DRT_SCOPE_COMPARAND_NOT_IDENTIFIED' :
+        'COMPARAND_INSUFFICIENT_OR_DIFFERENT'),
+    requestReference: request.reference,
+    requestProvenance: request.provenance,
+    evidenceStatuses
+  };
 }
 
 class TypedReference {
@@ -612,7 +783,14 @@ function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
     }
   }
   if (context.role === 'ASSERT' && !attributeAllowed) return empty;
-  if (context.role === 'VALIDATE' && (!isBasicData || args.attribute !== 'RI_NAME')) return empty;
+  const basicAttributeByCriterion = {
+    T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
+    T1_DRT_RT_NAME: 'RT_NAME',
+    T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
+    T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
+  };
+  if (context.role === 'VALIDATE' && (!isBasicData ||
+      args.attribute !== basicAttributeByCriterion[context.criterionId])) return empty;
   let plannedUnitFound = false;
   const units = context.executionPlan.PLANNED_EXECUTION_UNITS;
   for (let index = 0; index < units.length; index += 1) {
@@ -662,7 +840,7 @@ function responsibilityDrtAttributeDisclosurePredicateContract() {
       new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true }),
       new ArgumentSpec({ name: 'attribute', kind: ArgumentKind.TEXT })
     ]),
-    resultContract: [EngineResult.MANUAL_REVIEW],
+    resultContract: [EngineResult.TRUE, EngineResult.MANUAL_REVIEW],
     resolver: {
       resolve(args, memory, context) {
         const gate = authenticateBasicDrtAttributeDisclosure_(args, memory, context);
@@ -675,6 +853,7 @@ function responsibilityDrtAttributeDisclosurePredicateContract() {
           );
         }
         const documentaryEvidence = [];
+        const evidenceByReference = Object.create(null);
         for (let index = 0; index < args.evidenceReferences.length; index += 1) {
           const reference = args.evidenceReferences[index];
           if (!(reference instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
@@ -697,6 +876,9 @@ function responsibilityDrtAttributeDisclosurePredicateContract() {
           const literalUsable = typeof value === 'string' && value.trim().length > 0;
           const sourceDocumentMatches = sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_ &&
             sourceDocument.kind === 'DOCUMENT' && sourceDocument.identifier === reference.identifier;
+          if (literalUsable && provenanceUsable && sourceDocumentMatches) {
+            evidenceByReference[reference.identifier] = facts;
+          }
           documentaryEvidence.push({
             document: reference,
             documentEntityId: entityId,
@@ -709,10 +891,26 @@ function responsibilityDrtAttributeDisclosurePredicateContract() {
             associationStatus: 'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'
           });
         }
+        const comparison = context && context.requirementId === 'REQ_T1_DRT_BASIC_DATA'
+          ? engineBasicDataComparison_(args, memory, context, evidenceByReference)
+          : { result: EngineResult.MANUAL_REVIEW,
+            reason: 'NOT_A_BASIC_DRT_DATA_CRITERION', evidenceStatuses: [] };
+        const enrichedEvidence = documentaryEvidence.map(item => {
+          const status = comparison.evidenceStatuses.find(candidate =>
+            candidate.reference && candidate.reference.identifier === item.document.identifier);
+          return {
+            ...item,
+            comparison: status ? {
+              status: status.status,
+              associationId: status.associationId || null,
+              associationSourceDocument: status.associationSourceDocument || null
+            } : { status: comparison.reason }
+          };
+        });
         return {
-          result: EngineResult.MANUAL_REVIEW,
+          result: comparison.result,
           memoryReferences: args.evidenceReferences,
-          documentaryEvidence
+          documentaryEvidence: enrichedEvidence
         };
       }
     }

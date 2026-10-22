@@ -212,7 +212,7 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
       ['T1_DRT_RI_LEGAL_ENTITY', 'T1_DRT_RT_NAME', 'T1_DRT_ADDRESS',
         'T1_DRT_AREA'].includes(metadata.criterionId) &&
       validate.length === 1 &&
-      validate[0] === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY' &&
+      validate[0] === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_BASIC_DATA' &&
       Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
       Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
     'basic DRT data validation declaration is invalid');
@@ -225,12 +225,18 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
         'ImmutableExecutionView returned an invalid DRT document collection');
       references.forEach(reference => evidenceReferences.push(reference));
     }
+    const attributeByCriterion = {
+      T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
+      T1_DRT_RT_NAME: 'RT_NAME',
+      T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
+      T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
+    };
     return Object.freeze({
       expression: new PredicateCall('RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE', {
-        evidenceReferences, attribute: 'RI_NAME'
+        evidenceReferences, attribute: attributeByCriterion[metadata.criterionId]
       }),
       binding: immutableCopy({
-        type: 'BASIC_DRT_RI_VALIDATION_DISCLOSURE',
+        type: 'BASIC_DRT_DATA_VALIDATION',
         criterionId: metadata.criterionId,
         evidenceReferences
       })

@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.13
+# VERSION 4.14
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -213,6 +213,8 @@ TECHNICAL_PRODUCT_ATTRIBUTE()
 
 RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY()
 
+RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_BASIC_DATA()
+
 RESPONSIBILITY_RT_MATCHES_PRODUCT()
 
 APPROVED()
@@ -343,6 +345,27 @@ BRANCH OF THE SAME LEGAL PERSON.
 RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY RETURNS TRUE WHEN THE
 DOCUMENTARY EVIDENCE IDENTIFIES THE SAME LEGAL PERSON, INCLUDING A HEAD OFFICE
 AND ITS BRANCH, OR WHEN THE CNPJ DIFFERENCE IS THE ONLY AVAILABLE EVIDENCE.
+
+RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_BASIC_DATA IS THE VALIDATION GATE FOR
+REQ_T1_DRT_BASIC_DATA. It consumes only typed facts from the immutable view of
+the authenticated current presentation. A comparison requires one exact
+REQUERIMENTO_ESCI source, sufficient provenance, and an explicit documentary
+association between that request and each compared DRT. RT comparison also
+requires one uniquely resolved required responsibility and its canonical DRT
+evidence binding. The RT comparand is TECHNICAL_RESPONSIBLE_NAME_TEXT; it is
+never REQUESTER_NAME_TEXT. Address comparison uses the request's separately
+extracted address components and the DRT's literal address, accepting only an
+exact ordered token match after punctuation/whitespace separation; no name,
+abbreviation, geocoding or semantic normalization is performed. Area comparison
+uses PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT only, and a DRT value is comparable
+only when it explicitly states "área total construída no terreno" with an
+exact numeric literal and m² unit. It never substitutes land area, block area,
+or another scope. The predicate returns TRUE only for a complete exact match.
+Missing, ambiguous, unlinked, differently formatted or differing values return
+MANUAL_REVIEW; this validation gate never returns FALSE or creates a
+Nonconformity. RI remains MANUAL_REVIEW unless a reliable document explicitly
+identifies the RI and is bound to the same DRT. A text difference alone is not
+proof of a normative violation.
 
 RESPONSIBILITY_RT_MATCHES_PRODUCT RETURNS FALSE ONLY
 WHEN THE RESPONSIBLE TECHNICAL PROFESSIONAL IDENTIFIED IN THE DRT IS DIFFERENT

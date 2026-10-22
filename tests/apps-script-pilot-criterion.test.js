@@ -96,7 +96,7 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includeShp = false, includeSdai = false, includeSprinkler = false,
   includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
   signedProducts = [], in19DrtEntityId = null,
-  executionDrts = [],
+  executionDrts = [], basicDataRequest = null, associateBasicDataDrts = false,
   documentaryDateItems = [],
   documentaryTextExcerptItems = [],
   useExcerptSchema = false,
@@ -214,6 +214,12 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
         : { sourceKind: 'TEST_ONLY', sourceReference: 'EXECUTION_DRT_' + index }
     });
   });
+  if (basicDataRequest) records.push({
+    record_id: 'DOC_BASIC_DATA_REQUEST', entity_id: 'REQUERIMENTO_ESCI',
+    parent_record_id: null, source_document: 'DOC_BASIC_DATA_REQUEST',
+    attributes: basicDataRequest,
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'BASIC_DATA_REQUEST' }
+  });
   if (includeLegacyExecutionDrt) {
     records.push({
       record_id: 'DOC_DRT', entity_id: 'PPCI', parent_record_id: null,
@@ -283,8 +289,19 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   }
   const usesExcerptSchema = useExcerptSchema || documentaryTextExcerptItems.length > 0;
   const usesDateItems = documentaryDateItems.length > 0;
+  const basicDataAssociations = associateBasicDataDrts && basicDataRequest
+    ? executionDrts.map((entry, index) => ({
+      association_id: 'BASIC_DATA_ASSOC_' + index,
+      left_record_id: 'DOC_BASIC_DATA_REQUEST',
+      right_record_id: 'EXECUTION_DRT_' + index,
+      source_document: 'DOC_BASIC_DATA_REQUEST',
+      statement_text: 'TEST_ONLY explicit relation between the property request and DRT',
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'BASIC_DATA_ASSOC_' + index }
+    })) : [];
+  const schemaVersion = usesExcerptSchema ? '0.8.0' : (usesDateItems ? '0.5.0' :
+    (basicDataAssociations.length ? '0.3.0' : '0.2.0'));
   return {
-    schema_version: usesExcerptSchema ? '0.8.0' : (usesDateItems ? '0.5.0' : '0.2.0'), process_id: 'TEST_ONLY_PROCESS',
+    schema_version: schemaVersion, process_id: 'TEST_ONLY_PROCESS',
     source: {
       file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf', mime_type: 'application/pdf',
       source_url: 'TEST_ONLY_URL', sha256: '0'.repeat(64)
@@ -295,6 +312,7 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
     },
     records,
     extraction_warnings: [],
+    ...(schemaVersion !== '0.2.0' ? { documentary_associations: basicDataAssociations } : {}),
     ...(usesDateItems ? {
       documentary_associations: [],
       drt_declaration_items: [],
@@ -968,8 +986,9 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   multipleExecutionDrts.view
 ), false);
 
-// The four basic-data Criteria disclose exact DRT literals for human review.
-// They do not establish a comparison, responsibility association, PASS or NC.
+// Basic DRT comparisons require explicit provenance-linked associations.
+// Address can pass on an exact positive match; area remains manual until the
+// DRT-scoped constructed-area comparand is represented in authenticated facts.
 const basicDrtAttributes = {
   RI_NAME: 'TEST_ONLY responsible party',
   RT_NAME: 'TEST_ONLY professional',
@@ -978,10 +997,22 @@ const basicDrtAttributes = {
 };
 const basicDataExecution = prepare({
   includeGas: false,
+  basicDataRequest: {
+    REQUESTER_NAME_TEXT: 'TEST_ONLY requester',
+    TECHNICAL_RESPONSIBLE_NAME_TEXT: 'TEST_ONLY professional',
+    PROPERTY_STREET_TEXT: 'Avenida Teste', PROPERTY_NUMBER_TEXT: '42',
+    PROPERTY_NEIGHBORHOOD_TEXT: 'Centro', PROPERTY_CITY_TEXT: 'Florianopolis',
+    PROPERTY_STATE_TEXT: 'SC', PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT: '250,00'
+  },
+  associateBasicDataDrts: true,
   executionDrts: ['ART', 'RRT', 'TRT'].map((entityId, index) => ({
     entityId,
-    attributes: Object.fromEntries(Object.entries(basicDrtAttributes).map(([key, value]) =>
-      [key, value + ' ' + entityId])),
+    attributes: {
+      ...basicDrtAttributes,
+      RT_NAME: 'TEST_ONLY professional',
+      PROPERTY_ADDRESS_TEXT: 'Avenida Teste, 42, Centro, Florianopolis, SC',
+      PROPERTY_AREA_TEXT: 'Área total construída no terreno: 250,00 m²'
+    },
     provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'BASIC_DRT_' + index }
   }))
 });
@@ -996,8 +1027,10 @@ for (const [criterionId, attribute] of basicDataCriteria) {
   const result = api.executePlannedCriterion(
     contract, basicDataExecution.plan, unitKey, basicDataExecution.view
   );
-  assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW, criterionId);
-  assert.equal(result.pipelineResult, 'MANUAL_REVIEW', criterionId);
+  const expectedResult = criterionId === 'T1_DRT_ADDRESS'
+    ? api.EngineResult.TRUE : api.EngineResult.MANUAL_REVIEW;
+  assert.equal(result.engineResult, expectedResult, criterionId);
+  assert.equal(result.pipelineResult, expectedResult === api.EngineResult.TRUE ? 'PASS' : 'MANUAL_REVIEW', criterionId);
   assert.equal(result.nonconformityOnFalse, undefined, criterionId);
   const disclosureTrace = result.trace.find(item => item.predicateId ===
     'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' && item.arguments.attribute === attribute);
@@ -1007,8 +1040,12 @@ for (const [criterionId, attribute] of basicDataCriteria) {
   assert.deepEqual(JSON.parse(JSON.stringify(evidence.map(item => item.documentEntityId))),
     ['ART', 'RRT', 'TRT'], criterionId);
   for (const item of evidence) {
-    assert.equal(item.literal, basicDrtAttributes[attribute] + ' ' + item.documentEntityId,
-      criterionId);
+    const expectedLiteral = attribute === 'RT_NAME' ? 'TEST_ONLY professional' :
+      attribute === 'PROPERTY_ADDRESS_TEXT'
+        ? 'Avenida Teste, 42, Centro, Florianopolis, SC' :
+          attribute === 'PROPERTY_AREA_TEXT'
+            ? 'Área total construída no terreno: 250,00 m²' : basicDrtAttributes[attribute];
+    assert.equal(item.literal, expectedLiteral, criterionId);
     assert.equal(item.attribute, attribute, criterionId);
     assert.equal(item.sourceDocument.identifier, item.document.identifier, criterionId);
     assert.equal(item.provenanceSufficient, true, criterionId);
@@ -1016,7 +1053,82 @@ for (const [criterionId, attribute] of basicDataCriteria) {
     assert.equal(item.associationStatus,
       'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY', criterionId);
   }
+  if (criterionId === 'T1_DRT_AREA') {
+    assert.equal(evidence[0].comparison.status, 'EXACT_VALUE_MATCH_DRT_SCOPE_UNPROVEN');
+  }
 }
+function basicRequestFacts(overrides = {}) {
+  return {
+    REQUESTER_NAME_TEXT: 'TEST_ONLY requester',
+    TECHNICAL_RESPONSIBLE_NAME_TEXT: 'TEST_ONLY professional',
+    PROPERTY_STREET_TEXT: 'Avenida Teste', PROPERTY_NUMBER_TEXT: '42',
+    PROPERTY_NEIGHBORHOOD_TEXT: 'Centro', PROPERTY_CITY_TEXT: 'Florianopolis',
+    PROPERTY_STATE_TEXT: 'SC', PROPERTY_TOTAL_CONSTRUCTED_AREA_TEXT: '250,00',
+    ...overrides
+  };
+}
+function basicDrtFacts(overrides = {}) {
+  return {
+    RI_NAME: 'TEST_ONLY requester',
+    RT_NAME: 'TEST_ONLY professional',
+    PROPERTY_ADDRESS_TEXT: 'Avenida Teste, 42, Centro, Florianopolis, SC',
+    PROPERTY_AREA_TEXT: 'Área total construída no terreno: 250,00 m²',
+    ...overrides
+  };
+}
+function runBasicData(criterionId, requestFacts, drtFacts, associate = true) {
+  const prepared = prepare({
+    includeGas: false, basicDataRequest: requestFacts,
+    associateBasicDataDrts: associate,
+    executionDrts: [{ entityId: 'ART', attributes: drtFacts,
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'BASIC_DATA_EDGE' } }]
+  });
+  const result = api.executePlannedCriterion(contract, prepared.plan,
+    'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, ' + criterionId + ')', prepared.view);
+  return { prepared, result };
+}
+const requesterCoincidesWithDrtRi = runBasicData('T1_DRT_RI_LEGAL_ENTITY',
+  basicRequestFacts(), basicDrtFacts());
+assert.equal(requesterCoincidesWithDrtRi.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(requesterCoincidesWithDrtRi.result.nonconformityOnFalse, undefined);
+assert.equal(requesterCoincidesWithDrtRi.result.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE').documentaryEvidence[0]
+  .comparison.status, 'NO_DOCUMENTED_RI_COMPARATOR_IN_CURRENT_REQUEST');
+
+const rtMustNotUseRequester = runBasicData('T1_DRT_RT_NAME', basicRequestFacts({
+  REQUESTER_NAME_TEXT: 'TEST_ONLY professional',
+  TECHNICAL_RESPONSIBLE_NAME_TEXT: 'TEST_ONLY another responsible'
+}), basicDrtFacts());
+assert.equal(rtMustNotUseRequester.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(rtMustNotUseRequester.result.nonconformityOnFalse, undefined);
+
+const addressDifference = runBasicData('T1_DRT_ADDRESS', basicRequestFacts(),
+  basicDrtFacts({ PROPERTY_ADDRESS_TEXT: 'Avenida Teste, 43, Centro, Florianopolis, SC' }));
+assert.equal(addressDifference.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(addressDifference.result.nonconformityOnFalse, undefined);
+assert.equal(addressDifference.result.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE').documentaryEvidence[0]
+  .comparison.status, 'DIFFERENCE_OR_SCOPE_REQUIRES_HUMAN_REVIEW');
+
+const areaDifference = runBasicData('T1_DRT_AREA', basicRequestFacts(),
+  basicDrtFacts({ PROPERTY_AREA_TEXT: 'Área total construída no terreno: 251,00 m²' }));
+assert.equal(areaDifference.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(areaDifference.result.nonconformityOnFalse, undefined);
+const exactAreaWithoutDrtScope = runBasicData('T1_DRT_AREA', basicRequestFacts(), basicDrtFacts());
+assert.equal(exactAreaWithoutDrtScope.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(exactAreaWithoutDrtScope.result.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE').documentaryEvidence[0]
+  .comparison.status, 'EXACT_VALUE_MATCH_DRT_SCOPE_UNPROVEN');
+const landAreaOnly = runBasicData('T1_DRT_AREA', basicRequestFacts(),
+  basicDrtFacts({ PROPERTY_AREA_TEXT: 'Área do terreno: 250,00 m²' }));
+assert.equal(landAreaOnly.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(landAreaOnly.result.nonconformityOnFalse, undefined);
+
+const absentRequestAssociation = runBasicData('T1_DRT_ADDRESS', basicRequestFacts(),
+  basicDrtFacts(), false);
+assert.equal(absentRequestAssociation.result.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(absentRequestAssociation.result.nonconformityOnFalse, undefined);
+
 assert.throws(() => api.executePlannedCriterion(
   contract, basicDataExecution.plan,
   'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_AREA)', basicDataExecution.view,
