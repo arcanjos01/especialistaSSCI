@@ -4739,8 +4739,8 @@ encerra somente o finding de texto e não altera `INDEPENDENT_ARCH_REVIEW`.
 
 ```text
 BRANCH=feature/apps-script-engine-core
-LOCAL_HEAD=10d9599ccb9c03bd9f451186982ed870076c0455
-REMOTE_HEAD=10d9599ccb9c03bd9f451186982ed870076c0455
+LOCAL_HEAD=72678e5c61b4f293ea5f7ed2b529aefe3795ab73
+REMOTE_HEAD=72678e5c61b4f293ea5f7ed2b529aefe3795ab73
 WORKTREE_TRACKED=CLEAN
 LOCAL_EVIDENCE=.codex-local-evidence/ preservado, não rastreado
 KNOWLEDGE_BASE_VERSION=5.40.0
@@ -4763,7 +4763,7 @@ FASE_6B_STATUS=IN_PROGRESS
 ```
 
 O release build corresponde ao commit de código/Base `8afcb08`; os commits
-seguintes `04c16a0`, `ca05677` e `10d9599` atualizam somente o tracker. A
+seguintes `04c16a0`, `ca05677`, `10d9599` e `72678e5` atualizam somente o tracker. A
 revisão independente factual não tem identidade/backend atestado e não é
 atribuída a Luna nem a Sol. A aprovação final arquitetural da Fase 6 segue
 pendente. Não houve aumento de cobertura neste lote. Próxima prioridade
