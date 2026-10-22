@@ -14,15 +14,15 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, código da onda anterior em `e8d6f32` e
+  `feature/apps-script-engine-core`, HEAD documental `797f9285bec4ce4e65125c1346bfe0f98c61757c`, código da onda anterior em `e8d6f32` e
   novo candidato `89ad82e9bc51d26758fa7154319a3598636334e4`; `.codex-local-evidence/`
   permanece local e não rastreado. KB candidata `5.43.0`, RDE `0.7.0`.
   O novo lote registra presença de `CONFORMITY_REPORT` dentro do Criterion
   assinado, sem remover o predicado `SIGNED`; contagem candidata: 34 ativos,
   29 produtivos, 10 integrais, 9 parciais, 2 preparatórios e 19 pendentes de
   cobertura integral; 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
-  `IN_PROGRESS`. Gates/build registrados abaixo; revisão independente Luna em
-  andamento. Sem merge, deploy ou promoção.
+  `IN_PROGRESS`. Gates/build registrados abaixo; revisão independente Luna do
+  candidato `89ad82e` PASS, sem findings. Sem merge, deploy ou promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -5239,9 +5239,10 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   build limpo `10/10 PASS`, KB `5.43.0`,
   `SOURCE_COMMIT=89ad82e9bc51d26758fa7154319a3598636334e4`; manifest/phase guards
   pela suíte Python PASS; `git diff --check` PASS. Revisão independente Luna
-  read-only solicitada para o SHA exato, ainda em andamento neste registro.
+  read-only do SHA exato: PASS, sem findings BLOCKER/HIGH/MEDIUM/LOW; verificação
+  estática, sem execução de testes/build pelo revisor.
 - Esforço aproximado: 45 minutos entre implementação, correção do guard, testes,
-  checkpoint e build. Uma revisão independente em curso; re-review apenas se
-  houver finding. `SOL_REVIEW=PENDING_CAPACITY` para a revisão final da fase;
+  checkpoint e build. Uma revisão independente Luna `PASS`; re-review não foi
+  necessária. `SOL_REVIEW=PENDING_CAPACITY` para a revisão final da fase;
   `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
   `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
