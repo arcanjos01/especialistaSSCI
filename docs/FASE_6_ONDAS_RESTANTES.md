@@ -4494,3 +4494,53 @@ clarificação do responsável sobre associações documentais explícitas em
 
 `ARCHITECTURAL_REVIEW=PENDING`; `PROMOTION=NOT_AUTHORIZED`;
 `CRITERIA_COVERAGE=UNCHANGED`; nenhuma correção introduz admissão de assinatura.
+
+### Checkpoint corrigido e re-review dirigida — `65c3592` — 2026-10-22
+
+```text
+BASELINE=607f1aef8e4b50b6470aa465ae085b8b1ea6b51b
+REVIEWED_CANDIDATE=65c3592d4755801a8e2627b1b5e133dcc9463bd6
+DIRECTED_TECHNICAL_REREVIEW=PASS
+HIGH_SERIALIZER_FINDING=CLOSED
+MEDIUM_MUTABLE_REFERENCE_FINDING=CLOSED
+NEW_HIGH_MEDIUM_FINDINGS=0
+INDEPENDENT_ARCH_REVIEW=PENDING_IDENTITY
+ARCHITECTURAL_REVIEW=PENDING
+SOL_REVIEW=NOT_PERFORMED
+PROMOTION=NOT_AUTHORIZED
+FASE_6B_STATUS=IN_PROGRESS
+CRITERIA_COVERAGE=UNCHANGED (10/29 integral; 1 parcial; 19 pendentes)
+BUILD_KIND=BUILD_VALIDATION
+SOURCE_COMMIT=65c3592d4755801a8e2627b1b5e133dcc9463bd6
+```
+
+Re-review distinta da implementação e da primeira revisão: sessão anunciada
+pelo CLI `01a163af-c058-7df2-999a-3d42ca15af53`, modelo solicitado/anunciado
+`gpt-5.6-terra`; revisor se descreveu como Codex baseado em GPT-5, sem atestado
+de versão/backend efetivos. O parecer técnico PASS não satisfaz o gate formal
+de identidade da seção 25.2; não registrar aprovação arquitetural nem Sol PASS.
+A primeira tentativa de acesso ao revisor preferencial entregou identidade
+Codex/GPT-6 sem atestado Sol; não foram feitas novas tentativas desse roteamento.
+
+O revisor examinou diff integral e fontes `SIGNED`/PHASE 5; executou suíte do
+recibo, sintaxe dos dois JS e diff check contra baseline e candidato anterior.
+Testou referência mutável, accessors e Proxy de referência congelada e confirmou
+as duas correções. Não reproduziu suíte completa/build, que foram executados
+pelo orquestrador: Python `201` (`189 PASS`, `12 SKIP`), `12/12` suítes Apps
+Script PASS, sintaxe JS/Code.gs PASS, manifests/guards PASS via Python e runtime
+byte-idêntico SHA-256
+`43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561`.
+
+Build do SHA corrigido executado em worktree limpa, com 10 documentos, KB
+`5.39.0` e SOURCE_COMMIT integral conferido em `08_execution_pipeline.txt`.
+Artefatos locais: `/tmp/phase6b-corrected-clean-gates-build.log`,
+`/tmp/especialistaSSCI-phase6b-build-65c3592/`,
+`/tmp/phase6b-independent-review.txt` e `/tmp/phase6b-directed-rereview.txt`.
+O próximo commit deste registro é somente documental e não recebe alegação de
+build próprio.
+
+Próximas dependências de `SIGNED`: identidade/digest externo autenticado por
+referência documental e perfil de admissão/trust aprovado; depois, integração
+restrita ao predicate e fixtures de resultado. Este checkpoint não conclui
+Criteria nem Fase 6B, não reabre a decisão IN10 e não altera a relação
+DRT→produto. Sem merge, deploy ou uso de processos reais.
