@@ -4623,6 +4623,14 @@ reassinados pela chave sintética correta. Re-review dirigida desse finding
 pendente; digest do conjunto, vínculo do perfil ao binding e replay persistente
 continuam limitações INFO/preparatórias, não autorizadas para admissão.
 
+A primeira re-review do mesmo agente confirmou que os testes de duplicatas
+fecharam essa parte do finding, mas o manteve parcialmente aberto porque os
+negativos de contract digest divergente, campo extra e `unknownTreatment`
+também alteravam o payload sem reassinar. A correção seguinte reassina esses
+três fixtures com a autoridade sintética; cada caso agora chega à validação do
+schema. A suíte focal passou. Re-review final dirigida ainda pendente; nenhum
+achado de implementação/runtime foi identificado.
+
 ### Rechecagem de comparandos factuais para dados básicos — 2026-10-22
 
 - Estado verificado após `adfcab0`: `PROCESS` está declarado sem atributos em

@@ -470,19 +470,19 @@ assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(sharedKeyProfile,
   'verifier key cannot authenticate the admission profile');
 const wrongContractProfile = JSON.parse(validAdmissionProfile);
 wrongContractProfile.payload.compiledContractDigest = '3'.repeat(64);
-context.wrongContractProfile = JSON.stringify(wrongContractProfile);
+context.wrongContractProfile = signedAdmissionProfile(wrongContractProfile.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(wrongContractProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
-  'different compiled contract digest is rejected');
+  'a correctly authenticated profile for a different compiled contract is rejected by schema validation');
 const extraProfileField = JSON.parse(validAdmissionProfile);
 extraProfileField.payload.extra = true;
-context.extraProfileField = JSON.stringify(extraProfileField);
+context.extraProfileField = signedAdmissionProfile(extraProfileField.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(extraProfileField, COMPILED_RUNTIME_CONTRACT)', context), false,
-  'extra profile fields are rejected');
+  'a correctly authenticated profile with an extra payload field is rejected by schema validation');
 const unknownPolicyProfile = JSON.parse(validAdmissionProfile);
 unknownPolicyProfile.payload.unknownTreatment = 'UNKNOWN';
-context.unknownPolicyProfile = JSON.stringify(unknownPolicyProfile);
+context.unknownPolicyProfile = signedAdmissionProfile(unknownPolicyProfile.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(unknownPolicyProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
-  'unknown treatment other than MANUAL_REVIEW is rejected');
+  'a correctly authenticated profile with unknown treatment is rejected by schema validation');
 
 // Regressions for independent review findings HIGH and MEDIUM.
 const referenceAttackPayload = JSON.parse(JSON.stringify(bindingPayload));
