@@ -5555,11 +5555,25 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   DRT. A coleção vazia não demonstra ausência. Assim, há avanço de transparência
   dentro do suporte parcial, mas `CRITERIA_COVERED` não aumenta.
 - Teste dirigido `apps-script-pilot-criterion`: `PASS`, incluindo duas datas
-  literais com proveniência, estado manual, congelamento do trace e rejeição de
+  literais com provenance, estado manual, congelamento do trace e rejeição de
   contexto de apresentação trocado. Na primeira execução, a expectativa de
   código de erro do último caso estava errada; foi corrigida para o código
-  emitido pelo contrato, e a repetição passou. Gates completos, revisão
-  independente e build limpo ainda pendentes.
+  emitido pelo contrato, e a repetição passou. Gates completos: Python `202`
+  (189 PASS, 13 SKIP); Apps Script `12/12 PASS`; sintaxe de todos os módulos e
+  testes JavaScript e `Code.gs` PASS; guards de fase/manifests PASS pela suíte
+  Python; runtime regenerado byte-identical, SHA-256
+  `1a934eb43935c6e19561c8f41fc9112e18b6ccd0f0c3aeecd4c9f4bfe7f1dfab`;
+  `git diff --check PASS`.
+- Revisão independente read-only `Codex (GPT-6)`, execução distinta da
+  implementação: `PASS` para o candidato exato
+  `044ca6a2c7ebcb06e465a18b87953741f0ca17c9`, sem findings. O revisor examinou
+  Core, testes, contrato RDE, Engine e bindings autenticados, mas não executou
+  testes; não é revisão Sol. `SOL_REVIEW=PENDING_CAPACITY`.
+- Release de validação em worktree limpa: `PASS`, dez documentos,
+  `SOURCE_COMMIT=044ca6a2c7ebcb06e465a18b87953741f0ca17c9`; sem promoção.
+- Contagens: integrais `10/29` (ganho `0`), parciais `18`, preparatórios `1`,
+  pendentes integrais `19`. Esforço aproximado: 25 minutos; uma revisão
+  independente, sem re-review. Findings abertos `0`, blockers novos `0`.
 - Contagens esperadas após validação: integrais `10/29` (sem ganho), parciais
   `18`, preparatórios `1`, pendentes integrais `19`. Esforço até o registro
   inicial: cerca de 15 minutos; nenhuma revisão deste lote ainda. Próximo gate:
