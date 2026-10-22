@@ -20,12 +20,33 @@
 - Dependência reduzida: contrato genérico de transcrição e projeção factual
   agora existe para evolução futura de extração. A extração real e o julgamento
   de itens aplicáveis permanecem fora deste lote; não usar processo real.
-- Testes direcionados iniciais após implementação: RDE core, ImmutableExecutionView,
-  piloto do Criterion e identidades da KB; resultados finais serão anexados
-  após completar testes adversariais, gates completos e revisão independente.
-  Contagem atual não alterada: 34 ativos, 29 produtivos, 10 integrais, 18
+- Checkpoint técnico commitado e publicado: `cbbe620b752dc0cc64bf5643471e702fcdd9cdb5`
+  (`feat(rde): preserve literal documentary excerpts`), fast-forward de
+  `5b978414` para `cbbe620`; `.codex-local-evidence/` não foi incluído.
+- Gates no candidato exato: Python `202` (189 PASS, 13 SKIP); Apps Script
+  `12/12 PASS`; `node --check` em `26/26` arquivos JS e sintaxe de `Code.gs`
+  PASS; runtime regenerado byte-identical, SHA-256
+  `a8e3f047aa6591ff60f7f3743265b1ec3bb24b701911bfb212cd240fa43ef4ef`;
+  `git diff --check PASS`; release build em worktree limpa PASS, dez
+  documentos, KB `5.45.0`, RDE `0.8.0`, `SOURCE_COMMIT` exato
+  `cbbe620b752dc0cc64bf5643471e702fcdd9cdb5`. Testes negativos incluem
+  referências órfãs/divergentes, IDs repetidos, campos extras, provenance
+  inválida, arrays esparsos e accessor; cenários de coleção vazia e schema
+  histórico mantêm insuficiência.
+- Revisão independente read-only: `Codex (GPT-6)`, execução distinta da
+  implementação; `INDEPENDENT_ARCH_REVIEW=PASS`, candidato exato
+  `cbbe620b752dc0cc64bf5643471e702fcdd9cdb5`, sem findings. O revisor
+  inspecionou os testes e os logs, mas não executou testes. ID de sessão não
+  foi exposto pelo runtime. Não atribuir ao Sol: `SOL_REVIEW=PENDING_CAPACITY`.
+- Contagem não alterada: 34 ativos, 29 produtivos, 10 integrais, 18
   parciais, 1 preparatório, 19 pendentes integrais, 5 não selecionáveis e 2
-  retirados. `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
+  retirados; ganho integral `0`, blockers fechados `0`, novos blockers `0`,
+  achados abertos `0`. `PROMOTION=NOT_AUTHORIZED`.
+- Esforço aproximado neste lote: 35 minutos, uma revisão independente e zero
+  re-reviews. Benefício ao vistoriador: trechos literais do laudo IN09 e suas
+  localizações podem ser exibidos com vínculo exato, sem afirmar
+  exaustividade. A cobertura funcional continua condicionada à extração real
+  autorizada e a evidências normativas específicas.
 
 Status de acompanhamento: `IN_PROGRESS`
 Baseline reconciliado: `f826ac7d453b7744fed11bed23824acac9fcbb72`
