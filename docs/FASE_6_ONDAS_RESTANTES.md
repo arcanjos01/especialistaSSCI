@@ -5185,3 +5185,29 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   continuam dependentes, respectivamente, de semântica de comparação e escolha
   normativa da dimensão aplicável, conforme triagem anterior. Nenhum desses
   pontos bloqueia integração de assinatura ou outras tarefas independentes.
+
+### Revalidação focal do verificador PDF local — 2026-10-22
+
+- No HEAD documental `ec249d8e50739fc0c868dcc5f91838c0ebd40544`, sem mudança
+  nos arquivos do verificador desde o candidato `e8d6f32`, reexecutei as suítes
+  sintéticas no ambiente isolado com pyHanko `0.38.0` e as fixtures locais de
+  Poppler/OpenSSL. Resultados: pyHanko `6/6 PASS`; verificador local
+  `30/30 PASS` com `PDF_SIGNATURE_POC_INTEGRATION=1` (inclui casos antes
+  pulados sem a variável); byte-range POC `2/2 PASS`.
+- Casos incluem CMS adulterado mantendo integridade do ByteRange, confiança
+  explícita + CRL válida, CRL ausente, certificado revogado, âncora inválida,
+  adulteração de conteúdo, múltiplas assinaturas sem prova de ordem, injeção em
+  saída do parser, pinagem de executáveis e PDF sem assinatura. Nenhuma chamada
+  externa ou documento real foi usado.
+- `CRITERIA_COVERED=10/29` permanece; ganho integral `0`; impacto funcional
+  apenas preparatório. A evidência aumenta a confiança técnica na ferramenta
+  local, mas não define política institucional de confiança, identidade
+  profissional, custódia de chave ou admissão pelo Engine. `SIGNED` continua
+  manual/preparatório. `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `SOL_REVIEW=PENDING_CAPACITY` e
+  `PROMOTION=NOT_AUTHORIZED`.
+- Esforço: cerca de 5 minutos para três execuções focalizadas; revisões novas
+  `0` (nenhum código/contrato alterado); findings novos `0`. Próximo avanço
+  continua dependendo de um perfil institucional de confiança/identidade ou de
+  Criteria independentes com comparandos documentais suficientes.
