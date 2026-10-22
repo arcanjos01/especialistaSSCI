@@ -5689,3 +5689,42 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   findings abertos `0`, blockers encerrados `0`, blockers novos `0`. Commit
   publicado por fast-forward em `feature/apps-script-engine-core`.
   `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
+
+### Auditoria de fechamento consolidado — candidato 9d48ff7 — 2026-10-22
+
+- Gatilho: tentativa de revisão arquitetural final do candidato
+  `9d48ff78a122adaeac27853f6ff5b23e9c06a770`, comparado ao baseline
+  `f826ac7d453b7744fed11bed23824acac9fcbb72`. A execução declarou a identidade
+  efetiva `Codex/GPT-6`, sem prova de ser Sol 6.1, e concluiu somente revisão
+  parcial: `INDEPENDENT_ARCH_REVIEW=PENDING_SCOPE`,
+  `SOL_REVIEW=PENDING_IDENTITY`, `FASE_6_CONSOLIDATION=NOT_APPROVED`.
+- Escopo que o revisor afirma ter examinado: AGENTS §§25/26; diffs de
+  `00_engine`, Requirements/Tables; partes do Pipeline/RDE e tracker; código de
+  correlação/configuração e trechos de Engine, execução de Criteria, assinatura,
+  contexto, readiness e binding de responsabilidades. A revisão confirmou
+  nesses trechos que correlação sem calibração permanece manual, assinatura
+  não é admitida, e as contagens reconciliam como 34 ativos = 29 produtivos + 5
+  não selecionáveis; dos 29, 10 integrais, 18 parciais e 1 preparatório.
+- A revisão declarou como não examinados integralmente: ferramentas Python de
+  assinatura/recibos/compilação, RDE/ExecutionView, applicability/ExecutionPlan,
+  `Code.gs`, documentos arquiteturais dependentes, todos os diffs restantes de
+  testes/documentação e reauditoria funcional completa dos dez Criteria. A
+  proteção de replay entre invocações GAS não foi atestada. Nenhum finding novo
+  foi confirmado nos trechos vistos, mas o total de findings do candidato é
+  desconhecido (`FINDINGS_OPEN=UNKNOWN`); este parecer não autoriza consolidação.
+- Uma continuação dirigida foi solicitada ao mesmo revisor no mesmo SHA, sem
+  repetir os grupos já inspecionados. Até a resposta, o estado permanece
+  `PENDING_SCOPE`; não atribuir a ele revisão Sol nem aprovação equivalente.
+- Gates completos executados pelo executor em worktree limpa no SHA exato
+  `9d48ff78a122adaeac27853f6ff5b23e9c06a770`: Python `203` (190 pass, 13
+  skip); Apps Script `12/12`; sintaxe de todos os módulos/testes JS e
+  `apps-script/Code.gs`; contrato compilado `23/23`; runtime byte-identical,
+  SHA-256 `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
+  `git diff --check`; release build limpo, dez documentos, KB `5.46.0` e
+  `SOURCE_COMMIT` exatamente igual ao SHA. Esses gates não substituem a revisão
+  arquitetural completa.
+- Cobertura permanece `10/29`, sem ganho nesta auditoria. Pendências de fatos,
+  semântica autorizada e calibração descritas na matriz continuam abertas.
+  `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED` e
+  `FASE_6_STATUS=IN_PROGRESS`.
