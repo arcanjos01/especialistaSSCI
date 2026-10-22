@@ -281,11 +281,15 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
         if not end:
             raise ValueError(f"ASSERT ALL sem END em {identifier}")
         body = remainder[:end.start()]
-        calls = list(re.finditer(r"[A-Z][A-Z0-9_]*\s*\([^()]*\)", body, re.S))
-        if not calls:
+        expressions = list(re.finditer(
+            r"(?m)^[ \t]*MANUAL_REVIEW[ \t]*$|[A-Z][A-Z0-9_]*\s*\([^()]*\)",
+            body,
+            re.S,
+        ))
+        if not expressions:
             raise ValueError(f"ASSERT ALL vazio em {identifier}")
         residue = body
-        for match in reversed(calls):
+        for match in reversed(expressions):
             residue = residue[:match.start()] + residue[match.end():]
         if residue.strip():
             raise ValueError(f"conteúdo ASSERT ALL não reconhecido em {identifier}")
@@ -293,7 +297,10 @@ def _parse_assert_ir(block: str, identifier: str) -> dict[str, object]:
         return {
             "type": "ALL",
             "expressions": [
-                _parse_assert_call(match.group(0), identifier) for match in calls
+                {"type": "LITERAL", "value": "MANUAL_REVIEW"}
+                if match.group(0).strip() == "MANUAL_REVIEW"
+                else _parse_assert_call(match.group(0), identifier)
+                for match in expressions
             ],
         }
 

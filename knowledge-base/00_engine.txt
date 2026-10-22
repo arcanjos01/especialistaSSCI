@@ -1,7 +1,7 @@
 ###############################################################################
 # 00_engine.dsl
 # KNOWLEDGE EXECUTION ENGINE
-# VERSION 4.12
+# VERSION 4.13
 ###############################################################################
 
 ENGINE CBMSC_KNOWLEDGE_ENGINE
@@ -166,6 +166,17 @@ IMAGE
 ###############################################################################
 
 ASSERT <FUNCTION>(...)
+
+ASSERT ALL
+    <FUNCTION>(...)
+    MANUAL_REVIEW
+END
+
+ASSERT ALL is a conjunction of declared expressions. A MANUAL_REVIEW literal
+may be included as a child expression. When present with a positive documentary
+predicate, the trace retains the positive fact while the composed result stays
+MANUAL_REVIEW. Missing documentary inventory must bind EXISTS to MANUAL_REVIEW,
+not FALSE, unless a separately authorized completeness contract proves absence.
 
 ###############################################################################
 # STANDARD FUNCTIONS

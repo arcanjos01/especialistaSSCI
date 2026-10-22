@@ -1,7 +1,7 @@
 ###############################################################################
 # 04_table4.txt
 # BASECONHECIMENTO
-# VERSION 3.6
+# VERSION 3.7
 # TABELA 4
 # DOCUMENTOS ESPECÍFICOS DOS SMSCI
 # PARTE 1/2
@@ -67,8 +67,11 @@ REQUIREMENT REQ_IN07_COMMISSIONING
 
 REQUIRE DOCUMENT SHP_COMMISSIONING_REPORT
 
-ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a correspondência entre DRT e produto/SMSCI. A declaração de escopo não é admitida como DRT_COVERS até existir contrato institucional."
+ASSERT ALL
+EXISTS(SHP_COMMISSIONING_REPORT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "A presença do relatório foi registrada quando identificável. Conferir manualmente a assinatura e a correspondência entre DRT e produto/SMSCI; a declaração de escopo não é admitida como DRT_COVERS até existir contrato institucional."
 
 FAIL NC_T4_001
 
@@ -92,8 +95,11 @@ REQUIREMENT REQ_IN08_ESTANQUEIDADE
 
 REQUIRE DOCUMENT GAS_TIGHTNESS_REPORT
 
-ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a existência, a validade temporal e a correspondência entre DRT e laudo de estanqueidade."
+ASSERT ALL
+EXISTS(GAS_TIGHTNESS_REPORT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "A presença do laudo foi registrada quando identificável. Conferir manualmente a assinatura, a validade temporal e a correspondência entre DRT e laudo de estanqueidade."
 
 FAIL NC_T4_002
 
@@ -162,8 +168,11 @@ REQUIREMENT REQ_IN09_TEST_REPORT
 
 REQUIRE DOCUMENT PRESSURIZATION_TEST_REPORT
 
-ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a presença e o conteúdo do relatório de ensaio, as DRTs e a correspondência com o produto/SMSCI."
+ASSERT ALL
+EXISTS(PRESSURIZATION_TEST_REPORT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "A presença do relatório foi registrada quando identificável. Conferir manualmente assinatura, conteúdo, DRTs e correspondência entre produto e SMSCI."
 
 FAIL NC_T4_005
 
@@ -256,8 +265,11 @@ REQUIREMENT REQ_IN12_COMMISSIONING
 
 REQUIRE DOCUMENT SDAI_COMMISSIONING_REPORT
 
-ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a presença do relatório e a correspondência entre DRT, produto e SMSCI."
+ASSERT ALL
+EXISTS(SDAI_COMMISSIONING_REPORT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "A presença do relatório foi registrada quando identificável. Conferir manualmente a assinatura e a correspondência entre DRT, produto e SMSCI."
 
 FAIL NC_T4_009
 
@@ -292,8 +304,11 @@ REQUIREMENT REQ_IN15_COMMISSIONING
 
 REQUIRE DOCUMENT SPRINKLER_COMMISSIONING_REPORT
 
-ASSERT MANUAL_REVIEW
-MANUAL_REVIEW "Conferir manualmente a presença do relatório e a correspondência entre DRT, produto e SMSCI."
+ASSERT ALL
+EXISTS(SPRINKLER_COMMISSIONING_REPORT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "A presença do relatório foi registrada quando identificável. Conferir manualmente a assinatura e a correspondência entre DRT, produto e SMSCI."
 
 FAIL NC_T4_010
 

@@ -93,6 +93,7 @@ function currentContext(requestDate = '2026-01-28') {
 
 function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includePressurization = false, includePressurizationManual = false,
+  includeShp = false, includeSdai = false, includeSprinkler = false,
   includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
   signedProducts = [], in19DrtEntityId = null,
   executionDrts = [],
@@ -157,6 +158,23 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
         RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page'
       },
       provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_CMAR_ITEM' }
+    });
+  }
+  for (const system of [
+    { enabled: includeShp, code: 'SHP', label: 'smoke heat' },
+    { enabled: includeSdai, code: 'AI', label: 'fire alarm' },
+    { enabled: includeSprinkler, code: 'SPK', label: 'sprinkler' }
+  ]) {
+    if (!system.enabled) continue;
+    records.push({
+      record_id: 'ITEM_' + system.code, entity_id: 'SISTEMAS_E_MEDIDAS_DE_SEGURANCA_ITEM',
+      parent_record_id: 'SECTION_CURRENT', source_document: 'DOC_CURRENT',
+      attributes: {
+        OFFICIAL_ESCI_CODE: system.code,
+        PRESENTED_SYSTEM_MEASURE_DESCRIPTION: 'TEST_ONLY ' + system.label,
+        RPCI_ORIENTATIVE_TEXT: 'TEST_ONLY', SOURCE_LOCATION: 'TEST_ONLY page'
+      },
+      provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'TEST_ONLY_' + system.code }
     });
   }
   signedProducts.forEach((product, index) => {
@@ -354,6 +372,36 @@ assert.deepEqual(
 
 for (const signedProductCase of [
   {
+    entityId: 'SHP_COMMISSIONING_REPORT',
+    requirementId: 'REQ_IN07_COMMISSIONING', criterionId: 'T4_IN07_COMMISSIONING',
+    unitKey: 'UNIT_KEY (REQ_IN07_COMMISSIONING, T4_IN07_COMMISSIONING)',
+    includeShp: true, manualReviewAllExpression: true
+  },
+  {
+    entityId: 'GAS_TIGHTNESS_REPORT',
+    requirementId: 'REQ_IN08_ESTANQUEIDADE', criterionId: 'T4_IN08_ESTANQUEIDADE',
+    unitKey: 'UNIT_KEY (REQ_IN08_ESTANQUEIDADE, T4_IN08_ESTANQUEIDADE)',
+    includeGas: true, manualReviewAllExpression: true
+  },
+  {
+    entityId: 'PRESSURIZATION_TEST_REPORT',
+    requirementId: 'REQ_IN09_TEST_REPORT', criterionId: 'T4_IN09_TEST_REPORT',
+    unitKey: 'UNIT_KEY (REQ_IN09_TEST_REPORT, T4_IN09_TEST_REPORT)',
+    includePressurization: true, manualReviewAllExpression: true
+  },
+  {
+    entityId: 'SDAI_COMMISSIONING_REPORT',
+    requirementId: 'REQ_IN12_COMMISSIONING', criterionId: 'T4_IN12_COMMISSIONING',
+    unitKey: 'UNIT_KEY (REQ_IN12_COMMISSIONING, T4_IN12_COMMISSIONING)',
+    includeSdai: true, manualReviewAllExpression: true
+  },
+  {
+    entityId: 'SPRINKLER_COMMISSIONING_REPORT',
+    requirementId: 'REQ_IN15_COMMISSIONING', criterionId: 'T4_IN15_COMMISSIONING',
+    unitKey: 'UNIT_KEY (REQ_IN15_COMMISSIONING, T4_IN15_COMMISSIONING)',
+    includeSprinkler: true, manualReviewAllExpression: true
+  },
+  {
     entityId: 'PRESSURIZATION_MAINTENANCE_CHECKLIST',
     requirementId: 'REQ_IN09_CHECKLIST', criterionId: 'T4_IN09_CHECKLIST',
     unitKey: PRESSURIZATION_CHECKLIST_SIGNED_UNIT,
@@ -366,6 +414,19 @@ for (const signedProductCase of [
     includePressurization: false, includeCmar: true
   }
 ]) {
+  if (signedProductCase.manualReviewAllExpression) {
+    const criterionMetadata = contract.criteria.find(item =>
+      item.criterionId === signedProductCase.criterionId
+    );
+    assert.deepEqual(JSON.parse(JSON.stringify(criterionMetadata.assertIr)), {
+      type: 'ALL',
+      expressions: [
+        { type: 'CALL', name: 'EXISTS',
+          arguments: [{ type: 'SYMBOL', value: signedProductCase.entityId }] },
+        { type: 'LITERAL', value: 'MANUAL_REVIEW' }
+      ]
+    });
+  }
   const productRequirement = contract.requirements.find(
     item => item.requirementId === signedProductCase.requirementId
   );
@@ -373,7 +434,10 @@ for (const signedProductCase of [
   assert.deepEqual(JSON.parse(JSON.stringify(productRequirement.evidenceAttributes)), ['SIGNED']);
 
   const signedProduct = prepare({
-    includeGas: false,
+    includeGas: signedProductCase.includeGas === true,
+    includeShp: signedProductCase.includeShp === true,
+    includeSdai: signedProductCase.includeSdai === true,
+    includeSprinkler: signedProductCase.includeSprinkler === true,
     includePressurization: signedProductCase.includePressurization,
     includeCmar: signedProductCase.includeCmar,
     signedProducts: [{
@@ -390,17 +454,30 @@ for (const signedProductCase of [
   assert.equal(signedProductResult.engineResult, api.EngineResult.MANUAL_REVIEW);
   assert.equal(signedProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(signedProductResult.resultOrigin, 'EVALUATED');
-  assert.equal(signedProductResult.trace.length, 2);
+  assert.equal(signedProductResult.trace.length,
+    signedProductCase.manualReviewAllExpression ? 3 : 2);
   assert.deepEqual(JSON.parse(JSON.stringify(
     signedProductResult.trace.map(entry => entry.predicateId)
-  )), ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS']);
+  )), signedProductCase.manualReviewAllExpression
+    ? ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS', 'ASSERT_LITERAL']
+    : ['TECHNICAL_PRODUCT_ATTRIBUTE', 'EXISTS']);
   assert.equal(signedProductResult.trace[0].result, api.EngineResult.MANUAL_REVIEW);
   assert.equal(signedProductResult.trace[1].result, api.EngineResult.TRUE,
     'document presence is reported independently of unresolved signature validity');
+  if (signedProductCase.manualReviewAllExpression) {
+    assert.equal(signedProductResult.trace[2].result, api.EngineResult.MANUAL_REVIEW,
+      'declared manual review keeps the Criterion unresolved despite product presence');
+  }
+  const signedProductBinding = signedProductResult.traceability.documentaryBinding;
+  const presenceBinding = signedProductCase.manualReviewAllExpression
+    ? signedProductBinding.expressions[0] : signedProductBinding;
+  if (signedProductCase.manualReviewAllExpression) {
+    assert.equal(signedProductBinding.type, 'ALL');
+    assert.equal(signedProductBinding.expressions[1].type, 'LITERAL');
+    assert.equal(signedProductBinding.expressions[1].value, api.EngineResult.MANUAL_REVIEW);
+  }
   assert.deepEqual(
-    JSON.parse(JSON.stringify(
-      signedProductResult.traceability.documentaryBinding.sourceDocument
-    )),
+    JSON.parse(JSON.stringify(presenceBinding.sourceDocument)),
     {
       kind: 'DOCUMENT',
       identifier: signedProductCase.entityId === 'PRESSURIZATION_MAINTENANCE_CHECKLIST'
@@ -415,7 +492,10 @@ for (const signedProductCase of [
   );
 
   const unsignedProduct = prepare({
-    includeGas: false,
+    includeGas: signedProductCase.includeGas === true,
+    includeShp: signedProductCase.includeShp === true,
+    includeSdai: signedProductCase.includeSdai === true,
+    includeSprinkler: signedProductCase.includeSprinkler === true,
     includePressurization: signedProductCase.includePressurization,
     includeCmar: signedProductCase.includeCmar,
     signedProducts: [{ entityId: signedProductCase.entityId }]
@@ -429,7 +509,10 @@ for (const signedProductCase of [
   assert.equal(unsignedProductResult.nonconformityOnFalse, undefined);
 
   const absentProduct = prepare({
-    includeGas: false,
+    includeGas: signedProductCase.includeGas === true,
+    includeShp: signedProductCase.includeShp === true,
+    includeSdai: signedProductCase.includeSdai === true,
+    includeSprinkler: signedProductCase.includeSprinkler === true,
     includePressurization: signedProductCase.includePressurization,
     includeCmar: signedProductCase.includeCmar
   });
@@ -443,13 +526,29 @@ for (const signedProductCase of [
   assert.equal(absentProductResult.pipelineResult, 'MANUAL_REVIEW');
   assert.equal(absentProductResult.resultOrigin, 'EVALUATED');
   assert.equal(absentProductResult.nonconformityOnFalse, undefined);
+  assert.equal(absentProductResult.trace.length,
+    signedProductCase.manualReviewAllExpression ? 3 : 2);
   assert.deepEqual(JSON.parse(JSON.stringify(
     absentProductResult.trace.map(entry => entry.predicateId)
-  )), ['ASSERT_LITERAL', 'ASSERT_LITERAL']);
+  )), signedProductCase.manualReviewAllExpression
+    ? ['ASSERT_LITERAL', 'ASSERT_LITERAL', 'ASSERT_LITERAL']
+    : ['ASSERT_LITERAL', 'ASSERT_LITERAL']);
   assert.equal(absentProductResult.trace[0].result, api.EngineResult.MANUAL_REVIEW,
     'absent document inventory remains manual for the SIGNED validation');
   assert.equal(absentProductResult.trace[1].result, api.EngineResult.MANUAL_REVIEW,
     'unverified inventory stays manual even when the product was not located');
+  if (signedProductCase.manualReviewAllExpression) {
+    const absentPresenceBinding =
+      absentProductResult.traceability.documentaryBinding.expressions[0];
+    assert.equal(absentPresenceBinding.type, 'EXISTS');
+    assert.equal(absentPresenceBinding.entityId, signedProductCase.entityId);
+    assert.equal(absentPresenceBinding.matchedCount, 0);
+    assert.equal(absentPresenceBinding.status, 'UNVERIFIED');
+    assert.equal(absentPresenceBinding.reason, 'DOCUMENT_INVENTORY_UNAVAILABLE');
+    assert.deepEqual(JSON.parse(JSON.stringify(
+      absentPresenceBinding.selectedDocument.reference
+    )), { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' });
+  }
 }
 
 for (const conformityReports of [[], [undefined], [''], ['   ']]) {

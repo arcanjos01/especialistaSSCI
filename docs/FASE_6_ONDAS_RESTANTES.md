@@ -14,18 +14,16 @@ os contratos canônicos nem o inventário de cobertura.
 ## Estado reconciliado
 
 - Reconciliação corrente em 2026-10-22: branch local/remota
-  `feature/apps-script-engine-core`, code candidate `c2ab442426da44718ed893b3c364661bf0d65156`;
-  classificação parcial reconciliada no inventário e neste tracker.
-  `.codex-local-evidence/`
-  permanece local e não rastreado. KB `5.41.0`, RDE `0.7.0`, runtime SHA-256
-  `1fbeed86227bcfba98f5b5aac623afd0feb8d0985195c27aa5cb8c6e484b0940`.
-  Cobertura vigente: 34 ativos, 29 produtivos, 10 integrais, 3 parciais
-  (`T1_CONFORMITY_REPORT`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`), 7 preparatórios
-  e 19 pendentes de cobertura integral (9 sem suporte + 7 preparatórios + 3
-  parciais); 5 não selecionáveis e 2 retirados. Fase 6A `COMPLETE`; 6B
-  `IN_PROGRESS`. Build técnico limpo 10/10 para o code candidate c2ab442;
-  `SOURCE_COMMIT` exato. Revisão independente do code candidate `PASS`; Sol
-  não revisou; sem merge, deploy ou promoção.
+  `feature/apps-script-engine-core`, HEAD de base `3fbf8efede876098d7ff8e94c8eb3b428c5febe0`;
+  candidato funcional local ainda não commitado neste registro. `.codex-local-evidence/`
+  permanece local e não rastreado. KB candidata `5.42.0`, RDE `0.7.0`.
+  A mudança em elaboração adiciona rastreamento explícito de presença de cinco
+  produtos técnicos e mantém as cinco decisões `MANUAL_REVIEW`; contagem
+  candidata: 34 ativos, 29 produtivos, 10 integrais, 8 parciais, 2 preparatórios
+  e 19 pendentes de cobertura integral; 5 não selecionáveis e 2 retirados. Fase
+  6A `COMPLETE`; 6B `IN_PROGRESS`. Evidências completas de gates, revisão e
+  build serão anexadas após validação do candidato exato. Sem merge, deploy ou
+  promoção.
 - O checkout iniciou em `4a07851f5ddb2590d9a98f499b78c93581122c2b`; o baseline
   fornecido era commit descendente disponível no remoto. A branch local avançou
   por fast-forward até `f826ac7` sem descartar dados.
@@ -5125,3 +5123,35 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   e gates do candidato de código permanecem registrados; nenhuma nova alteração
   de código, Base ou runtime nesta triagem. `SOL_REVIEW=PENDING_IDENTITY` e
   `PROMOTION=NOT_AUTHORIZED`.
+
+### Lote funcional: presença rastreável de cinco relatórios — 2026-10-22
+
+- Reconciliação: branch local e remota apontavam para
+  `3fbf8efede876098d7ff8e94c8eb3b428c5febe0`; alterações anteriores e
+  `.codex-local-evidence/` foram preservadas. HEAD remoto verificado por
+  `git ls-remote`; nenhuma operação destrutiva.
+- O lote altera `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`,
+  `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING` e
+  `T4_IN15_COMMISSIONING`: quando a referência documental exata existe, o
+  trace registra `EXISTS(product)=TRUE`; uma expressão declarada
+  `MANUAL_REVIEW` mantém o resultado global em revisão humana. Inventário
+  ausente ou insuficiente permanece `MANUAL_REVIEW`; não produz FAIL/NC. Os
+  requisitos SIGNED, DRT/produto/SMSCI, validade e conteúdo não foram declarados
+  satisfeitos. T4_IN10 não foi alterado.
+- `00_engine`, parser do IR, Table 4, identidade da Base, Reports, Pipeline,
+  runtime compilado e testes receberam mudanças versionadas para KB `5.42.0`.
+  A gramática ALL admite o literal `MANUAL_REVIEW` para preservar o estado
+  conservador junto ao fato de presença. A semântica normativa de nenhum
+  Requirement/Nonconformity foi alterada.
+- Métrica candidata: integrais `10/29 → 10/29`; parciais `3 → 8`; preparatórios
+  `7 → 2`; pendentes integrais permanecem `19`; blockers encerrados `0`, novos
+  blockers `0`. Benefício: cinco tipos de relatório passam a ter presença
+  documental positiva rastreável no trace para o vistoriador, sem afirmar
+  assinatura ou cobertura DRT. Esta é execução parcial, não Criterion coberto.
+- Testes direcionados antes da documentação: 66 testes Python de contratos/
+  identidade/projeção PASS; readiness Apps Script PASS; suíte piloto PASS após
+  correção de expectativas de trace; suítes restantes e gates completos,
+  revisão independente e build do candidato exato ainda pendentes. Esforço
+  estimado até esta etapa: cerca de 45 minutos; nenhuma revisão independente
+  deste lote foi realizada ainda. `SOL_REVIEW=PENDING_CAPACITY` se Sol não puder
+  ser acessado após candidato consolidado; não reivindicar aprovação. `PROMOTION=NOT_AUTHORIZED`.

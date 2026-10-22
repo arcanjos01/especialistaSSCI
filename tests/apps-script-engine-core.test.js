@@ -265,6 +265,11 @@ assert.equal(evaluateWithDocument(new E.Or([
 assert.equal(E.evaluateExpression(new E.Exists(new E.TypedReference('TEST_ENTITY', 'missing')),
   reg, memory([ref]), ctx).result, ER.FALSE);
 assert.equal(evaluate(new E.All([call(ER.TRUE), call(ER.UNKNOWN)])), ER.UNKNOWN);
+assert.equal(evaluateWithDocument(new E.All([
+  new E.Exists(ref),
+  new E.AssertLiteral(ER.MANUAL_REVIEW, [literalDocument])
+])), ER.MANUAL_REVIEW,
+'a positive presence fact cannot clear a declared manual-review child');
 assert.equal(evaluate(new E.All([call(ER.UNKNOWN), call(ER.MANUAL_REVIEW)])), ER.MANUAL_REVIEW);
 assert.equal(evaluate(new E.All([call(ER.UNKNOWN), call(ER.FALSE)])), ER.FALSE);
 assert.equal(evaluate(new E.Or([call(ER.FALSE), call(ER.UNKNOWN)])), ER.UNKNOWN);

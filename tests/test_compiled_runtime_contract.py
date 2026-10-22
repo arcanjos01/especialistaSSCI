@@ -52,14 +52,14 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.contract["responsibilityCatalogVersion"], "2.6")
         self.assertEqual(self.contract["knowledgeBase"]["id"], "SSCI-HABITESE")
-        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.41.0")
+        self.assertEqual(self.contract["knowledgeBase"]["version"], "5.42.0")
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["01_entities.txt"],
             "3.11.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["00_engine.txt"],
-            "4.12.0",
+            "4.13.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["02_requirements.txt"],
@@ -71,15 +71,15 @@ class CompiledRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["06_reports.txt"],
-            "3.24.0",
+            "3.25.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["04_table4.txt"],
-            "3.6.0",
+            "3.7.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["08_execution_pipeline.txt"],
-            "4.42.0",
+            "4.43.0",
         )
         self.assertEqual(
             self.contract["knowledgeBase"]["documentVersions"]["09_Especificacao_da_RDE.txt"],
@@ -309,6 +309,16 @@ EXISTS(TEST_DOCUMENT)
 OR MANUAL_REVIEW
 MANUAL_REVIEW "TEST_ONLY"
 END
+CRITERION TEST_ALL_REVIEW
+TABLE 4
+REQUIREMENT REQ_REVIEW
+ASSERT ALL
+EXISTS(TEST_DOCUMENT)
+MANUAL_REVIEW
+END
+MANUAL_REVIEW "TEST_ONLY"
+FAIL NC_TEST
+END
 """
         parsed = self.builder._parse_criterion_metadata(source)
         self.assertEqual(parsed[0]["assertIr"]["type"], "ALL")
@@ -316,6 +326,14 @@ END
             [item["name"] for item in parsed[0]["assertIr"]["expressions"]],
             ["EXISTS", "DRT_COVERS"],
         )
+        self.assertEqual(parsed[2]["assertIr"], {
+            "type": "ALL",
+            "expressions": [
+                {"type": "CALL", "name": "EXISTS",
+                 "arguments": [{"type": "SYMBOL", "value": "TEST_DOCUMENT"}]},
+                {"type": "LITERAL", "value": "MANUAL_REVIEW"},
+            ],
+        })
         self.assertEqual(
             parsed[1]["assertIr"],
             {
@@ -438,6 +456,18 @@ OR MANUAL_REVIEW
 MANUAL_REVIEW "TEST_ONLY"
 END
 EXISTS(OTHER_DOCUMENT)
+''',
+            '''
+CRITERION TEST_ALL_REVIEW_TEXT_AS_EXPRESSION
+TABLE 4
+REQUIREMENT REQ_TEST
+ASSERT ALL
+EXISTS(TEST_DOCUMENT)
+MANUAL_REVIEW "NOT_A_LITERAL"
+END
+MANUAL_REVIEW "TEST_ONLY"
+FAIL NC_TEST
+END
 ''',
         )
         for source in sources:
