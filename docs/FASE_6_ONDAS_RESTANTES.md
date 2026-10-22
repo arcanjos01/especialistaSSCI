@@ -4771,3 +4771,37 @@ funcional: resolver apenas por fonte autorizada a dimensão de área e o
 comparando estruturado de endereço; paralelamente, continuar a verificação
 local de assinatura sem habilitar `SIGNED` enquanto perfil, digest de trust set
 e binding ao documento continuarem preparatórios. Sem merge, deploy ou uso real.
+
+### Retomada — diagnóstico de status ART/RRT/TRT — 2026-10-22
+
+- Checkout reconciliado: `feature/apps-script-engine-core`, HEAD local e remoto
+  `b2dbb880b49c41ec9eb2ea85feb3281cfb5f2b3e`; sem alterações rastreadas;
+  `.codex-local-evidence/` preservado, não rastreado.
+- Revisão de produtividade dos Criteria restantes: `T1_DRT_REGISTERED` e
+  `T4_DRT_REGISTERED` compartilham o requisito conjuntivo de situação registrada,
+  emissão e pagamento, mas o contrato do Engine exige classificação exata,
+  versionada por tipo documental, conselho e campo. O vocabulário existente
+  (`REGISTERED/NOT_REGISTERED/DRAFT/UNKNOWN/OTHER`, `ISSUED/...`, `PAID/...`)
+  não autoriza classificar literalmente os textos extraídos.
+- Consulta a fontes oficiais confirmou diferenças que impedem um mapeamento
+  global: a página do CREA-SC descreve o texto próprio da situação de pagamento
+  da ART; o CAU/BR diferencia RRT elaborado, pendente e registrado/aptos à baixa;
+  o manual de emissão do CFT descreve estados próprios de TRT e é de 2018. Fontes:
+  [CREA-SC — baixa e consulta de boletos ART](https://portal.crea-sc.org.br/novo-recurso-no-creanet-possibilita-agilidade-na-baixa-do-pagamento-e-consulta-dos-boletos-de-arts/),
+  [CAU/BR — estados de RRT no SICCAU](https://caubr.gov.br/siccau-tire-suas-duvidas-sobre-as-mudancas-nas-regras-do-rrt/),
+  [CFT — Manual de Geração de TRT](https://www.cft.org.br/wp-content/uploads/2018/10/MANUAL-DE-GERACAO-DE-TRT-v1_2.pdf).
+  Os materiais localizados não constituem um conjunto atual e completo de
+  estados para classificar com segurança todos os conselhos, documentos e os
+  três campos exigidos. Não foi criado sinônimo, mapeamento nem resultado.
+- Ganho funcional deste diagnóstico: `0` Criteria integrais; cobertura permanece
+  `10/29`, 1 parcial, 7 preparatórios, 19 pendentes integrais. Bloqueio
+  compartilhado permanece para `T1_DRT_REGISTERED` e `T4_DRT_REGISTERED`;
+  classificações ausentes devem seguir `MANUAL_REVIEW`, sem `FAIL`/NC por
+  insuficiência. Nenhuma mudança de código, Base ou runtime.
+- Próxima ação independente: prosseguir com as dimensões de endereço/área somente
+  se a fonte autorizada resolver a correspondência entre campos do requerimento
+  e “Área do Imóvel” da IRV. Em paralelo, manter a verificação criptográfica
+  local como preparação compartilhada, sem ativar admissão `SIGNED`. A decisão
+  IN10 não foi reaberta. `CALIBRATION_GATE=BLOCKED`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `VALIDATED_TO_ANALYZED=PENDING`, `PROMOTION=NOT_AUTHORIZED`.
