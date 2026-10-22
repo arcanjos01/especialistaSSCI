@@ -5659,3 +5659,33 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
 - Esforço aproximado: 20 minutos; uma revisão independente deste lote, sem
   re-review. Findings abertos `0`; blockers novos `0`.
   `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
+
+### Mensagem de revisão humana IN10 — checkpoint 11ef850 — 2026-10-22
+
+- Ajuste limitado da mensagem de `T4_IN10_COMMISSIONING`: deixa explícito que
+  o Engine não conclui a independência em relação a projeto/execução, que RT
+  diferente do solicitante não basta e que autoria e relação DRT/produto/SMSCI
+  seguem para análise humana. O `ASSERT MANUAL_REVIEW`, a Nonconformity
+  declarada e a semântica do Criterion não foram alterados; insuficiência não
+  é convertida em `FAIL`/NC. Interpretação institucional continua pendente.
+- Teste específico protege a limitação da mensagem e a permanência em
+  `MANUAL_REVIEW`. Ganho demonstrado: instrução mais precisa ao vistoriador;
+  cobertura integral `10/29 → 10/29` (ganho `0`), parcial `18`, preparatório
+  `1`, pendentes integrais `19`. `T4_IN10_COMMISSIONING` continua não integral.
+- Gates: Python `203` (190 pass, 13 skip); Apps Script `12/12 PASS`; `node
+  --check` em todos os módulos/testes JS e sintaxe de `apps-script/Code.gs`
+  via stdin PASS; contrato compilado `23/23 PASS`; runtime regenerado
+  byte-identical, SHA-256
+  `229073ecee9d0ef4609c327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
+  manifests e release build em worktree limpa PASS, dez documentos,
+  `SOURCE_COMMIT=11ef8501ab1386cacea3e3f24d80b9af8f81890e`; `git diff --check`
+  PASS. Um comando inicial tentou `node --check Code.gs` no caminho inexistente;
+  a sintaxe foi validada no caminho real `apps-script/Code.gs` por stdin.
+- Revisão independente read-only por Codex GPT-6, execução distinta, examinou
+  o diff `d3d40cd63b71b2f4e5ca6c798cdf50bcf21707d3..11ef8501ab1386cacea3e3f24d80b9af8f81890e`:
+  PASS, nenhum achado material. O revisor também executou os 47 testes focais;
+  a suíte completa foi executada pelo executor. Isto não é revisão Sol.
+- Esforço aproximado: 35 minutos; uma revisão independente, sem re-review;
+  findings abertos `0`, blockers encerrados `0`, blockers novos `0`. Commit
+  publicado por fast-forward em `feature/apps-script-engine-core`.
+  `SOL_REVIEW=PENDING_CAPACITY`; `PROMOTION=NOT_AUTHORIZED`.
