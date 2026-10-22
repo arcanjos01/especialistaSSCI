@@ -5760,3 +5760,60 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   porém a auditoria consolidada ainda não cobriu integralmente os 57 arquivos:
   `FINDINGS_OPEN_GLOBAL=UNKNOWN`, `INDEPENDENT_ARCH_REVIEW=PENDING_SCOPE`,
   `SOL_REVIEW=PENDING_IDENTITY`, `PROMOTION=NOT_AUTHORIZED`.
+
+
+### Fechamento da revisão consolidada e triagem de produtividade — 2026-10-22
+
+- Estado reconciliado antes deste registro: branch `feature/apps-script-engine-core`,
+  `HEAD=8c042787d7692416457f85dc8b0526d746cdd84e`, upstream no mesmo SHA;
+  única entrada local não rastreada `.codex-local-evidence/`, preservada. Nenhum
+  reset, descarte ou alteração de código foi realizado neste retorno.
+- Revisão arquitetural independente substituta: Codex/GPT-6 examinou o candidato
+  `cbb11de` contra `f826ac7` e registrou escopo cumulativo de 57 arquivos, com
+  identidade efetiva declarada, diff/conteúdo consultado e parecer `PASS` sob
+  AGENTS.md §25.2. O revisor não é Sol. Seu finding LOW `F6-DOC-001` (snapshot
+  KB 5.44 apresentado como vigente) foi corrigido: `426f973` rotulou uma seção,
+  e o re-review dirigido apontou outra ocorrência histórica ainda ambígua;
+  `8c04278` rotulou-a expressamente como snapshot histórico. Re-review dirigida
+  por Codex/GPT-6 do SHA exato `8c042787d7692416457f85dc8b0526d746cdd84e`:
+  `PASS`, `F6-DOC-001=CLOSED`, sem findings abertos no escopo dirigido. A correção
+  preserva os quantitativos e declara a Base atual KB 5.46.0/RDE 0.8.0.
+- O finding MEDIUM `F6-FINAL-001` (proveniência vazia permitindo positivo em dois
+  caminhos de RT) foi corrigido em `f7fc9e9` e recebeu re-review dirigida PASS
+  pelo mesmo revisor independente no SHA exato; o candidato consolidado posterior
+  inclui esse fix. A aprovação substituta é `INDEPENDENT_ARCH_REVIEW=PASS` para
+  o escopo/candidato examinado; `SOL_REVIEW=NOT_PERFORMED` (nenhuma revisão Sol
+  foi realizada). Isto não significa encerramento da Fase 6 nem promoção.
+- Gates completos do candidato consolidado `8c042787d7692416457f85dc8b0526d746cdd84e`,
+  em worktree limpa: Python `204` (191 PASS, 13 SKIP); Apps Script `12/12 PASS`;
+  `node --check` dos módulos/testes JS e sintaxe de `apps-script/Code.gs` PASS;
+  runtime compilado `23/23 PASS`, regeneração byte-identical e SHA-256
+  `229073ecee9d0ef4609e327aaba6db74a33e656f4fef5e808a365cb6d74119e7`;
+  manifests/phase guards PASS; `git diff --check` PASS; release build PASS,
+  dez documentos, KB `5.46.0`, `SOURCE_COMMIT` exatamente `8c042787d7692416457f85dc8b0526d746cdd84e`.
+  A POC opt-in pyHanko do código-base teve `38/38 PASS` no checkpoint de código
+  `f7fc9e9`; não é prova de validação de confiança/revogação nem admissão
+  operacional de assinatura.
+- Reconciliação da matriz vigente: `CRITERIA_ACTIVE=34`, `PRODUCTIVE=29`,
+  `COVERED=10`, `PARTIAL=18`, `PREPARATORY=1`, `PENDING_INTEGRAL=19`,
+  `NOT_SELECTABLE=5`, `WITHDRAWN=2`. A mudança documental de inventário não
+  promoveu cobertura. `FINDINGS_OPEN=0` nos escopos de revisão descritos acima;
+  blockers de cobertura/calibração continuam abertos e não são findings de
+  implementação.
+- Triagem antes de novo ciclo funcional: não foi identificado Criterion
+  independente que possa atingir cobertura integral com os comparandos, fatos,
+  contratos e autoridade atualmente formalizados. Os 18 parciais permanecem
+  limitados por prova de assinatura autenticada/admissível, status ART/RRT/TRT
+  mapeados por fonte competente, comparandos normativos para dados básicos ou
+  conteúdo factual estruturado e vínculos de DRT/produto. O Criterion preparatório
+  IN10 mantém a decisão já registrada e não foi reaberto. Os bloqueios de
+  calibração e validação normativa institucional também permanecem separados.
+  Não se adicionou abstração ou código sem ganho funcional demonstrável.
+- Estado: `FASE_6A_STATUS=COMPLETE` conforme checkpoint aprovado;
+  `FASE_6B_STATUS=IN_PROGRESS`; `CALIBRATION_GATE=BLOCKED`;
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`;
+  `VALIDATED_TO_ANALYZED=PENDING`; `PROMOTION=NOT_AUTHORIZED`;
+  Sol 6.1 não executado nesta rodada. Esforço deste retorno: aproximadamente
+  25 minutos em reconciliação e triagem; implementação funcional `0` Criteria
+  porque os blockers são de evidência/autoridade, gates validados contra o SHA
+  informado acima; revisões novas gerais `0`, uma re-review dirigida já concluída.
