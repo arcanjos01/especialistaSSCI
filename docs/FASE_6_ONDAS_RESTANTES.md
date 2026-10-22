@@ -5538,3 +5538,30 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   Findings abertos no escopo: `0`; blockers novos: `0`. Estado de promoção,
   calibração, validação institucional e decisão IN10 não foi alterado. Os dois
   commits foram publicados por fast-forward `2fc450c..9644e84`; sem merge/deploy.
+
+### Divulgação de datas documentais do laudo IN08 — em validação
+
+- Candidato local sobre `18471bd8ee529ccdc2a4200d6cb3db48cbb90b2c`, já
+  sincronizado com `origin/feature/apps-script-engine-core`; o diretório
+  privado `.codex-local-evidence/` permanece fora do Git.
+- Para `REQ_IN08_ESTANQUEIDADE/T4_IN08_ESTANQUEIDADE`, o binding do produto
+  técnico agora expõe `documentaryDateItems(TEST_REPORT)` apenas quando o
+  produto é o laudo autenticado daquela unidade. O disclosure preserva
+  rótulo, literal de data, identidade exata do relatório e documento-fonte,
+  texto-fonte e provenance; a cópia integra o trace imutável.
+- O Engine continua em `MANUAL_REVIEW`, sem `FAIL`/Nonconformity por
+  insuficiência. Não interpreta formatos, escolhe data, define data de
+  avaliação, calcula a janela de cinco anos, comprova assinatura ou associa
+  DRT. A coleção vazia não demonstra ausência. Assim, há avanço de transparência
+  dentro do suporte parcial, mas `CRITERIA_COVERED` não aumenta.
+- Teste dirigido `apps-script-pilot-criterion`: `PASS`, incluindo duas datas
+  literais com proveniência, estado manual, congelamento do trace e rejeição de
+  contexto de apresentação trocado. Na primeira execução, a expectativa de
+  código de erro do último caso estava errada; foi corrigida para o código
+  emitido pelo contrato, e a repetição passou. Gates completos, revisão
+  independente e build limpo ainda pendentes.
+- Contagens esperadas após validação: integrais `10/29` (sem ganho), parciais
+  `18`, preparatórios `1`, pendentes integrais `19`. Esforço até o registro
+  inicial: cerca de 15 minutos; nenhuma revisão deste lote ainda. Próximo gate:
+  suíte completa, revisão read-only do candidato exato, re-review dirigida se
+  houver finding e novo gate completo após correções.

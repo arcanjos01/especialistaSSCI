@@ -131,18 +131,32 @@ function criterionExecutionBindTechnicalProductAttribute_(contract, plan, view, 
   criterionExecutionRequire_(sourceDocument instanceof TypedReference &&
     sourceDocument.kind === 'DOCUMENT',
   'technical product has an invalid source document');
+  const isIn08Tightness = unit.requirement &&
+    unit.requirement.id === 'REQ_IN08_ESTANQUEIDADE' &&
+    unit.criterion.id === 'T4_IN08_ESTANQUEIDADE';
+  let documentaryDateItems = null;
+  if (isIn08Tightness) {
+    criterionExecutionRequire_(product.kind === 'TEST_REPORT' &&
+      typeof view.documentaryDateItems === 'function',
+    'IN08 date disclosure requires the exact TEST_REPORT date collection');
+    documentaryDateItems = view.documentaryDateItems(product);
+    criterionExecutionRequire_(Array.isArray(documentaryDateItems),
+      'IN08 date disclosure collection is invalid');
+  }
+  const binding = {
+    type: 'TECHNICAL_PRODUCT_ATTRIBUTE',
+    technicalProduct,
+    attribute: evidenceAttribute,
+    matchedCount: references.length,
+    sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
+    provenance: view.provenance(product) === undefined ? null : view.provenance(product)
+  };
+  if (isIn08Tightness) binding.documentaryDateItems = documentaryDateItems;
   return Object.freeze({
     expression: new PredicateCall('TECHNICAL_PRODUCT_ATTRIBUTE', {
       technicalProduct: product, attribute: evidenceAttribute
     }),
-    binding: immutableCopy({
-      type: 'TECHNICAL_PRODUCT_ATTRIBUTE',
-      technicalProduct,
-      attribute: evidenceAttribute,
-      matchedCount: references.length,
-      sourceDocument: criterionExecutionReferenceSnapshot_(sourceDocument),
-      provenance: view.provenance(product) === undefined ? null : view.provenance(product)
-    })
+    binding: immutableCopy(binding)
   });
 }
 

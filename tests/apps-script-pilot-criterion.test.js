@@ -97,6 +97,7 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
   includeCmar = false, includeLegacyExecutionDrt = false, conformityReports = [],
   signedProducts = [], in19DrtEntityId = null,
   executionDrts = [],
+  documentaryDateItems = [],
   requestDate = '2026-01-28' } = {}) {
   const records = [{
     record_id: 'DOC_CURRENT', entity_id: 'COMPROVANTE_DE_SOLICITACAO_DE_HABITESE',
@@ -278,8 +279,9 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       }
     });
   }
+  const usesDateItems = documentaryDateItems.length > 0;
   return {
-    schema_version: '0.2.0', process_id: 'TEST_ONLY_PROCESS',
+    schema_version: usesDateItems ? '0.5.0' : '0.2.0', process_id: 'TEST_ONLY_PROCESS',
     source: {
       file_id: 'TEST_ONLY_FILE', file_name: 'TEST_ONLY.pdf', mime_type: 'application/pdf',
       source_url: 'TEST_ONLY_URL', sha256: '0'.repeat(64)
@@ -289,7 +291,12 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       created_at: '2026-10-06T12:00:00.000Z'
     },
     records,
-    extraction_warnings: []
+    extraction_warnings: [],
+    ...(usesDateItems ? {
+      documentary_associations: [],
+      drt_declaration_items: [],
+      documentary_date_items: documentaryDateItems
+    } : {})
   };
 }
 
@@ -523,6 +530,11 @@ for (const signedProductCase of [
     )),
     { sourceKind: 'TEST_ONLY', sourceReference: 'SIGNED_PRODUCT_1_FACT' }
   );
+  if (signedProductCase.criterionId === 'T4_IN08_ESTANQUEIDADE') {
+    assert.deepEqual(JSON.parse(JSON.stringify(
+      signedProductResult.traceability.documentaryBinding.validationBinding.documentaryDateItems
+    )), []);
+  }
 
   const unsignedProduct = prepare({
     includeGas: signedProductCase.includeGas === true,
@@ -583,6 +595,60 @@ for (const signedProductCase of [
     )), { kind: 'DOCUMENT', identifier: 'DOC_CURRENT' });
   }
 }
+
+const in08DateDisclosure = prepare({
+  includeGas: true,
+  signedProducts: [{ entityId: 'GAS_TIGHTNESS_REPORT', signatureMechanism: 'TEST_ONLY' }],
+  documentaryDateItems: [{
+    date_item_id: 'DATE_GAS_TEST',
+    product_record_id: 'SIGNED_PRODUCT_1',
+    date_label_text: 'Data do ensaio',
+    date_text: '01/02/2026',
+    source_document: 'DOC_SIGNED_PRODUCT_1',
+    source_text: 'Data do ensaio: 01/02/2026',
+    provenance: { page: 3, region: 'TEST_ONLY date field' }
+  }, {
+    date_item_id: 'DATE_GAS_ISSUED',
+    product_record_id: 'SIGNED_PRODUCT_1',
+    date_label_text: 'Data de emissão',
+    date_text: '02/02/2026',
+    source_document: 'DOC_SIGNED_PRODUCT_1',
+    source_text: 'Data de emissão: 02/02/2026'
+  }]
+});
+const in08DateResult = api.executePlannedCriterion(
+  contract, in08DateDisclosure.plan,
+  'UNIT_KEY (REQ_IN08_ESTANQUEIDADE, T4_IN08_ESTANQUEIDADE)',
+  in08DateDisclosure.view
+);
+assert.equal(in08DateResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(in08DateResult.pipelineResult, 'MANUAL_REVIEW');
+assert.equal(in08DateResult.nonconformityOnFalse, undefined);
+const in08DateBinding = in08DateResult.traceability.documentaryBinding
+  .validationBinding.documentaryDateItems;
+assert.deepEqual(JSON.parse(JSON.stringify(in08DateBinding)), [{
+  dateItemId: 'DATE_GAS_TEST',
+  product: { kind: 'TEST_REPORT', identifier: 'SIGNED_PRODUCT_1' },
+  dateLabelText: 'Data do ensaio',
+  dateText: '01/02/2026',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'DOC_SIGNED_PRODUCT_1' },
+  sourceText: 'Data do ensaio: 01/02/2026',
+  provenance: { page: 3, region: 'TEST_ONLY date field' }
+}, {
+  dateItemId: 'DATE_GAS_ISSUED',
+  product: { kind: 'TEST_REPORT', identifier: 'SIGNED_PRODUCT_1' },
+  dateLabelText: 'Data de emissão',
+  dateText: '02/02/2026',
+  sourceDocument: { kind: 'DOCUMENT', identifier: 'DOC_SIGNED_PRODUCT_1' },
+  sourceText: 'Data de emissão: 02/02/2026'
+}]);
+assert.equal(Object.isFrozen(in08DateBinding), true);
+assert.equal(Object.isFrozen(in08DateBinding[0].provenance), true);
+assert.throws(() => api.executePlannedCriterion(
+  contract, in08DateDisclosure.plan,
+  'UNIT_KEY (REQ_IN08_ESTANQUEIDADE, T4_IN08_ESTANQUEIDADE)',
+  in08DateDisclosure.view, null, currentContext('2025-01-01')
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
 
 for (const conformityReports of [[], [undefined], [''], ['   ']]) {
   const unsignedConformity = prepare({ includeGas: false, conformityReports });
