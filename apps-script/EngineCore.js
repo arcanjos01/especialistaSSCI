@@ -13,6 +13,8 @@ const ENGINE_OBJECT_HAS_OWN_PROPERTY_ = Object.prototype.hasOwnProperty;
 const ENGINE_OBJECT_TO_STRING_ = Object.prototype.toString;
 const ENGINE_OBJECT_GET_PROTOTYPE_OF_ = Object.getPrototypeOf;
 const ENGINE_NUMBER_IS_FINITE_ = Number.isFinite;
+const ENGINE_NUMBER_IS_INTEGER_ = Number.isInteger;
+const ENGINE_STRING_TRIM_ = String.prototype.trim;
 
 const ENGINE_ARRAY_SET_OWN_ = function (array, index, value) {
   ENGINE_REFLECT_APPLY_(ENGINE_OBJECT_DEFINE_PROPERTY_, Object, [array, index, {
@@ -76,6 +78,23 @@ function isPlainObject(value) {
 }
 
 const ENGINE_IS_PLAIN_OBJECT_ = isPlainObject;
+
+function engineHasUsableDocumentaryProvenance_(provenance) {
+  if (!ENGINE_IS_PLAIN_OBJECT_(provenance)) return false;
+  const hasString = key => {
+    const value = ENGINE_OWN_DATA_VALUE_(provenance, key);
+    return typeof value === 'string' &&
+      ENGINE_REFLECT_APPLY_(ENGINE_STRING_TRIM_, value, []).length > 0;
+  };
+  const hasPositiveInteger = key => {
+    const value = ENGINE_OWN_DATA_VALUE_(provenance, key);
+    return ENGINE_NUMBER_IS_INTEGER_(value) && value > 0;
+  };
+  return (hasString('sourceKind') && hasString('sourceReference')) ||
+    hasPositiveInteger('page') || hasPositiveInteger('row') ||
+    hasPositiveInteger('column') || hasString('text_span') ||
+    hasString('location') || hasString('attachment');
+}
 
 class TypedReference {
   constructor(kind, identifier) {
@@ -537,6 +556,134 @@ function responsibilityDrtActivityExecutionPredicateContract() {
         return { result: everyDrtDeclaresExpectedActivity ? EngineResult.TRUE : EngineResult.MANUAL_REVIEW,
           memoryReferences: args.evidenceReferences,
           documentaryEvidence };
+      }
+    }
+  });
+}
+
+function authenticateBasicDrtAttributeDisclosure_(args, memory, context) {
+  const empty = { result: EngineResult.MANUAL_REVIEW, memoryReferences: [] };
+  const attributeByCriterion = {
+    T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
+    T1_DRT_RT_NAME: 'RT_NAME',
+    T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
+    T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
+  };
+  if (!context || context.requirementId !== 'REQ_T1_DRT_BASIC_DATA' ||
+      !ENGINE_HAS_OWN_(attributeByCriterion, context.criterionId) ||
+      (context.role !== 'ASSERT' && context.role !== 'VALIDATE') ||
+      typeof isImmutableExecutionView !== 'function' || !isImmutableExecutionView(memory) ||
+      typeof isCanonicalCompiledRuntimeContract !== 'function' ||
+      !isCanonicalCompiledRuntimeContract(context.compiledContract) ||
+      typeof isCanonicalFrozenExecutionPlan !== 'function' ||
+      !isCanonicalFrozenExecutionPlan(context.executionPlan, context.compiledContract, memory) ||
+      typeof isCanonicalCurrentSubmissionContext !== 'function' ||
+      !isCanonicalCurrentSubmissionContext(context.currentSubmissionContext)) return empty;
+  if (context.role === 'ASSERT' && args.attribute !== attributeByCriterion[context.criterionId]) {
+    return empty;
+  }
+  if (context.role === 'VALIDATE' && args.attribute !== 'RI_NAME') return empty;
+  let plannedUnitFound = false;
+  const units = context.executionPlan.PLANNED_EXECUTION_UNITS;
+  for (let index = 0; index < units.length; index += 1) {
+    const unit = ENGINE_OWN_DATA_VALUE_(units, String(index));
+    const requirement = ENGINE_OWN_DATA_VALUE_(unit, 'requirement');
+    const criterion = ENGINE_OWN_DATA_VALUE_(unit, 'criterion');
+    if (ENGINE_OWN_DATA_VALUE_(requirement, 'id') === context.requirementId &&
+        ENGINE_OWN_DATA_VALUE_(criterion, 'id') === context.criterionId) plannedUnitFound = true;
+  }
+  if (!plannedUnitFound) return empty;
+  let currentPresentation;
+  try {
+    getAuthenticatedPresentationIdentity(context.currentSubmissionContext);
+    currentPresentation = selectCurrentComprovante(memory, context.currentSubmissionContext);
+  } catch (error) {
+    return empty;
+  }
+  const plannedPresentation = context.executionPlan.selectedComprovante;
+  if (!currentPresentation || !plannedPresentation ||
+      currentPresentation.kind !== plannedPresentation.kind ||
+      currentPresentation.identifier !== plannedPresentation.identifier) return empty;
+  let expectedReferences = [];
+  try {
+    for (const entityId of ['ART', 'RRT', 'TRT']) {
+      const references = memory.referencesByEntity(entityId);
+      if (!ENGINE_ARRAY_IS_ARRAY_(references)) return empty;
+      expectedReferences = ENGINE_REFLECT_APPLY_(ENGINE_ARRAY_CONCAT_, expectedReferences, [references]);
+    }
+  } catch (error) {
+    return empty;
+  }
+  if (!ENGINE_ARRAY_IS_ARRAY_(args.evidenceReferences) ||
+      args.evidenceReferences.length !== expectedReferences.length) return empty;
+  for (let index = 0; index < expectedReferences.length; index += 1) {
+    const expected = ENGINE_OWN_DATA_VALUE_(expectedReferences, String(index));
+    const actual = ENGINE_OWN_DATA_VALUE_(args.evidenceReferences, String(index));
+    if (!expected || !actual || expected.kind !== actual.kind ||
+        expected.identifier !== actual.identifier) return empty;
+  }
+  return null;
+}
+
+function responsibilityDrtAttributeDisclosurePredicateContract() {
+  return new PredicateContract({
+    predicateId: 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE',
+    argumentSchema: new ArgumentSchema([
+      new ArgumentSpec({ name: 'evidenceReferences', kind: ArgumentKind.REFERENCE, many: true }),
+      new ArgumentSpec({ name: 'attribute', kind: ArgumentKind.TEXT })
+    ]),
+    resultContract: [EngineResult.MANUAL_REVIEW],
+    resolver: {
+      resolve(args, memory, context) {
+        const gate = authenticateBasicDrtAttributeDisclosure_(args, memory, context);
+        if (gate) return gate;
+        if (!memory || typeof memory.contains !== 'function' ||
+            typeof memory.read !== 'function' || typeof memory.sourceDocument !== 'function' ||
+            typeof memory.entityId !== 'function' || typeof memory.provenance !== 'function') {
+          throw new EngineContractError(
+            'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE requires read-only Process Memory'
+          );
+        }
+        const documentaryEvidence = [];
+        for (let index = 0; index < args.evidenceReferences.length; index += 1) {
+          const reference = args.evidenceReferences[index];
+          if (!(reference instanceof ENGINE_TYPED_REFERENCE_CLASS_) ||
+              reference.kind !== 'DOCUMENT' || !memory.contains(reference)) {
+            throw new ResultContractError(
+              'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE evidence reference is not in Process Memory'
+            );
+          }
+          const entityId = memory.entityId(reference);
+          if (entityId !== 'ART' && entityId !== 'RRT' && entityId !== 'TRT') {
+            throw new ResultContractError(
+              'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE accepts only ART, RRT or TRT evidence'
+            );
+          }
+          const sourceDocument = memory.sourceDocument(reference);
+          const facts = memory.read(reference);
+          const value = ENGINE_OWN_DATA_VALUE_(facts, args.attribute);
+          const provenance = memory.provenance(reference);
+          const provenanceUsable = engineHasUsableDocumentaryProvenance_(provenance);
+          const literalUsable = typeof value === 'string' && value.trim().length > 0;
+          const sourceDocumentMatches = sourceDocument instanceof ENGINE_TYPED_REFERENCE_CLASS_ &&
+            sourceDocument.kind === 'DOCUMENT' && sourceDocument.identifier === reference.identifier;
+          documentaryEvidence.push({
+            document: reference,
+            documentEntityId: entityId,
+            attribute: args.attribute,
+            literal: value === undefined ? null : value,
+            sourceDocument,
+            provenance: provenance === undefined ? null : provenance,
+            provenanceSufficient: !!provenanceUsable,
+            disclosureSufficient: !!(literalUsable && provenanceUsable && sourceDocumentMatches),
+            associationStatus: 'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'
+          });
+        }
+        return {
+          result: EngineResult.MANUAL_REVIEW,
+          memoryReferences: args.evidenceReferences,
+          documentaryEvidence
+        };
       }
     }
   });
@@ -1433,7 +1580,8 @@ function evaluateCriterion_(criterion, registry, memory, correlationProjection =
   const evaluation = evaluateExpression(criterion.expression, registry, memory,
     { ...context, compiledContract: executionBinding && executionBinding.contract,
       executionPlan: executionBinding && executionBinding.plan,
-      currentSubmissionContext: executionBinding && executionBinding.currentSubmissionContext }, correlationProjection);
+      currentSubmissionContext: executionBinding && executionBinding.currentSubmissionContext,
+      role: executionBinding && executionBinding.role }, correlationProjection);
   return evaluatedRecord(criterion, evaluation.result, evaluation.trace);
 }
 

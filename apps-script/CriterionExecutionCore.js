@@ -150,6 +150,35 @@ function criterionExecutionTechnicalProductValidation_(contract, requirementMeta
   metadata, unit, plan, view) {
   const validate = requirementMetadata.validate;
   if (!Array.isArray(validate) || validate.length === 0) return null;
+  if (requirementMetadata.requirementId === 'REQ_T1_DRT_BASIC_DATA') {
+    criterionExecutionRequire_(metadata.requirementId === 'REQ_T1_DRT_BASIC_DATA' &&
+      ['T1_DRT_RI_LEGAL_ENTITY', 'T1_DRT_RT_NAME', 'T1_DRT_ADDRESS',
+        'T1_DRT_AREA'].includes(metadata.criterionId) &&
+      validate.length === 1 &&
+      validate[0] === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY' &&
+      Array.isArray(unit.validate) && JSON.stringify(unit.validate) === JSON.stringify(validate) &&
+      Array.isArray(unit.criterionValidate) && unit.criterionValidate.length === 0,
+    'basic DRT data validation declaration is invalid');
+    criterionExecutionRequire_(typeof view.referencesByEntity === 'function',
+      'ImmutableExecutionView must expose typed DRT documents');
+    const evidenceReferences = [];
+    for (const entityId of ['ART', 'RRT', 'TRT']) {
+      const references = view.referencesByEntity(entityId);
+      criterionExecutionRequire_(Array.isArray(references),
+        'ImmutableExecutionView returned an invalid DRT document collection');
+      references.forEach(reference => evidenceReferences.push(reference));
+    }
+    return Object.freeze({
+      expression: new PredicateCall('RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE', {
+        evidenceReferences, attribute: 'RI_NAME'
+      }),
+      binding: immutableCopy({
+        type: 'BASIC_DRT_RI_VALIDATION_DISCLOSURE',
+        criterionId: metadata.criterionId,
+        evidenceReferences
+      })
+    });
+  }
   if (metadata.criterionId === 'T4_IN19_FINAL_VERIFICATION') {
     criterionExecutionRequire_(metadata.requirementId === 'REQ_IN19_FINAL_VERIFICATION' &&
       validate.length === 1 && validate[0] === 'RESPONSIBILITY_ACTIVITY_COMPATIBLE' &&
@@ -480,6 +509,52 @@ function criterionExecutionBindResponsibilityEvidence_(contract, plan, view, arg
   });
 }
 
+function criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, unit, argument) {
+  criterionExecutionRequire_(argument && argument.type === 'SYMBOL' &&
+    argument.value === 'REQUIRED_TECHNICAL_RESPONSIBILITY',
+  'DRT attribute disclosure requires REQUIRED_TECHNICAL_RESPONSIBILITY');
+  criterionExecutionRequire_(unit.requirement &&
+    unit.requirement.id === 'REQ_T1_DRT_BASIC_DATA',
+  'DRT attribute disclosure is restricted to REQ_T1_DRT_BASIC_DATA');
+  const attributes = {
+    T1_DRT_RI_LEGAL_ENTITY: 'RI_NAME',
+    T1_DRT_RT_NAME: 'RT_NAME',
+    T1_DRT_ADDRESS: 'PROPERTY_ADDRESS_TEXT',
+    T1_DRT_AREA: 'PROPERTY_AREA_TEXT'
+  };
+  const attribute = attributes[unit.criterion.id];
+  criterionExecutionRequire_(attribute, 'unsupported DRT disclosure Criterion');
+  const evidenceReferences = [];
+  Object.keys(contract.entityCatalog).forEach(entityId => {
+    const entity = contract.entityCatalog[entityId];
+    if (!entity || entity.TYPE !== 'DOCUMENT' || entity.EXTENDS !== 'DRT' ||
+        entity.ABSTRACT === true) return;
+    const references = view.referencesByEntity(entityId);
+    criterionExecutionRequire_(Array.isArray(references),
+      'execution view returned an invalid DRT reference collection');
+    references.forEach(reference => {
+      criterionExecutionRequire_(reference instanceof TypedReference && view.contains(reference),
+        'DRT disclosure reference does not belong to the ImmutableExecutionView');
+      const source = view.sourceDocument(reference);
+      criterionExecutionRequire_(source instanceof TypedReference &&
+        source.kind === 'DOCUMENT' && source.identifier === reference.identifier,
+      'DRT disclosure requires the exact DRT source document');
+      evidenceReferences.push(reference);
+    });
+  });
+  return Object.freeze({
+    expression: new PredicateCall('RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE', {
+      evidenceReferences, attribute
+    }),
+    binding: immutableCopy({
+      type: 'DRT_ATTRIBUTE_DISCLOSURE',
+      responsibility: argument.value,
+      attribute,
+      evidenceReferences
+    })
+  });
+}
+
 function criterionExecutionBindSmsciCoverage_(contract, plan, view, unit) {
   criterionExecutionRequire_(unit.criterion.id === 'T1_DRT_SMSCI_COVERAGE' &&
     unit.iterationSource === 'WORKLIST.SMSCI' && Array.isArray(unit.plannedBindings) &&
@@ -565,6 +640,16 @@ function criterionExecutionMaterializeAssert_(contract, plan, view, unit, assert
         'RESPONSIBILITY_HAS_ACCEPTED_DRT_EVIDENCE argument');
       return criterionExecutionBindResponsibilityEvidence_(contract, plan, view, argument,
         unit.criterion.id);
+    }
+    if (assertIr.name === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY' ||
+        assertIr.name === 'RESPONSIBILITY_RT_MATCHES_PRODUCT' ||
+        assertIr.name === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE') {
+      criterionExecutionRequire_(Array.isArray(assertIr.arguments) &&
+        (assertIr.name === 'RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE'
+          ? assertIr.arguments.length === 2 : assertIr.arguments.length === 1),
+      'DRT attribute disclosure arguments are malformed');
+      return criterionExecutionBindDrtAttributeDisclosure_(contract, plan, view, unit,
+        assertIr.arguments[0]);
     }
     if (assertIr.name === 'RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI') {
       return criterionExecutionBindSmsciCoverage_(contract, plan, view, unit);
@@ -762,6 +847,7 @@ function executePlannedCriterion(contract, plan, unitKey, view, correlationProje
     responsibilityDrtActivityFinalVerificationPredicateContract(),
     responsibilityIsSatisfiedForSmsciPredicateContract(),
     responsibilityHasTechnicalProductPredicateContract(),
+    responsibilityDrtAttributeDisclosurePredicateContract(),
     ...(materialized.validationExpression === null ? [] : [technicalProductAttributePredicateContract()])
   ]);
   let result;

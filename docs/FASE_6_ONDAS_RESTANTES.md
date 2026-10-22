@@ -5346,3 +5346,48 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `SOURCE_DEFINED_NEEDS_FORMALIZATION`; cobertura não muda.
 - Fonte visualmente conferida: Anexo A, Tabela 1, p. 4 de 38 da IRV Habite-se
   2024. Nenhum requisito foi alterado nesta verificação.
+
+### Lote de divulgação factual dos campos básicos da DRT — 2026-10-22
+
+- Escopo: `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e
+  `T1_DRT_AREA`. A IRV pede identificar/conferir esses literais na DRT, mas não
+  identifica comparando documental nem define qual área comparar. O lote expõe
+  os valores literais de cada ART/RRT/TRT ao vistoriador com referência,
+  documento-fonte e provenance; não compara, associa nomes ou cria Documentary
+  Association. `VALIDATE` e o resultado dos Criteria permanecem
+  `MANUAL_REVIEW`; nenhum PASS/FAIL/Nonconformity é emitido.
+- Fronteira: somente referências ART/RRT/TRT da ImmutableExecutionView
+  pertencente ao plano congelado e à apresentação autenticada são consumidas.
+  Documento-fonte deve ser a própria referência DRT. Provenance só é marcada
+  suficiente por campos reconhecidos pelo contrato comum já usado em
+  `CorrelationCore`; `{fake:true}` permanece insuficiente. DRTs múltiplas são
+  exibidas separadamente; valores diferentes não são chamados de conflito,
+  pois não há associação tipada entre elas e uma RT requerida.
+- Cobertura: `CRITERIA_COVERED=10/29` antes/depois (ganho integral `0`);
+  `CRITERIA_PARTIAL=9→13`; `CRITERIA_PREPARATORY=2→2`;
+  `CRITERIA_PENDING=19→19`. Quatro Criteria passaram a ter divulgação factual
+  parcial. Não se seleciona comparando de RI/RT/endereço/área. `IN10` não foi
+  alterado.
+- Testes direcionados: quatro Criteria, ART/RRT/TRT, provenance reconhecida e
+  `{fake:true}`, campo ausente/vazio, múltiplas DRTs com literais diferentes,
+  troca de contexto de apresentação e troca de ImmutableExecutionView;
+  resultado sempre `MANUAL_REVIEW`, sem NC. `node --check` nos três arquivos
+  modificados, `node tests/apps-script-pilot-criterion.test.js` e
+  `git diff --check`: `PASS`.
+- Revisão independente read-only Luna: primeira rodada `FAIL` médio por
+  provenance permissiva; correção aplicada e re-review dirigida `PASS`, finding
+  fechado, sem efeito colateral material. Identidade efetiva `luna_economy`;
+  não é revisão Sol. Revisão final do commit exato e gates completos ainda
+  pendentes.
+- Esforço aproximado: 60 minutos de inspeção, implementação, fixtures e
+  revisões; uma revisão geral do lote e uma re-review dirigida. Benefício
+  verificável: o vistoriador recebe os quatro literais e suas fontes no trace
+  para conferência manual. Nenhum Criterion integral foi ganho.
+- Próximos gates: suítes Python e Apps Script completas, sintaxe de todos os
+  módulos JavaScript e `Code.gs`, runtime byte-identical, SHA-256, release build
+  em worktree limpa, manifests/phase guards e diff check; depois re-review do
+  commit candidato exato. Estados preservados:
+  `CALIBRATION_GATE=BLOCKED`, `VALIDATED_TO_ANALYZED=PENDING`,
+  `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`,
+  `SOL_REVIEW=PENDING_CAPACITY`, `ARCHITECTURAL_REVIEW=PENDING` e
+  `PROMOTION=NOT_AUTHORIZED`.

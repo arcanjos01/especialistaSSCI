@@ -258,10 +258,10 @@ fonte canônica.
 | T1_DRT_SIGNED | REQ_T1_DRT_SIGNED | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, SIGNED)` | — | NC_T1_005 | RT requerida, DRT, SIGNED | SOURCE_DEFINED_NEEDS_FORMALIZATION: signatário/mecanismo podem ser fatos textuais; não há resultado tipado de autenticidade/verificabilidade documental | 03_table1.txt:53-68; 01_entities.txt:62-83,132-138; 00_engine.txt:293-317 |
 | T1_DRT_PROFESSIONAL_REGULARITY | REQ_T1_DRT_PROFESSIONAL_REGULARITY | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_PROFESSIONAL_REGULARITY(REQUIRED_TECHNICAL_RESPONSIBILITY)` | same predicate in Requirement VALIDATE | NC_T1_009 | RT requerida, DRT.COUNCIL_STATE/PROFESSIONAL_REGULARITY | WITHDRAWN: não selecionar nem reintroduzir sem decisão normativa própria | histórico da retirada autorizada; snapshot baseline 6f82475, `knowledge-base/03_table1.txt:72-88` |
 | T1_CONFORMITY_REPORT | REQ_T1_CONFORMITY_REPORT | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_HAS_TECHNICAL_PRODUCT(RT_002_EXECUCAO_DE_OBRA, CONFORMITY_REPORT)` | — | NC_T1_003 | RT-002, produto técnico/relatório | PARTIAL_EXECUTION_SUPPORT: TRUE somente com associação documental explícita única entre DRT vinculada e REPORT exato, com sourceDocument e literal rastreados; vínculo ausente/ambíguo fica MANUAL_REVIEW. Correlação assistida continua bloqueada sem calibração empírica válida | 03_table1.txt:76-90; 02_requirements.txt:74-84; Anexo A RT-002; Documento 11 §5,8; RDE 1.8 §DOCUMENTARY_ASSOCIATIONS; 00_engine.txt:78-94 |
-| T1_DRT_RI_LEGAL_ENTITY | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RI | PROCESS/RI, RT requerida, DRT.RI_NAME | SOURCE_DEFINED_NEEDS_FORMALIZATION: RI_NAME existe como fato; a RDE não expõe identificador legal da parte na DRT nem comparandos tipados completos; diferença de nomes não pode produzir FAIL | 03_table1.txt:97-111; 02_requirements.txt:97-110; 01_entities.txt:62-91,140-152; 00_engine.txt:255-266 |
-| T1_DRT_RT_NAME | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_RT_MATCHES_PRODUCT(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RT | DRT.RT_NAME, produto técnico, RT requerida | SOURCE_DEFINED_NEEDS_FORMALIZATION: RT_NAME existe como fato; falta vínculo tipado ao produto que satisfaz a mesma RT e comparando documental suficiente | 03_table1.txt:115-129; 02_requirements.txt:97-110; 01_entities.txt:62-91; 00_engine.txt:268-291 |
-| T1_DRT_ADDRESS | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, ADDRESS)` | — | NC_T1_006_ADDRESS | PROCESS, DRT.ADDRESS, RT requerida | PREPARATORY_FACT_CONTRACT_ONLY: Anexo B da IN 1 - Parte 1 expõe componentes literais de endereço no requerimento e `REQUERIMENTO_ESCI` os preserva separadamente. Falta decompor/comparar ADDRESS textual da DRT com o endereço do imóvel sem normalização ou perda de provenance; não concluir por diferença textual até haver semântica autorizada. Critério não coberto | 03_table1.txt:133-148; 02_requirements.txt:97-110; 01_entities.txt:62-91,708-765; IN 1 - Parte 1, Anexo B, p.46 |
-| T1_DRT_AREA | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, AREA)` | — | NC_T1_006_AREA | PROCESS, DRT.AREA, RT requerida | PREPARATORY_FACT_CONTRACT_ONLY: `REQUERIMENTO_ESCI` preserva separadamente área do terreno e área total construída informadas no Anexo B. A IRV diz genericamente “Área do Imóvel” sem mapear para uma dessas dimensões; falta decisão/fundamento para selecionar e comparar. Critério não coberto | 03_table1.txt:152-167; 02_requirements.txt:97-110; 01_entities.txt:62-91,708-765; IN 1 - Parte 1, Anexo B, p.46 |
+| T1_DRT_RI_LEGAL_ENTITY | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_RI_LEGAL_ENTITY(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RI | PROCESS/RI, RT requerida, DRT.RI_NAME | PARTIAL_EXECUTION_SUPPORT: divulga o literal RI_NAME em cada ART/RRT/TRT com documento-fonte e provenance suficiente no trace; Requirement VALIDATE e Criterion permanecem MANUAL_REVIEW. Não existe comparando tipado suficiente para confirmar identidade ou produzir FAIL/NC | 03_table1.txt:97-111; 02_requirements.txt:97-110; 01_entities.txt:62-91,140-152; 00_engine.txt:255-266 |
+| T1_DRT_RT_NAME | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_RT_MATCHES_PRODUCT(REQUIRED_TECHNICAL_RESPONSIBILITY)` | — | NC_T1_006_RT | DRT.RT_NAME, produto técnico, RT requerida | PARTIAL_EXECUTION_SUPPORT: divulga o literal RT_NAME em cada ART/RRT/TRT com documento-fonte e provenance suficiente no trace; Requirement VALIDATE e Criterion permanecem MANUAL_REVIEW. Falta vínculo tipado entre o produto e a mesma RT; nomes não são associados automaticamente | 03_table1.txt:115-129; 02_requirements.txt:97-110; 01_entities.txt:62-91; 00_engine.txt:268-291 |
+| T1_DRT_ADDRESS | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, ADDRESS)` | — | NC_T1_006_ADDRESS | PROCESS, DRT.ADDRESS, RT requerida | PARTIAL_EXECUTION_SUPPORT: divulga o literal PROPERTY_ADDRESS_TEXT de cada ART/RRT/TRT com documento-fonte e provenance suficiente no trace; mantém MANUAL_REVIEW. Comparação com componentes do requerimento, sem normalização ou perda de provenance, ainda não está formalizada; diferença não produz FAIL/NC | 03_table1.txt:133-148; 02_requirements.txt:97-110; 01_entities.txt:62-91,708-765; IN 1 - Parte 1, Anexo B, p.46 |
+| T1_DRT_AREA | REQ_T1_DRT_BASIC_DATA | 1 | ctx `EACH_REQUIRED_TECHNICAL_RESPONSIBILITY` | — | `RESPONSIBILITY_EVIDENCE_MATCHES_PROCESS_ATTRIBUTE(REQUIRED_TECHNICAL_RESPONSIBILITY, AREA)` | — | NC_T1_006_AREA | PROCESS, DRT.AREA, RT requerida | PARTIAL_EXECUTION_SUPPORT: divulga o literal PROPERTY_AREA_TEXT de cada ART/RRT/TRT com documento-fonte e provenance suficiente no trace; mantém MANUAL_REVIEW. A IRV não seleciona qual dimensão de área do Anexo B comparar; nenhuma associação ou conclusão é inferida | 03_table1.txt:152-167; 02_requirements.txt:97-110; 01_entities.txt:62-91,708-765; IN 1 - Parte 1, Anexo B, p.46 |
 | T1_CONFORMITY_REPORT_SIGNED | REQ_T1_CONFORMITY_REPORT_SIGNED | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `ALL(EXISTS(CONFORMITY_REPORT), TECHNICAL_PRODUCT_ATTRIBUTE(CONFORMITY_REPORT, SIGNED))` | — | — | produto técnico/relatório, SIGNED | PARTIAL_EXECUTION_SUPPORT: produto exato presente gera `EXISTS=TRUE` rastreável; o predicado SIGNED continua no ASSERT e resulta MANUAL_REVIEW sem recibo autenticado admissível. Ausência/inventário insuficiente permanece MANUAL_REVIEW, sem FAIL/NC. Não prova a associação RT-produto, verificada separadamente por T1_CONFORMITY_REPORT | 03_table1.txt:171-187; 02_requirements.txt:86-96; Anexo A RT-002; 01_entities.txt:1475-1492; 00_engine.txt:293-317 |
 | T1_DRT_ACTIVITY_EXECUTION | REQ_T1_DRT_ACTIVITY_EXECUTION | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_002_EXECUCAO_DE_OBRA` | — | `RESPONSIBILITY_ACTIVITY_COMPATIBLE(RT_002_EXECUCAO_DE_OBRA)` | `RESPONSIBILITY_ACTIVITY_COMPATIBLE(RT_002_EXECUCAO_DE_OBRA)` | NC_T1_008 | RT-002, DRT, atividade | COVERED_UNDER_USER_DECISION_C: ao menos uma declaração literal `EXECUÇÃO` autorizada no catálogo em cada DRT vinculada, com provenance de item/origem, produz TRUE; evidência de atividade ausente, cobertura de extração não comprovada ou binding insuficiente produz MANUAL_REVIEW. Isso registra somente a declaração documental; não avalia competência profissional ampla nem compatibilidade atividade↔SMSCI | decisão do usuário 2026-10-19; 03_table1.txt:192-206; 02_requirements.txt:50-59; Anexo A RT-002; RDE 0.6/0.7 `drt_activity_items`; Documento 11 §6; apps-script/EngineCore.js:426-540; tests/apps-script-responsibility-evidence.test.js:420-700 |
 | T1_DRT_SMSCI_COVERAGE | REQ_T1_DRT_SMSCI | 1 | ctx `REQUIRED_TECHNICAL_RESPONSIBILITY RT_003_EXECUCAO_DE_SISTEMA` | `WORKLIST.SMSCI` | `RESPONSIBILITY_IS_SATISFIED_FOR_SMSCI(RT_003_EXECUCAO_DE_SISTEMA, WORKLIST.SMSCI)` | — | NC_T1_002 | RT-003, DRT, SMSCI, WORKLIST.SMSCI | COVERED_UNDER_USER_DECISION_C: declarações conjuntas explícitas em ImmutableExecutionView para cada SMSCI vinculada produzem TRUE; ausência, conflito, cobertura de extração ou autenticação insuficiente resulta em MANUAL_REVIEW sem FAIL/NC. A decisão C estabelece que não existe fonte confiável disponível para declarar inventário e extração completos | decisão do usuário 2026-10-19; 03_table1.txt:210-227; 02_requirements.txt:62-71; Anexo A RT-003; RDE 1.8 § DRT SCOPE DECLARATION ITEMS; 08_execution_pipeline.txt:503-525,574-577 |
@@ -975,8 +975,9 @@ byte-idênticas de `CompiledRuntimeContract.js`, SHA-256
 Contagens anteriores nesta subseção e nas ondas anteriores são registros
 históricos do estado de cada candidate. Após a decisão do usuário de manter em
 revisão humana toda ausência sem prova confiável de inventário e cobertura da
-EXTRACTION, o quantitativo vigente em KB 5.43.0 é: 34 ativos, 29 produtivos,
-10 cobertos, 9 parciais, 2 preparatórios e 19 pendentes de cobertura integral.
+EXTRACTION, e ao lote de divulgação factual de 2026-10-22, o quantitativo
+vigente em KB 5.43.0 é: 34 ativos, 29 produtivos, 10 cobertos, 13 parciais,
+2 preparatórios e 19 pendentes de cobertura integral.
 
 As linhas 252–290 da matriz refletem os contratos e estados reconciliados até
 a KB 5.43.0, incluindo duas entradas `WITHDRAWN` apenas para rastreabilidade.
@@ -989,9 +990,9 @@ Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 | Categoria atual | Quantidade | Criteria |
 |---|---:|---|
 | `EXECUTABLE_EXISTING` | 10 | `T4_IN19_APPLICABILITY_REVIEW`, `T4_IN19_LEGACY_DOCUMENTATION`, `T1_DRT_REQUIRED`, `T1_DRT_ACTIVITY_EXECUTION`, `T1_DRT_SMSCI_COVERAGE`, `T4_IN08_MANUAL`, `T4_IN09_MANUAL`, `T4_IN19_EXECUTION`, `T4_IN19_GROUNDING`, `T4_IN19_FINAL_VERIFICATION`. Para os Criteria cobertos sob a decisão C, presença/declaracão documental explícita pode produzir TRUE; ausência ou cobertura de extração sem comprovação permanece MANUAL_REVIEW, sem FALSE/NC. Testes focados verificam resultado, trace e provenance; readiness comprova somente seleção e materialização da unidade. |
-| `PARTIAL_EXECUTION_SUPPORT` | 9 | `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. `T1_CONFORMITY_REPORT_SIGNED`: presença do relatório é registrada, mas SIGNED permanece no ASSERT e em MANUAL_REVIEW sem recibo autenticado admissível. `T4_IN09_CHECKLIST` e `T4_IN18_CMAR`: existência é reportada no trace, mas assinatura não autenticada mantém o resultado final em MANUAL_REVIEW. `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING` e `T4_IN15_COMMISSIONING`: presença documental explícita é reportada no trace, mas cada Criterion permanece MANUAL_REVIEW para os demais controles declarados; ausência não gera FAIL/NC. |
+| `PARTIAL_EXECUTION_SUPPORT` | 13 | `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA`: literais da DRT com fonte/provenance são exibidos para revisão humana; comparações não são automatizadas e resultados permanecem MANUAL_REVIEW. `T1_CONFORMITY_REPORT`: uma associação documental explícita pode satisfazer o predicado da relação; relação ausente/ambígua fica MANUAL_REVIEW; admissão de correlação inferida permanece bloqueada sem calibração empírica válida. `T1_CONFORMITY_REPORT_SIGNED`: presença do relatório é registrada, mas SIGNED permanece no ASSERT e em MANUAL_REVIEW sem recibo autenticado admissível. `T4_IN09_CHECKLIST` e `T4_IN18_CMAR`: existência é reportada no trace, mas assinatura não autenticada mantém o resultado final em MANUAL_REVIEW. `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING` e `T4_IN15_COMMISSIONING`: presença documental explícita é reportada no trace, mas cada Criterion permanece MANUAL_REVIEW para os demais controles declarados; ausência não gera FAIL/NC. |
 | `PREPARATORY_MANUAL_REVIEW_ONLY` | 2 | `T4_IN09_DRT` e `T4_IN10_COMMISSIONING`: encaminhamento integral à revisão humana sem avaliação automática da presença/cobertura; IN10 conserva a decisão e os limites registrados. |
-| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 8 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED` |
+| `SOURCE_DEFINED_NEEDS_FORMALIZATION` | 4 | `T1_DRT_REGISTERED`, `T1_DRT_SIGNED`, `T4_DRT_REGISTERED`, `T4_DRT_SIGNED` |
 | `MISSING_EVIDENCE_CONTRACT` | 0 | nenhum Criterion fica sem encaminhamento preparatório; as lacunas factuais/contratuais dos Criteria pendentes estão descritas nas respectivas linhas |
 | `NOT_PRODUCTIVELY_REACHABLE` / `LEGACY_REFERENCE_NOT_PRODUCTIVE` | 5 | os quatro Criteria `T4_IN34_*` de M5 e `T4_IN19_REGIME_REVIEW` |
 | `HUMAN_NORMATIVE_DECISION_REQUIRED` | 0 | A decisão sobre o fundamento de independência em `T4_IN10_COMMISSIONING` foi respondida em 2026-10-17 e está registrada em `docs/FASE_6_ONDAS_RESTANTES.md` (“Decisão de fundamento IN10/IRV — resolvida pelo usuário”). A pendência factual e de formalização executável permanece; não há decisão normativa humana aberta para este ponto. |
@@ -999,23 +1000,25 @@ Criteria não selecionáveis, portanto 29 são produtivamente alcançáveis.
 Contagem operacional reconciliada: `CRITERIA_ACTIVE=34` no runtime, dos quais
 `CRITERIA_PRODUCTIVE=29`, `CRITERIA_NOT_SELECTABLE=5`,
 `CRITERIA_WITHDRAWN=2` (os dois Criteria de regularidade, ausentes do contrato
-ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=9` (`T1_CONFORMITY_REPORT`,
+ativo), `CRITERIA_COVERED=10`, `CRITERIA_PARTIAL=13` (`T1_DRT_RI_LEGAL_ENTITY`,
+`T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_CONFORMITY_REPORT`,
 `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`,
 `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`,
 `T4_IN15_COMMISSIONING`), `CRITERIA_PREPARATORY=2` (`T4_IN09_DRT` e
 `T4_IN10_COMMISSIONING`) e `CRITERIA_PENDING=19`, contando o
-parcial e o preparatório como pendentes de cobertura integral. Há 8 Criteria sem suporte de execução, dois apenas preparatórios e nove parciais. A contagem de retirados
+parcial e o preparatório como pendentes de cobertura integral. Há 4 Criteria sem suporte de execução, dois apenas preparatórios e treze parciais. A contagem de retirados
 é histórica e não compõe os 34 Criteria ativos. A tabela acima exclui os dois
 retirados. A correção fail-closed anterior reduziu os critérios integrais de 6
 para 2; a decisão C agora reconhece os Criteria cujas rotas completas
 consistem em TRUE para evidência explícita e MANUAL_REVIEW quando completude não
-pode ser provada. Na matriz vigente, são 10 Criteria integrais, 9 parciais e 2
+pode ser provada. Na matriz vigente, são 10 Criteria integrais, 13 parciais e 2
 preparatórios. A
 formalização RDE 0.4.0 não aumentou a cobertura no checkpoint em que foi
-aprovada; esse número é histórico e não representa o total atual. Os 11 casos
-`SOURCE_DEFINED_NEEDS_FORMALIZATION` continuam dependendo de contrato/runtime
-genérico e seleção autenticada de evidências. Os 6 casos `MISSING_*` continuam
-sem fatos/contrato suficientes; não podem ser excluídos da cobertura exigida.
+aprovada; esse número é histórico e não representa o total atual. A contagem
+anterior de 11 casos `SOURCE_DEFINED_NEEDS_FORMALIZATION` também é histórica;
+na matriz vigente restam quatro Criteria de registro/assinatura que dependem
+de vocabulário e proveniência por conselho. Os demais bloqueios aparecem como
+suporte parcial ou preparação humana, sem serem contados como cobertos.
 
 Reconciliação de decisões do usuário em 2026-10-17: a linha histórica acima que
 apontava decisão normativa pendente para independência em IN10/IRV foi
@@ -1116,23 +1119,23 @@ Apps Script 9/9, sintaxe JS/Code.gs, regeneração runtime byte-idêntica (SHA-2
 manifest 10/10, KB 5.28.0 e `SOURCE_COMMIT` exato. A aprovação Sol final da
 Fase 6 permanece pendente.
 
-## Reconciliação do candidato IN09 — 2026-10-20
+## Snapshot de cobertura vigente após lote básico DRT — 2026-10-22
 
 | Categoria | Quantidade | Definição |
 |---|---:|---|
 | Criteria ativos | 34 | runtime/base compilada |
 | Produtivos | 29 | selecionáveis para execução |
 | Cobertos integralmente | 10 | executor, facts/binding, resultado, trace, readiness e testes completos |
-| Parciais | 9 | `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
+| Parciais | 13 | `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS`, `T1_DRT_AREA`, `T1_CONFORMITY_REPORT`, `T1_CONFORMITY_REPORT_SIGNED`, `T4_IN09_CHECKLIST`, `T4_IN18_CMAR`, `T4_IN07_COMMISSIONING`, `T4_IN08_ESTANQUEIDADE`, `T4_IN09_TEST_REPORT`, `T4_IN12_COMMISSIONING`, `T4_IN15_COMMISSIONING` |
 | Preparatórios | 2 | `T4_IN09_DRT` e `T4_IN10_COMMISSIONING` |
-| Pendentes de cobertura integral | 19 | 8 sem suporte de execução + 2 preparatórios + 9 parciais |
+| Pendentes de cobertura integral | 19 | 4 sem suporte de execução + 2 preparatórios + 13 parciais |
 | Não selecionáveis | 5 | quatro M5 e um regime legado UNRESOLVED |
 | Retirados | 2 | regularidade profissional T1/T4 |
 
-Os lotes de cinco relatórios e do Criterion `T1_CONFORMITY_REPORT_SIGNED`
-melhoram o trace de presença documental, mas mantêm revisão humana para os
-controles restantes; seis Criteria são parciais. Os totais ativos, integrais e
-pendentes não mudam.
+Os lotes de cinco relatórios, do Criterion `T1_CONFORMITY_REPORT_SIGNED` e da
+divulgação factual dos quatro campos básicos da DRT melhoram o trace, mas
+mantêm revisão humana para os controles restantes. Os totais ativos, integrais
+e pendentes de cobertura integral não mudam.
 Para a
 divisão gerencial aprovada, os 10 Criteria integralmente cobertos e os parciais permanecem estado de entrada;
 interfaces ou testes preparatórios não mudam `COVERED`. Fase 6A encerra-se

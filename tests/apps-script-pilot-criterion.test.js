@@ -201,11 +201,16 @@ function makeRde({ includeGas = true, includeManual = false, includeIel = false,
       }
     });
   });
-  executionDrts.forEach((attributes, index) => records.push({
-    record_id: 'EXECUTION_DRT_' + index, entity_id: 'ART', parent_record_id: null,
-    source_document: 'EXECUTION_DRT_' + index, attributes,
-    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'EXECUTION_DRT_' + index }
-  }));
+  executionDrts.forEach((entry, index) => {
+    const attributes = entry.attributes || entry;
+    records.push({
+      record_id: 'EXECUTION_DRT_' + index, entity_id: entry.entityId || 'ART',
+      parent_record_id: null, source_document: 'EXECUTION_DRT_' + index, attributes,
+      provenance: Object.prototype.hasOwnProperty.call(entry, 'provenance')
+        ? entry.provenance
+        : { sourceKind: 'TEST_ONLY', sourceReference: 'EXECUTION_DRT_' + index }
+    });
+  });
   if (includeLegacyExecutionDrt) {
     records.push({
       record_id: 'DOC_DRT', entity_id: 'PPCI', parent_record_id: null,
@@ -832,6 +837,126 @@ assert.equal(api.isCanonicalResponsibilityEvidenceBinding(
   responsibilityBinding, contract, multipleExecutionDrts.plan,
   multipleExecutionDrts.view
 ), false);
+
+// The four basic-data Criteria disclose exact DRT literals for human review.
+// They do not establish a comparison, responsibility association, PASS or NC.
+const basicDrtAttributes = {
+  RI_NAME: 'TEST_ONLY responsible party',
+  RT_NAME: 'TEST_ONLY professional',
+  PROPERTY_ADDRESS_TEXT: 'TEST_ONLY address literal',
+  PROPERTY_AREA_TEXT: 'TEST_ONLY area literal'
+};
+const basicDataExecution = prepare({
+  includeGas: false,
+  executionDrts: ['ART', 'RRT', 'TRT'].map((entityId, index) => ({
+    entityId,
+    attributes: Object.fromEntries(Object.entries(basicDrtAttributes).map(([key, value]) =>
+      [key, value + ' ' + entityId])),
+    provenance: { sourceKind: 'TEST_ONLY', sourceReference: 'BASIC_DRT_' + index }
+  }))
+});
+const basicDataCriteria = [
+  ['T1_DRT_RI_LEGAL_ENTITY', 'RI_NAME'],
+  ['T1_DRT_RT_NAME', 'RT_NAME'],
+  ['T1_DRT_ADDRESS', 'PROPERTY_ADDRESS_TEXT'],
+  ['T1_DRT_AREA', 'PROPERTY_AREA_TEXT']
+];
+for (const [criterionId, attribute] of basicDataCriteria) {
+  const unitKey = 'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, ' + criterionId + ')';
+  const result = api.executePlannedCriterion(
+    contract, basicDataExecution.plan, unitKey, basicDataExecution.view
+  );
+  assert.equal(result.engineResult, api.EngineResult.MANUAL_REVIEW, criterionId);
+  assert.equal(result.pipelineResult, 'MANUAL_REVIEW', criterionId);
+  assert.equal(result.nonconformityOnFalse, undefined, criterionId);
+  const disclosureTrace = result.trace.find(item => item.predicateId ===
+    'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' && item.arguments.attribute === attribute);
+  assert.ok(disclosureTrace, criterionId);
+  const evidence = disclosureTrace.documentaryEvidence;
+  assert.equal(evidence.length, 3, criterionId);
+  assert.deepEqual(JSON.parse(JSON.stringify(evidence.map(item => item.documentEntityId))),
+    ['ART', 'RRT', 'TRT'], criterionId);
+  for (const item of evidence) {
+    assert.equal(item.literal, basicDrtAttributes[attribute] + ' ' + item.documentEntityId,
+      criterionId);
+    assert.equal(item.attribute, attribute, criterionId);
+    assert.equal(item.sourceDocument.identifier, item.document.identifier, criterionId);
+    assert.equal(item.provenanceSufficient, true, criterionId);
+    assert.equal(item.disclosureSufficient, true, criterionId);
+    assert.equal(item.associationStatus,
+      'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY', criterionId);
+  }
+}
+assert.throws(() => api.executePlannedCriterion(
+  contract, basicDataExecution.plan,
+  'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_AREA)', basicDataExecution.view,
+  null, currentContext('2027-01-01')
+), error => error && error.code === 'EXECUTION_INTEGRITY_ERROR');
+const replacementBasicDataView = prepare({ includeGas: false }).view;
+assert.throws(() => api.executePlannedCriterion(
+  contract, basicDataExecution.plan,
+  'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_AREA)', replacementBasicDataView
+), error => error && error.code === 'CRITERION_EXECUTION_INTEGRITY_ERROR');
+
+const absentBasicData = prepare({
+  includeGas: false, executionDrts: [{ RT_NAME: '' }]
+});
+const absentAddressResult = api.executePlannedCriterion(
+  contract, absentBasicData.plan,
+  'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_ADDRESS)', absentBasicData.view
+);
+assert.equal(absentAddressResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(absentAddressResult.nonconformityOnFalse, undefined);
+const absentAddressDisclosure = absentAddressResult.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' &&
+  item.arguments.attribute === 'PROPERTY_ADDRESS_TEXT');
+assert.ok(absentAddressDisclosure);
+assert.equal(absentAddressDisclosure.documentaryEvidence[0].literal, null);
+assert.equal(absentAddressDisclosure.documentaryEvidence[0].disclosureSufficient, false);
+
+const invalidBasicProvenance = prepare({
+  includeGas: false,
+  executionDrts: [{
+    attributes: { RI_NAME: 'TEST_ONLY party' },
+    provenance: { fake: true }
+  }]
+});
+const invalidProvenanceResult = api.executePlannedCriterion(
+  contract, invalidBasicProvenance.plan,
+  'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_RI_LEGAL_ENTITY)',
+  invalidBasicProvenance.view
+);
+const invalidProvenanceDisclosure = invalidProvenanceResult.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' &&
+  item.arguments.attribute === 'RI_NAME');
+assert.ok(invalidProvenanceDisclosure);
+assert.equal(invalidProvenanceDisclosure.documentaryEvidence[0].provenanceSufficient, false);
+assert.equal(invalidProvenanceDisclosure.documentaryEvidence[0].disclosureSufficient, false);
+assert.equal(invalidProvenanceResult.engineResult, api.EngineResult.MANUAL_REVIEW);
+assert.equal(invalidProvenanceResult.nonconformityOnFalse, undefined);
+
+const unassociatedMultipleDrts = prepare({
+  includeGas: false,
+  executionDrts: [
+    { PROPERTY_AREA_TEXT: 'TEST_ONLY area one' },
+    { PROPERTY_AREA_TEXT: 'TEST_ONLY area two' }
+  ]
+});
+const multipleBasicAreas = api.executePlannedCriterion(
+  contract, unassociatedMultipleDrts.plan,
+  'UNIT_KEY (REQ_T1_DRT_BASIC_DATA, T1_DRT_AREA)', unassociatedMultipleDrts.view
+);
+assert.equal(multipleBasicAreas.engineResult, api.EngineResult.MANUAL_REVIEW);
+const multipleAreaDisclosure = multipleBasicAreas.trace.find(item =>
+  item.predicateId === 'RESPONSIBILITY_DRT_ATTRIBUTE_DISCLOSURE' &&
+  item.arguments.attribute === 'PROPERTY_AREA_TEXT');
+assert.ok(multipleAreaDisclosure);
+assert.deepEqual(JSON.parse(JSON.stringify(
+  multipleAreaDisclosure.documentaryEvidence.map(item => item.literal)
+)), ['TEST_ONLY area one', 'TEST_ONLY area two']);
+assert.ok(multipleAreaDisclosure.documentaryEvidence.every(item =>
+  item.associationStatus === 'UNASSOCIATED_WITH_REQUIRED_RESPONSIBILITY'));
+assert.equal(multipleAreaDisclosure.memoryReferences.length, 2);
 
 const negative = prepare({ includeGas: true, includeManual: false });
 const negativeResult = api.executePlannedCriterion(contract, negative.plan, PILOT_UNIT, negative.view);
