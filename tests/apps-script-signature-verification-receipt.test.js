@@ -404,6 +404,14 @@ assert.equal(vm.runInContext(
 assert.equal(createBindingWith({ receipt: freshReceipt, plan: secondPlan }), null,
   'receipt ids are unique within this runtime even across genuine plans');
 
+function signedAdmissionProfile(payload) {
+  const payloadText = canonicalJson(payload);
+  return JSON.stringify({ payload, authentication: {
+    keyId: admissionAuthorityKeyId, algorithm: 'RSA_SHA256_PKCS1_V1_5',
+    digest: crypto.createHash('sha256').update(payloadText, 'utf8').digest('hex'),
+    signature: crypto.sign('RSA-SHA256', Buffer.from(payloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64')
+  }});
+}
 function admissionProfileJson() {
   const contractText = canonicalJson(context.COMPILED_RUNTIME_CONTRACT);
   const payload = {
@@ -415,12 +423,7 @@ function admissionProfileJson() {
     requiredSignerIssuerRole: 'SYNTHETIC_SIGNER_OR_ISSUER', validationLevel: 'SYNTHETIC_FIXTURE_ONLY',
     unknownTreatment: 'MANUAL_REVIEW'
   };
-  const payloadText = canonicalJson(payload);
-  return JSON.stringify({ payload, authentication: {
-    keyId: admissionAuthorityKeyId, algorithm: 'RSA_SHA256_PKCS1_V1_5',
-    digest: crypto.createHash('sha256').update(payloadText, 'utf8').digest('hex'),
-    signature: crypto.sign('RSA-SHA256', Buffer.from(payloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64')
-  }});
+  return signedAdmissionProfile(payload);
 }
 const validAdmissionProfile = admissionProfileJson();
 context.validAdmissionProfile = validAdmissionProfile;
@@ -435,20 +438,25 @@ assert.equal(createBindingWith({
 'an authenticated preparatory profile never authorizes automatic Engine admission');
 const emptyIssuerSet = JSON.parse(validAdmissionProfile);
 emptyIssuerSet.payload.trustedIssuerSet = [];
-const emptyIssuerPayloadText = canonicalJson(emptyIssuerSet.payload);
-emptyIssuerSet.authentication.digest = crypto.createHash('sha256').update(emptyIssuerPayloadText, 'utf8').digest('hex');
-emptyIssuerSet.authentication.signature = crypto.sign('RSA-SHA256', Buffer.from(emptyIssuerPayloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64');
-context.emptyIssuerSetProfile = JSON.stringify(emptyIssuerSet);
+context.emptyIssuerSetProfile = signedAdmissionProfile(emptyIssuerSet.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
   'an authenticated profile without trust issuers is rejected');
 const emptyChecks = JSON.parse(validAdmissionProfile);
 emptyChecks.payload.requiredCryptographicChecks = [];
-const emptyChecksPayloadText = canonicalJson(emptyChecks.payload);
-emptyChecks.authentication.digest = crypto.createHash('sha256').update(emptyChecksPayloadText, 'utf8').digest('hex');
-emptyChecks.authentication.signature = crypto.sign('RSA-SHA256', Buffer.from(emptyChecksPayloadText, 'utf8'), admissionAuthorityPair.privateKey).toString('base64');
-context.emptyChecksProfile = JSON.stringify(emptyChecks);
+context.emptyChecksProfile = signedAdmissionProfile(emptyChecks.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyChecksProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
   'an authenticated profile without required cryptographic checks is rejected');
+const duplicateIssuerSet = JSON.parse(validAdmissionProfile);
+duplicateIssuerSet.payload.trustedIssuerSet.push(duplicateIssuerSet.payload.trustedIssuerSet[0]);
+context.duplicateIssuerSetProfile = signedAdmissionProfile(duplicateIssuerSet.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(duplicateIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'a correctly authenticated profile with duplicate trust issuers is rejected by schema validation');
+const duplicateRequiredChecks = JSON.parse(validAdmissionProfile);
+duplicateRequiredChecks.payload.requiredCryptographicChecks.push(
+  duplicateRequiredChecks.payload.requiredCryptographicChecks[0]);
+context.duplicateRequiredChecksProfile = signedAdmissionProfile(duplicateRequiredChecks.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(duplicateRequiredChecksProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'a correctly authenticated profile with duplicate checks is rejected by schema validation');
 const forgedProfile = JSON.parse(validAdmissionProfile);
 forgedProfile.payload.policyId = 'FORGED_POLICY';
 context.forgedProfile = JSON.stringify(forgedProfile);

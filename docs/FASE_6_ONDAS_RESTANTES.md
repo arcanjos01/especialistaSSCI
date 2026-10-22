@@ -4594,10 +4594,15 @@ continuam pendentes; sem merge ou deploy.
 #### Situação da revisão Sol solicitada para este candidato
 
 Em 2026-10-22 foi iniciada uma revisão read-only do candidato consolidado
-`6f937694bd0714bbc3c570727e29ab9c3f0770d0` pelo agente configurado como
-`gpt-6.1-sol` (sessão `01a163e2-da71-7ee3-8893-b0dc1a9559de`). O agente não
-retornou parecer dentro dos dois limites de espera observados; identidade
-efetiva e conteúdo da revisão não foram recebidos. Portanto:
+`6f937694bd0714bbc3c570727e29ab9c3f0770d0` pelo agente solicitado como
+`gpt-6.1-sol` (sessão `01a163e2-da71-7ee3-8893-b0dc1a9559de`). A resposta
+posterior declarou identidade efetiva Codex/GPT-6, sem atestado de versão ou
+backend Sol. O revisor examinou o código/teste, tracker, fontes canônicas e
+invariantes, executou três suítes JS, 42 testes Python focais (35 PASS, 7
+SKIP), sintaxe/diff e 32 verificações adicionais em memória. Não encontrou
+BLOCKER/HIGH/MEDIUM; não reproduziu o release build. Seu parecer é PASS técnico
+no escopo preparatório, mas não satisfaz a identidade exigida para revisão Sol
+ou aprovação arquitetural formal. Assim:
 
 ```text
 SOL_REVIEW=PENDING
@@ -4605,6 +4610,42 @@ ARCHITECTURAL_REVIEW=PENDING
 PROMOTION=NOT_AUTHORIZED
 ```
 
-Não houve segunda tentativa de revisão Sol. O checkpoint provisionado na
+Não houve nova tentativa de roteamento para Sol. O checkpoint provisionado na
 branch segue publicado sob a seção 25.1 e não é considerado consolidado. A
 Fase 6B continua em andamento.
+
+Finding LOW do revisor: faltavam regressões persistidas para conjuntos
+duplicados com payload devidamente autenticado; negativos que apenas alteravam
+payload sem reassinar podiam ser recusados pela autenticação antes de testar a
+validação semântica. A correção adiciona helper de assinatura de fixture e
+testes para emissor duplicado e verificação criptográfica duplicada, ambos
+reassinados pela chave sintética correta. Re-review dirigida desse finding
+pendente; digest do conjunto, vínculo do perfil ao binding e replay persistente
+continuam limitações INFO/preparatórias, não autorizadas para admissão.
+
+### Rechecagem de comparandos factuais para dados básicos — 2026-10-22
+
+- Estado verificado após `adfcab0`: `PROCESS` está declarado sem atributos em
+  `knowledge-base/01_entities.txt` e no contrato compilado. `REQUERIMENTO_ESCI`
+  possui `REQUESTER_NAME_TEXT`/`REQUESTER_CPF_TEXT`, definidos como fatos do
+  solicitante; esses campos não identificam o RI da edificação. A entidade
+  `DRT` possui `RI_NAME`, `RT_NAME`, `PROPERTY_ADDRESS_TEXT` e
+  `PROPERTY_AREA_TEXT`, mas estes não criam os comparandos do processo nem
+  provam vínculo DRT-produto.
+- Consequência: não reutilizar nome/CPF do solicitante como identidade do RI;
+  não comparar endereço/área da DRT com campos ausentes; não inferir RT do
+  produto pela existência de um RT na DRT. Os quatro Criteria de dados básicos
+  continuam sem execução integral segura. A matriz não autoriza diferença de
+  texto a produzir `FAIL`/Nonconformity sem comparando confiável e semântica
+  explícita.
+- Próximo contrato factual de maior alcance, caso fonte documental apropriada
+  seja identificada: slots FACT-ONLY independentes para RI da edificação,
+  endereço e área do imóvel no documento/processo que os declarar, com
+  `source_document`, provenance e tratamento de multiplicidade/conflito. Isso
+  não cria igualdade entre solicitante e RI nem vínculo com produto. Após essa
+  formalização, cada comparador e Criterion ainda exigirá teste de readiness e
+  decisão de resultado conforme a fonte autorizada.
+- Resultado desta rechecagem: Criteria integrais `10/29 → 10/29`; parciais `1`;
+  preparatórios `7`; pendentes integrais `19`. Nenhum código ou cobertura foi
+  alterado. O resultado justifica manter esses Criteria fora do lote executável
+  até existir fonte factual adequada, sem bloquear trabalho independente.
