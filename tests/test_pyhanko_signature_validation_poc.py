@@ -150,12 +150,38 @@ class PyHankoLocalSignatureValidationTests(unittest.TestCase):
             crls_der=crls,
         )
 
+    def _mutate_cms_signature(self, path: Path, output: Path):
+        from asn1crypto import cms
+
+        pdf = path.read_bytes()
+        contents_marker = b"/Contents <"
+        contents_start = pdf.index(contents_marker) + len(contents_marker)
+        contents_end = pdf.index(b">", contents_start)
+        cms_hex = pdf[contents_start:contents_end]
+        cms_bytes = bytes.fromhex(cms_hex.decode("ascii"))
+        content_info = cms.ContentInfo.load(cms_bytes)
+        original_der = content_info.dump()
+        self.assertEqual(cms_bytes[:len(original_der)], original_der)
+        self.assertFalse(any(cms_bytes[len(original_der):]))
+        signature = bytearray(content_info["content"]["signer_infos"][0]["signature"].native)
+        signature[0] ^= 0x01
+        content_info["content"]["signer_infos"][0]["signature"] = bytes(signature)
+        mutated_hex = content_info.dump().hex().encode("ascii")
+        self.assertLessEqual(len(mutated_hex), len(cms_hex))
+        self.assertEqual((len(cms_hex) - len(mutated_hex)) % 2, 0)
+        padded_mutated_hex = mutated_hex.ljust(len(cms_hex), b"0")
+        mutated = bytearray(pdf)
+        mutated[contents_start:contents_end] = padded_mutated_hex
+        output.write_bytes(mutated)
+
     def test_explicit_trust_and_valid_crl_are_reported_separately(self):
         with tempfile.TemporaryDirectory() as directory:
             signed, _, root, crl = self._make_signed_pdf(Path(directory))
             result = self._inspect(signed, roots=[root], crls=[crl])
         signature = result["signatures"][0]
         self.assertEqual(signature["integrity"], "VALID")
+        self.assertEqual(signature["content_integrity"], "VALID")
+        self.assertEqual(signature["cryptographic_signature_validity"], "VALID")
         self.assertEqual(signature["certificate_trust"], "TRUSTED")
         self.assertEqual(signature["revocation"], "NOT_REVOKED_IN_VALIDATED_CONTEXT")
         self.assertTrue(signature["current_file_fully_covered"])
@@ -168,6 +194,8 @@ class PyHankoLocalSignatureValidationTests(unittest.TestCase):
             result = self._inspect(signed, roots=[root], crls=[])
         signature = result["signatures"][0]
         self.assertEqual(signature["integrity"], "VALID")
+        self.assertEqual(signature["content_integrity"], "VALID")
+        self.assertEqual(signature["cryptographic_signature_validity"], "VALID")
         self.assertEqual(signature["certificate_trust"], "NOT_TRUSTED")
         self.assertEqual(signature["revocation"], "UNKNOWN/NOT_EVALUATED")
         self.assertFalse(signature["bottom_line"])
@@ -178,6 +206,8 @@ class PyHankoLocalSignatureValidationTests(unittest.TestCase):
             result = self._inspect(signed, roots=[root], crls=[crl])
         signature = result["signatures"][0]
         self.assertEqual(signature["integrity"], "VALID")
+        self.assertEqual(signature["content_integrity"], "VALID")
+        self.assertEqual(signature["cryptographic_signature_validity"], "VALID")
         self.assertEqual(signature["certificate_trust"], "NOT_TRUSTED")
         self.assertEqual(signature["revocation"], "REVOKED")
         self.assertFalse(signature["bottom_line"])
@@ -195,6 +225,17 @@ class PyHankoLocalSignatureValidationTests(unittest.TestCase):
         self.assertEqual(untrusted_result["signatures"][0]["integrity"], "VALID")
         self.assertEqual(untrusted_result["signatures"][0]["certificate_trust"], "NOT_TRUSTED")
         self.assertFalse(untrusted_result["signatures"][0]["bottom_line"])
+
+    def test_cms_signature_mutation_preserves_byte_range_integrity_but_invalidates_signature(self):
+        with tempfile.TemporaryDirectory() as directory:
+            signed, _, root, crl = self._make_signed_pdf(Path(directory))
+            mutated = Path(directory) / "cms-mutated.pdf"
+            self._mutate_cms_signature(signed, mutated)
+            result = self._inspect(mutated, roots=[root], crls=[crl])
+        signature = result["signatures"][0]
+        self.assertEqual(signature["content_integrity"], "VALID")
+        self.assertEqual(signature["cryptographic_signature_validity"], "INVALID")
+        self.assertEqual(signature["integrity"], "INVALID")
 
     def test_invalid_profile_inputs_are_rejected(self):
         with self.assertRaises(spike.PdfValidationSpikeError):

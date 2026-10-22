@@ -120,6 +120,8 @@ def validate_pdf_bytes(
         except Exception as exc:
             results.append({
                 "ordinal": ordinal,
+                "content_integrity": "UNKNOWN/NOT_EVALUATED",
+                "cryptographic_signature_validity": "UNKNOWN/NOT_EVALUATED",
                 "integrity": "UNKNOWN/NOT_EVALUATED",
                 "certificate_trust": "UNKNOWN/NOT_EVALUATED",
                 "revocation": "UNKNOWN/NOT_EVALUATED",
@@ -132,11 +134,24 @@ def validate_pdf_bytes(
 
         coverage = getattr(status.coverage, "name", "UNKNOWN/NOT_EVALUATED")
         intact = status.intact
+        valid = getattr(status, "valid", None)
+        content_integrity = (
+            "VALID" if intact is True else
+            "INVALID" if intact is False else
+            "UNKNOWN/NOT_EVALUATED"
+        )
+        cryptographic_signature_validity = (
+            "VALID" if valid is True else
+            "INVALID" if valid is False else
+            "UNKNOWN/NOT_EVALUATED"
+        )
         trust_problem = getattr(status.trust_problem_indic, "name", None)
         revoked = status.revoked
         results.append({
             "ordinal": ordinal,
-            "integrity": "VALID" if intact is True else "INVALID" if intact is False else "UNKNOWN/NOT_EVALUATED",
+            "content_integrity": content_integrity,
+            "cryptographic_signature_validity": cryptographic_signature_validity,
+            "integrity": "VALID" if intact is True and valid is True else "INVALID" if intact is False or valid is False else "UNKNOWN/NOT_EVALUATED",
             "certificate_trust": "TRUSTED" if status.trusted is True else "NOT_TRUSTED" if status.trusted is False else "UNKNOWN/NOT_EVALUATED",
             "trust_problem": trust_problem,
             "revocation": "REVOKED" if revoked is True else "NOT_REVOKED_IN_VALIDATED_CONTEXT" if status.trusted is True else "UNKNOWN/NOT_EVALUATED",
