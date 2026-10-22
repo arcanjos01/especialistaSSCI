@@ -5872,3 +5872,16 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   comparandos de `T1_DRT_BASIC_DATA` continua aguardando o responsável; a IRV
   não identifica o comparando, e o requerimento não traz um campo de RI nem
   escolhe entre área do terreno e construída.
+
+### Decisão do responsável — comparandos de dados básicos da DRT (2026-10-22)
+
+O responsável pelo projeto **aprovou** a diretriz operacional para os quatro comparandos dos Criteria `T1_DRT_RI_LEGAL_ENTITY`, `T1_DRT_RT_NAME`, `T1_DRT_ADDRESS` e `T1_DRT_AREA`:
+
+1. **RI:** comparar a identificação do RI na DRT com o RI identificado em fonte documental confiável, correspondente à apresentação atual. A ausência de RI no requerimento não autoriza inventá-lo nem selecionar outra pessoa por presunção. Sem comparando confiável: `MANUAL_REVIEW`.
+2. **RT:** conferir o profissional da responsabilidade técnica específica efetivamente analisada. Não confundir com o solicitante, não associar uma DRT a outra RT/produto sem vínculo autorizado e não julgar atribuição ou habilitação profissional em lugar do conselho.
+3. **Endereço:** utilizar o endereço da edificação no processo, limitado aos componentes documentalmente inequívocos e rastreáveis. Abreviações, formatação e ambiguidades não constituem, isoladamente, divergência normativa conclusiva.
+4. **Área:** utilizar a **área construída correspondente ao escopo da DRT**, quando ambos estiverem identificados com suporte documental suficiente. Não tomar automaticamente área do terreno por área construída, nem comparar área parcial com total sem identificar os respectivos escopos.
+
+**Condições de implementação:** os comparandos são uma diretriz operacional do projeto, não uma equivalência expressa extraída da IRV; exigem proveniência documental confiável e ligação à apresentação/RDE e à DRT corretas. Na insuficiência, conflito de escopo ou ambiguidade: `MANUAL_REVIEW`. Não gerar `FAIL`/Nonconformity por mera diferença textual. Divergências materialmente comprovadas devem seguir o contrato normativo e a revisão apropriada; não presumir não conformidade. Preservar RDE FACT ONLY, Engine determinístico e invariantes de autoridade.
+
+**Efeito da decisão:** encerra a pendência de escolha dos comparandos pelo responsável, **não** prova que as fontes documentais e fatos necessários já existam. O Codex está autorizado a implementar e testar incrementalmente apenas comparações sustentadas por evidência, seguindo os gates e revisões existentes. `CRITERIA_COVERED=10/29` até comprovação técnica de nova cobertura; `FASE_6B_STATUS=IN_PROGRESS`; `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING`; `PROMOTION=NOT_AUTHORIZED`. Nenhuma regra sobre IN10, assinatura ou status de conselho foi modificada nesta decisão.
