@@ -4544,3 +4544,49 @@ referência documental e perfil de admissão/trust aprovado; depois, integraçã
 restrita ao predicate e fixtures de resultado. Este checkpoint não conclui
 Criteria nem Fase 6B, não reabre a decisão IN10 e não altera a relação
 DRT→produto. Sem merge, deploy ou uso de processos reais.
+
+### Perfil de admissão de assinatura — endurecimento preparatório — 2026-10-22
+
+```text
+REVIEWED_CANDIDATE=98da985244d8b26268284a9e6a61b68d57c106fa
+INDEPENDENT_TECHNICAL_REVIEW=PASS (escopo focado; identidade de backend não atestada)
+ARCHITECTURAL_REVIEW=PENDING
+SOL_REVIEW=NOT_PERFORMED
+PROMOTION=NOT_AUTHORIZED
+CRITERIA_COVERAGE=UNCHANGED (10/29 integrais; 1 parcial; 7 preparatórios; 19 pendentes integrais)
+BUILD_VALIDATION=PASS (10 documentos; SOURCE_COMMIT exato)
+RUNTIME_SHA256=43952a1c49b09fc7bf9478a87973099788e4c5eaa56a10d1bd9ffe987ef81561
+```
+
+O perfil autenticado agora rejeita conjuntos vazios ou duplicados de emissores
+confiáveis e verificações criptográficas. Um perfil sintético válido continua
+sendo apenas preparatório: o binding permanece `MANUAL_REVIEW`, sem admissão
+`SIGNED`, entrada no Engine ou resultado normativo. Os testes também cobrem
+forja, autoridade compartilhada e incompatibilidade do contract digest.
+
+Lote independente: `luna_economy` (sessão `01a163e0-88fa-7912-a6c9-c411681a8d69`),
+somente leitura, examinou o SHA exato e executou a suíte focal, que passou. O
+parecer registrou PASS técnico e nenhum finding adicional no escopo. A
+identidade declarada na resposta foi Codex; o backend/modelo efetivo não foi
+atestado, portanto este parecer não satisfaz aprovação arquitetural formal nem
+é revisão Sol. O revisor reiterou a limitação já aberta: o digest do conjunto
+de emissores é autenticado e validado sintaticamente, mas não recalculado até
+haver contrato canônico de serialização do conjunto. Sem inventar essa
+canonicalização, o perfil segue preparatório e incapaz de liberar assinatura.
+
+Gates executados pelo orquestrador neste lote: 201 testes Python (`189` OK,
+`12` skips condicionais); 12 suítes Apps Script PASS; sintaxe de módulos e
+testes JavaScript PASS; `Code.gs` PASS por `node --check` via stdin (Node 22
+recusa a extensão `.gs` diretamente); runtime regenerado byte-idêntico, hash
+acima; manifests e phase guards PASS pela suíte Python; `git diff --check`
+PASS. Release técnico em worktree limpa: 10/10 documentos, KB `5.39.0` e
+`SOURCE_COMMIT` exato `98da985244d8b26268284a9e6a61b68d57c106fa`.
+
+Benefício operacional: nenhum Criterion integral adicional; a rejeição de
+perfis incompletos evita que uma configuração autenticada sem emissores ou
+checagens declarados seja confundida com perfil tecnicamente utilizável. O
+ganho é uma dependência compartilhada preparatória, sem integração ao Engine.
+Esforço aproximado: 25 minutos entre regressões, gates e revisão; uma revisão
+independente focada. Findings bloqueantes novos: zero. O estado da Fase 6B e
+as contagens de cobertura não mudam. A consolidação arquitetural e a promoção
+continuam pendentes; sem merge ou deploy.
