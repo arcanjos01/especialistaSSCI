@@ -5095,16 +5095,21 @@ SOURCE_COMMIT=c2ab442426da44718ed893b3c364661bf0d65156
   `T4_DRT_REGISTERED` dependem de mapeamentos contemporâneos, versionados e
   específicos para status de registro, emissão e pagamento de ART/RRT/TRT.
   `T1_DRT_RI_LEGAL_ENTITY` e `T1_DRT_RT_NAME` carecem de comparandos de processo
-  autenticados e vínculo exato ao produto/RT. `T1_DRT_ADDRESS` e `T1_DRT_AREA`
-  carecem de fatos processuais e de definição documental do escopo/área
-  comparável. Os Criteria de assinatura exigem recibo técnico confiável e
+  autenticados e vínculo exato ao produto/RT. Para `T1_DRT_ADDRESS`, os
+  componentes literais do Anexo B já existem em `REQUERIMENTO_ESCI`, mas falta
+  contrato autorizado que os compare ao endereço textual da DRT sem
+  normalização ou montagem ambígua. Para `T1_DRT_AREA`, os campos de terreno e
+  área total construída também existem, mas a IRV não seleciona qual dimensão
+  corresponde a “Área do Imóvel” nem como resolver bloco/escopo. Os Criteria de
+  assinatura exigem recibo técnico confiável e
   binding exato consumível pelo Engine; a POC atual ainda não é autoridade de
   admissão. Os Criteria de comissionamento e ensaio ainda carecem de evidências
   estruturadas de presença, relação e conteúdo. Não inferir dados nem completar
   regras por código.
-- Bloqueios e próximos desbloqueios: obter fatos canônicos do solicitante/imóvel
-  e vínculo explícito por apresentação/RDE; formalizar institucionalmente o
-  contrato de cobertura DRT→produto onde aplicável; obter mapeamentos atuais de
+- Bloqueios e próximos desbloqueios: autenticar os fatos existentes do processo
+  e vinculá-los à apresentação/RDE exata; definir os comparandos de endereço e
+  área a partir da fonte autorizada; formalizar institucionalmente o contrato
+  de cobertura DRT→produto onde aplicável; obter mapeamentos atuais de
   status de ART/RRT/TRT; e concluir a validação criptográfica e a fronteira
   autenticada do recibo `SIGNED`. A decisão IN10 não foi reaberta.
   `CALIBRATION_GATE=BLOCKED`, `NORMATIVE_INSTITUTIONAL_VALIDATION=PENDING` e
