@@ -2,7 +2,7 @@
 # 08_execution_pipeline.txt
 # BASE DE CONHECIMENTO
 # EXECUTION PIPELINE
-# DOCUMENT_VERSION: 4.41.0
+# DOCUMENT_VERSION: 4.42.0
 ###############################################################################
 
 ###############################################################################
@@ -11,7 +11,7 @@
 
 KNOWLEDGE_BASE_ID: SSCI-HABITESE
 
-KNOWLEDGE_BASE_VERSION: 5.40.0
+KNOWLEDGE_BASE_VERSION: 5.41.0
 
 SOURCE_COMMIT: RELEASE_BUILD_REQUIRED
 
@@ -24,8 +24,8 @@ DOCUMENT_SET:
 03_table1.txt: DOCUMENT_VERSION 3.4.0
 04_table4.txt: DOCUMENT_VERSION 3.6.0
 05_nonconformities.txt: DOCUMENT_VERSION 3.2.0
-06_reports.txt: DOCUMENT_VERSION 3.23.0
-08_execution_pipeline.txt: DOCUMENT_VERSION 4.41.0
+06_reports.txt: DOCUMENT_VERSION 3.24.0
+08_execution_pipeline.txt: DOCUMENT_VERSION 4.42.0
 09_Especificacao_da_RDE.txt: DOCUMENT_VERSION 1.10.0
 
 END DOCUMENT_SET.
@@ -406,9 +406,14 @@ does not mutate the receipt. A frozen admission profile shall identify
 policy id/version/digest, permitted mechanism, trusted issuer/anchor set and
 digest, required cryptographic checks, required signer/issuer role, validation
 level and treatment of unknown results. It must be authenticated and applicable
-to the active contract. Until a verifier and admission profile satisfying this
-contract exist, this interface is preparatory and the Engine returns
-MANUAL_REVIEW.
+to the active contract. Admission profile schema 0.2.0 defines
+`trustedIssuerSetDigest` as lowercase SHA-256 hex over the UTF-8 bytes of the
+canonical JSON serialization of `trustedIssuerSet`, using the receipt
+canonicalization rules and preserving the array's declared order. Verification
+shall recompute and compare this digest after structural validation; an
+authenticated but inconsistent digest invalidates the profile. Until a
+verifier and admission profile satisfying this contract exist, this interface
+is preparatory and the Engine returns MANUAL_REVIEW.
 
 For a DRT, the role check shall establish the source-defined path of either
 the RT's digital signature or the issuing council's digital certification.

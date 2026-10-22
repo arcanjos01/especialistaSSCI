@@ -414,12 +414,14 @@ function signedAdmissionProfile(payload) {
 }
 function admissionProfileJson() {
   const contractText = canonicalJson(context.COMPILED_RUNTIME_CONTRACT);
+  const trustedIssuerSet = ['SYNTHETIC_ISSUER'];
   const payload = {
-    profileType: 'SIGNATURE_ADMISSION_PROFILE', schemaVersion: '0.1.0',
+    profileType: 'SIGNATURE_ADMISSION_PROFILE', schemaVersion: '0.2.0',
     compiledContractDigest: crypto.createHash('sha256').update(contractText, 'utf8').digest('hex'),
     policyId: 'SYNTHETIC_POLICY', policyVersion: 'SYNTHETIC_V1', policyDigest: '1'.repeat(64),
-    permittedMechanism: 'SYNTHETIC_RSA_TEST', trustedIssuerSet: ['SYNTHETIC_ISSUER'],
-    trustedIssuerSetDigest: '2'.repeat(64), requiredCryptographicChecks: ['SYNTHETIC_INTEGRITY_CHECK'],
+    permittedMechanism: 'SYNTHETIC_RSA_TEST', trustedIssuerSet,
+    trustedIssuerSetDigest: crypto.createHash('sha256').update(canonicalJson(trustedIssuerSet), 'utf8').digest('hex'),
+    requiredCryptographicChecks: ['SYNTHETIC_INTEGRITY_CHECK'],
     requiredSignerIssuerRole: 'SYNTHETIC_SIGNER_OR_ISSUER', validationLevel: 'SYNTHETIC_FIXTURE_ONLY',
     unknownTreatment: 'MANUAL_REVIEW'
   };
@@ -429,6 +431,30 @@ const validAdmissionProfile = admissionProfileJson();
 context.validAdmissionProfile = validAdmissionProfile;
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(validAdmissionProfile, COMPILED_RUNTIME_CONTRACT)', context), true,
   'synthetic profile signed by distinct authority key is accepted preparatorily');
+const oldProfileSchema = JSON.parse(validAdmissionProfile);
+oldProfileSchema.payload.schemaVersion = '0.1.0';
+context.oldProfileSchema = signedAdmissionProfile(oldProfileSchema.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(oldProfileSchema, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'legacy admission profile schema is not silently accepted after digest semantics change');
+const orderedIssuerProfile = JSON.parse(validAdmissionProfile);
+orderedIssuerProfile.payload.trustedIssuerSet = ['ISSUER_A', 'ISSUER_B'];
+orderedIssuerProfile.payload.trustedIssuerSetDigest = crypto.createHash('sha256')
+  .update(canonicalJson(orderedIssuerProfile.payload.trustedIssuerSet), 'utf8').digest('hex');
+context.orderedIssuerProfile = signedAdmissionProfile(orderedIssuerProfile.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(orderedIssuerProfile, COMPILED_RUNTIME_CONTRACT)', context), true,
+  'the declared array order is covered by the profile digest');
+const reorderedIssuerProfile = JSON.parse(JSON.stringify(orderedIssuerProfile));
+reorderedIssuerProfile.payload.trustedIssuerSet.reverse();
+context.reorderedIssuerProfile = signedAdmissionProfile(reorderedIssuerProfile.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(reorderedIssuerProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'a reordered issuer array with the prior digest is rejected');
+const unicodeIssuerProfile = JSON.parse(validAdmissionProfile);
+unicodeIssuerProfile.payload.trustedIssuerSet = ['CONSELHO_Á'];
+unicodeIssuerProfile.payload.trustedIssuerSetDigest = crypto.createHash('sha256')
+  .update(canonicalJson(unicodeIssuerProfile.payload.trustedIssuerSet), 'utf8').digest('hex');
+context.unicodeIssuerProfile = signedAdmissionProfile(unicodeIssuerProfile.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(unicodeIssuerProfile, COMPILED_RUNTIME_CONTRACT)', context), true,
+  'UTF-8 canonical digest agrees for non-ASCII issuer identifiers');
 const preparatoryProfileReceiptPayload = JSON.parse(JSON.stringify(bindingPayload));
 preparatoryProfileReceiptPayload.receiptId = 'TEST_PREPARATORY_PROFILE_BINDING';
 assert.equal(createBindingWith({
@@ -438,6 +464,8 @@ assert.equal(createBindingWith({
 'an authenticated preparatory profile never authorizes automatic Engine admission');
 const emptyIssuerSet = JSON.parse(validAdmissionProfile);
 emptyIssuerSet.payload.trustedIssuerSet = [];
+emptyIssuerSet.payload.trustedIssuerSetDigest = crypto.createHash('sha256')
+  .update(canonicalJson(emptyIssuerSet.payload.trustedIssuerSet), 'utf8').digest('hex');
 context.emptyIssuerSetProfile = signedAdmissionProfile(emptyIssuerSet.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
   'an authenticated profile without trust issuers is rejected');
@@ -448,9 +476,21 @@ assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(emptyChecksProfil
   'an authenticated profile without required cryptographic checks is rejected');
 const duplicateIssuerSet = JSON.parse(validAdmissionProfile);
 duplicateIssuerSet.payload.trustedIssuerSet.push(duplicateIssuerSet.payload.trustedIssuerSet[0]);
+duplicateIssuerSet.payload.trustedIssuerSetDigest = crypto.createHash('sha256')
+  .update(canonicalJson(duplicateIssuerSet.payload.trustedIssuerSet), 'utf8').digest('hex');
 context.duplicateIssuerSetProfile = signedAdmissionProfile(duplicateIssuerSet.payload);
 assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(duplicateIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
   'a correctly authenticated profile with duplicate trust issuers is rejected by schema validation');
+const inconsistentIssuerSetDigest = JSON.parse(validAdmissionProfile);
+inconsistentIssuerSetDigest.payload.trustedIssuerSetDigest = '2'.repeat(64);
+context.inconsistentIssuerSetDigestProfile = signedAdmissionProfile(inconsistentIssuerSetDigest.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(inconsistentIssuerSetDigestProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'an authenticated but incorrect trusted-issuer-set digest is rejected');
+const alteredIssuerSet = JSON.parse(validAdmissionProfile);
+alteredIssuerSet.payload.trustedIssuerSet = ['ALTERED_ISSUER'];
+context.alteredIssuerSetProfile = signedAdmissionProfile(alteredIssuerSet.payload);
+assert.equal(vm.runInContext('verifySignatureAdmissionProfile_(alteredIssuerSetProfile, COMPILED_RUNTIME_CONTRACT)', context), false,
+  'an issuer set changed without updating its digest is rejected even when the payload is signed');
 const duplicateRequiredChecks = JSON.parse(validAdmissionProfile);
 duplicateRequiredChecks.payload.requiredCryptographicChecks.push(
   duplicateRequiredChecks.payload.requiredCryptographicChecks[0]);

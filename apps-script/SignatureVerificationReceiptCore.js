@@ -325,7 +325,7 @@
   function validAdmissionProfilePayload_(payload, contractDigest) {
     return exactDataObject_(payload, admissionProfilePayloadKeys_) &&
       payload.profileType === 'SIGNATURE_ADMISSION_PROFILE' &&
-      payload.schemaVersion === '0.1.0' && digest_(payload.compiledContractDigest) &&
+      payload.schemaVersion === '0.2.0' && digest_(payload.compiledContractDigest) &&
       payload.compiledContractDigest === contractDigest && hasText_(payload.policyId, 128) &&
       hasText_(payload.policyVersion, 64) && digest_(payload.policyDigest) &&
       hasText_(payload.permittedMechanism, 128) &&
@@ -334,6 +334,7 @@
       payload.trustedIssuerSet.every(value => hasText_(value, 256)) &&
       new Set(payload.trustedIssuerSet).size === payload.trustedIssuerSet.length &&
       digest_(payload.trustedIssuerSetDigest) &&
+      payload.trustedIssuerSetDigest === sha256_(canonicalJsonValue_(payload.trustedIssuerSet)) &&
       Array.isArray(payload.requiredCryptographicChecks) &&
       payload.requiredCryptographicChecks.length > 0 &&
       payload.requiredCryptographicChecks.length <= 256 &&
